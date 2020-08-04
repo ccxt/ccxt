@@ -29,11 +29,15 @@ class FastClient(AiohttpClient):
                     await asyncio.sleep(0)
                     self.change_context = False
 
-        def wrapper(func):
-            def inner(data, size):
-                self.stack.append(data)
-                if self.switcher is None or self.switcher.done():
-                    self.switcher = asyncio.ensure_future(switcher())
+        def feed_data(data, size):
+            self.stack.append(data)
+            if self.switcher is None or self.switcher.done():
+                self.switcher = asyncio.ensure_future(switcher())
+
+        def exception_wrapper(set_exception):
+            def inner(exception):
+                set_exception(exception)
+                self.on_error(exception)
             return inner
 
         connection = self.connection._conn
@@ -42,7 +46,8 @@ class FastClient(AiohttpClient):
             self.on_close(1006)
             return
         queue = connection.protocol._payload_parser.queue
-        queue.feed_data = wrapper(queue.feed_data)
+        queue.feed_data = feed_data
+        queue.set_exception = exception_wrapper(queue.set_exception)
 
     def resolve(self, result, message_hash=None):
         super(FastClient, self).resolve(result, message_hash)
