@@ -263,15 +263,57 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'currency': 'all',
-        };
-        const response = await this.privateGetUserMargin (this.extend (request, params));
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+    parseBalances (balances) {
+        //
+        //     [
+        //         {
+        //             "account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     ]
+        //
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -284,6 +326,62 @@ module.exports = class bitmex extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'currency': 'all',
+        };
+        const response = await this.privateGetUserMargin (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     ]
+        //
+        return this.parseBalances (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
