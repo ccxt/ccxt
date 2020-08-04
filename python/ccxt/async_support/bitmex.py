@@ -320,11 +320,15 @@ class bitmex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableMargin')
-            account['total'] = self.safe_float(balance, 'marginBalance')
+            free = self.safe_float(balance, 'availableMargin')
+            total = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
-                account['free'] = account['free'] / 100000000
-                account['total'] = account['total'] / 100000000
+                if free is not None:
+                    free /= 100000000
+                if total is not None:
+                    total /= 100000000
+            account['free'] = free
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
 

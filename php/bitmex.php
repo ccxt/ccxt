@@ -321,12 +321,18 @@ class bitmex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableMargin');
-            $account['total'] = $this->safe_float($balance, 'marginBalance');
+            $free = $this->safe_float($balance, 'availableMargin');
+            $total = $this->safe_float($balance, 'marginBalance');
             if ($code === 'BTC') {
-                $account['free'] = $account['free'] / 100000000;
-                $account['total'] = $account['total'] / 100000000;
+                if ($free !== null) {
+                    $free /= 100000000;
+                }
+                if ($total !== null) {
+                    $total /= 100000000;
+                }
             }
+            $account['free'] = $free;
+            $account['total'] = $total;
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
