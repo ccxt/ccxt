@@ -13,20 +13,9 @@ const log = require ('ololog')
 
 module.exports = async (exchange, symbol) => {
 
-    // log (symbol.green, 'watching trades...')
+    // log (symbol.green, 'watching my trades...')
 
-    const method = 'watchTrades'
-
-    const skippedExchanges = [
-        'binanceje',
-        'bitvavo',
-        'dsx',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method, 'test skipped')
-        return
-    }
+    const method = 'watchMyTrades'
 
     if (!exchange.has[method]) {
         log (exchange.id, 'does not support', method + '() method')
