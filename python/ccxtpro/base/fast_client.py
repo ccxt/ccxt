@@ -2,6 +2,7 @@
 
 __author__ = 'Carlo Revelli'
 
+import ccxt
 from ccxtpro.base.aiohttp_client import AiohttpClient
 import asyncio
 import collections
@@ -34,20 +35,19 @@ class FastClient(AiohttpClient):
             if self.switcher is None or self.switcher.done():
                 self.switcher = asyncio.ensure_future(switcher())
 
-        def exception_wrapper(set_exception):
-            def inner(exception):
-                set_exception(exception)
-                self.on_error(exception)
-            return inner
+        def network_error(exception):
+            self.on_error(ccxt.NetworkError(exception))
 
         connection = self.connection._conn
         if connection.closed:
             # connection got terminated after the connection was made and before the receive loop ran
             self.on_close(1006)
             return
-        queue = connection.protocol._payload_parser.queue
+        protocol = connection.protocol
+        queue = protocol._payload_parser.queue
         queue.feed_data = feed_data
-        queue.set_exception = exception_wrapper(queue.set_exception)
+        queue.set_exception = network_error
+        protocol.connection_lost = network_error
 
     def resolve(self, result, message_hash=None):
         super(FastClient, self).resolve(result, message_hash)
