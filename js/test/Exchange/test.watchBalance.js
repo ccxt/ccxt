@@ -4,6 +4,9 @@
 
 const log = require ('ololog')
     , assert = require ('assert')
+    , testBalance = require ('ccxt/js/test/Exchange/test.balance.js')
+    , errors = require ('ccxt/js/base/errors.js')
+
 
 /*  ------------------------------------------------------------------------ */
 
@@ -18,9 +21,30 @@ module.exports = async (exchange) => {
 
     log ('watching balance...')
 
-    const balance = await exchange[method] ({
-        // 'code': 'BTC',
-    })
+    let now = Date.now ()
+    const ends = now + 15000
+
+    while (now < ends) {
+
+        try {
+
+            const balance = await exchange[method] ()
+
+            log (exchange.iso8601 (now), exchange.id, method, balance)
+
+            testBalance (exchange, balance)
+
+        } catch (e) {
+
+            if (!(e instanceof errors.NetworkError)) {
+                throw e
+            }
+
+            log.red (e)
+        }
+
+        now = Date.now ()
+    }
 
     /*
 
@@ -69,7 +93,7 @@ module.exports = async (exchange) => {
 
     log (result)
 
-    */
-
     return balance
+
+    */
 }

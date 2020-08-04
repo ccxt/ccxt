@@ -5,9 +5,9 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import RateLimitExceeded
 
 
@@ -17,11 +17,13 @@ class bitmex(Exchange, ccxt.bitmex):
         return self.deep_extend(super(bitmex, self).describe(), {
             'has': {
                 'ws': True,
+                'watchBalance': True,
+                'watchMyTrades': True,
+                'watchOHLCV': True,
+                'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
-                'watchOrderBook': True,
-                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
@@ -306,7 +308,120 @@ class bitmex(Exchange, ccxt.bitmex):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotSupported(self.id + ' watchBalance() not implemented yet')
+        authenticate = self.authenticate()
+        messageHash = 'margin'
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        }
+        return await self.after_dropped(authenticate, self.watch, url, messageHash, self.extend(request, params), messageHash)
+
+    def handle_balance(self, client, message):
+        #
+        #     {
+        #         table: 'margin',
+        #         action: 'partial',
+        #         keys: ['account'],
+        #         types: {
+        #             account: 'long',
+        #             currency: 'symbol',
+        #             riskLimit: 'long',
+        #             prevState: 'symbol',
+        #             state: 'symbol',
+        #             action: 'symbol',
+        #             amount: 'long',
+        #             pendingCredit: 'long',
+        #             pendingDebit: 'long',
+        #             confirmedDebit: 'long',
+        #             prevRealisedPnl: 'long',
+        #             prevUnrealisedPnl: 'long',
+        #             grossComm: 'long',
+        #             grossOpenCost: 'long',
+        #             grossOpenPremium: 'long',
+        #             grossExecCost: 'long',
+        #             grossMarkValue: 'long',
+        #             riskValue: 'long',
+        #             taxableMargin: 'long',
+        #             initMargin: 'long',
+        #             maintMargin: 'long',
+        #             sessionMargin: 'long',
+        #             targetExcessMargin: 'long',
+        #             varMargin: 'long',
+        #             realisedPnl: 'long',
+        #             unrealisedPnl: 'long',
+        #             indicativeTax: 'long',
+        #             unrealisedProfit: 'long',
+        #             syntheticMargin: 'long',
+        #             walletBalance: 'long',
+        #             marginBalance: 'long',
+        #             marginBalancePcnt: 'float',
+        #             marginLeverage: 'float',
+        #             marginUsedPcnt: 'float',
+        #             excessMargin: 'long',
+        #             excessMarginPcnt: 'float',
+        #             availableMargin: 'long',
+        #             withdrawableMargin: 'long',
+        #             timestamp: 'timestamp',
+        #             grossLastValue: 'long',
+        #             commission: 'float'
+        #         },
+        #         foreignKeys: {},
+        #         attributes: {account: 'sorted'},
+        #         filter: {account: 1455728},
+        #         data: [
+        #             {
+        #                 account: 1455728,
+        #                 currency: 'XBt',
+        #                 riskLimit: 1000000000000,
+        #                 prevState: '',
+        #                 state: '',
+        #                 action: '',
+        #                 amount: 263542,
+        #                 pendingCredit: 0,
+        #                 pendingDebit: 0,
+        #                 confirmedDebit: 0,
+        #                 prevRealisedPnl: 0,
+        #                 prevUnrealisedPnl: 0,
+        #                 grossComm: 0,
+        #                 grossOpenCost: 0,
+        #                 grossOpenPremium: 0,
+        #                 grossExecCost: 0,
+        #                 grossMarkValue: 0,
+        #                 riskValue: 0,
+        #                 taxableMargin: 0,
+        #                 initMargin: 0,
+        #                 maintMargin: 0,
+        #                 sessionMargin: 0,
+        #                 targetExcessMargin: 0,
+        #                 varMargin: 0,
+        #                 realisedPnl: 0,
+        #                 unrealisedPnl: 0,
+        #                 indicativeTax: 0,
+        #                 unrealisedProfit: 0,
+        #                 syntheticMargin: null,
+        #                 walletBalance: 263542,
+        #                 marginBalance: 263542,
+        #                 marginBalancePcnt: 1,
+        #                 marginLeverage: 0,
+        #                 marginUsedPcnt: 0,
+        #                 excessMargin: 263542,
+        #                 excessMarginPcnt: 1,
+        #                 availableMargin: 263542,
+        #                 withdrawableMargin: 263542,
+        #                 timestamp: '2020-08-03T12:01:01.246Z',
+        #                 grossLastValue: 0,
+        #                 commission: null
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(message, 'data')
+        self.balance = self.extend(self.balance, self.parseBalances(data))
+        messageHash = self.safe_string(message, 'table')
+        client.resolve(self.balance, messageHash)
 
     def handle_trades(self, client, message):
         #
@@ -402,6 +517,134 @@ class bitmex(Exchange, ccxt.bitmex):
         }
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+
+    async def authenticate(self):
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        future = client.future('authenticated')
+        action = 'authKeyExpires'
+        authenticated = self.safe_value(client.subscriptions, action)
+        if authenticated is None:
+            try:
+                self.check_required_credentials()
+                timestamp = self.milliseconds()
+                message = 'GET' + '/realtime' + str(timestamp)
+                signature = self.hmac(self.encode(message), self.encode(self.secret))
+                request = {
+                    'op': action,
+                    'args': [
+                        self.apiKey,
+                        timestamp,
+                        signature,
+                    ],
+                }
+                self.spawn(self.watch, url, action, request, action)
+            except Exception as e:
+                client.reject(e, 'authenticated')
+                if action in client.subscriptions:
+                    del client.subscriptions[action]
+        return await future
+
+    def handle_authentication_message(self, client, message):
+        authenticated = self.safe_value(message, 'success', False)
+        if authenticated:
+            # we resolve the future here permanently so authentication only happens once
+            future = self.safe_value(client.futures, 'authenticated')
+            future.resolve(True)
+        else:
+            error = AuthenticationError(self.json(message))
+            client.reject(error, 'authenticated')
+            # allows further authentication attempts
+            event = 'authKeyExpires'
+            if event in client.subscriptions:
+                del client.subscriptions[event]
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        authenticate = self.authenticate()
+        messageHash = 'execution'
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        }
+        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, messageHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_my_trades(self, client, message):
+        #
+        #     {
+        #         "table":"execution",
+        #         "action":"insert",
+        #         "data":[
+        #             {
+        #                 "execID":"0193e879-cb6f-2891-d099-2c4eb40fee21",
+        #                 "orderID":"00000000-0000-0000-0000-000000000000",
+        #                 "clOrdID":"",
+        #                 "clOrdLinkID":"",
+        #                 "account":2,
+        #                 "symbol":"XBTUSD",
+        #                 "side":"Sell",
+        #                 "lastQty":1,
+        #                 "lastPx":1134.37,
+        #                 "underlyingLastPx":null,
+        #                 "lastMkt":"XBME",
+        #                 "lastLiquidityInd":"RemovedLiquidity",
+        #                 "simpleOrderQty":null,
+        #                 "orderQty":1,
+        #                 "price":1134.37,
+        #                 "displayQty":null,
+        #                 "stopPx":null,
+        #                 "pegOffsetValue":null,
+        #                 "pegPriceType":"",
+        #                 "currency":"USD",
+        #                 "settlCurrency":"XBt",
+        #                 "execType":"Trade",
+        #                 "ordType":"Limit",
+        #                 "timeInForce":"ImmediateOrCancel",
+        #                 "execInst":"",
+        #                 "contingencyType":"",
+        #                 "exDestination":"XBME",
+        #                 "ordStatus":"Filled",
+        #                 "triggered":"",
+        #                 "workingIndicator":false,
+        #                 "ordRejReason":"",
+        #                 "simpleLeavesQty":0,
+        #                 "leavesQty":0,
+        #                 "simpleCumQty":0.001,
+        #                 "cumQty":1,
+        #                 "avgPx":1134.37,
+        #                 "commission":0.00075,
+        #                 "tradePublishIndicator":"DoNotPublishTrade",
+        #                 "multiLegReportingType":"SingleSecurity",
+        #                 "text":"Liquidation",
+        #                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
+        #                 "execCost":88155,
+        #                 "execComm":66,
+        #                 "homeNotional":-0.00088155,
+        #                 "foreignNotional":1,
+        #                 "transactTime":"2017-04-04T22:07:46.035Z",
+        #                 "timestamp":"2017-04-04T22:07:46.035Z"
+        #             }
+        #         ]
+        #     }
+        #
+        messageHash = self.safe_string(message, 'table')
+        data = self.safe_value(message, 'data', [])
+        dataByExecType = self.group_by(data, 'execType')
+        rawTrades = self.safe_value(dataByExecType, 'Trade', [])
+        trades = self.parse_trades(rawTrades)
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        stored = self.myTrades
+        for j in range(0, len(trades)):
+            stored.append(trades[j])
+        numTrades = len(trades)
+        if numTrades > 0:
+            client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         table = None
@@ -515,7 +758,6 @@ class bitmex(Exchange, ccxt.bitmex):
         #         ]
         #     }
         #
-        # --------------------------------------------------------------------
         table = self.safe_string(message, 'table')
         interval = table.replace('tradeBin', '')
         timeframe = self.find_timeframe(interval)
@@ -765,9 +1007,16 @@ class bitmex(Exchange, ccxt.bitmex):
                 'tradeBin5m': self.handle_ohlcv,
                 'tradeBin1h': self.handle_ohlcv,
                 'tradeBin1d': self.handle_ohlcv,
+                'execution': self.handle_my_trades,
+                'margin': self.handle_balance,
             }
             method = self.safe_value(methods, table)
             if method is None:
-                return message
+                request = self.safe_value(message, 'request', {})
+                op = self.safe_value(request, 'op')
+                if op == 'authKeyExpires':
+                    return self.handle_authentication_message(client, message)
+                else:
+                    return message
             else:
                 return method(client, message)
