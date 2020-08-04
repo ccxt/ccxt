@@ -4,12 +4,11 @@ namespace ccxtpro;
 
 use \Ds\Deque;
 
-class ArrayCache extends \ArrayObject implements \JsonSerializable {
+class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \Countable {
     public $max_size;
     public $deque;
 
     public function __construct($max_size = null) {
-        parent::__construct();
         $this->max_size = $max_size;
         // the deque implemented in Ds has fast shifting by using doubly linked lists
         // https://www.php.net/manual/en/class.ds-deque.php
@@ -18,7 +17,7 @@ class ArrayCache extends \ArrayObject implements \JsonSerializable {
     }
 
     public function getIterator() {
-        return $this->deque;
+        return $this->deque->getIterator();
     }
 
     public function JsonSerialize () {
