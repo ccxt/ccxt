@@ -35,8 +35,6 @@ module.exports = class WsClient extends Client {
 
     connect (backoffDelay = 0) {
         if ((this.connection.readyState !== WebSocket.OPEN) && (this.connection.readyState !== WebSocket.CONNECTING)) {
-            // prevent multiple calls overwriting each other
-            this.connection.readyState = WebSocket.CONNECTING
             // exponential backoff for consequent ws connections if necessary
             if (backoffDelay) {
                 sleep (backoffDelay).then (this.createConnection.bind (this))
