@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.3.19",
+  "version": "0.3.28",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -18,9 +18,15 @@
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
-    "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
-    "test-python-base": "python python/test/test_decimal_to_precision.py",
-    "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
+    "test-js-base": "npm run test-js-cache && npm run test-js-orderbook",
+    "test-js-cache": "node js/test/base/test.Cache.js",
+    "test-js-orderbook": "node js/test/base/test.OrderBook.js",
+    "test-python-base": "npm run test-python-cache && npm run test-python-orderbook",
+    "test-python-cache": "python python/test/test_cache.py",
+    "test-python-orderbook": "python python/test/test_order_book.py",
+    "test-php-base": "npm run test-php-cache && npm run test-php-orderbook",
+    "test-php-cache": "php -f php/test/Cache.php",
+    "test-php-orderbook": "php -f php/test/OrderBook.php",
     "export-exchanges": "node build/export-exchanges",
     "transpile": "node build/transpile",
     "vss": "node build/vss",
@@ -34,7 +40,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.32.41",
+    "ccxt": "^1.32.52",
     "ws": "^7.2.1"
   },
   "devDependencies": {

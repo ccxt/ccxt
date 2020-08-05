@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6c83eb45656a762da6707821898f2a2",
+    "content-hash": "4d003f66f3273463e4a506ac9ea08a8f",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.32.41",
+            "version": "1.32.52",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "e1be05128a2edb08d9e290182fa8089352a70026"
+                "reference": "01f82e7abea95aa7672236154ca392ffcfc66748"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/e1be05128a2edb08d9e290182fa8089352a70026",
-                "reference": "e1be05128a2edb08d9e290182fa8089352a70026",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/01f82e7abea95aa7672236154ca392ffcfc66748",
+                "reference": "01f82e7abea95aa7672236154ca392ffcfc66748",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,7 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-07-31T20:42:37+00:00"
+            "time": "2020-08-04T17:42:54+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -952,7 +952,7 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.18.0",
+            "version": "v1.18.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",

@@ -13,7 +13,7 @@ const log = require ('ololog')
 
 module.exports = async (exchange, symbol) => {
 
-    // log (symbol.green, 'watching order book...')
+    // log (symbol.green, 'watching trades...')
 
     const method = 'watchTrades'
 

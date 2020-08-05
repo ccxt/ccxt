@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
-use \ccxt\NotSupported;
+use \ccxt\AuthenticationError;
 
 class bitmex extends \ccxt\bitmex {
 
@@ -17,11 +17,13 @@ class bitmex extends \ccxt\bitmex {
         return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
+                'watchBalance' => true,
+                'watchMyTrades' => true,
+                'watchOHLCV' => true,
+                'watchOrderBook' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
-                'watchOrderBook' => true,
-                'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -311,7 +313,121 @@ class bitmex extends \ccxt\bitmex {
 
     public function watch_balance($params = array ()) {
         $this->load_markets();
-        throw new NotSupported($this->id . ' watchBalance() not implemented yet');
+        $authenticate = $this->authenticate();
+        $messageHash = 'margin';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $messageHash,
+            ),
+        );
+        return $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+    }
+
+    public function handle_balance($client, $message) {
+        //
+        //     {
+        //         table => 'margin',
+        //         action => 'partial',
+        //         keys => array( 'account' ),
+        //         types => array(
+        //             account => 'long',
+        //             currency => 'symbol',
+        //             riskLimit => 'long',
+        //             prevState => 'symbol',
+        //             state => 'symbol',
+        //             action => 'symbol',
+        //             amount => 'long',
+        //             pendingCredit => 'long',
+        //             pendingDebit => 'long',
+        //             confirmedDebit => 'long',
+        //             prevRealisedPnl => 'long',
+        //             prevUnrealisedPnl => 'long',
+        //             grossComm => 'long',
+        //             grossOpenCost => 'long',
+        //             grossOpenPremium => 'long',
+        //             grossExecCost => 'long',
+        //             grossMarkValue => 'long',
+        //             riskValue => 'long',
+        //             taxableMargin => 'long',
+        //             initMargin => 'long',
+        //             maintMargin => 'long',
+        //             sessionMargin => 'long',
+        //             targetExcessMargin => 'long',
+        //             varMargin => 'long',
+        //             realisedPnl => 'long',
+        //             unrealisedPnl => 'long',
+        //             indicativeTax => 'long',
+        //             unrealisedProfit => 'long',
+        //             syntheticMargin => 'long',
+        //             walletBalance => 'long',
+        //             marginBalance => 'long',
+        //             marginBalancePcnt => 'float',
+        //             marginLeverage => 'float',
+        //             marginUsedPcnt => 'float',
+        //             excessMargin => 'long',
+        //             excessMarginPcnt => 'float',
+        //             availableMargin => 'long',
+        //             withdrawableMargin => 'long',
+        //             timestamp => 'timestamp',
+        //             grossLastValue => 'long',
+        //             commission => 'float'
+        //         ),
+        //         foreignKeys => array(),
+        //         attributes => array( account => 'sorted' ),
+        //         filter => array( account => 1455728 ),
+        //         $data => array(
+        //             {
+        //                 account => 1455728,
+        //                 currency => 'XBt',
+        //                 riskLimit => 1000000000000,
+        //                 prevState => '',
+        //                 state => '',
+        //                 action => '',
+        //                 amount => 263542,
+        //                 pendingCredit => 0,
+        //                 pendingDebit => 0,
+        //                 confirmedDebit => 0,
+        //                 prevRealisedPnl => 0,
+        //                 prevUnrealisedPnl => 0,
+        //                 grossComm => 0,
+        //                 grossOpenCost => 0,
+        //                 grossOpenPremium => 0,
+        //                 grossExecCost => 0,
+        //                 grossMarkValue => 0,
+        //                 riskValue => 0,
+        //                 taxableMargin => 0,
+        //                 initMargin => 0,
+        //                 maintMargin => 0,
+        //                 sessionMargin => 0,
+        //                 targetExcessMargin => 0,
+        //                 varMargin => 0,
+        //                 realisedPnl => 0,
+        //                 unrealisedPnl => 0,
+        //                 indicativeTax => 0,
+        //                 unrealisedProfit => 0,
+        //                 syntheticMargin => null,
+        //                 walletBalance => 263542,
+        //                 marginBalance => 263542,
+        //                 marginBalancePcnt => 1,
+        //                 marginLeverage => 0,
+        //                 marginUsedPcnt => 0,
+        //                 excessMargin => 263542,
+        //                 excessMarginPcnt => 1,
+        //                 availableMargin => 263542,
+        //                 withdrawableMargin => 263542,
+        //                 timestamp => '2020-08-03T12:01:01.246Z',
+        //                 grossLastValue => 0,
+        //                 commission => null
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($message, 'data');
+        $this->balance = array_merge($this->balance, $this->parseBalances ($data));
+        $messageHash = $this->safe_string($message, 'table');
+        $client->resolve ($this->balance, $messageHash);
     }
 
     public function handle_trades($client, $message) {
@@ -413,6 +529,146 @@ class bitmex extends \ccxt\bitmex {
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+    }
+
+    public function authenticate() {
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $future = $client->future ('authenticated');
+        $action = 'authKeyExpires';
+        $authenticated = $this->safe_value($client->subscriptions, $action);
+        if ($authenticated === null) {
+            try {
+                $this->check_required_credentials();
+                $timestamp = $this->milliseconds();
+                $message = 'GET' . '/realtime' . (string) $timestamp;
+                $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+                $request = array(
+                    'op' => $action,
+                    'args' => array(
+                        $this->apiKey,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
+            } catch (Exception $e) {
+                $client->reject ($e, 'authenticated');
+                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
+                    unset($client->subscriptions[$action]);
+                }
+            }
+        }
+        return $future;
+    }
+
+    public function handle_authentication_message($client, $message) {
+        $authenticated = $this->safe_value($message, 'success', false);
+        if ($authenticated) {
+            // we resolve the $future here permanently so authentication only happens once
+            $future = $this->safe_value($client->futures, 'authenticated');
+            $future->resolve (true);
+        } else {
+            $error = new AuthenticationError ($this->json($message));
+            $client->reject ($error, 'authenticated');
+            // allows further authentication attempts
+            $event = 'authKeyExpires';
+            if (is_array($client->subscriptions) && array_key_exists($event, $client->subscriptions)) {
+                unset($client->subscriptions[$event]);
+            }
+        }
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $authenticate = $this->authenticate();
+        $messageHash = 'execution';
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $messageHash,
+            ),
+        );
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $messageHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_my_trades($client, $message) {
+        //
+        //     {
+        //         "table":"execution",
+        //         "action":"insert",
+        //         "$data":array(
+        //             {
+        //                 "execID":"0193e879-cb6f-2891-d099-2c4eb40fee21",
+        //                 "orderID":"00000000-0000-0000-0000-000000000000",
+        //                 "clOrdID":"",
+        //                 "clOrdLinkID":"",
+        //                 "account":2,
+        //                 "symbol":"XBTUSD",
+        //                 "side":"Sell",
+        //                 "lastQty":1,
+        //                 "lastPx":1134.37,
+        //                 "underlyingLastPx":null,
+        //                 "lastMkt":"XBME",
+        //                 "lastLiquidityInd":"RemovedLiquidity",
+        //                 "simpleOrderQty":null,
+        //                 "orderQty":1,
+        //                 "price":1134.37,
+        //                 "displayQty":null,
+        //                 "stopPx":null,
+        //                 "pegOffsetValue":null,
+        //                 "pegPriceType":"",
+        //                 "currency":"USD",
+        //                 "settlCurrency":"XBt",
+        //                 "execType":"Trade",
+        //                 "ordType":"Limit",
+        //                 "timeInForce":"ImmediateOrCancel",
+        //                 "execInst":"",
+        //                 "contingencyType":"",
+        //                 "exDestination":"XBME",
+        //                 "ordStatus":"Filled",
+        //                 "triggered":"",
+        //                 "workingIndicator":false,
+        //                 "ordRejReason":"",
+        //                 "simpleLeavesQty":0,
+        //                 "leavesQty":0,
+        //                 "simpleCumQty":0.001,
+        //                 "cumQty":1,
+        //                 "avgPx":1134.37,
+        //                 "commission":0.00075,
+        //                 "tradePublishIndicator":"DoNotPublishTrade",
+        //                 "multiLegReportingType":"SingleSecurity",
+        //                 "text":"Liquidation",
+        //                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
+        //                 "execCost":88155,
+        //                 "execComm":66,
+        //                 "homeNotional":-0.00088155,
+        //                 "foreignNotional":1,
+        //                 "transactTime":"2017-04-04T22:07:46.035Z",
+        //                 "timestamp":"2017-04-04T22:07:46.035Z"
+        //             }
+        //         )
+        //     }
+        //
+        $messageHash = $this->safe_string($message, 'table');
+        $data = $this->safe_value($message, 'data', array());
+        $dataByExecType = $this->group_by($data, 'execType');
+        $rawTrades = $this->safe_value($dataByExecType, 'Trade', array());
+        $trades = $this->parse_trades($rawTrades);
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+        }
+        $stored = $this->myTrades;
+        for ($j = 0; $j < count($trades); $j++) {
+            $stored->append ($trades[$j]);
+        }
+        $numTrades = is_array($trades) ? count($trades) : 0;
+        if ($numTrades > 0) {
+            $client->resolve ($stored, $messageHash);
+        }
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -533,7 +789,6 @@ class bitmex extends \ccxt\bitmex {
         //         )
         //     }
         //
-        // --------------------------------------------------------------------
         $table = $this->safe_string($message, 'table');
         $interval = str_replace('tradeBin', '', $table);
         $timeframe = $this->find_timeframe($interval);
@@ -772,7 +1027,7 @@ class bitmex extends \ccxt\bitmex {
         //     {
         //         success => true,
         //         subscribe => 'orderBookL2:XBTUSD',
-        //         request => array( op => 'subscribe', args => array( 'orderBookL2:XBTUSD' ) )
+        //         $request => array( $op => 'subscribe', args => array( 'orderBookL2:XBTUSD' ) )
         //     }
         //
         //     {
@@ -806,10 +1061,18 @@ class bitmex extends \ccxt\bitmex {
                 'tradeBin5m' => array($this, 'handle_ohlcv'),
                 'tradeBin1h' => array($this, 'handle_ohlcv'),
                 'tradeBin1d' => array($this, 'handle_ohlcv'),
+                'execution' => array($this, 'handle_my_trades'),
+                'margin' => array($this, 'handle_balance'),
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {
-                return $message;
+                $request = $this->safe_value($message, 'request', array());
+                $op = $this->safe_value($request, 'op');
+                if ($op === 'authKeyExpires') {
+                    return $this->handle_authentication_message($client, $message);
+                } else {
+                    return $message;
+                }
             } else {
                 return $method($client, $message);
             }

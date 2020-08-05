@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, NotSupported, RateLimitExceeded } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,11 +13,13 @@ module.exports = class bitmex extends ccxt.bitmex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
+                'watchOHLCV': true,
+                'watchOrderBook': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
-                'watchOrderBook': true,
-                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -307,7 +309,121 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
+        const authenticate = this.authenticate ();
+        const messageHash = 'margin';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        return await this.afterDropped (authenticate, this.watch, url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleBalance (client, message) {
+        //
+        //     {
+        //         table: 'margin',
+        //         action: 'partial',
+        //         keys: [ 'account' ],
+        //         types: {
+        //             account: 'long',
+        //             currency: 'symbol',
+        //             riskLimit: 'long',
+        //             prevState: 'symbol',
+        //             state: 'symbol',
+        //             action: 'symbol',
+        //             amount: 'long',
+        //             pendingCredit: 'long',
+        //             pendingDebit: 'long',
+        //             confirmedDebit: 'long',
+        //             prevRealisedPnl: 'long',
+        //             prevUnrealisedPnl: 'long',
+        //             grossComm: 'long',
+        //             grossOpenCost: 'long',
+        //             grossOpenPremium: 'long',
+        //             grossExecCost: 'long',
+        //             grossMarkValue: 'long',
+        //             riskValue: 'long',
+        //             taxableMargin: 'long',
+        //             initMargin: 'long',
+        //             maintMargin: 'long',
+        //             sessionMargin: 'long',
+        //             targetExcessMargin: 'long',
+        //             varMargin: 'long',
+        //             realisedPnl: 'long',
+        //             unrealisedPnl: 'long',
+        //             indicativeTax: 'long',
+        //             unrealisedProfit: 'long',
+        //             syntheticMargin: 'long',
+        //             walletBalance: 'long',
+        //             marginBalance: 'long',
+        //             marginBalancePcnt: 'float',
+        //             marginLeverage: 'float',
+        //             marginUsedPcnt: 'float',
+        //             excessMargin: 'long',
+        //             excessMarginPcnt: 'float',
+        //             availableMargin: 'long',
+        //             withdrawableMargin: 'long',
+        //             timestamp: 'timestamp',
+        //             grossLastValue: 'long',
+        //             commission: 'float'
+        //         },
+        //         foreignKeys: {},
+        //         attributes: { account: 'sorted' },
+        //         filter: { account: 1455728 },
+        //         data: [
+        //             {
+        //                 account: 1455728,
+        //                 currency: 'XBt',
+        //                 riskLimit: 1000000000000,
+        //                 prevState: '',
+        //                 state: '',
+        //                 action: '',
+        //                 amount: 263542,
+        //                 pendingCredit: 0,
+        //                 pendingDebit: 0,
+        //                 confirmedDebit: 0,
+        //                 prevRealisedPnl: 0,
+        //                 prevUnrealisedPnl: 0,
+        //                 grossComm: 0,
+        //                 grossOpenCost: 0,
+        //                 grossOpenPremium: 0,
+        //                 grossExecCost: 0,
+        //                 grossMarkValue: 0,
+        //                 riskValue: 0,
+        //                 taxableMargin: 0,
+        //                 initMargin: 0,
+        //                 maintMargin: 0,
+        //                 sessionMargin: 0,
+        //                 targetExcessMargin: 0,
+        //                 varMargin: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 indicativeTax: 0,
+        //                 unrealisedProfit: 0,
+        //                 syntheticMargin: null,
+        //                 walletBalance: 263542,
+        //                 marginBalance: 263542,
+        //                 marginBalancePcnt: 1,
+        //                 marginLeverage: 0,
+        //                 marginUsedPcnt: 0,
+        //                 excessMargin: 263542,
+        //                 excessMarginPcnt: 1,
+        //                 availableMargin: 263542,
+        //                 withdrawableMargin: 263542,
+        //                 timestamp: '2020-08-03T12:01:01.246Z',
+        //                 grossLastValue: 0,
+        //                 commission: null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (message, 'data');
+        this.balance = this.extend (this.balance, this.parseBalances (data));
+        const messageHash = this.safeString (message, 'table');
+        client.resolve (this.balance, messageHash);
     }
 
     handleTrades (client, message) {
@@ -409,6 +525,146 @@ module.exports = class bitmex extends ccxt.bitmex {
         };
         const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+    }
+
+    async authenticate () {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const action = 'authKeyExpires';
+        const authenticated = this.safeValue (client.subscriptions, action);
+        if (authenticated === undefined) {
+            try {
+                this.checkRequiredCredentials ();
+                const timestamp = this.milliseconds ();
+                const message = 'GET' + '/realtime' + timestamp.toString ();
+                const signature = this.hmac (this.encode (message), this.encode (this.secret));
+                const request = {
+                    'op': action,
+                    'args': [
+                        this.apiKey,
+                        timestamp,
+                        signature,
+                    ],
+                };
+                this.spawn (this.watch, url, action, request, action);
+            } catch (e) {
+                client.reject (e, 'authenticated');
+                if (action in client.subscriptions) {
+                    delete client.subscriptions[action];
+                }
+            }
+        }
+        return await future;
+    }
+
+    handleAuthenticationMessage (client, message) {
+        const authenticated = this.safeValue (message, 'success', false);
+        if (authenticated) {
+            // we resolve the future here permanently so authentication only happens once
+            const future = this.safeValue (client.futures, 'authenticated');
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, 'authenticated');
+            // allows further authentication attempts
+            const event = 'authKeyExpires';
+            if (event in client.subscriptions) {
+                delete client.subscriptions[event];
+            }
+        }
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const authenticate = this.authenticate ();
+        const messageHash = 'execution';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                messageHash,
+            ],
+        };
+        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, messageHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        //     {
+        //         "table":"execution",
+        //         "action":"insert",
+        //         "data":[
+        //             {
+        //                 "execID":"0193e879-cb6f-2891-d099-2c4eb40fee21",
+        //                 "orderID":"00000000-0000-0000-0000-000000000000",
+        //                 "clOrdID":"",
+        //                 "clOrdLinkID":"",
+        //                 "account":2,
+        //                 "symbol":"XBTUSD",
+        //                 "side":"Sell",
+        //                 "lastQty":1,
+        //                 "lastPx":1134.37,
+        //                 "underlyingLastPx":null,
+        //                 "lastMkt":"XBME",
+        //                 "lastLiquidityInd":"RemovedLiquidity",
+        //                 "simpleOrderQty":null,
+        //                 "orderQty":1,
+        //                 "price":1134.37,
+        //                 "displayQty":null,
+        //                 "stopPx":null,
+        //                 "pegOffsetValue":null,
+        //                 "pegPriceType":"",
+        //                 "currency":"USD",
+        //                 "settlCurrency":"XBt",
+        //                 "execType":"Trade",
+        //                 "ordType":"Limit",
+        //                 "timeInForce":"ImmediateOrCancel",
+        //                 "execInst":"",
+        //                 "contingencyType":"",
+        //                 "exDestination":"XBME",
+        //                 "ordStatus":"Filled",
+        //                 "triggered":"",
+        //                 "workingIndicator":false,
+        //                 "ordRejReason":"",
+        //                 "simpleLeavesQty":0,
+        //                 "leavesQty":0,
+        //                 "simpleCumQty":0.001,
+        //                 "cumQty":1,
+        //                 "avgPx":1134.37,
+        //                 "commission":0.00075,
+        //                 "tradePublishIndicator":"DoNotPublishTrade",
+        //                 "multiLegReportingType":"SingleSecurity",
+        //                 "text":"Liquidation",
+        //                 "trdMatchID":"7f4ab7f6-0006-3234-76f4-ae1385aad00f",
+        //                 "execCost":88155,
+        //                 "execComm":66,
+        //                 "homeNotional":-0.00088155,
+        //                 "foreignNotional":1,
+        //                 "transactTime":"2017-04-04T22:07:46.035Z",
+        //                 "timestamp":"2017-04-04T22:07:46.035Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const messageHash = this.safeString (message, 'table');
+        const data = this.safeValue (message, 'data', []);
+        const dataByExecType = this.groupBy (data, 'execType');
+        const rawTrades = this.safeValue (dataByExecType, 'Trade', []);
+        const trades = this.parseTrades (rawTrades);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.myTrades;
+        for (let j = 0; j < trades.length; j++) {
+            stored.append (trades[j]);
+        }
+        const numTrades = trades.length;
+        if (numTrades > 0) {
+            client.resolve (stored, messageHash);
+        }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -529,7 +785,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         //         ]
         //     }
         //
-        // --------------------------------------------------------------------
         const table = this.safeString (message, 'table');
         const interval = table.replace ('tradeBin', '');
         const timeframe = this.findTimeframe (interval);
@@ -802,10 +1057,18 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'tradeBin5m': this.handleOHLCV,
                 'tradeBin1h': this.handleOHLCV,
                 'tradeBin1d': this.handleOHLCV,
+                'execution': this.handleMyTrades,
+                'margin': this.handleBalance,
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                return message;
+                const request = this.safeValue (message, 'request', {});
+                const op = this.safeValue (request, 'op');
+                if (op === 'authKeyExpires') {
+                    return this.handleAuthenticationMessage.call (this, client, message);
+                } else {
+                    return message;
+                }
             } else {
                 return method.call (this, client, message);
             }
