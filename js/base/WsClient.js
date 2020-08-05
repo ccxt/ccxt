@@ -18,7 +18,6 @@ module.exports = class WsClient extends Client {
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
         this.connection = new WebSocket (this.url, this.protocols, this.options)
-        this.connecting = false
 
         this.connection.onopen = this.onOpen.bind (this)
         this.connection.onmessage = this.onMessage.bind (this)
@@ -35,9 +34,9 @@ module.exports = class WsClient extends Client {
     }
 
     connect (backoffDelay = 0) {
-        if ((this.connection === undefined) && !this.connecting) {
+        if (!this.startedConnecting) {
             // exponential backoff for consequent ws connections if necessary
-            this.connecting = true
+            this.startedConnecting = true
             if (backoffDelay) {
                 sleep (backoffDelay).then (this.createConnection.bind (this))
             } else {
