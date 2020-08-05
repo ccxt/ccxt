@@ -4,6 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import CancelPending
 
 
 class aax(Exchange):
@@ -18,6 +27,12 @@ class aax(Exchange):
                 'fetchOHLCV': True,
                 'fetchOrderBook': True,
                 'fetchTrades': True,
+                'fetchBalance': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'timeframes': {
                 '1m': 1,
@@ -45,6 +60,47 @@ class aax(Exchange):
                         'v2/market/trades',
                     ],
                 },
+                'private': {
+                    'get': [
+                        'v2/user/balances',
+                        'v2/spot/trades',
+                        'v2/spot/openOrders',
+                        'v2/spot/orders',
+                    ],
+                    'post': [
+                        'v2/spot/orders',
+                    ],
+                    'delete': [
+                        'v2/spot/orders/cancel/{orderID}',
+                    ],
+                },
+            },
+            'exceptions': {
+                '400': BadRequest,
+                '401': AuthenticationError,
+                '403': AuthenticationError,
+                '429': PermissionDenied,
+                '10003': BadRequest,
+                '10006': AuthenticationError,
+                '20001': InsufficientFunds,
+                '20009': BadRequest,
+                '30004': BadRequest,
+                '30005': BadRequest,
+                '30006': BadRequest,
+                '30007': BadRequest,
+                '30008': BadRequest,
+                '30009': BadRequest,
+                '30011': CancelPending,
+                '30012': BadSymbol,
+                '30013': BadSymbol,
+                '30018': InvalidOrder,
+                '30019': InvalidOrder,
+                '30020': InvalidOrder,
+                '30023': InvalidOrder,
+                '30026': InvalidOrder,
+                '30027': ExchangeError,
+                '30030': InvalidOrder,
+                '30047': InvalidOrder,
             },
             'errorMessages': {
                 '400': 'There is something wrong with your request',
@@ -55,15 +111,58 @@ class aax(Exchange):
                 '503': 'Service is down for maintenance',
                 '504': 'Request timeout expired',
                 '550': 'You requested data that are not available at self moment',
+                '10003': 'Parameter validation error',
+                '10006': 'Session expired, please relogin',
+                '20001': 'Insufficient balance. Please deposit to trade',
+                '20009': 'Order amount must be positive',
+                '30004': 'Minimum quantity is {0}',
+                '30005': 'Quantity maximum precision is {0} decimal places',
+                '30006': 'Price maximum precision is {0} decimal places',
+                '30007': 'Minimum price is {0}',
+                '30008': 'Stop price maximum precision is {0} decimal places',
+                '30009': 'Stop Price cannot be less than {0}',
+                '30011': 'The order is being cancelled, please wait',
+                '30012': 'Unknown currency',
+                '30013': 'Unknown symbol',
+                '30018': 'Order price cannot be greater than {0}',
+                '30019': 'Order quantity cannot be greater than {0}',
+                '30020': 'Order price must be a multiple of {0}',
+                '30023': 'Order failed, please try again',
+                '30026': 'Quantity is not a multiple of {0}',
+                '30027': 'Close position failed, it is recommended that you cancel the current order and then close the position',
+                '30028': 'Symbol cannot be traded at self time',
+                '30030': 'Price cannot be specified for market orders',
+                '30037': 'Once stop limit order triggered, stop price cannot be amended',
+                '30040': 'Order status has changed, please try again later',
+                '30047': 'The order is closed. Can nott cancel',
+                '30049': 'The order is being modified, please wait',
+                '40009': 'Too many requests',
+                '50001': 'Server side exception, please try again later',
+                '50002': 'Server is busy, please try again later',
             },
         })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']
-        url += '/' + path
+        queryParams = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if query:
-            url += '?' + self.urlencode(query)
+        if api == 'public' or method == 'GET':
+            if query:
+                queryParams += '?' + self.urlencode(query)
+        if api == 'private':
+            nonce = str(self.milliseconds())
+            signature = nonce + ':' + method + queryParams
+            if method == 'POST':
+                if query:
+                    body = self.json(query)
+                    signature += body
+            encodedHEX = self.hmac(self.encode(signature), self.encode(self.secret), hashlib.sha256)
+            headers = {
+                'X-ACCESS-KEY': self.apiKey,
+                'X-ACCESS-NONCE': nonce,
+                'X-ACCESS-SIGN': encodedHEX,
+            }
+        url += queryParams
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def fetch_markets(self, params={}):
@@ -239,35 +338,85 @@ class aax(Exchange):
         #            "t":1592563993577
         #         }]
         #   }
-        timestamp = self.safe_integer(trade, str('t'))
+        # Response From FetchMyTrdaes
+        # {
+        #        [
+        #           {
+        #              "avgPrice":"8000",
+        #              "base":"BTC",
+        #              "commission":"0.00000888",
+        #              "createTime":"2019-11-12T03:18:35Z",
+        #              "cumQty":"0.0148",
+        #              "filledPrice":"8000",
+        #              "filledQty":"0.0148",
+        #              "leavesQty":"0.0052",
+        #              "orderID":"wFo9ZPxAJ",
+        #              "orderQty":"0.02",
+        #              "orderStatus":2,
+        #              "orderType":2,
+        #              "price":"8000",
+        #              "quote":"USDT",
+        #              "rejectCode":0,
+        #              "rejectReason":null,
+        #              "side":1,
+        #              "stopPrice":"0",
+        #              "symbol":"BTCUSDT",
+        #              "taker":false,
+        #              "transactTime":"2019-11-12T03:16:16Z",
+        #              "updateTime":null,
+        #              "userID":"216214"
+        #           }
+        #        ],
+        #  }
+        timestamp = self.safe_string(trade, 't')
+        if timestamp is None:
+            timestamp = self.safe_string(trade, 'createTime')
+            if timestamp is not None:
+                timestamp = self.parse8601(timestamp)
         symbol = None
         if market is not None:
             symbol = self.safe_string(market, 'symbol')
-        price = self.safe_float(trade, 'p')
-        amount = self.safe_float(trade, 'q')
-        side = 'BUY'
-        cost = None
-        if price is not None:
+        if symbol is None:
+            base = self.safe_string(trade, 'base')
+            quote = self.safe_string(trade, 'quote')
+            if base is not None and quote is not None:
+                symbol = base + '/' + quote
+        price = self.safe_float_2(trade, 'p', 'avgPrice')
+        amount = self.safe_float_2(trade, 'q', 'orderQty')
+        sideType = self.safe_integer(trade, 'side')
+        side = None
+        if sideType is not None:
+            if sideType == 1:
+                side = 'BUY'
+            if sideType == 2:
+                side = 'SELL'
+        if side is None:
             if price < 0:
                 side = 'SELL'
+            else:
+                side = 'BUY'
             price = abs(price)
-            if amount is not None:
-                if symbol is not None:
-                    cost = float(self.cost_to_precision(symbol, price * amount))
+        cost = None
+        if price is not None and amount is not None and symbol is not None:
+            cost = float(self.cost_to_precision(symbol, price * amount))
+        takerOrMaker = None
+        if 'taker' in trade:
+            takerOrMaker = 'taker' if trade['taker'] else 'maker'
+        orderId = self.safe_string(trade, 'orderID')
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
-            'order': None,
+            'id': orderId,
+            'order': orderId,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': self.safe_string(trade, 'commission'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=2000, params={}):
@@ -292,3 +441,430 @@ class aax(Exchange):
         #         }]
         #   }
         return self.parse_trades(self.safe_value(response, 'trades'), market, since, limit)
+
+    def fetch_balance(self, params={}):
+        response = self.privateGetV2UserBalances()
+        # FetchBalance Response
+        # {
+        #     "code":1,
+        #     "data":[
+        #        {
+        #           "available":"28.44375903",
+        #           "credit":"0.00000000",
+        #           "currency":"BTC",
+        #           "unavailable":"19.96293142"
+        #        },
+        #        {
+        #           "available":"20.00000000",
+        #           "credit":"0.00000000",
+        #           "currency":"EOS",
+        #           "unavailable":"0.00000000"
+        #        },
+        #     ],
+        #     "message":"success",
+        #     "ts":1573530401020
+        #  }
+        result = {'info': response}
+        balances = self.safe_value(response, 'data')
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = {
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'unavailable'),
+            }
+            result[code] = account
+        return self.parse_balance(result)
+
+    def parse_order_type(self, type):
+        orderTypes = {
+            '1': 'market',
+            '2': 'limit',
+            '3': 'stop',
+            '4': 'stop-limit',
+        }
+        return self.safe_string(orderTypes, type, type)
+
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',  # pending-new
+            '1': 'open',  # new
+            '2': 'open',  # partiallyfilled
+            '3': 'closed',  # filled
+            '4': 'canceled',  # cancel - rejected
+            '5': 'canceled',  # canceled
+            '6': 'rejected',  # rejected
+            '10': 'canceled',  # canceled
+            '11': 'rejected',  # business-rejct
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None, time=None):
+        # CraeteOrder,cancelOrder Response
+        #       {
+        #        "avgPrice":"0",
+        #        "base":"BTC",
+        #        "clOrdID":"aax",
+        #        "commission":"0",
+        #        "createTime":null,
+        #        "cumQty":"0",
+        #        "id":null,
+        #        "isTriggered":null,
+        #        "lastPrice":"0",
+        #        "lastQty":"0",
+        #        "leavesQty":"0",
+        #        "orderID":"wJ4L366KB",
+        #        "orderQty":"0.02",
+        #        "orderStatus":0,
+        #        "orderType":2,
+        #        "price":"8000",
+        #        "quote":"USDT",
+        #        "rejectCode":null,
+        #        "rejectReason":null,
+        #        "side":1,
+        #        "stopPrice":null,
+        #        "symbol":"BTCUSDT",
+        #        "transactTime":null,
+        #        "updateTime":null,
+        #        "timeInForce":1,
+        #        "userID":"216214"
+        #     },
+        timestamp = self.safe_string(order, 'createTime')
+        if timestamp is None and time is not None:
+            timestamp = time
+        else:
+            timestamp = self.parse8601(timestamp)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'orderQty')
+        cost = None
+        symbol = None
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
+        if symbol is None:
+            base = self.safe_string(order, 'base')
+            quote = self.safe_string(order, 'quote')
+            if base is not None and quote is not None:
+                symbol = base + '/' + quote
+        if price is not None and amount is not None and symbol is not None:
+            cost = float(self.cost_to_precision(symbol, price * amount))
+        sideType = self.safe_integer(order, 'side')
+        side = None
+        if sideType is not None:
+            if sideType == 1:
+                side = 'BUY'
+            if sideType == 2:
+                side = 'SELL'
+        remaining = self.safe_float(order, 'leavesQty')
+        filled = None
+        if remaining is not None and amount is not None:
+            filled = amount - remaining
+        orderType = self.parse_order_type(self.safe_string(order, 'orderType'))
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
+        return {
+            'info': order,
+            'id': self.safe_string(order, 'orderID'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'stop_price': self.safe_string(order, 'stopPrice'),
+            'amount': amount,
+            'cost': cost,
+            'average': self.safe_float(order, 'avgPrice'),
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': self.safe_string(order, 'commission'),
+            'trades': None,
+        }
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        type = type.upper()
+        if type == 'STOP_LIMIT':
+            type = 'STOP-LIMIT'
+        request = {
+            # == Required ==
+            # orderType : string  # can be MARKET,LIMIT,STOP,STOP-LIMIT
+            # symbol : string
+            # orderQty : string  # Buying or selling quantity
+            # side : string  # BUY or SELL
+            # == Required according to ordeType ==
+            # price : string  # limit price in limit and stop-limit orders
+            # stopPrice : string  # Trigger price for stop-limit order and stop order
+            # ==Optional ==
+            # clOrdID : string
+            # timeInForce :string  # GTC/IOC/FOK，default is GTC
+            'orderType': type,
+            'symbol': market['id'],
+            'orderQty': self.amount_to_precision(symbol, amount),
+            'side': side.upper(),
+        }
+        if (type == 'LIMIT') or (type == 'STOP-LIMIT'):
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a price for a ' + type + ' order')
+            request['price'] = self.price_to_precision(symbol, price)
+        if (type == 'STOP') or (type == 'STOP-LIMIT'):
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        response = self.privatePostV2SpotOrders(self.extend(request, params))
+        # Response
+        # {
+        #     "code":1,
+        #     "data":{
+        #        "avgPrice":"0",
+        #        "base":"BTC",
+        #        "clOrdID":"aax",
+        #        "commission":"0",
+        #        "createTime":null,
+        #        "cumQty":"0",
+        #        "id":null,
+        #        "isTriggered":null,
+        #        "lastPrice":"0",
+        #        "lastQty":"0",
+        #        "leavesQty":"0",
+        #        "orderID":"wJ4L366KB",
+        #        "orderQty":"0.02",
+        #        "orderStatus":0,
+        #        "orderType":2,
+        #        "price":"8000",
+        #        "quote":"USDT",
+        #        "rejectCode":null,
+        #        "rejectReason":null,
+        #        "side":1,
+        #        "stopPrice":null,
+        #        "symbol":"BTCUSDT",
+        #        "transactTime":null,
+        #        "updateTime":null,
+        #        "timeInForce":1,
+        #        "userID":"216214"
+        #     },
+        #     "message":"success",
+        #     "ts":1573530401264
+        #  }
+        return self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+
+    def cancel_order(self, id, symbol=None, params={}):
+        market = None
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+        request = {
+            'orderID': id,
+        }
+        response = self.privateDeleteV2SpotOrdersCancelOrderID(self.extend(request, params))
+        # Response
+        # {
+        #     "code":1,
+        #     "data":{
+        #        "avgPrice":"0",
+        #        "base":"BTC",
+        #        "clOrdID":"aax",
+        #        "commission":"0",
+        #        "createTime":"2019-11-12T03:46:41Z",
+        #        "cumQty":"0",
+        #        "id":"114330021504606208",
+        #        "isTriggered":false,
+        #        "lastPrice":"0",
+        #        "lastQty":"0",
+        #        "leavesQty":"0",
+        #        "orderID":"wJ4L366KB",
+        #        "orderQty":"0.05",
+        #        "orderStatus":1,
+        #        "orderType":2,
+        #        "price":"8000",
+        #        "quote":"USDT",
+        #        "rejectCode":0,
+        #        "rejectReason":null,
+        #        "side":1,
+        #        "stopPrice":"0",
+        #        "symbol":"BTCUSDT",
+        #        "transactTime":null,
+        #        "updateTime":"2019-11-12T03:46:41Z",
+        #        "timeInForce":1,
+        #        "userID":"216214"
+        #     },
+        #     "message":"success",
+        #     "ts":1573530402029
+        #  }
+        return self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # pageNum : Integer  # optional
+            # pageSize : Integer  # optional
+            # base : String  # optional
+            # quote : String  # optional
+            # orderId : String  #optional
+            # startDate : String  #optional
+            # endDate : String  #optional
+            # side : String  # optional
+            # orderType : String  # optional
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['base'] = market['baseId']
+            request['quote'] = market['quoteId']
+        if since is not None:
+            request['startDate'] = self.ymd(since, '-')
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetV2SpotTrades(self.extend(request, params))
+        # Response
+        # {
+        #     "code":1,
+        #     "data":{
+        #        "list":[
+        #           {
+        #              "avgPrice":"8000",
+        #              "base":"BTC",
+        #              "commission":"0.00000888",
+        #              "createTime":"2019-11-12T03:18:35Z",
+        #              "cumQty":"0.0148",
+        #              "filledPrice":"8000",
+        #              "filledQty":"0.0148",
+        #              "id":"114322949580906499",
+        #              "leavesQty":"0.0052",
+        #              "orderID":"wFo9ZPxAJ",
+        #              "orderQty":"0.02",
+        #              "orderStatus":2,
+        #              "orderType":2,
+        #              "price":"8000",
+        #              "quote":"USDT",
+        #              "rejectCode":0,
+        #              "rejectReason":null,
+        #              "side":1,
+        #              "stopPrice":"0",
+        #              "symbol":"BTCUSDT",
+        #              "taker":false,
+        #              "transactTime":"2019-11-12T03:16:16Z",
+        #              "updateTime":null,
+        #              "userID":"216214"
+        #           }
+        #        ],
+        #        "pageNum":1,
+        #        "pageSize":1,
+        #        "total":10
+        #     },
+        #     "message":"success",
+        #     "ts":1573532934832
+        #  }
+        result = self.safe_value(response, 'data')
+        return self.parse_trades(self.safe_value(result, 'list', []), market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # pageNum : Integer  # optional
+            # pageSize : Integer  # optional
+            # symbol : String  # optional
+            # orderId : String  # optional
+            # side : String  # optional
+            # orderType : String  # optional
+            # clOrdID : String  #optional
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetV2SpotOpenOrders(self.extend(request, params))
+        # Response
+        # {
+        #     "code":1,
+        #     "data":{
+        #        "list":[
+        #           {
+        #              "avgPrice":"0",
+        #              "base":"BTC",
+        #              "clOrdID":"aax",
+        #              "commission":"0",
+        #              "createTime":"2019-11-12T03:41:52Z",
+        #              "cumQty":"0",
+        #              "id":"114328808516083712",
+        #              "isTriggered":false,
+        #              "lastPrice":"0",
+        #              "lastQty":"0",
+        #              "leavesQty":"0",
+        #              "orderID":"wJ3qitASB",
+        #              "orderQty":"0.02",
+        #              "orderStatus":1,
+        #              "orderType":2,
+        #              "price":"8000",
+        #              "quote":"USDT",
+        #              "rejectCode":0,
+        #              "rejectReason":null,
+        #              "side":1,
+        #              "stopPrice":"0",
+        #              "symbol":"BTCUSDT",
+        #              "transactTime":null,
+        #              "updateTime":"2019-11-12T03:41:52Z",
+        #              "timeInForce":1,
+        #              "userID":"216214"
+        #           },
+        #           ...
+        #        ],
+        #        "pageNum":1,
+        #        "pageSize":2,
+        #        "total":2
+        #     },
+        #     "message":"success",
+        #     "ts":1573553718212
+        #  }
+        result = self.safe_value(response, 'data')
+        return self.parse_orders(self.safe_value(result, 'list', []), market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+        self.load_markets()
+        request = {
+            # pageNum : Integer  # optional
+            # pageSize : Integer  # optional
+            # symbol : String  # optional
+            # orderId : String  # optional
+            # side : String  # optional
+            # orderType : String  # optional
+            # clOrdID : String  #optional
+            # base : string  # optional
+            # quote :string  # optional
+            # orderStatus : Integer  #optional 1: new, 2:filled, 3:cancel
+            'orderStatus': 2,  # As using for ClosedOrders Only
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['base'] = market['baseId']
+            request['quote'] = market['quoteId']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetV2SpotOrders(self.extend(request, params))
+        result = self.safe_value(response, 'data')
+        return self.parse_orders(self.safe_value(result, 'list', []), market, since, limit)
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
+        errorCode = self.safe_string(response, 'code')
+        if errorCode is None:
+            # fetchOrderBook or fetchTrades or fetchOhlcv
+            return
+        if errorCode == '1':
+            # success
+            return
+        errorMessages = self.errorMessages
+        message = None
+        message = self.safe_string(response, 'message')
+        if message is None:
+            message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+        raise ExchangeError(feedback)

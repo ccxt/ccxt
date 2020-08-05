@@ -1,6 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError, PermissionDenied, InsufficientFunds, InvalidOrder, BadRequest, CancelPending, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 module.exports = class aax extends Exchange {
     describe () {
@@ -13,6 +14,12 @@ module.exports = class aax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
+                'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -40,6 +47,47 @@ module.exports = class aax extends Exchange {
                         'v2/market/trades',
                     ],
                 },
+                'private': {
+                    'get': [
+                        'v2/user/balances',
+                        'v2/spot/trades',
+                        'v2/spot/openOrders',
+                        'v2/spot/orders',
+                    ],
+                    'post': [
+                        'v2/spot/orders',
+                    ],
+                    'delete': [
+                        'v2/spot/orders/cancel/{orderID}',
+                    ],
+                },
+            },
+            'exceptions': {
+                '400': BadRequest,
+                '401': AuthenticationError,
+                '403': AuthenticationError,
+                '429': PermissionDenied,
+                '10003': BadRequest,
+                '10006': AuthenticationError,
+                '20001': InsufficientFunds,
+                '20009': BadRequest,
+                '30004': BadRequest,
+                '30005': BadRequest,
+                '30006': BadRequest,
+                '30007': BadRequest,
+                '30008': BadRequest,
+                '30009': BadRequest,
+                '30011': CancelPending,
+                '30012': BadSymbol,
+                '30013': BadSymbol,
+                '30018': InvalidOrder,
+                '30019': InvalidOrder,
+                '30020': InvalidOrder,
+                '30023': InvalidOrder,
+                '30026': InvalidOrder,
+                '30027': ExchangeError,
+                '30030': InvalidOrder,
+                '30047': InvalidOrder,
             },
             'errorMessages': {
                 '400': 'There is something wrong with your request',
@@ -50,17 +98,64 @@ module.exports = class aax extends Exchange {
                 '503': 'Service is down for maintenance',
                 '504': 'Request timeout expired',
                 '550': 'You requested data that are not available at this moment',
+                '10003': 'Parameter validation error',
+                '10006': 'Session expired, please relogin',
+                '20001': 'Insufficient balance. Please deposit to trade',
+                '20009': 'Order amount must be positive',
+                '30004': 'Minimum quantity is {0}',
+                '30005': 'Quantity maximum precision is {0} decimal places',
+                '30006': 'Price maximum precision is {0} decimal places',
+                '30007': 'Minimum price is {0}',
+                '30008': 'Stop price maximum precision is {0} decimal places',
+                '30009': 'Stop Price cannot be less than {0}',
+                '30011': 'The order is being cancelled, please wait',
+                '30012': 'Unknown currency',
+                '30013': 'Unknown symbol',
+                '30018': 'Order price cannot be greater than {0}',
+                '30019': 'Order quantity cannot be greater than {0}',
+                '30020': 'Order price must be a multiple of {0}',
+                '30023': 'Order failed, please try again',
+                '30026': 'Quantity is not a multiple of {0}',
+                '30027': 'Close position failed, it is recommended that you cancel the current order and then close the position',
+                '30028': 'Symbol cannot be traded at this time',
+                '30030': 'Price cannot be specified for market orders',
+                '30037': 'Once stop limit order triggered, stop price cannot be amended',
+                '30040': 'Order status has changed, please try again later',
+                '30047': 'The order is closed. Can nott cancel',
+                '30049': 'The order is being modified, please wait',
+                '40009': 'Too many requests',
+                '50001': 'Server side exception, please try again later',
+                '50002': 'Server is busy, please try again later',
             },
         });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
-        url += '/' + path;
+        let queryParams = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
+        if (api === 'public' || method === 'GET') {
+            if (Object.keys (query).length) {
+                queryParams += '?' + this.urlencode (query);
+            }
         }
+        if (api === 'private') {
+            const nonce = this.milliseconds ().toString ();
+            let signature = nonce + ':' + method + queryParams;
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    signature += body;
+                }
+            }
+            const encodedHEX = this.hmac (this.encode (signature), this.encode (this.secret), 'sha256');
+            headers = {
+                'X-ACCESS-KEY': this.apiKey,
+                'X-ACCESS-NONCE': nonce,
+                'X-ACCESS-SIGN': encodedHEX,
+            };
+        }
+        url += queryParams;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -247,40 +342,97 @@ module.exports = class aax extends Exchange {
         //            "t":1592563993577
         //         }]
         //   }
-        const timestamp = this.safeInteger (trade, 't').toString ();
+        // Response From FetchMyTrdaes
+        // {
+        //        [
+        //           {
+        //              "avgPrice":"8000",
+        //              "base":"BTC",
+        //              "commission":"0.00000888",
+        //              "createTime":"2019-11-12T03:18:35Z",
+        //              "cumQty":"0.0148",
+        //              "filledPrice":"8000",
+        //              "filledQty":"0.0148",
+        //              "leavesQty":"0.0052",
+        //              "orderID":"wFo9ZPxAJ",
+        //              "orderQty":"0.02",
+        //              "orderStatus":2,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "symbol":"BTCUSDT",
+        //              "taker":false,
+        //              "transactTime":"2019-11-12T03:16:16Z",
+        //              "updateTime":null,
+        //              "userID":"216214"
+        //           }
+        //        ],
+        //  }
+        let timestamp = this.safeString (trade, 't');
+        if (timestamp === undefined) {
+            timestamp = this.safeString (trade, 'createTime');
+            if (timestamp !== undefined) {
+                timestamp = this.parse8601 (timestamp);
+            }
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = this.safeString (market, 'symbol');
         }
-        let price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        let side = 'BUY';
-        let cost = undefined;
-        if (price !== undefined) {
-            if (price < 0) {
-                side = 'SELL';
-            }
-            price = Math.abs (price);
-            if (amount !== undefined) {
-                if (symbol !== undefined) {
-                    cost = parseFloat (this.costToPrecision (symbol, price * amount));
-                }
+        if (symbol === undefined) {
+            const base = this.safeString (trade, 'base');
+            const quote = this.safeString (trade, 'quote');
+            if (base !== undefined && quote !== undefined) {
+                symbol = base + '/' + quote;
             }
         }
+        let price = this.safeFloat2 (trade, 'p', 'avgPrice');
+        const amount = this.safeFloat2 (trade, 'q', 'orderQty');
+        const sideType = this.safeInteger (trade, 'side');
+        let side = undefined;
+        if (sideType !== undefined) {
+            if (sideType === 1) {
+                side = 'BUY';
+            }
+            if (sideType === 2) {
+                side = 'SELL';
+            }
+        }
+        if (side === undefined) {
+            if (price < 0) {
+                side = 'SELL';
+            } else {
+                side = 'BUY';
+            }
+            price = Math.abs (price);
+        }
+        let cost = undefined;
+        if (price !== undefined && amount !== undefined && symbol !== undefined) {
+            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        }
+        let takerOrMaker = undefined;
+        if ('taker' in trade) {
+            takerOrMaker = trade['taker'] ? 'taker' : 'maker';
+        }
+        const orderId = this.safeString (trade, 'orderID');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
-            'order': undefined,
+            'id': orderId,
+            'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': this.safeString (trade, 'commission'),
         };
     }
 
@@ -306,5 +458,469 @@ module.exports = class aax extends Exchange {
         //         }]
         //   }
         return this.parseTrades (this.safeValue (response, 'trades'), market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        const response = await this.privateGetV2UserBalances ();
+        // FetchBalance Response
+        // {
+        //     "code":1,
+        //     "data":[
+        //        {
+        //           "available":"28.44375903",
+        //           "credit":"0.00000000",
+        //           "currency":"BTC",
+        //           "unavailable":"19.96293142"
+        //        },
+        //        {
+        //           "available":"20.00000000",
+        //           "credit":"0.00000000",
+        //           "currency":"EOS",
+        //           "unavailable":"0.00000000"
+        //        },
+        //     ],
+        //     "message":"success",
+        //     "ts":1573530401020
+        //  }
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'unavailable'),
+            };
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    parseOrderType (type) {
+        const orderTypes = {
+            '1': 'market',
+            '2': 'limit',
+            '3': 'stop',
+            '4': 'stop-limit',
+        };
+        return this.safeString (orderTypes, type, type);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open', // pending-new
+            '1': 'open', // new
+            '2': 'open', // partiallyfilled
+            '3': 'closed', // filled
+            '4': 'canceled', // cancel - rejected
+            '5': 'canceled', // canceled
+            '6': 'rejected', // rejected
+            '10': 'canceled', // canceled
+            '11': 'rejected', // business-rejct
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined, time = undefined) {
+        // CraeteOrder,cancelOrder Response
+        //       {
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":null,
+        //        "cumQty":"0",
+        //        "id":null,
+        //        "isTriggered":null,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.02",
+        //        "orderStatus":0,
+        //        "orderType":2,
+        //        "price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":null,
+        //        "rejectReason":null,
+        //        "side":1,
+        //        "stopPrice":null,
+        //        "symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":null,
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     },
+        let timestamp = this.safeString (order, 'createTime');
+        if (timestamp === undefined && time !== undefined) {
+            timestamp = time;
+        } else {
+            timestamp = this.parse8601 (timestamp);
+        }
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'orderQty');
+        let cost = undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        }
+        if (symbol === undefined) {
+            const base = this.safeString (order, 'base');
+            const quote = this.safeString (order, 'quote');
+            if (base !== undefined && quote !== undefined) {
+                symbol = base + '/' + quote;
+            }
+        }
+        if (price !== undefined && amount !== undefined && symbol !== undefined) {
+            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        }
+        const sideType = this.safeInteger (order, 'side');
+        let side = undefined;
+        if (sideType !== undefined) {
+            if (sideType === 1) {
+                side = 'BUY';
+            }
+            if (sideType === 2) {
+                side = 'SELL';
+            }
+        }
+        const remaining = this.safeFloat (order, 'leavesQty');
+        let filled = undefined;
+        if (remaining !== undefined && amount !== undefined) {
+            filled = amount - remaining;
+        }
+        const orderType = this.parseOrderType (this.safeString (order, 'orderType'));
+        const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+        return {
+            'info': order,
+            'id': this.safeString (order, 'orderID'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'stop_price': this.safeString (order, 'stopPrice'),
+            'amount': amount,
+            'cost': cost,
+            'average': this.safeFloat (order, 'avgPrice'),
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': this.safeString (order, 'commission'),
+            'trades': undefined,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        type = type.toUpperCase ();
+        if (type === 'STOP_LIMIT') {
+            type = 'STOP-LIMIT';
+        }
+        const request = {
+            // === Required ===
+            // orderType : string // can be MARKET,LIMIT,STOP,STOP-LIMIT
+            // symbol : string
+            // orderQty : string // Buying or selling quantity
+            // side : string // BUY or SELL
+            // === Required according to ordeType ===
+            // price : string // limit price in limit and stop-limit orders
+            // stopPrice : string // Trigger price for stop-limit order and stop order
+            // ===Optional ===
+            // clOrdID : string
+            // timeInForce :string // GTC/IOC/FOK，default is GTC
+            'orderType': type,
+            'symbol': market['id'],
+            'orderQty': this.amountToPrecision (symbol, amount),
+            'side': side.toUpperCase (),
+        };
+        if ((type === 'LIMIT') || (type === 'STOP-LIMIT')) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a price for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if ((type === 'STOP') || (type === 'STOP-LIMIT')) {
+            const stopPrice = this.safeFloat (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+            }
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        const response = await this.privatePostV2SpotOrders (this.extend (request, params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":{
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":null,
+        //        "cumQty":"0",
+        //        "id":null,
+        //        "isTriggered":null,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.02",
+        //        "orderStatus":0,
+        //        "orderType":2,
+        //        "price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":null,
+        //        "rejectReason":null,
+        //        "side":1,
+        //        "stopPrice":null,
+        //        "symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":null,
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     },
+        //     "message":"success",
+        //     "ts":1573530401264
+        //  }
+        return this.parseOrder (this.safeValue (response, 'data'), market, this.safeString (response, 'ts'));
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        const request = {
+            'orderID': id,
+        };
+        const response = await this.privateDeleteV2SpotOrdersCancelOrderID (this.extend (request, params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":{
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":"2019-11-12T03:46:41Z",
+        //        "cumQty":"0",
+        //        "id":"114330021504606208",
+        //        "isTriggered":false,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.05",
+        //        "orderStatus":1,
+        //        "orderType":2,
+        //        "price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":0,
+        //        "rejectReason":null,
+        //        "side":1,
+        //        "stopPrice":"0",
+        //        "symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":"2019-11-12T03:46:41Z",
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     },
+        //     "message":"success",
+        //     "ts":1573530402029
+        //  }
+        return this.parseOrder (this.safeValue (response, 'data'), market, this.safeString (response, 'ts'));
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // base : String // optional
+            // quote : String // optional
+            // orderId : String //optional
+            // startDate : String //optional
+            // endDate : String //optional
+            // side : String // optional
+            // orderType : String // optional
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['base'] = market['baseId'];
+            request['quote'] = market['quoteId'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.ymd (since, '-');
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetV2SpotTrades (this.extend (request, params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":{
+        //        "list":[
+        //           {
+        //              "avgPrice":"8000",
+        //              "base":"BTC",
+        //              "commission":"0.00000888",
+        //              "createTime":"2019-11-12T03:18:35Z",
+        //              "cumQty":"0.0148",
+        //              "filledPrice":"8000",
+        //              "filledQty":"0.0148",
+        //              "id":"114322949580906499",
+        //              "leavesQty":"0.0052",
+        //              "orderID":"wFo9ZPxAJ",
+        //              "orderQty":"0.02",
+        //              "orderStatus":2,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "symbol":"BTCUSDT",
+        //              "taker":false,
+        //              "transactTime":"2019-11-12T03:16:16Z",
+        //              "updateTime":null,
+        //              "userID":"216214"
+        //           }
+        //        ],
+        //        "pageNum":1,
+        //        "pageSize":1,
+        //        "total":10
+        //     },
+        //     "message":"success",
+        //     "ts":1573532934832
+        //  }
+        const result = this.safeValue (response, 'data');
+        return this.parseTrades (this.safeValue (result, 'list', []), market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // symbol : String // optional
+            // orderId : String // optional
+            // side : String // optional
+            // orderType : String // optional
+            // clOrdID : String //optional
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetV2SpotOpenOrders (this.extend (request, params));
+        // Response
+        // {
+        //     "code":1,
+        //     "data":{
+        //        "list":[
+        //           {
+        //              "avgPrice":"0",
+        //              "base":"BTC",
+        //              "clOrdID":"aax",
+        //              "commission":"0",
+        //              "createTime":"2019-11-12T03:41:52Z",
+        //              "cumQty":"0",
+        //              "id":"114328808516083712",
+        //              "isTriggered":false,
+        //              "lastPrice":"0",
+        //              "lastQty":"0",
+        //              "leavesQty":"0",
+        //              "orderID":"wJ3qitASB",
+        //              "orderQty":"0.02",
+        //              "orderStatus":1,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "symbol":"BTCUSDT",
+        //              "transactTime":null,
+        //              "updateTime":"2019-11-12T03:41:52Z",
+        //              "timeInForce":1,
+        //              "userID":"216214"
+        //           },
+        //           ...
+        //        ],
+        //        "pageNum":1,
+        //        "pageSize":2,
+        //        "total":2
+        //     },
+        //     "message":"success",
+        //     "ts":1573553718212
+        //  }
+        const result = this.safeValue (response, 'data');
+        return this.parseOrders (this.safeValue (result, 'list', []), market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // pageNum : Integer // optional
+            // pageSize : Integer // optional
+            // symbol : String // optional
+            // orderId : String // optional
+            // side : String // optional
+            // orderType : String // optional
+            // clOrdID : String //optional
+            // base : string // optional
+            // quote :string // optional
+            // orderStatus : Integer //optional 1: new, 2:filled, 3:cancel
+            'orderStatus': 2, // As using for ClosedOrders Only
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['base'] = market['baseId'];
+            request['quote'] = market['quoteId'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetV2SpotOrders (this.extend (request, params));
+        const result = this.safeValue (response, 'data');
+        return this.parseOrders (this.safeValue (result, 'list', []), market, since, limit);
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        const errorCode = this.safeString (response, 'code');
+        if (errorCode === undefined) {
+            // fetchOrderBook or fetchTrades or fetchOhlcv
+            return;
+        }
+        if (errorCode === '1') {
+            // success
+            return;
+        }
+        const errorMessages = this.errorMessages;
+        let message = undefined;
+        message = this.safeString (response, 'message');
+        if (message === undefined) {
+            message = this.safeString (errorMessages, errorCode, 'Unknown Error');
+        }
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+        throw new ExchangeError (feedback);
     }
 };
