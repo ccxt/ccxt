@@ -29,6 +29,18 @@ module.exports = class currencycom extends ccxt.currencycom {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                // WS timeframes differ from REST timeframes
+                'timeframes': {
+                    '1m': 'M1',
+                    '3m': 'M3',
+                    '5m': 'M5',
+                    '15m': 'M15',
+                    '30m': 'M30',
+                    '1h': 'H1',
+                    '4h': 'H4',
+                    '1d': 'D1',
+                    '1w': 'W1',
+                },
             },
         });
     }
@@ -41,30 +53,35 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         payload: {
         //             tickers: [
         //                 {
-        //                     symbol: '1COV',
-        //                     priceChange: '-0.29',
-        //                     priceChangePercent: '-0.80',
-        //                     prevClosePrice: '36.33',
-        //                     lastPrice: '36.04',
-        //                     openPrice: '36.33',
-        //                     highPrice: '36.46',
-        //                     lowPrice: '35.88',
-        //                     openTime: 1595548800000,
-        //                     closeTime: 1595795305401
+        //                     symbol: 'BTC/USD_LEVERAGE',
+        //                     priceChange: '484.05',
+        //                     priceChangePercent: '4.14',
+        //                     weightedAvgPrice: '11682.83',
+        //                     prevClosePrice: '11197.70',
+        //                     lastPrice: '11682.80',
+        //                     lastQty: '0.25',
+        //                     bidPrice: '11682.80',
+        //                     askPrice: '11682.85',
+        //                     openPrice: '11197.70',
+        //                     highPrice: '11734.05',
+        //                     lowPrice: '11080.95',
+        //                     volume: '299.133',
+        //                     quoteVolume: '3488040.3465',
+        //                     openTime: 1596585600000,
+        //                     closeTime: 1596654452674
         //                 }
         //             ]
         //         }
         //     }
         //
-        const symbol = this.safeString (subscription, 'symbol');
-        const name = this.safeString (subscription, 'name');
-        const messageHash = name + ':' + symbol;
-        const market = this.market (symbol);
+        const destination = '/api/v1/ticker/24hr';
         const payload = this.safeValue (message, 'payload');
         const tickers = this.safeValue (payload, 'tickers', []);
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i], market);
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            const messageHash = destination + ':' + symbol;
             client.resolve (ticker, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -79,16 +96,16 @@ module.exports = class currencycom extends ccxt.currencycom {
 
     handleTrade (trade, market = undefined) {
         //
-        //         {
-        //             price: 11634.75,
-        //             size: 0.001,
-        //             id: 1605492357,
-        //             ts: 1596263802399,
-        //             instrumentId: 45076691096786110,
-        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
-        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
-        //             buyer: false
-        //         }
+        //     {
+        //         price: 11668.55,
+        //         size: 0.001,
+        //         id: 1600300736,
+        //         ts: 1596653426822,
+        //         symbol: 'BTC/USD_LEVERAGE',
+        //         orderId: '00a02503-0079-54c4-0000-00004020163c',
+        //         clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
+        //         buyer: false
+        //     }
         //
         let symbol = undefined;
         if (market === undefined) {
@@ -128,25 +145,23 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         status: 'OK',
         //         destination: 'internal.trade',
         //         payload: {
-        //             price: 11634.75,
+        //             price: 11668.55,
         //             size: 0.001,
-        //             id: 1605492357,
-        //             ts: 1596263802399,
-        //             instrumentId: 45076691096786110,
-        //             orderId: '00a02503-0079-54c4-0000-0000401fff51',
-        //             clientOrderId: '00a02503-0079-54c4-0000-482b00002f17',
+        //             id: 1600300736,
+        //             ts: 1596653426822,
+        //             symbol: 'BTC/USD_LEVERAGE',
+        //             orderId: '00a02503-0079-54c4-0000-00004020163c',
+        //             clientOrderId: '00a02503-0079-54c4-0000-482f0000754f',
         //             buyer: false
         //         }
         //     }
         //
         const payload = this.safeValue (message, 'payload');
         const parsed = this.handleTrade (payload);
-        console.log (parsed);
-        process.exit ();
         const symbol = parsed['symbol'];
-        const name = this.safeString (subscription, 'name');
-        const messageHash = name + ':' + symbol;
-        const market = this.market (symbol);
+        // const destination = this.safeString (message, 'destination');
+        const destination = 'trades.subscribe';
+        const messageHash = destination + ':' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -158,55 +173,50 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     findTimeframe (timeframe) {
-        const keys = Object.keys (this.timeframes);
+        const timeframes = this.safeValue (this.options, 'timeframes');
+        const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
+            if (timeframes[key] === timeframe) {
                 return key;
             }
         }
         return undefined;
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client, message) {
         //
-        //     [
-        //         216, // channelID
-        //         [
-        //             '1574454214.962096', // Time, seconds since epoch
-        //             '1574454240.000000', // End timestamp of the interval
-        //             '0.020970', // Open price at midnight UTC
-        //             '0.020970', // Intraday high price
-        //             '0.020970', // Intraday low price
-        //             '0.020970', // Closing price at midnight UTC
-        //             '0.020970', // Volume weighted average price
-        //             '0.08636138', // Accumulated volume today
-        //             1, // Number of trades today
-        //         ],
-        //         'ohlc-1', // Channel Name of subscription
-        //         'ETH/XBT', // Asset pair
-        //     ]
+        //     {
+        //         status: 'OK',
+        //         destination: 'ohlc.event',
+        //         payload: {
+        //             interval: 'M1',
+        //             symbol: 'BTC/USD_LEVERAGE',
+        //             t: 1596650940000,
+        //             h: 11670.05,
+        //             l: 11658.1,
+        //             o: 11668.55,
+        //             c: 11666.05
+        //         }
+        //     }
         //
-        const info = this.safeValue (subscription, 'subscription', {});
-        const interval = this.safeInteger (info, 'interval');
-        const name = this.safeString (info, 'name');
-        const wsName = this.safeString (message, 3);
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
+        // const destination = this.safeString (message, 'destination');
+        const destination = 'OHLCMarketData.subscribe';
+        const payload = this.safeValue (message, 'payload', {});
+        const interval = this.safeString (payload, 'interval');
         const timeframe = this.findTimeframe (interval);
-        const duration = this.parseTimeframe (timeframe);
-        if (timeframe !== undefined) {
-            const candle = this.safeValue (message, 1);
-            const messageHash = name + ':' + timeframe + ':' + wsName;
-            let timestamp = this.safeFloat (candle, 1);
-            timestamp -= duration;
+        const marketId = this.safeString (payload, 'symbol');
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
+            const messageHash = destination + ':' + timeframe + ':' + symbol;
             const result = [
-                parseInt (timestamp * 1000),
-                this.safeFloat (candle, 2),
-                this.safeFloat (candle, 3),
-                this.safeFloat (candle, 4),
-                this.safeFloat (candle, 5),
-                this.safeFloat (candle, 7),
+                this.safeInteger (payload, 't'),
+                this.safeFloat (payload, 'o'),
+                this.safeFloat (payload, 'h'),
+                this.safeFloat (payload, 'l'),
+                this.safeFloat (payload, 'c'),
+                undefined, // no volume v in OHLCV
             ];
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -231,29 +241,45 @@ module.exports = class currencycom extends ccxt.currencycom {
         return reqid;
     }
 
-    async watchPublic (name, symbol, params = {}) {
+    async watchPublic (destination, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = name + ':' + symbol;
+        const messageHash = destination + ':' + symbol;
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ().toString ();
-        const request = this.deepExtend (params, {
-            'destination': name,
+        const request = this.deepExtend ({
+            'destination': destination,
             'correlationId': requestId,
             'payload': {
                 'symbols': [ market['id'] ],
             },
-        });
+        }, params);
         const subscription = this.extend (request, {
             'messageHash': messageHash,
             'symbol': symbol,
-            'name': name,
         });
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
-        return await this.watchPublic ('/api/v1/ticker/24hr', symbol, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const destination = '/api/v1/ticker/24hr';
+        const messageHash = destination + ':' + symbol;
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId ().toString ();
+        const request = this.deepExtend ({
+            'destination': destination,
+            'correlationId': requestId,
+            'payload': {
+                'symbol': market['id'],
+            },
+        }, params);
+        const subscription = this.extend (request, {
+            'messageHash': messageHash,
+            'symbol': symbol,
+        });
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -267,36 +293,19 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const destination = 'OHLCMarketData.subscribe';
+        const messageHash = destination + ':' + timeframe;
+        const timeframes = this.safeValue (this.options, 'timeframes');
         const request = {
+            'destination': destination,
             'payload': {
                 'intervals': [
-                    this.timeframes[timeframe],
+                    timeframes[timeframe],
                 ],
             },
         };
-        const future = this.watchPublic ('OHLCMarketData.subscribe', symbol, this.extend (request, params));
+        const future = this.watchPublic (messageHash, symbol, this.extend (request, params));
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
-        // await this.loadMarkets ();
-        // const name = 'ohlc';
-        // const market = this.market (symbol);
-        // const wsName = this.safeValue (market['info'], 'wsname');
-        // const messageHash = name + ':' + timeframe + ':' + wsName;
-        // const url = this.urls['api']['ws']['public'];
-        // const requestId = this.requestId ();
-        // const subscribe = {
-        //     'event': 'subscribe',
-        //     'reqid': requestId,
-        //     'pair': [
-        //         wsName,
-        //     ],
-        //     'subscription': {
-        //         'name': name,
-        //         'interval': this.timeframes[timeframe],
-        //     },
-        // };
-        // const request = this.deepExtend (subscribe, params);
-        // const future = this.watch (url, messageHash, request, messageHash);
-        // return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
     handleDeltas (bookside, deltas) {
@@ -319,13 +328,8 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         }
         //     }
         //
-        const payload = this.safeValue (message, 'payload');
-        let data = this.safeString (payload, 'data');
-        if (data === undefined) {
-            data = payload;
-        } else {
-            data = JSON.parse (data);
-        }
+        const payload = this.safeValue (message, 'payload', {});
+        const data = this.safeValue (payload, 'data', {});
         const marketId = this.safeString (payload, 'symbol');
         let market = undefined;
         let symbol = undefined;
@@ -337,8 +341,9 @@ module.exports = class currencycom extends ccxt.currencycom {
                 symbol = marketId;
             }
         }
-        const name = 'depthMarketData.subscribe'; // this.safeString (subscription, 'destination');
-        const messageHash = name + ':' + symbol;
+        // const destination = this.safeString (message, 'destination');
+        const destination = 'depthMarketData.subscribe';
+        const messageHash = destination + ':' + symbol;
         const timestamp = this.safeInteger (data, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -415,14 +420,12 @@ module.exports = class currencycom extends ccxt.currencycom {
             const subscription = this.safeValue (subscriptionsById, requestId);
             if (subscription !== undefined) {
                 if (status === 'OK') {
-                    const name = this.safeString (subscription, 'name');
-                    if (name !== undefined) {
+                    const destination = this.safeString (subscription, 'destination');
+                    if (destination !== undefined) {
                         const methods = {
-                            '/api/v1/aggTrades': this.handleTrades,
                             '/api/v1/ticker/24hr': this.handleTicker,
-                            '/api/v1/klines': this.handleOHCLV,
                         };
-                        const method = this.safeValue (methods, name);
+                        const method = this.safeValue (methods, destination);
                         if (method === undefined) {
                             return message;
                         } else {
@@ -437,6 +440,7 @@ module.exports = class currencycom extends ccxt.currencycom {
             const methods = {
                 'marketdepth.event': this.handleOrderBook,
                 'internal.trade': this.handleTrades,
+                'ohlc.event': this.handleOHLCV,
             };
             const method = this.safeValue (methods, destination);
             if (method === undefined) {
