@@ -32,7 +32,7 @@ class aax(Exchange):
                 'cancelOrder': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchOrders': True,
             },
             'timeframes': {
                 '1m': 1,
@@ -66,6 +66,7 @@ class aax(Exchange):
                         'v2/spot/trades',
                         'v2/spot/openOrders',
                         'v2/spot/orders',
+                        'v2/user/info',
                     ],
                     'post': [
                         'v2/spot/orders',
@@ -211,7 +212,7 @@ class aax(Exchange):
             status = self.safe_string(market, 'status')
             active = None
             if status is not None:
-                active = (status.upper() == 'ENABLE' or status.upper() == 'READONLY')
+                active = (status.upper() == 'ENABLE')
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
                 'amount': self.precision_from_string(market['lotSize']),
@@ -652,6 +653,7 @@ class aax(Exchange):
         return self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         market = None
         if symbol is not None:
             self.load_markets()
@@ -824,7 +826,7 @@ class aax(Exchange):
         result = self.safe_value(response, 'data')
         return self.parse_orders(self.safe_value(result, 'list', []), market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         self.load_markets()
         request = {
             # pageNum : Integer  # optional
@@ -837,7 +839,6 @@ class aax(Exchange):
             # base : string  # optional
             # quote :string  # optional
             # orderStatus : Integer  #optional 1: new, 2:filled, 3:cancel
-            'orderStatus': 2,  # As using for ClosedOrders Only
         }
         market = None
         if symbol is not None:
@@ -849,6 +850,11 @@ class aax(Exchange):
         response = self.privateGetV2SpotOrders(self.extend(request, params))
         result = self.safe_value(response, 'data')
         return self.parse_orders(self.safe_value(result, 'list', []), market, since, limit)
+
+    def fetch_user_id(self):
+        response = self.privateGetV2UserInfo()
+        result = self.safe_value(response, 'data')
+        return self.safe_value(result, 'userID')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

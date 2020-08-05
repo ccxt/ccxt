@@ -19,7 +19,7 @@ module.exports = class aax extends Exchange {
                 'cancelOrder': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchOrders': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -53,6 +53,7 @@ module.exports = class aax extends Exchange {
                         'v2/spot/trades',
                         'v2/spot/openOrders',
                         'v2/spot/orders',
+                        'v2/user/info',
                     ],
                     'post': [
                         'v2/spot/orders',
@@ -206,7 +207,7 @@ module.exports = class aax extends Exchange {
             const status = this.safeString (market, 'status');
             let active = undefined;
             if (status !== undefined) {
-                active = (status.toUpperCase () === 'ENABLE' || status.toUpperCase () === 'READONLY');
+                active = (status.toUpperCase () === 'ENABLE');
             }
             const precision = {
                 'price': this.precisionFromString (market['tickSize']),
@@ -690,6 +691,7 @@ module.exports = class aax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
@@ -871,7 +873,7 @@ module.exports = class aax extends Exchange {
         return this.parseOrders (this.safeValue (result, 'list', []), market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         const request = {
             // pageNum : Integer // optional
@@ -884,7 +886,6 @@ module.exports = class aax extends Exchange {
             // base : string // optional
             // quote :string // optional
             // orderStatus : Integer //optional 1: new, 2:filled, 3:cancel
-            'orderStatus': 2, // As using for ClosedOrders Only
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -898,6 +899,12 @@ module.exports = class aax extends Exchange {
         const response = await this.privateGetV2SpotOrders (this.extend (request, params));
         const result = this.safeValue (response, 'data');
         return this.parseOrders (this.safeValue (result, 'list', []), market, since, limit);
+    }
+
+    async fetchUserId () {
+        const response = await this.privateGetV2UserInfo ();
+        const result = this.safeValue (response, 'data');
+        return this.safeValue (result, 'userID');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
