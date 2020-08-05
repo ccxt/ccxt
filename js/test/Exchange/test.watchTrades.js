@@ -17,9 +17,11 @@ module.exports = async (exchange, symbol) => {
 
     const method = 'watchTrades'
 
+    // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
         'binanceje',
         'bitvavo',
+        'currencycom',
         'dsx',
     ]
 
