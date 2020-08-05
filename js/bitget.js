@@ -12,7 +12,7 @@ module.exports = class bitget extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
-            'name': 'BITGET',
+            'name': 'Bitget',
             'countries': [ 'SG' ],
             'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
