@@ -24,28 +24,11 @@ module.exports = class foblgate extends Exchange {
                 'fetchOrder': true,
                 'fetchTrades': false,
             },
-            // 비트유니버스 개발하는데의 필요
-            // 시세관련
-            // FetchOrderBook       public  OK
-            // FetchTrades          public
-            // FetchOHLCV           public
-            // FetchTickers         public
-            // 주문관련
-            // FetchMarkets         public  OK
-            // CreateOrder          private OK
-            // FetchOrder           private
-            // CancelOrder          private OK
-            // FetchOrders          private
-            // FetchClosedOrders    private
-            // FetchMyTrades        private
-            // FetchBalance         private Ok
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/69025125/89286704-a5495200-d68d-11ea-8486-fe3fa693e4a6.jpg',
                 'api': {
                     'public': 'https://api2.foblgate.com',
-                    // 'public': 'http://localhost:8080',
                     'private': 'https://api2.foblgate.com',
-                    // 'private': 'http://localhost:8080',
                 },
                 'www': 'https://www.foblgate.com',
                 'doc': 'https://api-document.foblgate.com',
@@ -140,17 +123,6 @@ module.exports = class foblgate extends Exchange {
         // }
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
-    // async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const request = {
-    //         'pairName': symbol
-    //     };
-    //     if (limit === undefined) {
-    //         request['count'] = limit; // default 20, max 100
-    //     }
-    //     const response = await this.publicPostCcxtTrades (this.extend (request, params));
-    //     return response;
-    // }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
