@@ -39,9 +39,7 @@ module.exports = class Client {
             maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
-            connection: {
-                readyState: undefined,
-            },
+            connection: undefined,
             gunzip: false,
             inflate: false,
         }
