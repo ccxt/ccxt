@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -251,7 +251,7 @@ module.exports = class bitget extends Exchange {
                     '32025': ExchangeError, // { "code": 32025, "message": "order cannot be placed during settlement" }
                     '32026': ExchangeError, // { "code": 32026, "message": "your account is restricted from opening positions" }
                     '32027': ExchangeError, // { "code": 32027, "message": "cancelled over 20 orders" }
-                    '32028': ExchangeError, // { "code": 32028, "message": "account is suspended and liquidated" }
+                    '32028': AccountSuspended, // { "code": 32028, "message": "account is suspended and liquidated" }
                     '32029': ExchangeError, // { "code": 32029, "message": "order info does not exist" }
                     '32030': InvalidOrder, // The order cannot be cancelled
                     '32031': ArgumentsRequired, // client_oid or order_id is required.
@@ -462,10 +462,10 @@ module.exports = class bitget extends Exchange {
                     '36005': ExchangeError, // Instrument status is invalid.
                     '36101': AuthenticationError, // Account does not exist.
                     '36102': PermissionDenied, // Account status is invalid.
-                    '36103': PermissionDenied, // Account is suspended due to ongoing liquidation.
+                    '36103': AccountSuspended, // Account is suspended due to ongoing liquidation.
                     '36104': PermissionDenied, // Account is not enabled for options trading.
                     '36105': PermissionDenied, // Please enable the account for option contract.
-                    '36106': PermissionDenied, // Funds cannot be transferred in or out, as account is suspended.
+                    '36106': AccountSuspended, // Funds cannot be transferred in or out, as account is suspended.
                     '36107': PermissionDenied, // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
                     '36108': InsufficientFunds, // Funds cannot be transferred in or out, as equity of the account is less than zero.
                     '36109': PermissionDenied, // Funds cannot be transferred in or out during option exercising or settlement.
@@ -498,17 +498,175 @@ module.exports = class bitget extends Exchange {
                     '36228': InvalidOrder, // Exceeding max available qty for instrument.
                     '36229': InvalidOrder, // Exceeding max available qty for underlying.
                     '36230': InvalidOrder, // Exceeding max position limit for underlying.
+                    // --------------------------------------------------------
+                    // swap
+                    '400': BadRequest, // Bad Request
+                    '401': AuthenticationError, // Unauthorized access
+                    '403': PermissionDenied, // Access prohibited
+                    '404': BadRequest, // Request address does not exist
+                    '405': BadRequest, // The HTTP Method is not supported
+                    '415': BadRequest, // The current media type is not supported
+                    '429': DDoSProtection, // Too many requests
+                    '500': ExchangeNotAvailable, // System busy
+                    '1001': RateLimitExceeded, // The request is too frequent and has been throttled
+                    '1002': ExchangeError, // {0} verifications within 24 hours
+                    '1003': ExchangeError, // You failed more than {0} times today, the current operation is locked, please try again in 24 hours
+                    // '00000': ExchangeError, // success
+                    '40001': AuthenticationError, // ACCESS_KEY cannot be empty
+                    '40002': AuthenticationError, // SECRET_KEY cannot be empty
+                    '40003': AuthenticationError, // Signature cannot be empty
+                    '40004': InvalidNonce, // Request timestamp expired
+                    '40005': InvalidNonce, // Invalid ACCESS_TIMESTAMP
+                    '40006': AuthenticationError, // Invalid ACCESS_KEY
+                    '40007': BadRequest, // Invalid Content_Type
+                    '40008': InvalidNonce, // Request timestamp expired
+                    '40009': AuthenticationError, // sign signature error
+                    '40010': AuthenticationError, // sign signature error
+                    '40011': AuthenticationError, // ACCESS_PASSPHRASE cannot be empty
+                    '40012': AuthenticationError, // apikey/password is incorrect
+                    '40013': ExchangeError, // User status is abnormal
+                    '40014': PermissionDenied, // Incorrect permissions
+                    '40015': ExchangeError, // System is abnormal, please try again later
+                    '40016': PermissionDenied, // The user must bind the phone or Google
+                    '40017': ExchangeError, // Parameter verification failed
+                    '40018': PermissionDenied, // Invalid IP
+                    '40102': BadRequest, // Contract configuration does not exist, please check the parameters
+                    '40103': BadRequest, // Request method cannot be empty
+                    '40104': ExchangeError, // Lever adjustment failure
+                    '40105': ExchangeError, // Abnormal access to current price limit data
+                    '40106': ExchangeError, // Abnormal get next settlement time
+                    '40107': ExchangeError, // Abnormal access to index price data
+                    '40108': InvalidOrder, // Wrong order quantity
+                    '40109': OrderNotFound, // The data of the order cannot be found, please confirm the order number
+                    '40200': OnMaintenance, // Server upgrade, please try again later
+                    '40201': InvalidOrder, // Order number cannot be empty
+                    '40202': ExchangeError, // User information cannot be empty
+                    '40203': BadRequest, // The amount of adjustment margin cannot be empty or negative
+                    '40204': BadRequest, // Adjustment margin type cannot be empty
+                    '40205': BadRequest, // Adjusted margin type data is wrong
+                    '40206': BadRequest, // The direction of the adjustment margin cannot be empty
+                    '40207': BadRequest, // The adjustment margin data is wrong
+                    '40208': BadRequest, // The accuracy of the adjustment margin amount is incorrect
+                    '40209': BadRequest, // The current page number is wrong, please confirm
+                    '40300': ExchangeError, // User does not exist
+                    '40301': PermissionDenied, // Permission has not been obtained yet. If you need to use it, please contact customer service
+                    '40302': BadRequest, // Parameter abnormality
+                    '40303': BadRequest, // Can only query up to 20,000 data
+                    '40304': BadRequest, // Parameter type is abnormal
+                    '40305': BadRequest, // Client_oid length is not greater than 50, and cannot be Martian characters
+                    '40306': ExchangeError, // Batch processing orders can only process up to 20
+                    '40308': OnMaintenance, // The contract is being temporarily maintained
+                    '40309': BadSymbol, // The contract has been removed
+                    '40400': ExchangeError, // Status check abnormal
+                    '40401': ExchangeError, // The operation cannot be performed
+                    '40402': BadRequest, // The opening direction cannot be empty
+                    '40403': BadRequest, // Wrong opening direction format
+                    '40404': BadRequest, // Whether to enable automatic margin call parameters cannot be empty
+                    '40405': BadRequest, // Whether to enable the automatic margin call parameter type is wrong
+                    '40406': BadRequest, // Whether to enable automatic margin call parameters is of unknown type
+                    '40407': ExchangeError, // The query direction is not the direction entrusted by the plan
+                    '40408': ExchangeError, // Wrong time range
+                    '40409': ExchangeError, // Time format error
+                    '40500': InvalidOrder, // Client_oid check error
+                    '40501': ExchangeError, // Channel name error
+                    '40502': ExchangeError, // If it is a copy user, you must pass the copy to whom
+                    '40503': ExchangeError, // With the single type
+                    '40504': ExchangeError, // Platform code must pass
+                    '40505': ExchangeError, // Not the same as single type
+                    '40506': AuthenticationError, // Platform signature error
+                    '40507': AuthenticationError, // Api signature error
+                    '40508': ExchangeError, // KOL is not authorized
+                    '40509': ExchangeError, // Abnormal copy end
+                    '40600': ExchangeError, // Copy function suspended
+                    '40601': ExchangeError, // Followers cannot be KOL
+                    '40602': ExchangeError, // The number of copies has reached the limit and cannot process the request
+                    '40603': ExchangeError, // Abnormal copy end
+                    '40604': ExchangeNotAvailable, // Server is busy, please try again later
+                    '40605': ExchangeError, // Copy type, the copy number must be passed
+                    '40606': ExchangeError, // The type of document number is wrong
+                    '40607': ExchangeError, // Document number must be passed
+                    '40608': ExchangeError, // No documented products currently supported
+                    '40609': ExchangeError, // The contract product does not support copying
+                    '40700': BadRequest, // Cursor parameters are incorrect
+                    '40701': ExchangeError, // KOL is not authorized
+                    '40702': ExchangeError, // Unauthorized copying user
+                    '40703': ExchangeError, // Bill inquiry start and end time cannot be empty
+                    '40704': ExchangeError, // Can only check the data of the last three months
+                    '40705': BadRequest, // The start and end time cannot exceed 90 days
+                    '40706': InvalidOrder, // Wrong order price
+                    '40707': BadRequest, // Start time is greater than end time
+                    '40708': BadRequest, // Parameter verification is abnormal
+                    '40709': ExchangeError, // There is no position in this position, and no automatic margin call can be set
+                    '40710': ExchangeError, // Abnormal account status
+                    '40711': InsufficientFunds, // Insufficient contract account balance
+                    '40712': InsufficientFunds, // Insufficient margin
+                    '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
+                    '40714': ExchangeError, // No direct margin call is allowed
+                    // spot
+                    'invalid sign': AuthenticationError,
+                    'invalid currency': BadSymbol, // invalid trading pair
+                    'invalid symbol': BadSymbol,
+                    'invalid period': BadRequest, // invalid Kline type
+                    'invalid user': ExchangeError,
+                    'invalid amount': InvalidOrder,
+                    'invalid type': InvalidOrder, // {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
+                    'invalid orderId': InvalidOrder,
+                    'invalid record': ExchangeError,
+                    'invalid accountId': BadRequest,
+                    'invalid address': BadRequest,
+                    'accesskey not null': AuthenticationError, // {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
+                    'illegal accesskey': AuthenticationError,
+                    'sign not null': AuthenticationError,
+                    'req_time is too much difference from server time': InvalidNonce,
+                    'permissions not right': PermissionDenied, // {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
+                    'illegal sign invalid': AuthenticationError, // {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
+                    'user locked': AccountSuspended,
+                    'Request Frequency Is Too High': RateLimitExceeded,
+                    'more than a daily rate of cash': BadRequest,
+                    'more than the maximum daily withdrawal amount': BadRequest,
+                    'need to bind email or mobile': ExchangeError,
+                    'user forbid': PermissionDenied,
+                    'User Prohibited Cash Withdrawal': PermissionDenied,
+                    'Cash Withdrawal Is Less Than The Minimum Value': BadRequest,
+                    'Cash Withdrawal Is More Than The Maximum Value': BadRequest,
+                    'the account with in 24 hours ban coin': PermissionDenied,
+                    'order cancel fail': BadRequest, // {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
+                    'base symbol error': BadSymbol,
+                    'base date error': ExchangeError,
+                    'api signature not valid': AuthenticationError,
+                    'gateway internal error': ExchangeError,
+                    'audit failed': ExchangeError,
+                    'order queryorder invalid': BadRequest,
+                    'market no need price': InvalidOrder,
+                    'limit need price': InvalidOrder,
+                    'userid not equal to account_id': ExchangeError,
+                    'your balance is low': InsufficientFunds, // {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
+                    'address invalid cointype': ExchangeError,
+                    'system exception': ExchangeError, // {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
+                    '50003': ExchangeError, // No record
+                    '50004': BadSymbol, // The transaction pair is currently not supported or has been suspended
+                    '50006': PermissionDenied, // The account is forbidden to withdraw. If you have any questions, please contact customer service.
+                    '50007': PermissionDenied, // The account is forbidden to withdraw within 24 hours. If you have any questions, please contact customer service.
+                    '50008': RequestTimeout, // network timeout
+                    '50009': RateLimitExceeded, // The operation is too frequent, please try again later
+                    '50010': ExchangeError, // The account is abnormally frozen. If you have any questions, please contact customer service.
+                    '50014': InvalidOrder, // The transaction amount under minimum limits
+                    '50015': InvalidOrder, // The transaction amount exceed maximum limits
+                    '50016': InvalidOrder, // The price can't be higher than the current price
+                    '50017': InvalidOrder, // Price under minimum limits
+                    '50018': InvalidOrder, // The price exceed maximum limits
+                    '50019': InvalidOrder, // The amount under minimum limits
+                    '50020': InsufficientFunds, // Insufficient balance
+                    '50021': InvalidOrder, // Price is under minimum limits
+                    '50026': InvalidOrder, // Market price parameter error
+                    'invalid order query time': ExchangeError, // start time is greater than end time; or the time interval between start time and end time is greater than 48 hours
+                    'invalid start time': BadRequest, // start time is a date 30 days ago; or start time is a date in the future
+                    'invalid end time': BadRequest, // end time is a date 30 days ago; or end time is a date in the future
+                    '20003': ExchangeError, // operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
+                    '01001': ExchangeError, // order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
                 },
                 'broad': {
-                    // {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
-                    'illegal sign invalid': AuthenticationError, // {"status":"error","ts":1595684716042,"err_code":"invalid-parameter","err_msg":"illegal sign invalid"}
-                    'your balance is low': InsufficientFunds, // {"status":"error","ts":1595594160149,"err_code":"invalid-parameter","err_msg":"invalid size, valid range: [1,2000]"}
-                    'invalid type': BadRequest, // {"status":"error","ts":1595700344504,"err_code":"invalid-parameter","err_msg":"invalid type"}
-                    // {"status":"error","ts":1595703343035,"err_code":"bad-request","err_msg":"order cancel fail"}
-                    'accesskey not null': AuthenticationError, // {"status":"error","ts":1595704360508,"err_code":"invalid-parameter","err_msg":"accesskey not null"}
-                    'permissions not right': PermissionDenied, // {"status":"error","ts":1595704490084,"err_code":"invalid-parameter","err_msg":"permissions not right"}
-                    'system exception': ExchangeError, // {"status":"error","ts":1595711862763,"err_code":"system exception","err_msg":"system exception"}
-                    // {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
+                    'invalid size, valid range': ExchangeError,
                 },
             },
             'precisionMode': TICK_SIZE,
