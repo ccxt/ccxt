@@ -40,6 +40,7 @@ module.exports = class Client {
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: undefined,
+            connecting: false,
             gunzip: false,
             inflate: false,
         }
