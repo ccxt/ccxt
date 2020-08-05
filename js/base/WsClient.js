@@ -35,8 +35,8 @@ module.exports = class WsClient extends Client {
 
     connect (backoffDelay = 0) {
         if (!this.startedConnecting) {
-            // exponential backoff for consequent ws connections if necessary
             this.startedConnecting = true
+            // exponential backoff for consequent ws connections if necessary
             if (backoffDelay) {
                 sleep (backoffDelay).then (this.createConnection.bind (this))
             } else {
