@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -13,6 +12,7 @@ module.exports = class currencycom extends ccxt.currencycom {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
@@ -43,6 +43,58 @@ module.exports = class currencycom extends ccxt.currencycom {
                 },
             },
         });
+    }
+
+    handleBalance (client, message, subscription) {
+        console.dir (message, { depth: null });
+        //
+        //     {
+        //         status: 'OK',
+        //         correlationId: '1',
+        //         payload: {
+        //             makerCommission: 0.2,
+        //             takerCommission: 0.2,
+        //             buyerCommission: 0.2,
+        //             sellerCommission: 0.2,
+        //             canTrade: true,
+        //             canWithdraw: true,
+        //             canDeposit: true,
+        //             updateTime: 1596742699,
+        //             balances: [
+        //                 {
+        //                     accountId: 5470306579272968,
+        //                     collateralCurrency: true,
+        //                     asset: 'ETH',
+        //                     free: 0,
+        //                     locked: 0,
+        //                     default: false
+        //                 },
+        //                 {
+        //                     accountId: 5470310874305732,
+        //                     collateralCurrency: true,
+        //                     asset: 'USD',
+        //                     free: 47.82576735,
+        //                     locked: 1.187925,
+        //                     default: true
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const payload = this.safeValue (message, 'payload');
+        const balances = this.safeValue (payload, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'f');
+            account['used'] = this.safeFloat (balance, 'l');
+            this.balance[code] = account;
+        }
+        this.balance = this.parseBalance (this.balance);
+        const messageHash = this.safeString (subscription, 'messageHash');
+        client.resolve (this.balance, messageHash);
     }
 
     handleTicker (client, message, subscription) {
@@ -87,11 +139,6 @@ module.exports = class currencycom extends ccxt.currencycom {
                 delete client.subscriptions[messageHash];
             }
         }
-    }
-
-    async watchBalance (params = {}) {
-        await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
     }
 
     handleTrade (trade, market = undefined) {
@@ -261,6 +308,33 @@ module.exports = class currencycom extends ccxt.currencycom {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
+    async watchPrivate (destination, params = {}) {
+        await this.loadMarkets ();
+        const messageHash = '/api/v1/account';
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId ().toString ();
+        const payload = {
+            'timestamp': this.milliseconds (),
+            'apiKey': this.apiKey,
+        };
+        const auth = this.urlencode (this.keysort (payload));
+        const request = this.deepExtend ({
+            'destination': destination,
+            'correlationId': requestId,
+            'payload': payload,
+        }, params);
+        request['payload']['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+        const subscription = this.extend (request, {
+            'messageHash': messageHash,
+        });
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        return await this.watchPrivate ('/api/v1/account', params);
+    }
+
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -424,6 +498,7 @@ module.exports = class currencycom extends ccxt.currencycom {
                     if (destination !== undefined) {
                         const methods = {
                             '/api/v1/ticker/24hr': this.handleTicker,
+                            '/api/v1/account': this.handleBalance,
                         };
                         const method = this.safeValue (methods, destination);
                         if (method === undefined) {
