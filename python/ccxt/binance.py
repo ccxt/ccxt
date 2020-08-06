@@ -1573,10 +1573,14 @@ class binance(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ccxt.base.errors.ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = 'privateGetMyTrades' if market['spot'] else 'fapiPrivateGetUserTrades'
+        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
+        method = 'privateGetMyTrades'
+        if type == 'future':
+            method = 'fapiPrivateGetUserTrades'
         request = {
             'symbol': market['id'],
         }
@@ -1584,7 +1588,8 @@ class binance(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        query = self.omit(params, 'type')
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot trade
         #     [
