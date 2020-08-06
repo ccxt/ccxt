@@ -1576,7 +1576,13 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        method = 'privateGetMyTrades' if market['spot'] else 'fapiPrivateGetUserTrades'
+        type = self.safe_value(params, 'type', market['type'])
+        method = None
+        if type == 'spot':
+            method = 'privateGetMyTrades'
+        elif type == 'future':
+            method = 'fapiPrivateGetUserTrades'
+        params = self.omit(params, 'type')
         request = {
             'symbol': market['id'],
         }
@@ -1587,6 +1593,7 @@ class binance(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot trade
+        #
         #     [
         #         {
         #             "symbol": "BNBBTC",
@@ -1624,6 +1631,7 @@ class binance(Exchange):
         #             "time": 1569514978020
         #         }
         #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_dust_trades(self, symbol=None, since=None, limit=None, params={}):
