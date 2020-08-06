@@ -1783,7 +1783,10 @@ class okex(Exchange):
             })
             orderType = self.safe_string(params, 'order_type')
             # order_type == '4' means a market order
-            if orderType != '4':
+            isMarketOrder = (type == 'market') or (orderType == '4')
+            if isMarketOrder:
+                request['match_price'] = '1'
+            else:
                 request['price'] = self.price_to_precision(symbol, price)
             if market['futures']:
                 request['leverage'] = '10'  # or '20'

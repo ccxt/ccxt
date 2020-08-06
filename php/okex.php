@@ -1821,7 +1821,10 @@ class okex extends Exchange {
             ));
             $orderType = $this->safe_string($params, 'order_type');
             // order_type === '4' means a $market $order
-            if ($orderType !== '4') {
+            $isMarketOrder = ($type === 'market') || ($orderType === '4');
+            if ($isMarketOrder) {
+                $request['match_price'] = '1';
+            } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($market['futures']) {
