@@ -26,7 +26,7 @@ class aax extends Exchange {
                 'cancelOrder' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchOrders' => true,
             ),
             'timeframes' => array(
                 '1m' => 1,
@@ -60,6 +60,7 @@ class aax extends Exchange {
                         'v2/spot/trades',
                         'v2/spot/openOrders',
                         'v2/spot/orders',
+                        'v2/user/info',
                     ),
                     'post' => array(
                         'v2/spot/orders',
@@ -213,7 +214,7 @@ class aax extends Exchange {
             $status = $this->safe_string($market, 'status');
             $active = null;
             if ($status !== null) {
-                $active = (strtoupper($status) === 'ENABLE' || strtoupper($status) === 'READONLY');
+                $active = (strtoupper($status) === 'ENABLE');
             }
             $precision = array(
                 'price' => $this->precision_from_string($market['tickSize']),
@@ -697,6 +698,7 @@ class aax extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $market = null;
         if ($symbol !== null) {
             $this->load_markets();
@@ -878,7 +880,7 @@ class aax extends Exchange {
         return $this->parse_orders($this->safe_value($result, 'list', array()), $market, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $request = array(
             // pageNum : Integer // optional
@@ -891,7 +893,6 @@ class aax extends Exchange {
             // base : string // optional
             // quote :string // optional
             // orderStatus : Integer //optional 1 => new, 2:filled, 3:cancel
-            'orderStatus' => 2, // As using for ClosedOrders Only
         );
         $market = null;
         if ($symbol !== null) {
@@ -905,6 +906,12 @@ class aax extends Exchange {
         $response = $this->privateGetV2SpotOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'data');
         return $this->parse_orders($this->safe_value($result, 'list', array()), $market, $since, $limit);
+    }
+
+    public function fetch_user_id () {
+        $response = $this->privateGetV2UserInfo ();
+        $result = $this->safe_value($response, 'data');
+        return $this->safe_value($result, 'userID');
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
