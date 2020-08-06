@@ -76,6 +76,7 @@ class binance extends Exchange {
                 'test' => array(
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'public' => 'https://testnet.binance.vision/api/v3',
                     'private' => 'https://testnet.binance.vision/api/v3',
                     'v3' => 'https://testnet.binance.vision/api/v3',
@@ -86,6 +87,8 @@ class binance extends Exchange {
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
+                    'fapiData' => 'https://fapi.binance.com/futures/data',
+                    'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -124,6 +127,10 @@ class binance extends Exchange {
                         'margin/myTrades',
                         'margin/maxBorrowable',
                         'margin/maxTransferable',
+                        'margin/isolated/transfer',
+                        'margin/isolated/account',
+                        'margin/isolated/pair',
+                        'margin/isolated/allPairs',
                         'futures/transfer',
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
@@ -168,10 +175,13 @@ class binance extends Exchange {
                         'margin/loan',
                         'margin/repay',
                         'margin/order',
+                        'margin/isolated/create',
+                        'margin/isolated/transfer',
                         'sub-account/margin/enable',
                         'sub-account/margin/enable',
                         'sub-account/futures/enable',
                         'userDataStream',
+                        'userDataStream/isolated',
                         'futures/transfer',
                         // lending
                         'lending/customizedFixed/purchase',
@@ -180,10 +190,12 @@ class binance extends Exchange {
                     ),
                     'put' => array(
                         'userDataStream',
+                        'userDataStream/isolated',
                     ),
                     'delete' => array(
                         'margin/order',
                         'userDataStream',
+                        'userDataStream/isolated',
                     ),
                 ),
                 'wapi' => array(
@@ -226,6 +238,15 @@ class binance extends Exchange {
                         'leverageBracket',
                     ),
                 ),
+                'fapiData' => array(
+                    'get' => array(
+                        'openInterestHist',
+                        'topLongShortAccountRatio',
+                        'topLongShortPositionRatio',
+                        'globalLongShortAccountRatio',
+                        'takerlongshortRatio',
+                    ),
+                ),
                 'fapiPrivate' => array(
                     'get' => array(
                         'allForceOrders',
@@ -259,6 +280,13 @@ class binance extends Exchange {
                         'order',
                         'allOpenOrders',
                         'listenKey',
+                    ),
+                ),
+                'fapiPrivateV2' => array(
+                    'get' => array(
+                        'account',
+                        'balance',
+                        'positionRisk',
                     ),
                 ),
                 'v3' => array(
@@ -620,7 +648,9 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = 'privateGetAccount';
         if ($type === 'future') {
-            $method = 'fapiPrivateGetAccount';
+            $options = $this->safe_value($this->options, 'future', array());
+            $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
+            $method = $this->safe_string($fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
         } else if ($type === 'margin') {
             $method = 'sapiGetMarginAccount';
         }
@@ -663,6 +693,8 @@ class binance extends Exchange {
         //
         // futures (fapi)
         //
+        //     fapiPrivateGetAccount
+        //
         //     {
         //         "feeTier":0,
         //         "canTrade":true,
@@ -702,6 +734,72 @@ class binance extends Exchange {
         //         )
         //     }
         //
+        //     fapiPrivateV2GetAccount
+        //
+        //     {
+        //         "feeTier":0,
+        //         "canTrade":true,
+        //         "canDeposit":true,
+        //         "canWithdraw":true,
+        //         "updateTime":0,
+        //         "totalInitialMargin":"0.00000000",
+        //         "totalMaintMargin":"0.00000000",
+        //         "totalWalletBalance":"0.00000000",
+        //         "totalUnrealizedProfit":"0.00000000",
+        //         "totalMarginBalance":"0.00000000",
+        //         "totalPositionInitialMargin":"0.00000000",
+        //         "totalOpenOrderInitialMargin":"0.00000000",
+        //         "totalCrossWalletBalance":"0.00000000",
+        //         "totalCrossUnPnl":"0.00000000",
+        //         "availableBalance":"0.00000000",
+        //         "maxWithdrawAmount":"0.00000000",
+        //         "assets":array(
+        //             {
+        //                 "asset":"BNB",
+        //                 "walletBalance":"0.01000000",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "marginBalance":"0.01000000",
+        //                 "maintMargin":"0.00000000",
+        //                 "initialMargin":"0.00000000",
+        //                 "positionInitialMargin":"0.00000000",
+        //                 "openOrderInitialMargin":"0.00000000",
+        //                 "maxWithdrawAmount":"0.01000000",
+        //                 "crossWalletBalance":"0.01000000",
+        //                 "crossUnPnl":"0.00000000",
+        //                 "availableBalance":"0.01000000"
+        //             }
+        //         ),
+        //         "positions":array(
+        //             array(
+        //                 "symbol":"BTCUSDT",
+        //                 "initialMargin":"0",
+        //                 "maintMargin":"0",
+        //                 "unrealizedProfit":"0.00000000",
+        //                 "positionInitialMargin":"0",
+        //                 "openOrderInitialMargin":"0",
+        //                 "leverage":"20",
+        //                 "isolated":false,
+        //                 "entryPrice":"0.00000",
+        //                 "maxNotional":"5000000",
+        //                 "positionSide":"BOTH"
+        //             ),
+        //         )
+        //     }
+        //
+        //     fapiPrivateV2GetBalance
+        //
+        //     array(
+        //         {
+        //             "accountAlias":"FzFzXquXXqoC",
+        //             "asset":"BNB",
+        //             "$balance":"0.01000000",
+        //             "crossWalletBalance":"0.01000000",
+        //             "crossUnPnl":"0.00000000",
+        //             "availableBalance":"0.01000000",
+        //             "maxWithdrawAmount":"0.01000000"
+        //         }
+        //     )
+        //
         $result = array( 'info' => $response );
         if (($type === 'spot') || ($type === 'margin')) {
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
@@ -715,14 +813,18 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         } else {
-            $balances = $this->safe_value($response, 'assets', array());
+            $balances = $response;
+            if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+                $balances = $this->safe_value($response, 'assets', array());
+            }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
+                $account['free'] = $this->safe_float($balance, 'availableBalance');
                 $account['used'] = $this->safe_float($balance, 'initialMargin');
-                $account['total'] = $this->safe_float($balance, 'marginBalance');
+                $account['total'] = $this->safe_float_2($balance, 'marginBalance', 'balance');
                 $result[$code] = $account;
             }
         }
@@ -2082,7 +2184,7 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
         }
-        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);

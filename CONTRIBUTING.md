@@ -756,6 +756,7 @@ foo += this.c ();
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
 - when implementing a unified method that has some arguments – we can't ignore or miss any of those arguments
 - all structures returned from the unified methods must conform to their specifications from the Manual
+- all API endpoints have to be listed out with proper support for params substituted in the URLs
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 

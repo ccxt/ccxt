@@ -266,25 +266,126 @@ class bitmex(Exchange):
             })
         return result
 
+    def parse_balances(self, balances):
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
+        result = {'info': balances}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            free = self.safe_float(balance, 'availableMargin')
+            total = self.safe_float(balance, 'marginBalance')
+            if code == 'BTC':
+                if free is not None:
+                    free /= 100000000
+                if total is not None:
+                    total /= 100000000
+            account['free'] = free
+            account['total'] = total
+            result[code] = account
+        return self.parse_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         request = {
             'currency': 'all',
         }
         response = await self.privateGetUserMargin(self.extend(request, params))
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'availableMargin')
-            account['total'] = self.safe_float(balance, 'marginBalance')
-            if code == 'BTC':
-                account['free'] = account['free'] / 100000000
-                account['total'] = account['total'] / 100000000
-            result[code] = account
-        return self.parse_balance(result)
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
+        return self.parse_balances(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

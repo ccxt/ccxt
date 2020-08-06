@@ -823,21 +823,26 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
+        $id = $this->safe_string($data, 'orderId');
         $order = array(
-            'id' => $this->safe_string($data, 'orderId'),
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'amount' => null,
             'cost' => null,
+            'average' => null,
             'filled' => null,
             'remaining' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'status' => null,
             'fee' => null,
-            'status' => 'open',
-            'clientOrderId' => $clientOrderId,
-            'info' => $data,
+            'trades' => null,
         );
         if (!$this->safe_value($params, 'quoteAmount')) {
             $order['amount'] = $amount;
@@ -1805,6 +1810,15 @@ class kucoin extends Exchange {
             $payload = $timestamp . $method . $endpoint . $endpart;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers['KC-API-SIGN'] = $this->decode($signature);
+            $partner = $this->safe_value($this->options, 'partner', array());
+            $partnerId = $this->safe_string($partner, 'id');
+            $partnerSecret = $this->safe_string($partner, 'secret');
+            if (($partnerId !== null) && ($partnerSecret !== null)) {
+                $partnerPayload = $timestamp . $partnerId . $this->apiKey;
+                $partnerSignature = $this->hmac($this->encode($partnerPayload), $this->encode($partnerSecret), 'sha256', 'base64');
+                $headers['KC-API-PARTNER-SIGN'] = $this->decode($partnerSignature);
+                $headers['KC-API-PARTNER'] = $partnerId;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

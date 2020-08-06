@@ -29,15 +29,22 @@ class digifinex(Exchange):
             'version': 'v3',
             'rateLimit': 900,  # 300 for posts
             'has': {
+                'cancelOrder': True,
                 'cancelOrders': True,
-                'fetchOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -78,6 +85,7 @@ class digifinex(Exchange):
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ],
                 },
                 'private': {
@@ -163,30 +171,34 @@ class digifinex(Exchange):
             },
         })
 
-    async def fetch_markets_by_type(self, type, params={}):
-        method = 'publicGet' + self.capitalize(type) + 'Symbols'
-        response = await getattr(self, method)(params)
+    async def fetch_markets(self, params={}):
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        method = self.safe_string(options, 'method', 'fetch_markets_v2')
+        return await getattr(self, method)(params)
+
+    async def fetch_markets_v2(self, params={}):
+        response = await self.publicGetTradesSymbols(params)
         #
         #     {
-        #         "symbol_list": [
+        #         "symbol_list":[
         #             {
         #                 "order_types":["LIMIT","MARKET"],
         #                 "quote_asset":"USDT",
         #                 "minimum_value":2,
         #                 "amount_precision":4,
         #                 "status":"TRADING",
-        #                 "minimum_amount":0.001,
-        #                 "symbol":"LTC_USDT",
-        #                 "margin_rate":0.3,
+        #                 "minimum_amount":0.0001,
+        #                 "symbol":"BTC_USDT",
+        #                 "is_allow":1,
         #                 "zone":"MAIN",
-        #                 "base_asset":"LTC",
+        #                 "base_asset":"BTC",
         #                 "price_precision":2
-        #             },
+        #             }
         #         ],
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'symbols_list', [])
+        markets = self.safe_value(response, 'symbol_list', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -224,7 +236,9 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            active = None
+            isAllowed = self.safe_value(market, 'is_allow', 1)
+            active = True if isAllowed else False
+            type = 'spot'
             spot = (type == 'spot')
             margin = (type == 'margin')
             result.append({
@@ -244,7 +258,7 @@ class digifinex(Exchange):
             })
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets_v1(self, params={}):
         response = await self.publicGetMarkets(params)
         #
         #     {

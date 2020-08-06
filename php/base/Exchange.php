@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.32.10';
+$version = '1.32.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.32.10';
+    const VERSION = '1.32.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,7 +63,6 @@ class Exchange {
 
     public static $exchanges = array(
         'acx',
-        'anxpro',
         'aofex',
         'bcex',
         'bequant',
@@ -79,6 +78,7 @@ class Exchange {
         'bitfinex2',
         'bitflyer',
         'bitforex',
+        'bitget',
         'bithumb',
         'bitkk',
         'bitmart',
@@ -1258,16 +1258,16 @@ class Exchange {
         return json_decode($json_string, $as_associative_array);
     }
 
-    public function print() {
-        $args = func_get_args();
-        if (is_array($args)) {
-            $array = array();
-            foreach ($args as $arg) {
-                $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
-            }
-            echo implode(' ', $array), "\n";
-        }
-    }
+    // public function print() {
+    //     $args = func_get_args();
+    //     if (is_array($args)) {
+    //         $array = array();
+    //         foreach ($args as $arg) {
+    //             $array[] = is_string($arg) ? $arg : json_encode($arg, JSON_PRETTY_PRINT);
+    //         }
+    //         echo implode(' ', $array), "\n";
+    //     }
+    // }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         if ($this->enableRateLimit) {
@@ -1354,8 +1354,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            $function = array($this, 'print');
-            $function('Request:', $method, $url, $verbose_headers, $body);
+            print_r(array('Request:', $method, $url, $verbose_headers, $body));
         }
 
         // we probably only need to set it once on startup
@@ -1437,8 +1436,7 @@ class Exchange {
         $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
-            $function = array($this, 'print');
-            $function('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result);
+            print_r(array('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);

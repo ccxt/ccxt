@@ -75,6 +75,7 @@ module.exports = class bittrex extends Exchange {
                 'v3': {
                     'get': [
                         'account',
+                        'account/volume',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -88,6 +89,7 @@ module.exports = class bittrex extends Exchange {
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
+                        'orders/{orderId}/executions',
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
@@ -95,16 +97,26 @@ module.exports = class bittrex extends Exchange {
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
+                        'withdrawals/whitelistAddresses',
+                        'conditional-orders/{conditionalOrderId}',
+                        'conditional-orders/closed',
+                        'conditional-orders/open',
+                        'transfers/sent',
+                        'transfers/received',
+                        'transfers/{transferId}',
                     ],
                     'post': [
                         'addresses',
                         'orders',
                         'subaccounts',
                         'withdrawals',
+                        'conditional-orders',
+                        'transfers',
                     ],
                     'delete': [
                         'orders/{orderId}',
                         'withdrawals/{withdrawalId}',
+                        'conditional-orders/{conditionalOrderId}',
                     ],
                 },
                 'v3public': {
@@ -116,8 +128,10 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
                 'public': {
@@ -662,20 +676,37 @@ module.exports = class bittrex extends Exchange {
             'candleInterval': this.timeframes[timeframe],
             'marketSymbol': reverseId,
         };
-        let method = 'v3publicGetMarketsMarketSymbolCandles';
+        let method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
         if (since !== undefined) {
             const now = this.milliseconds ();
             const difference = Math.abs (now - since);
-            if (difference > 86400000) {
-                method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                const date = this.ymd (since);
-                const parts = date.split ('-');
-                const year = this.safeInteger (parts, 0);
-                const month = this.safeInteger (parts, 1);
-                const day = this.safeInteger (parts, 2);
-                request['year'] = year;
-                request['month'] = month;
-                request['day'] = day;
+            const sinceDate = this.ymd (since);
+            const parts = sinceDate.split ('-');
+            const sinceYear = this.safeInteger (parts, 0);
+            const sinceMonth = this.safeInteger (parts, 1);
+            const sinceDay = this.safeInteger (parts, 2);
+            if (timeframe === '1d') {
+                // if the since argument is beyond one year into the past
+                if (difference > 31622400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                    request['year'] = sinceYear;
+                }
+                // request['year'] = year;
+            } else if (timeframe === '1h') {
+                // if the since argument is beyond 31 days into the past
+                if (difference > 2678400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                }
+            } else {
+                // if the since argument is beyond 1 day into the past
+                if (difference > 86400000) {
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                    request['year'] = sinceYear;
+                    request['month'] = sinceMonth;
+                    request['day'] = sinceDay;
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -1308,9 +1339,59 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
+    async fetchMyTradesV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.accountGetOrderhistory (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.parseOrders (result, market);
+        const trades = this.ordersToTrades (orders);
+        if (symbol !== undefined) {
+            return this.filterBySinceLimit (trades, since, limit);
+        } else {
+            return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        }
+    }
+
+    async fetchMyTradesV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.ymdhms (since, 'T') + 'Z';
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and v3 market ids are reversed in comparison to v1
+            // v3 has to be a completely separate implementation
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote'];
+        }
+        const response = await this.v3GetOrdersClosed (this.extend (request, params));
+        const orders = this.parseOrders (response, market);
+        const trades = this.ordersToTrades (orders);
+        if (symbol !== undefined) {
+            return this.filterBySinceLimit (trades, since, limit);
+        } else {
+            return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        }
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchClosedOrders (symbol, since, limit, params);
-        return this.ordersToTrades (orders);
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'fetch_my_trades_v3');
+        return await this[method] (symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

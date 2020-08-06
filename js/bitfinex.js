@@ -297,6 +297,10 @@ module.exports = class bitfinex extends Exchange {
                 'DAT': 'DATA',
                 'DSH': 'DASH',
                 'DRK': 'DRK',
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO': 'PNT',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',

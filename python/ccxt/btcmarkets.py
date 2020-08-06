@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 import math
@@ -183,7 +190,7 @@ class btcmarkets(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, item, currency=None):
+    def parse_transaction(self, transaction, currency=None):
         #
         #     {
         #         status: 'Complete',
@@ -230,10 +237,10 @@ class btcmarkets(Exchange):
         #         "cryptoPaymentDetail": null
         #     }
         #
-        timestamp = self.safe_integer(item, 'creationTime')
-        lastUpdate = self.safe_integer(item, 'lastUpdate')
-        transferType = self.safe_string(item, 'transferType')
-        cryptoPaymentDetail = self.safe_value(item, 'cryptoPaymentDetail', {})
+        timestamp = self.safe_integer(transaction, 'creationTime')
+        lastUpdate = self.safe_integer(transaction, 'lastUpdate')
+        transferType = self.safe_string(transaction, 'transferType')
+        cryptoPaymentDetail = self.safe_value(transaction, 'cryptoPaymentDetail', {})
         address = self.safe_string(cryptoPaymentDetail, 'address')
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
         type = None
@@ -243,16 +250,21 @@ class btcmarkets(Exchange):
             type = 'withdrawal'
         else:
             type = transferType
-        fee = self.safe_float(item, 'fee')
-        status = self.parse_transaction_status(self.safe_string(item, 'status'))
-        ccy = self.safe_string(item, 'currency')
+        fee = self.safe_float(transaction, 'fee')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        ccy = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(ccy)
-        # todo: self logic is duplicated below
-        amount = self.safe_float(item, 'amount')
+        # for some currencies the exchange requires the amount to be scaled, like BTC, ETH, BCH
+        # values in other currencies may have to be treated "as is", without scaling, like XRP
+        # https://github.com/ccxt/ccxt/issues/7413
+        amount = self.safe_value(transaction, 'amount')
         if amount is not None:
-            amount = amount * 1e-8
+            if isinstance(amount, basestring):
+                amount = self.safe_float(transaction, 'amount')
+            else:
+                amount = amount / 100000000
         return {
-            'id': self.safe_string(item, 'fundTransferId'),
+            'id': self.safe_string(transaction, 'fundTransferId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -267,7 +279,7 @@ class btcmarkets(Exchange):
                 'currency': code,
                 'cost': fee,
             },
-            'info': item,
+            'info': transaction,
         }
 
     def fetch_markets(self, params={}):

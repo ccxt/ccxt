@@ -193,7 +193,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.safeString (statuses, type, type);
     }
 
-    parseTransaction (item, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //    {
         //         "id": "6500230339",
         //         "assetName": "XRP",
@@ -237,10 +237,10 @@ module.exports = class btcmarkets extends Exchange {
         //         "fee": "0",
         //         "lastUpdate": "2017-07-31T08:50:01.290000Z"
         //     }
-        const timestamp = this.parse8601 (this.safeString (item, 'creationTime'));
-        const lastUpdate = this.parse8601 (this.safeString (item, 'lastUpdate'));
-        const transferType = this.parseTransactionType (this.safeString (item, 'type'));
-        const cryptoPaymentDetail = this.safeValue (item, 'paymentDetail', {});
+        const timestamp = this.parse8601 (this.safeString (transaction, 'creationTime'));
+        const lastUpdate = this.parse8601 (this.safeString (transaction, 'lastUpdate'));
+        const transferType = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const cryptoPaymentDetail = this.safeValue (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
         let tag = undefined;
@@ -260,17 +260,22 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             type = transferType;
         }
-        const fee = this.safeFloat (item, 'fee');
-        const status = this.parseTransactionStatus (this.safeString (item, 'status'));
-        const ccy = this.safeString (item, 'assetName');
+        const fee = this.safeFloat (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const ccy = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
-        let amount = this.safeFloat (item, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         if (amount !== undefined) {
             amount = amount * 1e-8;
+            if (typeof amount === 'string') {
+                amount = this.safeFloat (transaction, 'amount');
+            } else {
+                amount = amount / 100000000;
+            }
         }
         return {
-            'id': this.safeString (item, 'id'),
+            'id': this.safeString (transaction, 'id'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -285,7 +290,7 @@ module.exports = class btcmarkets extends Exchange {
                 'currency': code,
                 'cost': fee,
             },
-            'info': item,
+            'info': transaction,
         };
     }
 

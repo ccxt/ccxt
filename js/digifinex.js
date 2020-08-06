@@ -16,15 +16,22 @@ module.exports = class digifinex extends Exchange {
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
             'has': {
+                'cancelOrder': true,
                 'cancelOrders': true,
-                'fetchOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchMyTrades': true,
-                'fetchLedger': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -65,6 +72,7 @@ module.exports = class digifinex extends Exchange {
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ],
                 },
                 'private': {
@@ -151,30 +159,35 @@ module.exports = class digifinex extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type, params = {}) {
-        const method = 'publicGet' + this.capitalize (type) + 'Symbols';
-        const response = await this[method] (params);
+    async fetchMarkets (params = {}) {
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const method = this.safeString (options, 'method', 'fetch_markets_v2');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsV2 (params = {}) {
+        const response = await this.publicGetTradesSymbols (params);
         //
         //     {
-        //         "symbol_list": [
+        //         "symbol_list":[
         //             {
         //                 "order_types":["LIMIT","MARKET"],
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
         //                 "status":"TRADING",
-        //                 "minimum_amount":0.001,
-        //                 "symbol":"LTC_USDT",
-        //                 "margin_rate":0.3,
+        //                 "minimum_amount":0.0001,
+        //                 "symbol":"BTC_USDT",
+        //                 "is_allow":1,
         //                 "zone":"MAIN",
-        //                 "base_asset":"LTC",
+        //                 "base_asset":"BTC",
         //                 "price_precision":2
-        //             },
+        //             }
         //         ],
         //         "code":0
         //     }
         //
-        const markets = this.safeValue (response, 'symbols_list', []);
+        const markets = this.safeValue (response, 'symbol_list', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -212,7 +225,9 @@ module.exports = class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            const active = undefined;
+            const isAllowed = this.safeValue (market, 'is_allow', 1);
+            const active = isAllowed ? true : false;
+            const type = 'spot';
             const spot = (type === 'spot');
             const margin = (type === 'margin');
             result.push ({
@@ -234,7 +249,7 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarketsV1 (params = {}) {
         const response = await this.publicGetMarkets (params);
         //
         //     {

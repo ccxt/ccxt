@@ -294,10 +294,9 @@ class lykke extends Exchange {
             'AssetPairId' => $market['id'],
             'OrderAction' => $this->capitalize($side),
             'Volume' => $amount,
+            'Asset' => $market['baseId'],
         );
-        if ($type === 'market') {
-            $query['Asset'] = ($side === 'buy') ? $market['base'] : $market['quote'];
-        } else if ($type === 'limit') {
+        if ($type === 'limit') {
             $query['Price'] = $price;
         }
         $method = 'privatePostOrdersV2' . $this->capitalize($type);

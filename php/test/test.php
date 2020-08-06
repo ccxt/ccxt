@@ -1,9 +1,11 @@
 <?php
 
+namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'ccxt.php';
+include_once 'test_trade.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -108,6 +110,9 @@ function test_trades($exchange, $symbol) {
 
         dump(green($symbol), 'fetching trades...');
         $trades = $exchange->fetch_trades($symbol);
+        if (count($trades) > 0) {
+            test_trade($exchange, $trades[0], $symbol, time() * 1000);
+        }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
         dump(green($symbol), 'fetchTrades () not supported');

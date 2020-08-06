@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -180,6 +180,7 @@ module.exports = class yobit extends Exchange {
                     'invalid key': AuthenticationError,
                     'invalid nonce': InvalidNonce, // {"success":0,"error":"invalid nonce (has already been used)"}'
                     'Total order amount is less than minimal amount': InvalidOrder,
+                    'Rate Limited': RateLimitExceeded,
                 },
             },
         });

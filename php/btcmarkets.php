@@ -183,7 +183,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($item, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     {
         //         $status => 'Complete',
@@ -230,10 +230,10 @@ class btcmarkets extends Exchange {
         //         "$cryptoPaymentDetail" => null
         //     }
         //
-        $timestamp = $this->safe_integer($item, 'creationTime');
-        $lastUpdate = $this->safe_integer($item, 'lastUpdate');
-        $transferType = $this->safe_string($item, 'transferType');
-        $cryptoPaymentDetail = $this->safe_value($item, 'cryptoPaymentDetail', array());
+        $timestamp = $this->safe_integer($transaction, 'creationTime');
+        $lastUpdate = $this->safe_integer($transaction, 'lastUpdate');
+        $transferType = $this->safe_string($transaction, 'transferType');
+        $cryptoPaymentDetail = $this->safe_value($transaction, 'cryptoPaymentDetail', array());
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $type = null;
@@ -244,17 +244,23 @@ class btcmarkets extends Exchange {
         } else {
             $type = $transferType;
         }
-        $fee = $this->safe_float($item, 'fee');
-        $status = $this->parse_transaction_status($this->safe_string($item, 'status'));
-        $ccy = $this->safe_string($item, 'currency');
+        $fee = $this->safe_float($transaction, 'fee');
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $ccy = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($ccy);
-        // todo => this logic is duplicated below
-        $amount = $this->safe_float($item, 'amount');
+        // for some currencies the exchange requires the $amount to be scaled, like BTC, ETH, BCH
+        // values in other currencies may have to be treated "as is", without scaling, like XRP
+        // https://github.com/ccxt/ccxt/issues/7413
+        $amount = $this->safe_value($transaction, 'amount');
         if ($amount !== null) {
-            $amount = $amount * 1e-8;
+            if (gettype($amount) === 'string') {
+                $amount = $this->safe_float($transaction, 'amount');
+            } else {
+                $amount = $amount / 100000000;
+            }
         }
         return array(
-            'id' => $this->safe_string($item, 'fundTransferId'),
+            'id' => $this->safe_string($transaction, 'fundTransferId'),
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -269,7 +275,7 @@ class btcmarkets extends Exchange {
                 'currency' => $code,
                 'cost' => $fee,
             ),
-            'info' => $item,
+            'info' => $transaction,
         );
     }
 

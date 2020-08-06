@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.32.10'
+__version__ = '1.32.55'
 
 # -----------------------------------------------------------------------------
 
@@ -51,7 +51,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 
 from ccxt.async_support.acx import acx                                    # noqa: F401
-from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
@@ -67,6 +66,7 @@ from ccxt.async_support.bitfinex import bitfinex                          # noqa
 from ccxt.async_support.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                          # noqa: F401
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
+from ccxt.async_support.bitget import bitget                              # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
@@ -176,7 +176,6 @@ from ccxt.async_support.zb import zb                                      # noqa
 
 exchanges = [
     'acx',
-    'anxpro',
     'aofex',
     'bcex',
     'bequant',
@@ -192,6 +191,7 @@ exchanges = [
     'bitfinex2',
     'bitflyer',
     'bitforex',
+    'bitget',
     'bithumb',
     'bitkk',
     'bitmart',
