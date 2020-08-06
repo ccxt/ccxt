@@ -180,7 +180,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (item, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         //     {
         //         status: 'Complete',
@@ -227,10 +227,10 @@ module.exports = class btcmarkets extends Exchange {
         //         "cryptoPaymentDetail": null
         //     }
         //
-        const timestamp = this.safeInteger (item, 'creationTime');
-        const lastUpdate = this.safeInteger (item, 'lastUpdate');
-        const transferType = this.safeString (item, 'transferType');
-        const cryptoPaymentDetail = this.safeValue (item, 'cryptoPaymentDetail', {});
+        const timestamp = this.safeInteger (transaction, 'creationTime');
+        const lastUpdate = this.safeInteger (transaction, 'lastUpdate');
+        const transferType = this.safeString (transaction, 'transferType');
+        const cryptoPaymentDetail = this.safeValue (transaction, 'cryptoPaymentDetail', {});
         const address = this.safeString (cryptoPaymentDetail, 'address');
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let type = undefined;
@@ -241,17 +241,23 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             type = transferType;
         }
-        const fee = this.safeFloat (item, 'fee');
-        const status = this.parseTransactionStatus (this.safeString (item, 'status'));
-        const ccy = this.safeString (item, 'currency');
+        const fee = this.safeFloat (transaction, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const ccy = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (ccy);
-        // todo: this logic is duplicated below
-        let amount = this.safeFloat (item, 'amount');
+        // for some currencies the exchange requires the amount to be scaled, like BTC, ETH, BCH
+        // values in other currencies may have to be treated "as is", without scaling, like XRP
+        // https://github.com/ccxt/ccxt/issues/7413
+        let amount = this.safeValue (transaction, 'amount');
         if (amount !== undefined) {
-            amount = amount * 1e-8;
+            if (typeof amount === 'string') {
+                amount = this.safeFloat (transaction, 'amount');
+            } else {
+                amount = amount / 100000000;
+            }
         }
         return {
-            'id': this.safeString (item, 'fundTransferId'),
+            'id': this.safeString (transaction, 'fundTransferId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -266,7 +272,7 @@ module.exports = class btcmarkets extends Exchange {
                 'currency': code,
                 'cost': fee,
             },
-            'info': item,
+            'info': transaction,
         };
     }
 
