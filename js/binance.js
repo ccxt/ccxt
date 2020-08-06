@@ -1670,7 +1670,14 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetMyTrades' : 'fapiPrivateGetUserTrades';
+        const type = this.safeValue (params, 'type', market['type']);
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetMyTrades';
+        } else if (type === 'future') {
+            method = 'fapiPrivateGetUserTrades';
+        }
+        params = this.omit (params, 'type');
         const request = {
             'symbol': market['id'],
         };
@@ -1683,6 +1690,7 @@ module.exports = class binance extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // spot trade
+        //
         //     [
         //         {
         //             "symbol": "BNBBTC",
@@ -1720,6 +1728,7 @@ module.exports = class binance extends Exchange {
         //             "time": 1569514978020
         //         }
         //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
