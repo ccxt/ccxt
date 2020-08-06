@@ -372,9 +372,7 @@ class currencycom(Exchange):
             'taker': self.safe_float(response, 'takerCommission'),
         }
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccount(params)
+    def parse_balance_response(self, response):
         #
         #     {
         #         "makerCommission":0.20,
@@ -408,6 +406,33 @@ class currencycom(Exchange):
             account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccount(params)
+        #
+        #     {
+        #         "makerCommission":0.20,
+        #         "takerCommission":0.20,
+        #         "buyerCommission":0.20,
+        #         "sellerCommission":0.20,
+        #         "canTrade":true,
+        #         "canWithdraw":true,
+        #         "canDeposit":true,
+        #         "updateTime":1591056268,
+        #         "balances":[
+        #             {
+        #                 "accountId":5470306579272968,
+        #                 "collateralCurrency":true,
+        #                 "asset":"ETH",
+        #                 "free":0.0,
+        #                 "locked":0.0,
+        #                 "default":false,
+        #             },
+        #         ]
+        #     }
+        #
+        return self.parse_balance_response(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
