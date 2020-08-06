@@ -266,6 +266,9 @@ class bitmex(Exchange):
             })
         return result
 
+    def parse_balance_response(self, response):
+        return self.parse_balances(response)
+
     def parse_balances(self, balances):
         #
         #     [
@@ -385,7 +388,7 @@ class bitmex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_balances(response)
+        return self.parse_balance_response(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
