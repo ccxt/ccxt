@@ -265,15 +265,7 @@ module.exports = class btcmarkets extends Exchange {
         const ccy = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
-        let amount = this.safeFloat (transaction, 'amount');
-        if (amount !== undefined) {
-            amount = amount * 1e-8;
-            if (typeof amount === 'string') {
-                amount = this.safeFloat (transaction, 'amount');
-            } else {
-                amount = amount / 100000000;
-            }
-        }
+        const amount = this.safeFloat (transaction, 'amount');
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
