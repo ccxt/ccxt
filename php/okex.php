@@ -3042,6 +3042,10 @@ class okex extends Exchange {
         $isArray = gettype($response[0]) === 'array' && count(array_filter(array_keys($response[0]), 'is_string')) == 0;
         $isMargin = ($type === 'margin');
         $entries = ($isMargin && $isArray) ? $response[0] : $response;
+        if ($type === 'swap') {
+            $ledgerEntries = $this->parse_ledger($entries);
+            return $this->filter_by_symbol_since_limit($ledgerEntries, $code, $since, $limit);
+        }
         return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
@@ -3151,6 +3155,12 @@ class okex extends Exchange {
         $before = null;
         $after = $this->safe_float($item, 'balance');
         $status = 'ok';
+        $marketId = $this->safe_string($item, 'instrument_id');
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
         return array(
             'info' => $item,
             'id' => $id,
@@ -3159,6 +3169,7 @@ class okex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
+            'symbol' => $symbol,
             'amount' => $amount,
             'before' => $before, // balance $before
             'after' => $after, // balance $after
