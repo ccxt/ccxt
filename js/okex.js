@@ -1593,9 +1593,24 @@ module.exports = class okex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const balance = this.safeValue (info, id, {});
             const account = this.account ();
+            const totalAvailBalance = this.safeFloat (balance, 'total_avail_balance');
+            if (this.safeString(balance, 'margin_mode') === 'fixed') {
+                const contracts = this.safeValue(balance, 'contracts', []);
+                let free = totalAvailBalance;
+                for (let i = 0; i < contracts.length; i++) {
+                    let cont = contracts[i];
+                    free += this.safeFloat (cont, 'fixed_balance') + this.safeFloat (cont, 'realized_pnl') 
+                            - this.safeFloat (cont, 'margin_frozen') - this.safeFloat (cont, 'margin_for_unfilled');
+                }
+                account['free'] = free
+            } else {
+                account['free'] = totalAvailBalance + this.safeFloat (balance, 'realized_pnl') 
+                                  + this.safeFloat (balance, 'unrealized_pnl') 
+                                  - this.safeFloat (balance, 'margin_frozen') 
+                                  - this.safeFloat (balance, 'margin_for_unfilled');
+            }
             // it may be incorrect to use total, free and used for swap accounts
             account['total'] = this.safeFloat (balance, 'equity');
-            account['free'] = this.safeFloat (balance, 'total_avail_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
