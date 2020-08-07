@@ -20,6 +20,7 @@ module.exports = class southxchange extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchDeposits': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
@@ -27,6 +28,8 @@ module.exports = class southxchange extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
@@ -547,6 +550,130 @@ module.exports = class southxchange extends Exchange {
         //
         const result = this.safeValue (response, 'Result', []);
         return this.parseLedger (result, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'processed': 'pending',
+            'confirmed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
+        //     }
+        //
+        const id = this.safeString (transaction, 'MovementId');
+        const amount = this.safeFloat (transaction, 'Amount');
+        const address = this.safeString (transaction, 'Address');
+        const addressTo = address;
+        const addressFrom = undefined;
+        const tag = undefined;
+        const tagTo = tag;
+        const tagFrom = undefined;
+        const txid = this.safeString (transaction, 'Hash');
+        const type = this.safeString (transaction, 'Type');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Date'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'Status'));
+        const currencyId = this.safeString (transaction, 'CurrencyCode');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        limit = (limit === undefined) ? 50 : limit;
+        const request = {
+            'Currency': currency['id'],
+            'TransactionType': 'depositswithdrawals', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex': 0,
+            'PageSize': limit, // max 50
+            'SortField': 'Date',
+            // 'Descending': true,
+        };
+        const pageIndex = this.safeInteger (params, 'PageIndex');
+        if (pageIndex === undefined) {
+            request['Descending'] = true;
+        }
+        const response = await this.privatePostListTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":[
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'Result', []);
+        return this.parseTransactions (result, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'TransactionType': 'deposits',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'TransactionType': 'withdrawals',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
