@@ -17,24 +17,31 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
                 'fetchOpenOrders': true, // true endpoint for open orders
                 'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open order only)
+                'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrders': 'emulated', // no endpoint for open-or-closed orders (just for open orders only)
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
