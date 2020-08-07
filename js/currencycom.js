@@ -46,7 +46,6 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     handleBalance (client, message, subscription) {
-        console.dir (message, { depth: null });
         //
         //     {
         //         status: 'OK',
@@ -82,19 +81,13 @@ module.exports = class currencycom extends ccxt.currencycom {
         //     }
         //
         const payload = this.safeValue (message, 'payload');
-        const balances = this.safeValue (payload, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'a');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'f');
-            account['used'] = this.safeFloat (balance, 'l');
-            this.balance[code] = account;
-        }
-        this.balance = this.parseBalance (this.balance);
+        const balance = this.parseBalanceResponse (payload);
+        this.balance = this.extend (this.balance, balance);
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (this.balance, messageHash);
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
     }
 
     handleTicker (client, message, subscription) {
