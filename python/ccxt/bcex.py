@@ -104,6 +104,9 @@ class bcex(Exchange):
                 '参数非法': InvalidOrder,  # {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
                 '订单信息不存在': OrderNotFound,  # {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
             },
+            'commonCurrencies': {
+                'PNT': 'Penta',
+            },
             'options': {
                 'limits': {
                     # hardcoding is deprecated, using these predefined values is not recommended, use loadTradingLimits instead

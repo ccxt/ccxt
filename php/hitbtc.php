@@ -166,6 +166,7 @@ class hitbtc extends Exchange {
                 'UNC' => 'Unigame',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
+                'PNT' => 'Penta',
             ),
             'exceptions' => array(
                 '504' => '\\ccxt\\RequestTimeout', // array("error":array("code":504,"message":"Gateway Timeout"))

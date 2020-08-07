@@ -102,6 +102,9 @@ class bcex extends Exchange {
                 '参数非法' => '\\ccxt\\InvalidOrder', // array('code' => 1, 'msg' => '参数非法') - 'Parameter illegal'
                 '订单信息不存在' => '\\ccxt\\OrderNotFound', // array('code' => 1, 'msg' => '订单信息不存在') - 'Order information does not exist'
             ),
+            'commonCurrencies' => array(
+                'PNT' => 'Penta',
+            ),
             'options' => array(
                 'limits' => array(
                     // hardcoding is deprecated, using these predefined values is not recommended, use loadTradingLimits instead

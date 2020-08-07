@@ -175,6 +175,7 @@ class hitbtc(Exchange):
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
+                'PNT': 'Penta',
             },
             'exceptions': {
                 '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
