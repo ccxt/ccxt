@@ -103,6 +103,7 @@ module.exports = class idex extends Exchange {
                 'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
+                'FTT': 'FarmaTrust',
             },
         });
     }
