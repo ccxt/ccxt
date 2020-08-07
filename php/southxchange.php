@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ArgumentsRequired;
 
 class southxchange extends Exchange {
 
@@ -21,6 +22,7 @@ class southxchange extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
@@ -354,6 +356,125 @@ class southxchange extends Exchange {
             'info' => $response,
             'id' => null,
         );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'trade' => 'trade',
+            'trade fee' => 'fee',
+            'withdraw' => 'transaction',
+            'deposit' => 'transaction',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     {
+        //         'Date' => 'string', // Date of the transaction
+        //         'CurrencyCode' => 'string', // The $currency $code of the transaction, delisted coins shown as '?'
+        //         'Amount' => 'string', // Amount of the transaction
+        //         'TotalBalance' => 'string', // Total balance $after this transaction
+        //         'Type' => 'string', // Possible values trade, trade $fee, deposit, withdraw, etc
+        //         'Status' => 'string', // Possible values => pending, confirmed, processed, etc
+        //         'Address' => 'string', // Deposit or withdraw address
+        //         'Hash' => 'string', // Deposit or withdraw chain transaction hash
+        //         'Price' => 'string', // Trade price
+        //         'OtherAmount' => 'string', // Trade $amount of the other $currency
+        //         'OtherCurrency' => 'string', // The other trade $currency, delisted coins shown as '?'
+        //         'OrderCode' => 'string', // Trade order $code
+        //         'TradeId' => 'string', // The ID of the trade
+        //         'MovementId' => 'string', // Deposit or withdrawal ID
+        //     }
+        //
+        $id = $this->safe_string_2($item, 'MovementId', 'TradeId');
+        $direction = null;
+        $account = null;
+        $referenceId = $this->safe_string($item, 'OrderCode');
+        $referenceAccount = null;
+        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'Type'));
+        $code = $this->safe_currency_code($this->safe_string($item, 'CurrencyCode'), $currency);
+        $amount = $this->safe_float($item, 'Amount');
+        $after = $this->safe_float($item, 'TotalBalance');
+        $before = null;
+        if ($amount !== null) {
+            if ($after !== null) {
+                $before = $after - $amount;
+            }
+            if ($amount < 0) {
+                $direction = 'out';
+                $amount = abs($amount);
+            } else {
+                $direction = 'in';
+            }
+        }
+        $timestamp = $this->safe_timestamp($item, 'Date');
+        $fee = null;
+        $status = $this->safe_string($item, 'Status');
+        return array(
+            'info' => $item,
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $referenceAccount,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $limit = ($limit === null) ? 50 : $limit;
+        $request = array(
+            'Currency' => $currency['id'],
+            // 'TransactionType' => 'transactions', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex' => 0,
+            'PageSize' => $limit, // max 50
+            'SortField' => 'Date',
+            // 'Descending' => true,
+        );
+        $pageIndex = $this->safe_integer($params, 'PageIndex');
+        if ($pageIndex === null) {
+            $request['Descending'] = true;
+        }
+        $response = $this->privatePostListTransactions (array_merge($request, $params));
+        //
+        //     {
+        //         "TotalElements":0,
+        //         "Result":array(
+        //             {
+        //                 'Date' => 'string', // Date of the transaction
+        //                 'CurrencyCode' => 'string', // The $currency $code of the transaction, delisted coins shown as '?'
+        //                 'Amount' => 'string', // Amount of the transaction
+        //                 'TotalBalance' => 'string', // Total balance after this transaction
+        //                 'Type' => 'string', // Possible values trade, trade fee, deposit, withdraw, etc
+        //                 'Status' => 'string', // Possible values => pending, confirmed, processed, etc
+        //                 'Address' => 'string', // Deposit or withdraw address
+        //                 'Hash' => 'string', // Deposit or withdraw chain transaction hash
+        //                 'Price' => 'string', // Trade price
+        //                 'OtherAmount' => 'string', // Trade amount of the other $currency
+        //                 'OtherCurrency' => 'string', // The other trade $currency, delisted coins shown as '?'
+        //                 'OrderCode' => 'string', // Trade order $code
+        //                 'TradeId' => 'string', // The ID of the trade
+        //                 'MovementId' => 'string', // Deposit or withdrawal ID
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'Result', array());
+        return $this->parse_ledger($result, $currency, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

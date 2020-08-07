@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.errors import ArgumentsRequired
 
 
 class southxchange(Exchange):
@@ -21,6 +22,7 @@ class southxchange(Exchange):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
@@ -326,6 +328,117 @@ class southxchange(Exchange):
             'info': response,
             'id': None,
         }
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'trade fee': 'fee',
+            'withdraw': 'transaction',
+            'deposit': 'transaction',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         'Date': 'string',  # Date of the transaction
+        #         'CurrencyCode': 'string',  # The currency code of the transaction, delisted coins shown as '?'
+        #         'Amount': 'string',  # Amount of the transaction
+        #         'TotalBalance': 'string',  # Total balance after self transaction
+        #         'Type': 'string',  # Possible values trade, trade fee, deposit, withdraw, etc
+        #         'Status': 'string',  # Possible values: pending, confirmed, processed, etc
+        #         'Address': 'string',  # Deposit or withdraw address
+        #         'Hash': 'string',  # Deposit or withdraw chain transaction hash
+        #         'Price': 'string',  # Trade price
+        #         'OtherAmount': 'string',  # Trade amount of the other currency
+        #         'OtherCurrency': 'string',  # The other trade currency, delisted coins shown as '?'
+        #         'OrderCode': 'string',  # Trade order code
+        #         'TradeId': 'string',  # The ID of the trade
+        #         'MovementId': 'string',  # Deposit or withdrawal ID
+        #     }
+        #
+        id = self.safe_string_2(item, 'MovementId', 'TradeId')
+        direction = None
+        account = None
+        referenceId = self.safe_string(item, 'OrderCode')
+        referenceAccount = None
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'Type'))
+        code = self.safe_currency_code(self.safe_string(item, 'CurrencyCode'), currency)
+        amount = self.safe_float(item, 'Amount')
+        after = self.safe_float(item, 'TotalBalance')
+        before = None
+        if amount is not None:
+            if after is not None:
+                before = after - amount
+            if amount < 0:
+                direction = 'out'
+                amount = abs(amount)
+            else:
+                direction = 'in'
+        timestamp = self.safe_timestamp(item, 'Date')
+        fee = None
+        status = self.safe_string(item, 'Status')
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        limit = 50 if (limit is None) else limit
+        request = {
+            'Currency': currency['id'],
+            # 'TransactionType': 'transactions',  # deposits, withdrawals, depositswithdrawals, transactions
+            # 'PageIndex': 0,
+            'PageSize': limit,  # max 50
+            'SortField': 'Date',
+            # 'Descending': True,
+        }
+        pageIndex = self.safe_integer(params, 'PageIndex')
+        if pageIndex is None:
+            request['Descending'] = True
+        response = await self.privatePostListTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "TotalElements":0,
+        #         "Result":[
+        #             {
+        #                 'Date': 'string',  # Date of the transaction
+        #                 'CurrencyCode': 'string',  # The currency code of the transaction, delisted coins shown as '?'
+        #                 'Amount': 'string',  # Amount of the transaction
+        #                 'TotalBalance': 'string',  # Total balance after self transaction
+        #                 'Type': 'string',  # Possible values trade, trade fee, deposit, withdraw, etc
+        #                 'Status': 'string',  # Possible values: pending, confirmed, processed, etc
+        #                 'Address': 'string',  # Deposit or withdraw address
+        #                 'Hash': 'string',  # Deposit or withdraw chain transaction hash
+        #                 'Price': 'string',  # Trade price
+        #                 'OtherAmount': 'string',  # Trade amount of the other currency
+        #                 'OtherCurrency': 'string',  # The other trade currency, delisted coins shown as '?'
+        #                 'OrderCode': 'string',  # Trade order code
+        #                 'TradeId': 'string',  # The ID of the trade
+        #                 'MovementId': 'string',  # Deposit or withdrawal ID
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'Result', [])
+        return self.parse_ledger(result, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
