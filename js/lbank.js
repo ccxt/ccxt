@@ -111,6 +111,7 @@ module.exports = class lbank extends Exchange {
             },
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
+                'PNT': 'Penta',
             },
             'options': {
                 'cacheSecretAsPem': true,
