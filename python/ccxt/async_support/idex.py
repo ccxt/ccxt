@@ -109,6 +109,7 @@ class idex(Exchange):
                 'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
+                'FTT': 'FarmaTrust',
             },
         })
 
