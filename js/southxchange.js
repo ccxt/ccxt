@@ -321,9 +321,21 @@ module.exports = class southxchange extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privatePostGeneratenewaddress (this.extend (request, params));
-        const parts = response.split ('|');
+        //
+        // the exchange API returns a quoted-quoted-string
+        //
+        //     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        //
+        let address = response;
+        if (address[0] === '"') {
+            address = JSON.parse (address);
+            if (address[0] === '"') {
+                address = JSON.parse (address);
+            }
+        }
+        const parts = address.split ('|');
         const numParts = parts.length;
-        const address = parts[0];
+        address = parts[0];
         this.checkAddress (address);
         let tag = undefined;
         if (numParts > 1) {
@@ -359,7 +371,7 @@ module.exports = class southxchange extends Exchange {
     parseLedgerEntryType (type) {
         const types = {
             'trade': 'trade',
-            'trade fee': 'fee',
+            'tradefee': 'fee',
             'withdraw': 'transaction',
             'deposit': 'transaction',
         };
@@ -369,28 +381,30 @@ module.exports = class southxchange extends Exchange {
     parseLedgerEntry (item, currency = undefined) {
         //
         //     {
-        //         'Date': 'string', // Date of the transaction
-        //         'CurrencyCode': 'string', // The currency code of the transaction, delisted coins shown as '?'
-        //         'Amount': 'string', // Amount of the transaction
-        //         'TotalBalance': 'string', // Total balance after this transaction
-        //         'Type': 'string', // Possible values trade, trade fee, deposit, withdraw, etc
-        //         'Status': 'string', // Possible values: pending, confirmed, processed, etc
-        //         'Address': 'string', // Deposit or withdraw address
-        //         'Hash': 'string', // Deposit or withdraw chain transaction hash
-        //         'Price': 'string', // Trade price
-        //         'OtherAmount': 'string', // Trade amount of the other currency
-        //         'OtherCurrency': 'string', // The other trade currency, delisted coins shown as '?'
-        //         'OrderCode': 'string', // Trade order code
-        //         'TradeId': 'string', // The ID of the trade
-        //         'MovementId': 'string', // Deposit or withdrawal ID
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
         //     }
         //
-        const id = this.safeString2 (item, 'MovementId', 'TradeId');
+        const id = this.safeString (item, 'MovementId');
         let direction = undefined;
         const account = undefined;
-        const referenceId = this.safeString (item, 'OrderCode');
-        const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType (this.safeString (item, 'Type'));
+        let referenceId = this.safeString2 (item, 'TradeId', 'OrderCode');
+        referenceId = this.safeString (item, 'Hash', referenceId);
+        const referenceAccount = this.safeString (item, 'Address');
+        const type = this.safeString (item, 'Type');
+        const ledgerEntryType = this.parseLedgerEntryType (type);
         const code = this.safeCurrencyCode (this.safeString (item, 'CurrencyCode'), currency);
         let amount = this.safeFloat (item, 'Amount');
         const after = this.safeFloat (item, 'TotalBalance');
@@ -399,14 +413,16 @@ module.exports = class southxchange extends Exchange {
             if (after !== undefined) {
                 before = after - amount;
             }
-            if (amount < 0) {
+            if (type === 'withdrawal') {
                 direction = 'out';
-                amount = Math.abs (amount);
-            } else {
+            } else if (type === 'deposit') {
                 direction = 'in';
+            } else if ((type === 'trade') || (type === 'tradefee')) {
+                direction = (amount < 0) ? 'out' : 'in';
+                amount = Math.abs (amount);
             }
         }
-        const timestamp = this.safeTimestamp (item, 'Date');
+        const timestamp = this.parse8601 (this.safeString (item, 'Date'));
         const fee = undefined;
         const status = this.safeString (item, 'Status');
         return {
@@ -416,7 +432,7 @@ module.exports = class southxchange extends Exchange {
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': referenceAccount,
-            'type': type,
+            'type': ledgerEntryType,
             'currency': code,
             'amount': amount,
             'before': before,
@@ -449,24 +465,82 @@ module.exports = class southxchange extends Exchange {
         }
         const response = await this.privatePostListTransactions (this.extend (request, params));
         //
+        // fetchLedger ('BTC')
+        //
         //     {
-        //         "TotalElements":0,
+        //         "TotalElements":2,
         //         "Result":[
         //             {
-        //                 'Date': 'string', // Date of the transaction
-        //                 'CurrencyCode': 'string', // The currency code of the transaction, delisted coins shown as '?'
-        //                 'Amount': 'string', // Amount of the transaction
-        //                 'TotalBalance': 'string', // Total balance after this transaction
-        //                 'Type': 'string', // Possible values trade, trade fee, deposit, withdraw, etc
-        //                 'Status': 'string', // Possible values: pending, confirmed, processed, etc
-        //                 'Address': 'string', // Deposit or withdraw address
-        //                 'Hash': 'string', // Deposit or withdraw chain transaction hash
-        //                 'Price': 'string', // Trade price
-        //                 'OtherAmount': 'string', // Trade amount of the other currency
-        //                 'OtherCurrency': 'string', // The other trade currency, delisted coins shown as '?'
-        //                 'OrderCode': 'string', // Trade order code
-        //                 'TradeId': 'string', // The ID of the trade
-        //                 'MovementId': 'string', // Deposit or withdrawal ID
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":-0.000000301000000000,
+        //                 "TotalBalance":0.000100099000000000,
+        //                 "Type":"tradefee",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             },
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":0.000100400000000000,
+        //                 "TotalBalance":0.000100400000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":1.185872,
+        //                 "OtherCurrency":"USDT",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             }
+        //         ]
+        //     }
+        //
+        // fetchLedger ('BTC'), same trade, other side
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":[
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.133",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":-1.185872000000000000,
+        //                 "TotalBalance":26.428806000000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":0.000100400,
+        //                 "OtherCurrency":"BTC",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             },
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
         //             }
         //         ]
         //     }
