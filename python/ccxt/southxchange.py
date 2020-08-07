@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import json
 from ccxt.base.errors import ArgumentsRequired
 
 
@@ -298,7 +299,17 @@ class southxchange(Exchange):
             'currency': currency['id'],
         }
         response = self.privatePostGeneratenewaddress(self.extend(request, params))
-        parts = response.split('|')
+        #
+        # the exchange API returns a quoted-quoted-string
+        #
+        #     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        #
+        address = response
+        if address[0] == '"':
+            address = json.loads(address)
+            if address[0] == '"':
+                address = json.loads(address)
+        parts = address.split('|')
         numParts = len(parts)
         address = parts[0]
         self.check_address(address)
@@ -332,7 +343,7 @@ class southxchange(Exchange):
     def parse_ledger_entry_type(self, type):
         types = {
             'trade': 'trade',
-            'trade fee': 'fee',
+            'tradefee': 'fee',
             'withdraw': 'transaction',
             'deposit': 'transaction',
         }
@@ -341,28 +352,30 @@ class southxchange(Exchange):
     def parse_ledger_entry(self, item, currency=None):
         #
         #     {
-        #         'Date': 'string',  # Date of the transaction
-        #         'CurrencyCode': 'string',  # The currency code of the transaction, delisted coins shown as '?'
-        #         'Amount': 'string',  # Amount of the transaction
-        #         'TotalBalance': 'string',  # Total balance after self transaction
-        #         'Type': 'string',  # Possible values trade, trade fee, deposit, withdraw, etc
-        #         'Status': 'string',  # Possible values: pending, confirmed, processed, etc
-        #         'Address': 'string',  # Deposit or withdraw address
-        #         'Hash': 'string',  # Deposit or withdraw chain transaction hash
-        #         'Price': 'string',  # Trade price
-        #         'OtherAmount': 'string',  # Trade amount of the other currency
-        #         'OtherCurrency': 'string',  # The other trade currency, delisted coins shown as '?'
-        #         'OrderCode': 'string',  # Trade order code
-        #         'TradeId': 'string',  # The ID of the trade
-        #         'MovementId': 'string',  # Deposit or withdrawal ID
+        #         "Date":"2020-08-07T12:36:52.72",
+        #         "CurrencyCode":"USDT",
+        #         "Amount":27.614678000000000000,
+        #         "TotalBalance":27.614678000000000000,
+        #         "Type":"deposit",
+        #         "Status":"confirmed",
+        #         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #         "Price":0.0,
+        #         "OtherAmount":0.0,
+        #         "OtherCurrency":null,
+        #         "OrderCode":null,
+        #         "TradeId":null,
+        #         "MovementId":2732259
         #     }
         #
-        id = self.safe_string_2(item, 'MovementId', 'TradeId')
+        id = self.safe_string(item, 'MovementId')
         direction = None
         account = None
-        referenceId = self.safe_string(item, 'OrderCode')
-        referenceAccount = None
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'Type'))
+        referenceId = self.safe_string_2(item, 'TradeId', 'OrderCode')
+        referenceId = self.safe_string(item, 'Hash', referenceId)
+        referenceAccount = self.safe_string(item, 'Address')
+        type = self.safe_string(item, 'Type')
+        ledgerEntryType = self.parse_ledger_entry_type(type)
         code = self.safe_currency_code(self.safe_string(item, 'CurrencyCode'), currency)
         amount = self.safe_float(item, 'Amount')
         after = self.safe_float(item, 'TotalBalance')
@@ -370,12 +383,14 @@ class southxchange(Exchange):
         if amount is not None:
             if after is not None:
                 before = after - amount
-            if amount < 0:
+            if type == 'withdrawal':
                 direction = 'out'
-                amount = abs(amount)
-            else:
+            elif type == 'deposit':
                 direction = 'in'
-        timestamp = self.safe_timestamp(item, 'Date')
+            elif (type == 'trade') or (type == 'tradefee'):
+                direction = 'out' if (amount < 0) else 'in'
+                amount = abs(amount)
+        timestamp = self.parse8601(self.safe_string(item, 'Date'))
         fee = None
         status = self.safe_string(item, 'Status')
         return {
@@ -385,7 +400,7 @@ class southxchange(Exchange):
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': referenceAccount,
-            'type': type,
+            'type': ledgerEntryType,
             'currency': code,
             'amount': amount,
             'before': before,
@@ -415,24 +430,82 @@ class southxchange(Exchange):
             request['Descending'] = True
         response = self.privatePostListTransactions(self.extend(request, params))
         #
+        # fetchLedger('BTC')
+        #
         #     {
-        #         "TotalElements":0,
+        #         "TotalElements":2,
         #         "Result":[
         #             {
-        #                 'Date': 'string',  # Date of the transaction
-        #                 'CurrencyCode': 'string',  # The currency code of the transaction, delisted coins shown as '?'
-        #                 'Amount': 'string',  # Amount of the transaction
-        #                 'TotalBalance': 'string',  # Total balance after self transaction
-        #                 'Type': 'string',  # Possible values trade, trade fee, deposit, withdraw, etc
-        #                 'Status': 'string',  # Possible values: pending, confirmed, processed, etc
-        #                 'Address': 'string',  # Deposit or withdraw address
-        #                 'Hash': 'string',  # Deposit or withdraw chain transaction hash
-        #                 'Price': 'string',  # Trade price
-        #                 'OtherAmount': 'string',  # Trade amount of the other currency
-        #                 'OtherCurrency': 'string',  # The other trade currency, delisted coins shown as '?'
-        #                 'OrderCode': 'string',  # Trade order code
-        #                 'TradeId': 'string',  # The ID of the trade
-        #                 'MovementId': 'string',  # Deposit or withdrawal ID
+        #                 "Date":"2020-08-07T13:06:22.117",
+        #                 "CurrencyCode":"BTC",
+        #                 "Amount":-0.000000301000000000,
+        #                 "TotalBalance":0.000100099000000000,
+        #                 "Type":"tradefee",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":0.0,
+        #                 "OtherAmount":0.0,
+        #                 "OtherCurrency":null,
+        #                 "OrderCode":null,
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             },
+        #             {
+        #                 "Date":"2020-08-07T13:06:22.117",
+        #                 "CurrencyCode":"BTC",
+        #                 "Amount":0.000100400000000000,
+        #                 "TotalBalance":0.000100400000000000,
+        #                 "Type":"trade",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":11811.474849000000000000,
+        #                 "OtherAmount":1.185872,
+        #                 "OtherCurrency":"USDT",
+        #                 "OrderCode":"78389610",
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             }
+        #         ]
+        #     }
+        #
+        # fetchLedger('BTC'), same trade, other side
+        #
+        #     {
+        #         "TotalElements":2,
+        #         "Result":[
+        #             {
+        #                 "Date":"2020-08-07T13:06:22.133",
+        #                 "CurrencyCode":"USDT",
+        #                 "Amount":-1.185872000000000000,
+        #                 "TotalBalance":26.428806000000000000,
+        #                 "Type":"trade",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":11811.474849000000000000,
+        #                 "OtherAmount":0.000100400,
+        #                 "OtherCurrency":"BTC",
+        #                 "OrderCode":"78389610",
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             },
+        #             {
+        #                 "Date":"2020-08-07T12:36:52.72",
+        #                 "CurrencyCode":"USDT",
+        #                 "Amount":27.614678000000000000,
+        #                 "TotalBalance":27.614678000000000000,
+        #                 "Type":"deposit",
+        #                 "Status":"confirmed",
+        #                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #                 "Price":0.0,
+        #                 "OtherAmount":0.0,
+        #                 "OtherCurrency":null,
+        #                 "OrderCode":null,
+        #                 "TradeId":null,
+        #                 "MovementId":2732259
         #             }
         #         ]
         #     }

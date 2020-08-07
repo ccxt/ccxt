@@ -323,7 +323,19 @@ class southxchange extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privatePostGeneratenewaddress (array_merge($request, $params));
-        $parts = explode('|', $response);
+        //
+        // the exchange API returns a quoted-quoted-string
+        //
+        //     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        //
+        $address = $response;
+        if ($address[0] === '"') {
+            $address = json_decode($address, $as_associative_array = true);
+            if ($address[0] === '"') {
+                $address = json_decode($address, $as_associative_array = true);
+            }
+        }
+        $parts = explode('|', $address);
         $numParts = is_array($parts) ? count($parts) : 0;
         $address = $parts[0];
         $this->check_address($address);
@@ -361,7 +373,7 @@ class southxchange extends Exchange {
     public function parse_ledger_entry_type($type) {
         $types = array(
             'trade' => 'trade',
-            'trade fee' => 'fee',
+            'tradefee' => 'fee',
             'withdraw' => 'transaction',
             'deposit' => 'transaction',
         );
@@ -371,28 +383,30 @@ class southxchange extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //         'Date' => 'string', // Date of the transaction
-        //         'CurrencyCode' => 'string', // The $currency $code of the transaction, delisted coins shown as '?'
-        //         'Amount' => 'string', // Amount of the transaction
-        //         'TotalBalance' => 'string', // Total balance $after this transaction
-        //         'Type' => 'string', // Possible values trade, trade $fee, deposit, withdraw, etc
-        //         'Status' => 'string', // Possible values => pending, confirmed, processed, etc
-        //         'Address' => 'string', // Deposit or withdraw address
-        //         'Hash' => 'string', // Deposit or withdraw chain transaction hash
-        //         'Price' => 'string', // Trade price
-        //         'OtherAmount' => 'string', // Trade $amount of the other $currency
-        //         'OtherCurrency' => 'string', // The other trade $currency, delisted coins shown as '?'
-        //         'OrderCode' => 'string', // Trade order $code
-        //         'TradeId' => 'string', // The ID of the trade
-        //         'MovementId' => 'string', // Deposit or withdrawal ID
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
         //     }
         //
-        $id = $this->safe_string_2($item, 'MovementId', 'TradeId');
+        $id = $this->safe_string($item, 'MovementId');
         $direction = null;
         $account = null;
-        $referenceId = $this->safe_string($item, 'OrderCode');
-        $referenceAccount = null;
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'Type'));
+        $referenceId = $this->safe_string_2($item, 'TradeId', 'OrderCode');
+        $referenceId = $this->safe_string($item, 'Hash', $referenceId);
+        $referenceAccount = $this->safe_string($item, 'Address');
+        $type = $this->safe_string($item, 'Type');
+        $ledgerEntryType = $this->parse_ledger_entry_type($type);
         $code = $this->safe_currency_code($this->safe_string($item, 'CurrencyCode'), $currency);
         $amount = $this->safe_float($item, 'Amount');
         $after = $this->safe_float($item, 'TotalBalance');
@@ -401,14 +415,16 @@ class southxchange extends Exchange {
             if ($after !== null) {
                 $before = $after - $amount;
             }
-            if ($amount < 0) {
+            if ($type === 'withdrawal') {
                 $direction = 'out';
-                $amount = abs($amount);
-            } else {
+            } else if ($type === 'deposit') {
                 $direction = 'in';
+            } else if (($type === 'trade') || ($type === 'tradefee')) {
+                $direction = ($amount < 0) ? 'out' : 'in';
+                $amount = abs($amount);
             }
         }
-        $timestamp = $this->safe_timestamp($item, 'Date');
+        $timestamp = $this->parse8601($this->safe_string($item, 'Date'));
         $fee = null;
         $status = $this->safe_string($item, 'Status');
         return array(
@@ -418,7 +434,7 @@ class southxchange extends Exchange {
             'account' => $account,
             'referenceId' => $referenceId,
             'referenceAccount' => $referenceAccount,
-            'type' => $type,
+            'type' => $ledgerEntryType,
             'currency' => $code,
             'amount' => $amount,
             'before' => $before,
@@ -451,24 +467,82 @@ class southxchange extends Exchange {
         }
         $response = $this->privatePostListTransactions (array_merge($request, $params));
         //
+        // fetchLedger ('BTC')
+        //
         //     {
-        //         "TotalElements":0,
+        //         "TotalElements":2,
         //         "Result":array(
+        //             array(
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":-0.000000301000000000,
+        //                 "TotalBalance":0.000100099000000000,
+        //                 "Type":"tradefee",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             ),
         //             {
-        //                 'Date' => 'string', // Date of the transaction
-        //                 'CurrencyCode' => 'string', // The $currency $code of the transaction, delisted coins shown as '?'
-        //                 'Amount' => 'string', // Amount of the transaction
-        //                 'TotalBalance' => 'string', // Total balance after this transaction
-        //                 'Type' => 'string', // Possible values trade, trade fee, deposit, withdraw, etc
-        //                 'Status' => 'string', // Possible values => pending, confirmed, processed, etc
-        //                 'Address' => 'string', // Deposit or withdraw address
-        //                 'Hash' => 'string', // Deposit or withdraw chain transaction hash
-        //                 'Price' => 'string', // Trade price
-        //                 'OtherAmount' => 'string', // Trade amount of the other $currency
-        //                 'OtherCurrency' => 'string', // The other trade $currency, delisted coins shown as '?'
-        //                 'OrderCode' => 'string', // Trade order $code
-        //                 'TradeId' => 'string', // The ID of the trade
-        //                 'MovementId' => 'string', // Deposit or withdrawal ID
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":0.000100400000000000,
+        //                 "TotalBalance":0.000100400000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":1.185872,
+        //                 "OtherCurrency":"USDT",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             }
+        //         )
+        //     }
+        //
+        // fetchLedger ('BTC'), same trade, other side
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":array(
+        //             array(
+        //                 "Date":"2020-08-07T13:06:22.133",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":-1.185872000000000000,
+        //                 "TotalBalance":26.428806000000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":0.000100400,
+        //                 "OtherCurrency":"BTC",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             ),
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
         //             }
         //         )
         //     }
