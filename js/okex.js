@@ -1602,7 +1602,7 @@ module.exports = class okex extends Exchange {
                     free += this.safeFloat (cont, 'fixed_balance') + this.safeFloat (cont, 'realized_pnl') 
                             - this.safeFloat (cont, 'margin_frozen') - this.safeFloat (cont, 'margin_for_unfilled');
                 }
-                account['free'] = free
+                account['free'] = free;
             } else {
                 account['free'] = totalAvailBalance + this.safeFloat (balance, 'realized_pnl') 
                                   + this.safeFloat (balance, 'unrealized_pnl') 
