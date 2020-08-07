@@ -1211,9 +1211,17 @@ module.exports = class poloniex extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        // USDT, USDTETH, USDTTRON
+        let currencyId = undefined;
+        let currency = undefined;
+        if (code in this.currencies) {
+            currency = this.currency (code);
+            currencyId = currency['id'];
+        } else {
+            currencyId = code;
+        }
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
         const response = await this.privatePostGenerateNewAddress (this.extend (request, params));
         let address = undefined;
@@ -1222,10 +1230,12 @@ module.exports = class poloniex extends Exchange {
             address = this.safeString (response, 'response');
         }
         this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
+        if (currency !== undefined) {
+            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+            if (depositAddress !== undefined) {
+                tag = address;
+                address = depositAddress;
+            }
         }
         return {
             'currency': code,
@@ -1237,16 +1247,25 @@ module.exports = class poloniex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const response = await this.privatePostReturnDepositAddresses (params);
-        const currencyId = currency['id'];
+        // USDT, USDTETH, USDTTRON
+        let currencyId = undefined;
+        let currency = undefined;
+        if (code in this.currencies) {
+            currency = this.currency (code);
+            currencyId = currency['id'];
+        } else {
+            currencyId = code;
+        }
         let address = this.safeString (response, currencyId);
         let tag = undefined;
         this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
+        if (currency !== undefined) {
+            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+            if (depositAddress !== undefined) {
+                tag = address;
+                address = depositAddress;
+            }
         }
         return {
             'currency': code,
