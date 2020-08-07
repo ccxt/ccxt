@@ -264,10 +264,6 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseBalanceResponse (response) {
-        return this.parseBalances (response);
-    }
-
-    parseBalances (balances) {
         //
         //     [
         //         {
@@ -315,9 +311,9 @@ module.exports = class bitmex extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
