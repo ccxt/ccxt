@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +20,7 @@ module.exports = class southxchange extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
@@ -352,6 +354,125 @@ module.exports = class southxchange extends Exchange {
             'info': response,
             'id': undefined,
         };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'trade': 'trade',
+            'trade fee': 'fee',
+            'withdraw': 'transaction',
+            'deposit': 'transaction',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         'Date': 'string', // Date of the transaction
+        //         'CurrencyCode': 'string', // The currency code of the transaction, delisted coins shown as '?'
+        //         'Amount': 'string', // Amount of the transaction
+        //         'TotalBalance': 'string', // Total balance after this transaction
+        //         'Type': 'string', // Possible values trade, trade fee, deposit, withdraw, etc
+        //         'Status': 'string', // Possible values: pending, confirmed, processed, etc
+        //         'Address': 'string', // Deposit or withdraw address
+        //         'Hash': 'string', // Deposit or withdraw chain transaction hash
+        //         'Price': 'string', // Trade price
+        //         'OtherAmount': 'string', // Trade amount of the other currency
+        //         'OtherCurrency': 'string', // The other trade currency, delisted coins shown as '?'
+        //         'OrderCode': 'string', // Trade order code
+        //         'TradeId': 'string', // The ID of the trade
+        //         'MovementId': 'string', // Deposit or withdrawal ID
+        //     }
+        //
+        const id = this.safeString2 (item, 'MovementId', 'TradeId');
+        let direction = undefined;
+        const account = undefined;
+        const referenceId = this.safeString (item, 'OrderCode');
+        const referenceAccount = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'Type'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'CurrencyCode'), currency);
+        let amount = this.safeFloat (item, 'Amount');
+        const after = this.safeFloat (item, 'TotalBalance');
+        let before = undefined;
+        if (amount !== undefined) {
+            if (after !== undefined) {
+                before = after - amount;
+            }
+            if (amount < 0) {
+                direction = 'out';
+                amount = Math.abs (amount);
+            } else {
+                direction = 'in';
+            }
+        }
+        const timestamp = this.safeTimestamp (item, 'Date');
+        const fee = undefined;
+        const status = this.safeString (item, 'Status');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        limit = (limit === undefined) ? 50 : limit;
+        const request = {
+            'Currency': currency['id'],
+            // 'TransactionType': 'transactions', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex': 0,
+            'PageSize': limit, // max 50
+            'SortField': 'Date',
+            // 'Descending': true,
+        };
+        const pageIndex = this.safeInteger (params, 'PageIndex');
+        if (pageIndex === undefined) {
+            request['Descending'] = true;
+        }
+        const response = await this.privatePostListTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "TotalElements":0,
+        //         "Result":[
+        //             {
+        //                 'Date': 'string', // Date of the transaction
+        //                 'CurrencyCode': 'string', // The currency code of the transaction, delisted coins shown as '?'
+        //                 'Amount': 'string', // Amount of the transaction
+        //                 'TotalBalance': 'string', // Total balance after this transaction
+        //                 'Type': 'string', // Possible values trade, trade fee, deposit, withdraw, etc
+        //                 'Status': 'string', // Possible values: pending, confirmed, processed, etc
+        //                 'Address': 'string', // Deposit or withdraw address
+        //                 'Hash': 'string', // Deposit or withdraw chain transaction hash
+        //                 'Price': 'string', // Trade price
+        //                 'OtherAmount': 'string', // Trade amount of the other currency
+        //                 'OtherCurrency': 'string', // The other trade currency, delisted coins shown as '?'
+        //                 'OrderCode': 'string', // Trade order code
+        //                 'TradeId': 'string', // The ID of the trade
+        //                 'MovementId': 'string', // Deposit or withdrawal ID
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'Result', []);
+        return this.parseLedger (result, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
