@@ -1123,9 +1123,16 @@ class poloniex(Exchange):
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
-        currency = self.currency(code)
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         response = self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
@@ -1133,10 +1140,11 @@ class poloniex(Exchange):
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,
@@ -1146,16 +1154,23 @@ class poloniex(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currency = self.currency(code)
         response = self.privatePostReturnDepositAddresses(params)
-        currencyId = currency['id']
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         address = self.safe_string(response, currencyId)
         tag = None
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,

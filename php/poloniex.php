@@ -1223,9 +1223,17 @@ class poloniex extends Exchange {
 
     public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency($code);
+        // USDT, USDTETH, USDTTRON
+        $currencyId = null;
+        $currency = null;
+        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+        } else {
+            $currencyId = $code;
+        }
         $request = array(
-            'currency' => $currency['id'],
+            'currency' => $currencyId,
         );
         $response = $this->privatePostGenerateNewAddress (array_merge($request, $params));
         $address = null;
@@ -1234,10 +1242,12 @@ class poloniex extends Exchange {
             $address = $this->safe_string($response, 'response');
         }
         $this->check_address($address);
-        $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
-        if ($depositAddress !== null) {
-            $tag = $address;
-            $address = $depositAddress;
+        if ($currency !== null) {
+            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+            if ($depositAddress !== null) {
+                $tag = $address;
+                $address = $depositAddress;
+            }
         }
         return array(
             'currency' => $code,
@@ -1249,16 +1259,25 @@ class poloniex extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency($code);
         $response = $this->privatePostReturnDepositAddresses ($params);
-        $currencyId = $currency['id'];
+        // USDT, USDTETH, USDTTRON
+        $currencyId = null;
+        $currency = null;
+        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+        } else {
+            $currencyId = $code;
+        }
         $address = $this->safe_string($response, $currencyId);
         $tag = null;
         $this->check_address($address);
-        $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
-        if ($depositAddress !== null) {
-            $tag = $address;
-            $address = $depositAddress;
+        if ($currency !== null) {
+            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+            if ($depositAddress !== null) {
+                $tag = $address;
+                $address = $depositAddress;
+            }
         }
         return array(
             'currency' => $code,
