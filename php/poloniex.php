@@ -285,6 +285,15 @@ class poloniex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
+    public function load_markets($reload = false, $params = array ()) {
+        $markets = parent::load_markets($reload, $params);
+        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
+        if (($currenciesByNumericId === null) || $reload) {
+            $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
+        }
+        return $markets;
+    }
+
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetReturnTicker ($params);
         $keys = is_array($markets) ? array_keys($markets) : array();

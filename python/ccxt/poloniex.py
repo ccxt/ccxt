@@ -288,6 +288,13 @@ class poloniex(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def load_markets(self, reload=False, params={}):
+        markets = super(poloniex, self).load_markets(reload, params)
+        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
+        if (currenciesByNumericId is None) or reload:
+            self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
+        return markets
+
     def fetch_markets(self, params={}):
         markets = self.publicGetReturnTicker(params)
         keys = list(markets.keys())
