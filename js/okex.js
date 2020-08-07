@@ -3036,6 +3036,10 @@ module.exports = class okex extends Exchange {
         const isArray = Array.isArray (response[0]);
         const isMargin = (type === 'margin');
         const entries = (isMargin && isArray) ? response[0] : response;
+        if (type === 'swap') {
+            const ledgerEntries = this.parseLedger (entries);
+            return this.filterBySymbolSinceLimit (ledgerEntries, code, since, limit);
+        }
         return this.parseLedger (entries, currency, since, limit);
     }
 
@@ -3145,6 +3149,12 @@ module.exports = class okex extends Exchange {
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
         const status = 'ok';
+        const marketId = this.safeString (item, 'instrument_id');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
         return {
             'info': item,
             'id': id,
@@ -3153,6 +3163,7 @@ module.exports = class okex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
+            'symbol': symbol,
             'amount': amount,
             'before': before, // balance before
             'after': after, // balance after
