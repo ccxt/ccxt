@@ -1571,9 +1571,27 @@ class okex(Exchange):
             code = self.safe_currency_code(id)
             balance = self.safe_value(info, id, {})
             account = self.account()
+            totalAvailBalance = self.safe_float(balance, 'total_avail_balance')
+            if self.safe_string(balance, 'margin_mode') == 'fixed':
+                contracts = self.safe_value(balance, 'contracts', [])
+                free = totalAvailBalance
+                for i in range(0, len(contracts)):
+                    contract = contracts[i]
+                    fixedBalance = self.safe_float(contract, 'fixed_balance')
+                    realizedPnl = self.safe_float(contract, 'realized_pnl')
+                    marginFrozen = self.safe_float(contract, 'margin_frozen')
+                    marginForUnfilled = self.safe_float(contract, 'margin_for_unfilled')
+                    margin = self.sum(fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled
+                    free = self.sum(free, margin)
+                account['free'] = free
+            else:
+                realizedPnl = self.safe_float(balance, 'realized_pnl')
+                unrealizedPnl = self.safe_float(balance, 'unrealized_pnl')
+                marginFrozen = self.safe_float(balance, 'margin_frozen')
+                marginForUnfilled = self.safe_float(balance, 'margin_for_unfilled')
+                account['free'] = self.sum(totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled
             # it may be incorrect to use total, free and used for swap accounts
             account['total'] = self.safe_float(balance, 'equity')
-            account['free'] = self.safe_float(balance, 'total_avail_balance')
             result[code] = account
         return self.parse_balance(result)
 

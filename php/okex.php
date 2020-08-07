@@ -1563,7 +1563,7 @@ class okex extends Exchange {
         //         "$info":{
         //             "eos":array(
         //                 "auto_margin":"0",
-        //                 "contracts" => array(
+        //                 "$contracts" => array(
         //                     array(
         //                         "available_qty":"40.37069445",
         //                         "fixed_balance":"0",
@@ -1599,9 +1599,29 @@ class okex extends Exchange {
             $code = $this->safe_currency_code($id);
             $balance = $this->safe_value($info, $id, array());
             $account = $this->account();
-            // it may be incorrect to use total, free and used for swap accounts
+            $totalAvailBalance = $this->safe_float($balance, 'total_avail_balance');
+            if ($this->safe_string($balance, 'margin_mode') === 'fixed') {
+                $contracts = $this->safe_value($balance, 'contracts', array());
+                $free = $totalAvailBalance;
+                for ($i = 0; $i < count($contracts); $i++) {
+                    $contract = $contracts[$i];
+                    $fixedBalance = $this->safe_float($contract, 'fixed_balance');
+                    $realizedPnl = $this->safe_float($contract, 'realized_pnl');
+                    $marginFrozen = $this->safe_float($contract, 'margin_frozen');
+                    $marginForUnfilled = $this->safe_float($contract, 'margin_for_unfilled');
+                    $margin = $this->sum($fixedBalance, $realizedPnl) - $marginFrozen - $marginForUnfilled;
+                    $free = $this->sum($free, $margin);
+                }
+                $account['free'] = $free;
+            } else {
+                $realizedPnl = $this->safe_float($balance, 'realized_pnl');
+                $unrealizedPnl = $this->safe_float($balance, 'unrealized_pnl');
+                $marginFrozen = $this->safe_float($balance, 'margin_frozen');
+                $marginForUnfilled = $this->safe_float($balance, 'margin_for_unfilled');
+                $account['free'] = $this->sum($totalAvailBalance, $realizedPnl, $unrealizedPnl) - $marginFrozen - $marginForUnfilled;
+            }
+            // it may be incorrect to use total, $free and used for swap accounts
             $account['total'] = $this->safe_float($balance, 'equity');
-            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
