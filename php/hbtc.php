@@ -193,7 +193,7 @@ class hbtc extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // general server or network errors
-                    '-1000' => '\\ccxt\\ExchangeError', // An unknown error occured while processing the request
+                    '-1000' => '\\ccxt\\ExchangeError', // An unknown error occurred while processing the request
                     '-1001' => '\\ccxt\\ExchangeError', // Internal error, unable to process your request. Please try again
                     '-1002' => '\\ccxt\\AuthenticationError', // You are not authorized to execute this request. Request need API Key included in. We suggest that API Key be included in any request
                     '-1003' => '\\ccxt\\RateLimitExceeded', // Too many requests, please use the websocket for live updates

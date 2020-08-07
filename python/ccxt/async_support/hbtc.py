@@ -207,7 +207,7 @@ class hbtc(Exchange):
             'exceptions': {
                 'exact': {
                     # general server or network errors
-                    '-1000': ExchangeError,  # An unknown error occured while processing the request
+                    '-1000': ExchangeError,  # An unknown error occurred while processing the request
                     '-1001': ExchangeError,  # Internal error, unable to process your request. Please try again
                     '-1002': AuthenticationError,  # You are not authorized to execute self request. Request need API Key included in. We suggest that API Key be included in any request
                     '-1003': RateLimitExceeded,  # Too many requests, please use the websocket for live updates

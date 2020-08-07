@@ -120,7 +120,7 @@ module.exports = class currencycom extends Exchange {
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
                 },
                 'exact': {
-                    '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occurred while processing the request."}
                     '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1021': InvalidNonce, // 'your time is ahead of server'
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}

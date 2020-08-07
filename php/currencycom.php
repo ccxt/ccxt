@@ -124,7 +124,7 @@ class currencycom extends Exchange {
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'exact' => array(
-                    '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
+                    '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occurred while processing the request.")
                     '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                     '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
