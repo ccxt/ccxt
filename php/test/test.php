@@ -1,9 +1,11 @@
 <?php
 
+namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'ccxt.php';
+include_once 'test_trade.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -69,7 +71,7 @@ foreach ($config as $id => $params) {
     }
 }
 
-$exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
+$exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_ticker($exchange, $symbol) {
@@ -108,6 +110,9 @@ function test_trades($exchange, $symbol) {
 
         dump(green($symbol), 'fetching trades...');
         $trades = $exchange->fetch_trades($symbol);
+        if (count($trades) > 0) {
+            test_trade($exchange, $trades[0], $symbol, time() * 1000);
+        }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
         dump(green($symbol), 'fetchTrades () not supported');
@@ -134,11 +139,6 @@ function load_exchange($exchange) {
 function try_all_proxies($exchange, $proxies) {
     $current_proxy = 0;
     $max_retries = count($proxies);
-
-    // a special case for ccex
-    if ($exchange->id == 'ccex') {
-        $currentProxy = 1;
-    }
 
     for ($i = 0; $i < $max_retries; $i++) {
         try {
@@ -212,7 +212,7 @@ function test_exchange($exchange) {
     usleep($delay);
 
     $balance = $exchange->fetch_balance();
-    print_r($balance);
+    var_dump($balance);
 
     // $exchange->verbose = true;
     // $order = $exchange->create_market_buy_order ('LTC/BTC', 0.1);

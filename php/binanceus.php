@@ -9,15 +9,16 @@ use Exception; // a common import
 
 class binanceus extends binance {
 
-    public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
-            'countries' => array ( 'US' ), // US
+            'countries' => array( 'US' ), // US
             'certified' => false,
-            'urls' => array (
+            'pro' => true,
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
-                'api' => array (
+                'api' => array(
                     'web' => 'https://www.binance.us',
                     'wapi' => 'https://api.binance.us/wapi/v3',
                     'public' => 'https://api.binance.us/api/v1',
@@ -30,13 +31,16 @@ class binanceus extends binance {
                 'doc' => 'https://github.com/binance-us/binance-official-api-docs',
                 'fees' => 'https://www.binance.us/en/fee/schedule',
             ),
-            'fees' => array (
-                'trading' => array (
-                    'tierBased' => false,
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker' => 0.001, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'maker' => 0.001, // 0.1% trading fee, zero fees for all trading pairs before November 1
                 ),
+            ),
+            'options' => array(
+                'quoteOrderQty' => false,
             ),
         ));
     }

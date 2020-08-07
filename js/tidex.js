@@ -13,17 +13,24 @@ module.exports = class tidex extends Exchange {
             'version': '3',
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
-                'fetchOrderBooks': true,
-                'fetchOrder': true,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
-                'fetchTickers': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchOrders': 'emulated',
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
@@ -164,11 +171,11 @@ module.exports = class tidex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': this.safeFloat (currency, 'withdrawMinAmount'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': this.safeFloat (currency, 'depositMinAmount'),
                         'max': undefined,
                     },
                 },
@@ -281,7 +288,7 @@ module.exports = class tidex extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -298,6 +305,9 @@ module.exports = class tidex extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -324,10 +334,13 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = this.safeTimestamp (ticker, 'updated');
+        let timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            if (!market['active']) {
+                timestamp = undefined;
+            }
         }
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -522,9 +535,13 @@ module.exports = class tidex extends Exchange {
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
+            'info': response,
+            'clientOrderId': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -587,6 +604,7 @@ module.exports = class tidex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -600,6 +618,8 @@ module.exports = class tidex extends Exchange {
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 

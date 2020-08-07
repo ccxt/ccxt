@@ -34,17 +34,24 @@ class tidex(Exchange):
             'version': '3',
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
-                'fetchOrderBooks': True,
-                'fetchOrder': True,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
-                'fetchTickers': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
                 'fetchCurrencies': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': 'emulated',
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
@@ -183,11 +190,11 @@ class tidex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['withdrawMinAmout'],
+                        'min': self.safe_float(currency, 'withdrawMinAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': currency['depositMinAmount'],
+                        'min': self.safe_float(currency, 'depositMinAmount'),
                         'max': None,
                     },
                 },
@@ -289,7 +296,7 @@ class tidex(Exchange):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook)
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
         if symbols is None:
@@ -304,6 +311,8 @@ class tidex(Exchange):
         request = {
             'pair': ids,
         }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
         response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
@@ -331,6 +340,8 @@ class tidex(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+            if not market['active']:
+                timestamp = None
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -500,9 +511,13 @@ class tidex(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -554,6 +569,7 @@ class tidex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -567,6 +583,8 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

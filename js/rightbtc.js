@@ -11,14 +11,21 @@ module.exports = class rightbtc extends Exchange {
             'name': 'RightBTC',
             'countries': [ 'AE' ],
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
                 'privateAPI': false,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
-                'fetchOrder': 'emulated',
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -30,7 +37,7 @@ module.exports = class rightbtc extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
@@ -349,9 +356,9 @@ module.exports = class rightbtc extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            parseInt (ohlcv[0]),
+            this.safeInteger (ohlcv, 0),
             parseFloat (ohlcv[2]) / 1e8,
             parseFloat (ohlcv[3]) / 1e8,
             parseFloat (ohlcv[4]) / 1e8,
@@ -368,7 +375,8 @@ module.exports = class rightbtc extends Exchange {
             'timeSymbol': this.timeframes[timeframe],
         };
         const response = await this.publicGetCandlestickTimeSymbolTradingPair (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -542,6 +550,7 @@ module.exports = class rightbtc extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -556,6 +565,7 @@ module.exports = class rightbtc extends Exchange {
             'status': status,
             'fee': fee,
             'trades': trades,
+            'average': undefined,
         };
     }
 
@@ -752,11 +762,8 @@ module.exports = class rightbtc extends Exchange {
             const success = this.safeString (status, 'success');
             if (success !== '1') {
                 const message = this.safeString (status, 'message');
-                const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                }
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 throw new ExchangeError (feedback);
             }
         }

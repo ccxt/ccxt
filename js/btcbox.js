@@ -16,17 +16,23 @@ module.exports = class btcbox extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchOrder': true,
-                'fetchOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',
                 'api': 'https://www.btcbox.co.jp/api',
                 'www': 'https://www.btcbox.co.jp/',
-                'doc': 'https://www.btcbox.co.jp/help/asm',
+                'doc': 'https://blog.btcbox.jp/en/archives/8762',
                 'fees': 'https://support.btcbox.co.jp/hc/en-us/articles/360001235694-Fees-introduction',
             },
             'api': {
@@ -242,7 +248,16 @@ module.exports = class btcbox extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        //     {
+        //         "id":11,
+        //         "datetime":"2014-10-21 10:47:20",
+        //         "type":"sell",
+        //         "price":42000,
+        //         "amount_original":1.2,
+        //         "amount_outstanding":1.2,
+        //         "status":"closed",
+        //         "trades":[]
+        //     }
         //
         const id = this.safeString (order, 'id');
         const datetimeString = this.safeString (order, 'datetime');
@@ -281,6 +296,7 @@ module.exports = class btcbox extends Exchange {
         const side = this.safeString (order, 'type');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -296,6 +312,7 @@ module.exports = class btcbox extends Exchange {
             'trades': trades,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -385,12 +402,9 @@ module.exports = class btcbox extends Exchange {
         if (result === undefined || result === true) {
             return; // either public API (no error codes expected) or success
         }
-        const errorCode = this.safeValue (response, 'code');
-        const feedback = this.id + ' ' + this.json (response);
-        const exceptions = this.exceptions;
-        if (errorCode in exceptions) {
-            throw new exceptions[errorCode] (feedback);
-        }
+        const code = this.safeValue (response, 'code');
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions, code, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
 

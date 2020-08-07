@@ -1,7 +1,7 @@
 'use strict';
 
 const { ROUND_UP, ROUND_DOWN } = require ('./number')
-const { NotSupported } = require ('./../errors')
+const { NotSupported } = require ('../errors')
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -48,8 +48,9 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
 
     for (let i = 0; i <= oldest; i++) {
         const trade = trades[i];
-        if (trade.timestamp < since)
+        if (trade.timestamp < since) {
             continue;
+        }
         const openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         const candle = ohlcvs.length - 1;
 
@@ -115,7 +116,7 @@ module.exports = {
             }
         }
 
-        return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price])])
+        return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
     },
 
     parseTimeframe,

@@ -32,7 +32,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'fetchCurrencies': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api': {
                     'public': 'https://api.coinmarketcap.com',
                     'files': 'https://files.coinmarketcap.com',
@@ -102,6 +102,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin', // conflict with CRC CryCash
@@ -126,10 +127,13 @@ module.exports = class coinmarketcap extends Exchange {
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
+            'Monarch': 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
+            'Plair': 'Plair', // conflict with PLA (PLANET)
+            'PlayChip': 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
@@ -137,6 +141,8 @@ module.exports = class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
             'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'Menlo One': 'Menlo One', // conflict with Harmony (ONE)
+            'BigONE Token': 'BigONE Token', // conflict with Harmony (ONE)
         };
         return this.safeValue (currencies, name, base);
     }
@@ -165,6 +171,9 @@ module.exports = class coinmarketcap extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': undefined,
+                    'precision': this.precision,
+                    'limits': this.limits,
                 });
             }
         }

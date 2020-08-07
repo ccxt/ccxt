@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.95'
+__version__ = '1.32.64'
 
 # -----------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
 
@@ -37,6 +38,11 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+# eddsa signing
+try:
+    import axolotl_curve25519 as eddsa
+except ImportError:
+    eddsa = None
 
 # -----------------------------------------------------------------------------
 
@@ -73,6 +79,8 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+from time import mktime
+from wsgiref.handlers import format_date_time
 
 # -----------------------------------------------------------------------------
 
@@ -107,8 +115,10 @@ except ImportError:
 class Exchange(object):
     """Base exchange class"""
     id = None
+    name = None
     version = None
     certified = False
+    pro = False
 
     # rate limiter settings
     enableRateLimit = False
@@ -148,7 +158,7 @@ class Exchange(object):
         },
     }
     ids = None
-    tickers = None
+    urls = None
     api = None
     parseJsonResponse = True
     proxy = ''
@@ -185,9 +195,10 @@ class Exchange(object):
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
-        '429': DDoSProtection,
+        '429': RateLimitExceeded,
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
+        '410': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
         '501': ExchangeNotAvailable,
         '502': ExchangeNotAvailable,
@@ -210,8 +221,13 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    myTrades = None
     trades = None
     transactions = None
+    ohlcvs = None
+    tickers = None
+    base_currencies = None
+    quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
@@ -237,6 +253,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
+        'loadMarkets': True,
         'cancelAllOrders': False,
         'cancelOrder': True,
         'cancelOrders': False,
@@ -262,6 +279,7 @@ class Exchange(object):
         'fetchOrderBook': True,
         'fetchOrderBooks': False,
         'fetchOrders': False,
+        'fetchOrderTrades': False,
         'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
@@ -276,6 +294,7 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'privateAPI': True,
         'publicAPI': True,
+        'signIn': False,
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
@@ -296,7 +315,12 @@ class Exchange(object):
     last_response_headers = None
 
     requiresWeb3 = False
+    requiresEddsa = False
     web3 = None
+    base58_encoder = None
+    base58_decoder = None
+    # no lower case l or upper case I, O
+    base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
     commonCurrencies = {
         'XBT': 'BTC',
@@ -315,8 +339,10 @@ class Exchange(object):
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.orders = dict() if self.orders is None else self.orders
-        self.trades = list() if self.trades is None else self.trades
+        self.tickers = dict() if self.tickers is None else self.tickers
+        self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
+        self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -349,7 +375,9 @@ class Exchange(object):
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
-                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
+                # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
+                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
+                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -357,11 +385,11 @@ class Exchange(object):
                     setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit,
+            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
+        }, getattr(self, 'tokenBucket', {}))
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
@@ -501,13 +529,16 @@ class Exchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return headers
 
+    def print(self, *args):
+        print(*args)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
         if self.verbose:
-            print("\nRequest:", method, url, request_headers, body)
+            self.print("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         request_body = body
@@ -530,6 +561,8 @@ class Exchange(object):
                 proxies=self.proxies,
                 verify=self.verify
             )
+            # does not try to detect encoding
+            response.encoding = 'utf-8'
             http_response = response.text
             http_status_code = response.status_code
             http_status_text = response.reason
@@ -543,7 +576,7 @@ class Exchange(object):
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.print("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
@@ -564,9 +597,9 @@ class Exchange(object):
         except RequestException as e:  # base exception class
             error_string = str(e)
             if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url)
+                raise NetworkError(method + ' ' + url + ' ' + error_string)
             else:
-                raise ExchangeError(method + ' ' + url)
+                raise ExchangeError(method + ' ' + url + ' ' + error_string)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_response(http_response, json_response, url, method)
@@ -606,7 +639,8 @@ class Exchange(object):
             pass
 
     def is_text_response(self, headers):
-        return headers.get('Content-Type', '').startswith('text/')
+        content_type = headers.get('Content-Type', '')
+        return content_type.startswith('application/json') or content_type.startswith('text/')
 
     @staticmethod
     def key_exists(dictionary, key):
@@ -659,8 +693,11 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring) and value.isnumeric():
-            return int(float(value) * factor)
+        elif isinstance(value, basestring):
+            try:
+                return int(float(value) * factor)
+            except ValueError:
+                pass
         return default_value
 
     @staticmethod
@@ -807,8 +844,9 @@ class Exchange(object):
         result = {}
         if type(array) is dict:
             array = Exchange.keysort(array).values()
+        is_int_key = isinstance(key, int)
         for element in array:
-            if (key in element) and (element[key] is not None):
+            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
                 k = element[key]
                 result[k] = element
         return result
@@ -842,19 +880,23 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, doseq=False):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params)
+        return _urlencode.urlencode(params, doseq)
+
+    @staticmethod
+    def urlencode_with_array_repeat(params={}):
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
     def rawencode(params={}):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
-    def encode_uri_component(uri):
-        return _urlencode.quote(uri, safe="~()*!.'")
+    def encode_uri_component(uri, safe="~()*!.'"):
+        return _urlencode.quote(uri, safe=safe)
 
     @staticmethod
     def omit(d, *args):
@@ -894,7 +936,7 @@ class Exchange(object):
     @staticmethod
     def aggregate(bidasks):
         ordered = Exchange.ordered({})
-        for [price, volume] in bidasks:
+        for [price, volume, *_] in bidasks:
             if volume > 0:
                 ordered[price] = (ordered[price] if price in ordered else 0) + volume
         result = []
@@ -941,6 +983,15 @@ class Exchange(object):
             return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
         except (TypeError, OverflowError, OSError):
             return None
+
+    @staticmethod
+    def rfc2616(self, timestamp=None):
+        if timestamp is None:
+            ts = datetime.datetime.now()
+        else:
+            ts = timestamp
+        stamp = mktime(ts.timetuple())
+        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -992,6 +1043,7 @@ class Exchange(object):
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             ms = ms or '.000'
+            ms = (ms + '00')[0:4]
             msint = int(ms[1:])
             sign = sign or ''
             sign = int(sign + '1') * -1
@@ -1108,7 +1160,7 @@ class Exchange(object):
         while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
             r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                                   sigencode=ecdsa.util.sigencode_strings_canonize,
-                                                                  extra_entropy=Exchange.numberToLE(counter, 32))
+                                                                  extra_entropy=Exchange.number_to_le(counter, 32))
             r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
             counter += 1
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
@@ -1117,6 +1169,14 @@ class Exchange(object):
             's': s,
             'v': v,
         }
+
+    @staticmethod
+    def eddsa(request, secret, curve='ed25519'):
+        random = b'\x00' * 64
+        request = base64.b16decode(request, casefold=True)
+        secret = base64.b16decode(secret, casefold=True)
+        signature = eddsa.calculateSignature(random, secret, request)
+        return Exchange.binary_to_base58(signature)
 
     @staticmethod
     def unjson(input):
@@ -1216,13 +1276,13 @@ class Exchange(object):
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
-        self.symbols = sorted(list(self.markets.keys()))
-        self.ids = sorted(list(self.markets_by_id.keys()))
+        self.symbols = sorted(self.markets.keys())
+        self.ids = sorted(self.markets_by_id.keys())
         if currencies:
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
             base_currencies = [{
-                'id': market['baseId'] if 'baseId' in market else market['base'],
+                'id': market['baseId'] if (('baseId' in market) and (market['baseId'] is not None)) else market['base'],
                 'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
                 'precision': (
@@ -1232,7 +1292,7 @@ class Exchange(object):
                 ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
-                'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market['quote'],
                 'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
                 'precision': (
@@ -1241,6 +1301,10 @@ class Exchange(object):
                     )
                 ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
+            base_currencies = self.sort_by(base_currencies, 'code')
+            quote_currencies = self.sort_by(quote_currencies, 'code')
+            self.base_currencies = self.index_by(base_currencies, 'code')
+            self.quote_currencies = self.index_by(quote_currencies, 'code')
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
@@ -1308,6 +1372,9 @@ class Exchange(object):
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported('cancel_order() not supported yet')
 
+    def cancel_unified_order(self, order, params={}):
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
@@ -1329,6 +1396,9 @@ class Exchange(object):
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
+
+    def fetch_unified_order(self, order, params={}):
+        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_orders() is not supported yet')
@@ -1354,7 +1424,10 @@ class Exchange(object):
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
+
+    def parse_ohlcv(self, ohlcv, market=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
@@ -1365,7 +1438,7 @@ class Exchange(object):
         while i < num_ohlcvs:
             if limit and (len(result) >= limit):
                 break
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market)
             i = i + 1
             if since and (ohlcv[0] < since):
                 continue
@@ -1407,29 +1480,23 @@ class Exchange(object):
         }
 
     def parse_balance(self, balance):
-        currencies = self.omit(balance, 'info').keys()
-
+        currencies = self.omit(balance, ['info', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
-
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
                     balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
-
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
                     balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
-
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
                     balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
-
-        for account in ['free', 'used', 'total']:
-            balance[account] = {}
-            for currency in currencies:
-                balance[account][currency] = balance[currency][account]
+            balance['free'][currency] = balance[currency]['free']
+            balance['used'][currency] = balance[currency]['used']
+            balance['total'][currency] = balance[currency]['total']
         return balance
 
     def fetch_partial_balance(self, part, params={}):
@@ -1491,35 +1558,34 @@ class Exchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def convert_trading_view_to_ohlcv(self, ohlcvs):
+    def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = []
-        for i in range(0, len(ohlcvs['t'])):
+        for i in range(0, len(ohlcvs[t])):
             result.append([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
+                ohlcvs[t][i] if ms else (ohlcvs[t][i] * 1000),
+                ohlcvs[o][i],
+                ohlcvs[h][i],
+                ohlcvs[l][i],
+                ohlcvs[c][i],
+                ohlcvs[v][i],
             ])
         return result
 
-    def convert_ohlcv_to_trading_view(self, ohlcvs):
-        result = {
-            't': [],
-            'o': [],
-            'h': [],
-            'l': [],
-            'c': [],
-            'v': [],
-        }
+    def convert_ohlcv_to_trading_view(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
+        result = {}
+        result[t] = []
+        result[o] = []
+        result[h] = []
+        result[l] = []
+        result[c] = []
+        result[v] = []
         for i in range(0, len(ohlcvs)):
-            result['t'].append(int(ohlcvs[i][0] / 1000))
-            result['o'].append(ohlcvs[i][1])
-            result['h'].append(ohlcvs[i][2])
-            result['l'].append(ohlcvs[i][3])
-            result['c'].append(ohlcvs[i][4])
-            result['v'].append(ohlcvs[i][5])
+            result[t].append(ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000))
+            result[o].append(ohlcvs[i][1])
+            result[h].append(ohlcvs[i][2])
+            result[l].append(ohlcvs[i][3])
+            result[c].append(ohlcvs[i][4])
+            result[v].append(ohlcvs[i][5])
         return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
@@ -1618,6 +1684,7 @@ class Exchange(object):
     def safe_currency_code(self, currency_id, currency=None):
         code = None
         if currency_id is not None:
+            currency_id = str(currency_id)
             if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:
@@ -1626,14 +1693,14 @@ class Exchange(object):
             code = currency['code']
         return code
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if value:
+        if value is not None:
             array = [entry for entry in array if entry[field] == value]
-        if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
-        if limit:
-            array = array[0:limit]
+        if since is not None:
+            array = [entry for entry in array if entry[key] >= since]
+        if limit is not None:
+            array = array[-limit:] if tail and (since is None) else array[:limit]
         return array
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
@@ -1642,12 +1709,12 @@ class Exchange(object):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
 
-    def filter_by_since_limit(self, array, since=None, limit=None):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
-        if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
-        if limit:
-            array = array[0:limit]
+        if since is not None:
+            array = [entry for entry in array if entry[key] >= since]
+        if limit is not None:
+            array = array[-limit:] if tail and (since is None) else array[:limit]
         return array
 
     def filter_by_symbol(self, array, symbol=None):
@@ -1678,23 +1745,6 @@ class Exchange(object):
         if isinstance(code, basestring) and (code in self.currencies):
             return self.currencies[code]
         raise ExchangeError('Does not have currency code ' + str(code))
-
-    def find_market(self, string):
-        if not self.markets:
-            raise ExchangeError('Markets not loaded')
-        if isinstance(string, basestring):
-            if string in self.markets_by_id:
-                return self.markets_by_id[string]
-            if string in self.markets:
-                return self.markets[string]
-        return string
-
-    def find_symbol(self, string, market=None):
-        if market is None:
-            market = self.find_market(string)
-        if isinstance(market, dict):
-            return market['symbol']
-        return string
 
     def market(self, symbol):
         if not self.markets:
@@ -1765,80 +1815,30 @@ class Exchange(object):
         return Web3 is not None
 
     def check_required_dependencies(self):
-        if not Exchange.has_web3():
+        if self.requiresWeb3 and not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+        if self.requiresEddsa and eddsa is None:
+            raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
-    def eth_decimals(self, unit='ether'):
-        units = {
-            'wei': 0,          # 1
-            'kwei': 3,         # 1000
-            'babbage': 3,      # 1000
-            'femtoether': 3,   # 1000
-            'mwei': 6,         # 1000000
-            'lovelace': 6,     # 1000000
-            'picoether': 6,    # 1000000
-            'gwei': 9,         # 1000000000
-            'shannon': 9,      # 1000000000
-            'nanoether': 9,    # 1000000000
-            'nano': 9,         # 1000000000
-            'szabo': 12,       # 1000000000000
-            'microether': 12,  # 1000000000000
-            'micro': 12,       # 1000000000000
-            'finney': 15,      # 1000000000000000
-            'milliether': 15,  # 1000000000000000
-            'milli': 15,       # 1000000000000000
-            'ether': 18,       # 1000000000000000000
-            'kether': 21,      # 1000000000000000000000
-            'grand': 21,       # 1000000000000000000000
-            'mether': 24,      # 1000000000000000000000000
-            'gether': 27,      # 1000000000000000000000000000
-            'tether': 30,      # 1000000000000000000000000000000
-        }
-        return self.safe_value(units, unit)
-
-    def eth_unit(self, decimals=18):
-        units = {
-            0: 'wei',      # 1000000000000000000
-            3: 'kwei',     # 1000000000000000
-            6: 'mwei',     # 1000000000000
-            9: 'gwei',     # 1000000000
-            12: 'szabo',   # 1000000
-            15: 'finney',  # 1000
-            18: 'ether',   # 1
-            21: 'kether',  # 0.001
-            24: 'mether',  # 0.000001
-            27: 'gether',  # 0.000000001
-            30: 'tether',  # 0.000000000001
-        }
-        return self.safe_value(units, decimals)
-
-    def fromWei(self, amount, unit='ether', decimals=18):
-        if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
+    @staticmethod
+    def from_wei(amount, decimals=18):
         if amount is None:
-            return amount
-        if decimals != 18:
-            if decimals % 3:
-                amount = int(amount) * (10 ** (18 - decimals))
-            else:
-                unit = self.eth_unit(decimals)
-        return float(Web3.fromWei(int(amount), unit))
+            return None
+        amount_float = float(amount)
+        exponential = '{:.14e}'.format(amount_float)
+        n, exponent = exponential.split('e')
+        new_exponent = int(exponent) - decimals
+        return float(n + 'e' + str(new_exponent))
 
-    def toWei(self, amount, unit='ether', decimals=18):
-        if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
+    @staticmethod
+    def to_wei(amount, decimals=18):
         if amount is None:
-            return amount
-        if decimals != 18:
-            if decimals % 3:
-                # this case has known yet unsolved problems:
-                #     toWei(1.999, 'ether', 17) == '199900000000000011'
-                #     toWei(1.999, 'ether', 19) == '19989999999999999991'
-                # the best solution should not involve additional dependencies
-                amount = Decimal(amount) / Decimal(10 ** (18 - decimals))
-            else:
-                unit = self.eth_unit(decimals)
-        return str(Web3.toWei(amount, unit))
+            return None
+        amount_float = float(amount)
+        exponential = '{:.14e}'.format(amount_float)
+        n, exponent = exponential.split('e')
+        new_exponent = int(exponent) + decimals
+        return number_to_string(n + 'e' + str(new_exponent))
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
@@ -1957,14 +1957,6 @@ class Exchange(object):
         )
         return '0x' + base64.b16encode(sha3).decode('ascii').lower()
 
-    def signZeroExOrder(self, order, privateKey):
-        orderHash = self.getZeroExOrderHash(order)
-        signature = self.signMessage(orderHash[-64:], privateKey)
-        return self.extend(order, {
-            'orderHash': orderHash,
-            'ecSignature': signature,  # todo fix v if needed
-        })
-
     def signZeroExOrderV2(self, order, privateKey):
         orderHash = self.getZeroExOrderHashV2(order)
         signature = self.signMessage(orderHash[-64:], privateKey)
@@ -2067,11 +2059,11 @@ class Exchange(object):
         return otp[-6:]
 
     @staticmethod
-    def numberToLE(n, size):
+    def number_to_le(n, size):
         return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
 
     @staticmethod
-    def numberToBE(n, size):
+    def number_to_be(n, size):
         return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
 
     @staticmethod
@@ -2090,3 +2082,41 @@ class Exchange(object):
     @staticmethod
     def integer_modulo(a, b):
         return int(a) % int(b)
+
+    def sleep(self, milliseconds):
+        return time.sleep(milliseconds / 1000)
+
+    @staticmethod
+    def base58_to_binary(s):
+        """encodes a base58 string to as a big endian integer"""
+        if Exchange.base58_decoder is None:
+            Exchange.base58_decoder = {}
+            Exchange.base58_encoder = {}
+            for i, c in enumerate(Exchange.base58_alphabet):
+                Exchange.base58_decoder[c] = i
+                Exchange.base58_encoder[i] = c
+        result = 0
+        for i in range(len(s)):
+            result *= 58
+            result += Exchange.base58_decoder[s[i]]
+        return Exchange.decimal_to_bytes(result)
+
+    @staticmethod
+    def binary_to_base58(b):
+        if Exchange.base58_encoder is None:
+            Exchange.base58_decoder = {}
+            Exchange.base58_encoder = {}
+            for i, c in enumerate(Exchange.base58_alphabet):
+                Exchange.base58_decoder[c] = i
+                Exchange.base58_encoder[i] = c
+        result = 0
+        # undo decimal_to_bytes
+        for byte in b:
+            result *= 0x100
+            result += byte
+        string = []
+        while result > 0:
+            result, next_character = divmod(result, 58)
+            string.append(Exchange.base58_encoder[next_character])
+        string.reverse()
+        return ''.join(string)

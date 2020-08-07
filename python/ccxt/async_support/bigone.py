@@ -27,15 +27,23 @@ class bigone(Exchange):
             'rateLimit': 1200,  # 500 request per 10 minutes
             'has': {
                 'cancelAllOrders': True,
-                'createMarketOrder': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOrders': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -53,7 +61,7 @@ class bigone(Exchange):
                 '1w': 'week1',
                 '1M': 'month1',
             },
-            'hostname': 'big.one',  # set to 'b1.run' for China mainland
+            'hostname': 'big.one',  # or 'bigone.com'
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
                 'api': {
@@ -145,6 +153,9 @@ class bigone(Exchange):
                 'broad': {
                 },
             },
+            'commonCurrencies': {
+                'ONE': 'BigONE Token',
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -190,6 +201,7 @@ class bigone(Exchange):
                 'amount': self.safe_integer(market, 'base_scale'),
                 'price': self.safe_integer(market, 'quote_scale'),
             }
+            minCost = self.safe_integer(market, 'min_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
@@ -203,14 +215,14 @@ class bigone(Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': minCost,
                         'max': None,
                     },
                 },
@@ -355,6 +367,19 @@ class bigone(Exchange):
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetPing(params)
+        #
+        #     {
+        #         "data": {
+        #             "timestamp": 1527665262168391000
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(data, 'timestamp')
+        return int(timestamp / 1000000)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -553,7 +578,7 @@ class bigone(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         close: '0.021562',
@@ -611,8 +636,8 @@ class bigone(Exchange):
         #         ]
         #     }
         #
-        ohlcvs = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -690,6 +715,7 @@ class bigone(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -711,12 +737,30 @@ class bigone(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         side = 'BID' if (side == 'buy') else 'ASK'
+        uppercaseType = type.upper()
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': side,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
-            'price': self.price_to_precision(symbol, price),  # order price, string, required
+            # 'price': self.price_to_precision(symbol, price),  # order price, string, required
+            'type': uppercaseType,
+            # 'operator': 'GTE',  # stop orders only, GTE greater than and equal, LTE less than and equal
+            # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
+            # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
         }
+        if uppercaseType == 'LIMIT':
+            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            isStopLimit = (uppercaseType == 'STOP_LIMIT')
+            isStopMarket = (uppercaseType == 'STOP_MARKET')
+            if isStopLimit or isStopMarket:
+                stopPrice = self.safe_float(params, 'stop_price')
+                if stopPrice is None:
+                    raise ArgumentsRequired(self.id + ' createOrder requires a stop_price parameter')
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+                params = self.omit(params, 'stop_price')
+            if isStopLimit:
+                request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #    {
@@ -867,7 +911,7 @@ class bigone(Exchange):
         #     }
         #
         trades = self.safe_value(response, 'data', [])
-        return self.parse_trades(trades, market, since, limit, params)
+        return self.parse_trades(trades, market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1002,6 +1046,24 @@ class bigone(Exchange):
         #         "txid": "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "id":1077391,
+        #         "customer_id":1082679,
+        #         "amount":"21.9000000000000000",
+        #         "txid":"",
+        #         "is_internal":false,
+        #         "kind":"on_chain",
+        #         "state":"PENDING",
+        #         "inserted_at":"2020-06-03T00:50:57+00:00",
+        #         "updated_at":"2020-06-03T00:50:57+00:00",
+        #         "memo":"",
+        #         "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        #         "fee":"0.1000000000000000",
+        #         "asset_symbol":"XRP"
+        #     }
+        #
         currencyId = self.safe_string(transaction, 'asset_symbol')
         code = self.safe_currency_code(currencyId)
         id = self.safe_integer(transaction, 'id')
@@ -1127,34 +1189,25 @@ class bigone(Exchange):
         #     {
         #         "code":0,
         #         "message":"",
-        #         "data":[
-        #             {
-        #                 "id":1,
-        #                 "customer_id":7,
-        #                 "asset_uuid":"50293b12-5be8-4f5b-b31d-d43cdd5ccc29",
-        #                 "amount":"100",
-        #                 "recipient":null,
-        #                 "state":"PENDING",
-        #                 "is_internal":true,
-        #                 "note":"asdsadsad",
-        #                 "kind":"on_chain",
-        #                 "txid":"asdasdasdsadsadsad",
-        #                 "confirms":5,
-        #                 "inserted_at":null,
-        #                 "updated_at":null,
-        #                 "completed_at":null,
-        #                 "commision":null,
-        #                 "explain":""
-        #             }
-        #         ]
+        #         "data":{
+        #             "id":1077391,
+        #             "customer_id":1082679,
+        #             "amount":"21.9000000000000000",
+        #             "txid":"",
+        #             "is_internal":false,
+        #             "kind":"on_chain",
+        #             "state":"PENDING",
+        #             "inserted_at":"2020-06-03T00:50:57+00:00",
+        #             "updated_at":"2020-06-03T00:50:57+00:00",
+        #             "memo":"",
+        #             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        #             "fee":"0.1000000000000000",
+        #             "asset_symbol":"XRP"
+        #         }
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        dataLength = len(data)
-        if dataLength < 1:
-            raise ExchangeError(self.id + ' withdraw() returned an empty response')
-        transaction = data[0]
-        return self.parse_transaction(transaction, currency)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

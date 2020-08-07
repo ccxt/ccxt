@@ -27,13 +27,23 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
-                'CORS': True,
+                'cancelOrder': True,
+                'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -149,6 +159,7 @@ class bitso(Exchange):
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': None,
             })
         return result
 
@@ -351,9 +362,11 @@ class bitso(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
+        clientOrderId = self.safe_string(order, 'client_id')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -367,6 +380,8 @@ class bitso(Exchange):
             'filled': filled,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
@@ -504,11 +519,8 @@ class bitso(Exchange):
                 if error is None:
                     raise ExchangeError(feedback)
                 code = self.safe_string(error, 'code')
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

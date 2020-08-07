@@ -16,11 +16,19 @@ module.exports = class acx extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'fetchTickers': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
-                'withdraw': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -92,6 +100,9 @@ module.exports = class acx extends Exchange {
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'Plair',
+            },
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -131,6 +142,8 @@ module.exports = class acx extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
+                'active': undefined,
+                'limits': this.limits,
             });
         }
         return result;
@@ -259,6 +272,14 @@ module.exports = class acx extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTimestamp (params);
+        //
+        //     1594911427
+        //
+        return response * 1000;
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -269,14 +290,14 @@ module.exports = class acx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -322,6 +343,7 @@ module.exports = class acx extends Exchange {
         const id = this.safeString (order, 'id');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -336,6 +358,8 @@ module.exports = class acx extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'cost': undefined,
+            'average': undefined,
         };
     }
 
@@ -458,10 +482,7 @@ module.exports = class acx extends Exchange {
             const error = this.safeValue (response, 'error');
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);
-            const exceptions = this.exceptions;
-            if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
     }

@@ -15,12 +15,15 @@ import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import OnMaintenance
 
 
 class coinbasepro(Exchange):
@@ -32,21 +35,29 @@ class coinbasepro(Exchange):
             'countries': ['US'],
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': True,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'deposit': True,
                 'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'createDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTime': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -59,11 +70,17 @@ class coinbasepro(Exchange):
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'test': {
+                    'public': 'https://api-public.sandbox.pro.coinbase.com',
+                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api': 'https://api.pro.coinbase.com',
+                'api': {
+                    'public': 'https://api.pro.coinbase.com',
+                    'private': 'https://api.pro.coinbase.com',
+                },
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -79,6 +96,7 @@ class coinbasepro(Exchange):
                     'get': [
                         'currencies',
                         'products',
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
@@ -98,13 +116,29 @@ class coinbasepro(Exchange):
                         'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
+                        'fees',
+                        'margin/profile_information',
+                        'margin/buying_power',
+                        'margin/withdrawal_power',
+                        'margin/withdrawal_power_all',
+                        'margin/exit_plan',
+                        'margin/liquidation_history',
+                        'margin/position_refresh_amounts',
+                        'margin/status',
+                        'oracle',
                         'orders',
                         'orders/{id}',
+                        'orders/client:{client_oid}',
                         'otc/orders',
                         'payment-methods',
                         'position',
-                        'reports/{id}',
+                        'profiles',
+                        'profiles/{id}',
+                        'reports/{report_id}',
+                        'transfers',
+                        'transfers/{transfer_id}',
                         'users/self/trailing-volume',
+                        'users/self/exchange-limits',
                     ],
                     'post': [
                         'conversions',
@@ -115,13 +149,16 @@ class coinbasepro(Exchange):
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'profiles/transfer',
                         'reports',
                         'withdrawals/coinbase',
+                        'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
                     ],
                     'delete': [
                         'orders',
+                        'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
                 },
@@ -162,12 +199,17 @@ class coinbasepro(Exchange):
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
+                    'Private rate limit exceeded': RateLimitExceeded,
+                    'Trading pair not available': PermissionDenied,
+                    'Product not found': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
+                    'under maintenance': OnMaintenance,
+                    'size is too small': InvalidOrder,
                 },
             },
         })
@@ -270,36 +312,73 @@ class coinbasepro(Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
+        # level 1 - only the best bid and ask
+        # level 2 - top 50 bids and asks(aggregated)
+        # level 3 - full order book(non aggregated)
         request = {
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }
         response = self.publicGetProductsIdBook(self.extend(request, params))
-        return self.parse_order_book(response)
+        #
+        #     {
+        #         "sequence":1924393896,
+        #         "bids":[
+        #             ["0.01825","24.34811287",2],
+        #             ["0.01824","72.5463",3],
+        #             ["0.01823","424.54298049",6],
+        #         ],
+        #         "asks":[
+        #             ["0.01826","171.10414904",4],
+        #             ["0.01827","22.60427028",1],
+        #             ["0.01828","397.46018784",7],
+        #         ]
+        #     }
+        #
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'sequence')
+        return orderbook
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'id': market['id'],
-        }
-        ticker = self.publicGetProductsIdTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # publicGetProductsIdTicker
+        #
+        #     {
+        #         "trade_id":843439,
+        #         "price":"0.997999",
+        #         "size":"80.29769",
+        #         "time":"2020-01-28T02:13:33.012523Z",
+        #         "bid":"0.997094",
+        #         "ask":"0.998",
+        #         "volume":"1903188.03750000"
+        #     }
+        #
+        # publicGetProductsIdStats
+        #
+        #     {
+        #         "open": "34.19000000",
+        #         "high": "95.70000000",
+        #         "low": "7.06000000",
+        #         "volume": "2.41000000"
+        #     }
+        #
         timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = self.safe_float(ticker, 'bid')
         ask = self.safe_float(ticker, 'ask')
         last = self.safe_float(ticker, 'price')
+        symbol = None if (market is None) else market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': None,
-            'low': None,
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': bid,
             'bidVolume': None,
             'ask': ask,
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -311,13 +390,66 @@ class coinbasepro(Exchange):
             'info': ticker,
         }
 
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        # publicGetProductsIdTicker or publicGetProductsIdStats
+        method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetProductsIdTicker')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # publicGetProductsIdTicker
+        #
+        #     {
+        #         "trade_id":843439,
+        #         "price":"0.997999",
+        #         "size":"80.29769",
+        #         "time":"2020-01-28T02:13:33.012523Z",
+        #         "bid":"0.997094",
+        #         "ask":"0.998",
+        #         "volume":"1903188.03750000"
+        #     }
+        #
+        # publicGetProductsIdStats
+        #
+        #     {
+        #         "open": "34.19000000",
+        #         "high": "95.70000000",
+        #         "low": "7.06000000",
+        #         "volume": "2.41000000"
+        #     }
+        #
+        return self.parse_ticker(response, market)
+
     def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #         type: 'match',
+        #         trade_id: 82047307,
+        #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        #         side: 'sell',
+        #         size: '0.00513192',
+        #         price: '9314.78',
+        #         product_id: 'BTC-USD',
+        #         sequence: 12038915443,
+        #         time: '2020-01-31T20:03:41.158814Z'
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'product_id')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
+        marketId = self.safe_string(trade, 'product_id')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
@@ -381,14 +513,24 @@ class coinbasepro(Exchange):
         response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1591514160,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02507,
+        #         0.02816506
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
-            ohlcv[1],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -406,11 +548,24 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
+        #
+        #     [
+        #         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        #         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        #         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
-        return self.parse8601(self.safe_string(response, 'iso'))
+        #
+        #     {
+        #         "iso":"2020-05-12T08:00:51.504Z",
+        #         "epoch":1589270451.504
+        #     }
+        #
+        return self.safe_timestamp(response, 'epoch')
 
     def parse_order_status(self, status):
         statuses = {
@@ -465,6 +620,7 @@ class coinbasepro(Exchange):
         side = self.safe_string(order, 'side')
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -479,6 +635,8 @@ class coinbasepro(Exchange):
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -698,7 +856,7 @@ class coinbasepro(Exchange):
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
-        url = self.urls['api'] + request
+        url = self.urls['api'][api] + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
@@ -774,7 +932,7 @@ class coinbasepro(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
-                message = response['message']
+                message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

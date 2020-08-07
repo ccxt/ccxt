@@ -18,7 +18,7 @@ import ccxt  # noqa: E402
 # -----------------------------------------------------------------------------
 
 kraken = ccxt.kraken()
-gdax = ccxt.gdax()
+coinbasepro = ccxt.coinbasepro()
 
 symbol = 'BTC/USD'
 
@@ -46,5 +46,5 @@ def print_chart(exchange, symbol, timeframe):
 last = print_chart(kraken, 'BTC/USD', '1h')
 print("\n" + kraken.name + " ₿ = $" + str(last) + "\n")  # print last closing price
 
-last = print_chart(gdax, 'BTC/USD', '1h')
-print("\n" + gdax.name + " ₿ = $" + str(last) + "\n")  # print last closing price
+last = print_chart(coinbasepro, 'BTC/USD', '1h')
+print("\n" + coinbasepro.name + " ₿ = $" + str(last) + "\n")  # print last closing price

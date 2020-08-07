@@ -15,12 +15,19 @@ module.exports = class braziliex extends Exchange {
             'countries': [ 'BR' ],
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -452,6 +459,7 @@ module.exports = class braziliex extends Exchange {
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -467,6 +475,7 @@ module.exports = class braziliex extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': info,
+            'average': undefined,
         };
     }
 
@@ -590,7 +599,7 @@ module.exports = class braziliex extends Exchange {
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.decode (signature),
+                'Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

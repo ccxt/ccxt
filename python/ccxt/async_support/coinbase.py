@@ -159,8 +159,16 @@ class coinbase(Exchange):
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
+        #
+        #     {
+        #         "data": {
+        #             "epoch": 1589295679,
+        #             "iso": "2020-05-12T15:01:19Z"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse8601(self.safe_string(data, 'iso'))
+        return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetAccounts(params)
@@ -374,14 +382,14 @@ class coinbase(Exchange):
         #         "next_step": null
         #     }
         #
-        amountObject = self.safe_value(transaction, 'amount', {})
+        subtotalObject = self.safe_value(transaction, 'subtotal', {})
         feeObject = self.safe_value(transaction, 'fee', {})
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
         type = self.safe_string(transaction, 'resource')
-        amount = self.safe_float(amountObject, 'amount')
-        currencyId = self.safe_string(amountObject, 'currency')
+        amount = self.safe_float(subtotalObject, 'amount')
+        currencyId = self.safe_string(subtotalObject, 'currency')
         currency = self.safe_currency_code(currencyId)
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -446,8 +454,8 @@ class coinbase(Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
         if market is None:
-            baseId = self.safe_string(totalObject, 'currency')
-            quoteId = self.safe_string(amountObject, 'currency')
+            baseId = self.safe_string(amountObject, 'currency')
+            quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -459,7 +467,7 @@ class coinbase(Exchange):
         amount = self.safe_float(amountObject, 'amount')
         price = None
         if cost is not None:
-            if amount is not None:
+            if (amount is not None) and (amount > 0):
                 price = cost / amount
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -691,13 +699,16 @@ class coinbase(Exchange):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         request = await self.prepare_account_request_with_currency_code(code, limit, params)
         query = self.omit(params, ['account_id', 'accountId'])
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = await self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(response['data'], None, since, limit)
+        return self.parse_ledger(response['data'], currency, since, limit)
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -1101,13 +1112,10 @@ class coinbase(Exchange):
         #      ]
         #    }
         #
-        exceptions = self.exceptions
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
             if isinstance(errors, list):
@@ -1115,10 +1123,8 @@ class coinbase(Exchange):
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
                     if errorCode is not None:
-                        if errorCode in exceptions:
-                            raise exceptions[errorCode](feedback)
-                        else:
-                            raise ExchangeError(feedback)
+                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))

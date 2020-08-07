@@ -2,16 +2,13 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.19.95'
+__version__ = '1.32.64'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
 import concurrent
 import socket
-import time
-import math
-import random
 import certifi
 import aiohttp
 import ssl
@@ -55,6 +52,8 @@ class Exchange(BaseExchange):
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
+        self.markets_loading = None
+        self.reloading_markets = False
 
     def init_rest_rate_limiter(self):
         self.throttle = throttle(self.extend({
@@ -87,30 +86,10 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def wait_for_token(self):
-        while self.rateLimitTokens <= 1:
-            # if self.verbose:
-            #     print('Waiting for tokens: Exchange: {0}'.format(self.id))
-            self.add_new_tokens()
-            seconds_delays = [0.001, 0.005, 0.022, 0.106, 0.5]
-            delay = random.choice(seconds_delays)
-            await asyncio.sleep(delay)
-        self.rateLimitTokens -= 1
-
-    def add_new_tokens(self):
-        # if self.verbose:
-        #     print('Adding new tokens: Exchange: {0}'.format(self.id))
-        now = time.monotonic()
-        time_since_update = now - self.rateLimitUpdateTime
-        new_tokens = math.floor((0.8 * 1000.0 * time_since_update) / self.rateLimit)
-        if new_tokens > 1:
-            self.rateLimitTokens = min(self.rateLimitTokens + new_tokens, self.rateLimitMaxTokens)
-            self.rateLimitUpdateTime = now
-
     async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
-            await self.throttle()
+            await self.throttle(self.rateLimit)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -121,7 +100,7 @@ class Exchange(BaseExchange):
         url = self.proxy + url
 
         if self.verbose:
-            print("\nRequest:", method, url, headers, body)
+            self.print("\nRequest:", method, url, headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         request_body = body
@@ -151,7 +130,7 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    print("\nResponse:", method, url, http_status_code, headers, http_response)
+                    self.print("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
@@ -175,7 +154,7 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
-    async def load_markets(self, reload=False, params={}):
+    async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -186,6 +165,21 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
+
+    async def load_markets(self, reload=False, params={}):
+        if (reload and not self.reloading_markets) or not self.markets_loading:
+            self.reloading_markets = True
+            coroutine = self.load_markets_helper(reload, params)
+            # coroutines can only be awaited once so we wrap it in a task
+            self.markets_loading = asyncio.ensure_future(coroutine)
+        try:
+            result = await self.markets_loading
+        except Exception as e:
+            self.reloading_markets = False
+            self.markets_loading = None
+            raise e
+        self.reloading_markets = False
+        return result
 
     async def fetch_fees(self):
         trading = {}
@@ -269,6 +263,12 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        raise NotSupported('create_order() not supported yet')
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        raise NotSupported('cancel_order() not supported yet')
+
     async def fetch_trading_fees(self, params={}):
         raise NotSupported('fetch_trading_fees() not supported yet')
 
@@ -300,3 +300,18 @@ class Exchange(BaseExchange):
 
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
+
+    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_transactions() is not supported yet')
+
+    async def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposits() is not supported yet')
+
+    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_withdrawals() is not supported yet')
+
+    async def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
+
+    async def sleep(self, milliseconds):
+        return await asyncio.sleep(milliseconds / 1000)

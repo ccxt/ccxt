@@ -20,15 +20,20 @@ class mercado(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': True,
-                'fetchOrder': True,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchOHLCV': True,
-                'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -95,6 +100,7 @@ class mercado(Exchange):
                 'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'BCash'},
                 'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ripple'},
                 'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ethereum'},
+                'USDC/BRL': {'id': 'BRLUSDC', 'symbol': 'USDC/BRL', 'base': 'USDC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'USDC'},
             },
             'fees': {
                 'trading': {
@@ -333,6 +339,7 @@ class mercado(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -376,15 +383,15 @@ class mercado(Exchange):
         if code == 'BRL':
             account_ref = ('account_ref' in params)
             if not account_ref:
-                raise ExchangeError(self.id + ' requires account_ref parameter to withdraw ' + code)
+                raise ArgumentsRequired(self.id + ' requires account_ref parameter to withdraw ' + code)
         elif code != 'LTC':
             tx_fee = ('tx_fee' in params)
             if not tx_fee:
-                raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + code)
+                raise ArgumentsRequired(self.id + ' requires tx_fee parameter to withdraw ' + code)
             if code == 'XRP':
                 if tag is None:
                     if not ('destination_tag' in params):
-                        raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
+                        raise ArgumentsRequired(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
                 else:
                     request['destination_tag'] = tag
         response = await self.privatePostWithdrawCoin(self.extend(request, params))
@@ -393,7 +400,7 @@ class mercado(Exchange):
             'id': response['response_data']['withdrawal']['id'],
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'timestamp'),
             self.safe_float(ohlcv, 'open'),

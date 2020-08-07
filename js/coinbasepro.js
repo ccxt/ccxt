@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -15,21 +15,29 @@ module.exports = class coinbasepro extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': true,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'deposit': true,
                 'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'createDepositAddress': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderTrades': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTime': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -42,11 +50,17 @@ module.exports = class coinbasepro extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'test': {
+                    'public': 'https://api-public.sandbox.pro.coinbase.com',
+                    'private': 'https://api-public.sandbox.pro.coinbase.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
-                'api': 'https://api.pro.coinbase.com',
+                'api': {
+                    'public': 'https://api.pro.coinbase.com',
+                    'private': 'https://api.pro.coinbase.com',
+                },
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com',
                 'fees': [
                     'https://docs.pro.coinbase.com/#fees',
                     'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
@@ -62,6 +76,7 @@ module.exports = class coinbasepro extends Exchange {
                     'get': [
                         'currencies',
                         'products',
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
@@ -81,13 +96,29 @@ module.exports = class coinbasepro extends Exchange {
                         'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
+                        'fees',
+                        'margin/profile_information',
+                        'margin/buying_power',
+                        'margin/withdrawal_power',
+                        'margin/withdrawal_power_all',
+                        'margin/exit_plan',
+                        'margin/liquidation_history',
+                        'margin/position_refresh_amounts',
+                        'margin/status',
+                        'oracle',
                         'orders',
                         'orders/{id}',
+                        'orders/client:{client_oid}',
                         'otc/orders',
                         'payment-methods',
                         'position',
-                        'reports/{id}',
+                        'profiles',
+                        'profiles/{id}',
+                        'reports/{report_id}',
+                        'transfers',
+                        'transfers/{transfer_id}',
                         'users/self/trailing-volume',
+                        'users/self/exchange-limits',
                     ],
                     'post': [
                         'conversions',
@@ -98,13 +129,16 @@ module.exports = class coinbasepro extends Exchange {
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'profiles/transfer',
                         'reports',
                         'withdrawals/coinbase',
+                        'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
                     ],
                     'delete': [
                         'orders',
+                        'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
                 },
@@ -145,12 +179,17 @@ module.exports = class coinbasepro extends Exchange {
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
+                    'Private rate limit exceeded': RateLimitExceeded,
+                    'Trading pair not available': PermissionDenied,
+                    'Product not found': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
+                    'under maintenance': OnMaintenance,
+                    'size is too small': InvalidOrder,
                 },
             },
         });
@@ -260,37 +299,74 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        // level 1 - only the best bid and ask
+        // level 2 - top 50 bids and asks (aggregated)
+        // level 3 - full order book (non aggregated)
         const request = {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         };
         const response = await this.publicGetProductsIdBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        //
+        //     {
+        //         "sequence":1924393896,
+        //         "bids":[
+        //             ["0.01825","24.34811287",2],
+        //             ["0.01824","72.5463",3],
+        //             ["0.01823","424.54298049",6],
+        //         ],
+        //         "asks":[
+        //             ["0.01826","171.10414904",4],
+        //             ["0.01827","22.60427028",1],
+        //             ["0.01828","397.46018784",7],
+        //         ]
+        //     }
+        //
+        const orderbook = this.parseOrderBook (response);
+        orderbook['nonce'] = this.safeInteger (response, 'sequence');
+        return orderbook;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'id': market['id'],
-        };
-        const ticker = await this.publicGetProductsIdTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open": "34.19000000",
+        //         "high": "95.70000000",
+        //         "low": "7.06000000",
+        //         "volume": "2.41000000"
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
         const bid = this.safeFloat (ticker, 'bid');
         const ask = this.safeFloat (ticker, 'ask');
         const last = this.safeFloat (ticker, 'price');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': bid,
             'bidVolume': undefined,
             'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -303,14 +379,69 @@ module.exports = class coinbasepro extends Exchange {
         };
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+        };
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open": "34.19000000",
+        //         "high": "95.70000000",
+        //         "low": "7.06000000",
+        //         "volume": "2.41000000"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
     parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         type: 'match',
+        //         trade_id: 82047307,
+        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         side: 'sell',
+        //         size: '0.00513192',
+        //         price: '9314.78',
+        //         product_id: 'BTC-USD',
+        //         sequence: 12038915443,
+        //         time: '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'product_id');
-            market = this.safeValue (this.markets_by_id, marketId);
+        const marketId = this.safeString (trade, 'product_id');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        if (market) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         let feeRate = undefined;
@@ -383,14 +514,24 @@ module.exports = class coinbasepro extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1591514160,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02507,
+        //         0.02816506
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000,
-            ohlcv[3],
-            ohlcv[2],
-            ohlcv[1],
-            ohlcv[4],
-            ohlcv[5],
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -411,12 +552,25 @@ module.exports = class coinbasepro extends Exchange {
             request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
+        //
+        //     [
+        //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        //         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.parse8601 (this.safeString (response, 'iso'));
+        //
+        //     {
+        //         "iso":"2020-05-12T08:00:51.504Z",
+        //         "epoch":1589270451.504
+        //     }
+        //
+        return this.safeTimestamp (response, 'epoch');
     }
 
     parseOrderStatus (status) {
@@ -480,6 +634,7 @@ module.exports = class coinbasepro extends Exchange {
         const side = this.safeString (order, 'side');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -494,6 +649,8 @@ module.exports = class coinbasepro extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
+            'average': undefined,
+            'trades': undefined,
         };
     }
 
@@ -748,7 +905,7 @@ module.exports = class coinbasepro extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api'][api] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
@@ -834,7 +991,7 @@ module.exports = class coinbasepro extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
-                const message = response['message'];
+                const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

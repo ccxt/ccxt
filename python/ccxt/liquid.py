@@ -26,14 +26,22 @@ class liquid(Exchange):
             'version': '2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -104,6 +112,76 @@ class liquid(Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': 0.0015,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [0, 0.0000],
+                                [25000, 0.0000],
+                                [50000, -0.00025],
+                                [100000, -0.00025],
+                                [1000000, -0.00025],
+                                [10000000, -0.00025],
+                                [25000000, -0.00025],
+                                [50000000, -0.00025],
+                                [75000000, -0.00025],
+                                [100000000, -0.00025],
+                                [200000000, -0.00025],
+                                [300000000, -0.00025],
+                            ],
+                            'taker': [
+                                [0, 0.000600],
+                                [25000, 0.000575],
+                                [50000, 0.000550],
+                                [100000, 0.000525],
+                                [1000000, 0.000500],
+                                [10000000, 0.000475],
+                                [25000000, 0.000450],
+                                [50000000, 0.000425],
+                                [75000000, 0.000400],
+                                [100000000, 0.000375],
+                                [200000000, 0.000350],
+                                [300000000, 0.000325],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [0, 0.0015],
+                                [10000, 0.0015],
+                                [20000, 0.0014],
+                                [50000, 0.0013],
+                                [100000, 0.0010],
+                                [1000000, 0.0008],
+                                [5000000, 0.0006],
+                                [10000000, 0.0005],
+                                [25000000, 0.0005],
+                                [50000000, 0.00045],
+                                [100000000, 0.0004],
+                                [200000000, 0.0003],
+                            ],
+                            'maker': [
+                                [0, 0.0000],
+                                [10000, 0.0015],
+                                [20000, 0.1400],
+                                [50000, 0.1300],
+                                [100000, 0.0800],
+                                [1000000, 0.0004],
+                                [5000000, 0.00035],
+                                [10000000, 0.00025],
+                                [25000000, 0.0000],
+                                [50000000, 0.0000],
+                                [100000000, 0.0000],
+                                [200000000, 0.0000],
+                            ],
+                        },
+                    },
+                },
+            },
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -114,6 +192,7 @@ class liquid(Exchange):
                 'not_enough_free_balance': InsufficientFunds,
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
+                'price_too_high': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -184,7 +263,7 @@ class liquid(Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetProducts()
+        spot = self.publicGetProducts(params)
         #
         #     [
         #         {
@@ -215,20 +294,70 @@ class liquid(Exchange):
         #         },
         #     ]
         #
+        perpetual = self.publicGetProducts({'perpetual': '1'})
+        #
+        #     [
+        #         {
+        #             "id": "603",
+        #             "product_type": "Perpetual",
+        #             "code": "CASH",
+        #             "name": null,
+        #             "market_ask": "1143900",
+        #             "market_bid": "1143250",
+        #             "currency": "JPY",
+        #             "currency_pair_code": "P-BTCJPY",
+        #             "pusher_channel": "product_cash_p-btcjpy_603",
+        #             "taker_fee": "0.0",
+        #             "maker_fee": "0.0",
+        #             "low_market_bid": "1124450.0",
+        #             "high_market_ask": "1151750.0",
+        #             "volume_24h": "0.1756",
+        #             "last_price_24h": "1129850.0",
+        #             "last_traded_price": "1144700.0",
+        #             "last_traded_quantity": "0.014",
+        #             "quoted_currency": "JPY",
+        #             "base_currency": "P-BTC",
+        #             "tick_size": "50.0",
+        #             "perpetual_enabled": True,
+        #             "index_price": "1142636.03935",
+        #             "mark_price": "1143522.18417",
+        #             "funding_rate": "0.00033",
+        #             "fair_price": "1143609.31009",
+        #             "timestamp": "1581558659.195353100",
+        #         },
+        #     ]
+        #
         currencies = self.fetch_currencies()
         currenciesByCode = self.index_by(currencies, 'code')
         result = []
+        markets = self.array_concat(spot, perpetual)
         for i in range(0, len(markets)):
             market = markets[i]
-            id = str(market['id'])
-            baseId = market['base_currency']
-            quoteId = market['quoted_currency']
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quoted_currency')
+            productType = self.safe_string(market, 'product_type')
+            type = 'spot'
+            spot = True
+            swap = False
+            if productType == 'Perpetual':
+                spot = False
+                swap = True
+                type = 'swap'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            maker = self.safe_float(market, 'maker_fee')
-            taker = self.safe_float(market, 'taker_fee')
-            active = not market['disabled']
+            symbol = None
+            if swap:
+                symbol = self.safe_string(market, 'currency_pair_code')
+            else:
+                symbol = base + '/' + quote
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
+            if type == 'swap':
+                maker = self.safe_float(market, 'maker_fee', self.fees['trading']['maker'])
+                taker = self.safe_float(market, 'taker_fee', self.fees['trading']['taker'])
+            disabled = self.safe_value(market, 'disabled', False)
+            active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
             quoteCurrency = self.safe_value(currenciesByCode, quote)
             precision = {
@@ -268,6 +397,9 @@ class liquid(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -378,7 +510,7 @@ class liquid(Exchange):
         response = self.publicGetProductsId(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         # {            id:  12345,
         #         quantity: "6.789",
         #            price: "98765.4321",
@@ -402,13 +534,16 @@ class liquid(Exchange):
             if amount is not None:
                 cost = price * amount
         id = self.safe_string(trade, 'id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -448,13 +583,17 @@ class liquid(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        params = self.omit(params, ['clientOrderId', 'client_order_id'])
         request = {
             'order_type': type,
             'product_id': self.market_id(symbol),
             'side': side,
             'quantity': self.amount_to_precision(symbol, amount),
         }
-        if type == 'limit':
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         #
@@ -476,7 +615,8 @@ class liquid(Exchange):
         #         "product_code": "CASH",
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
-        #         "order_fee": "0.0"
+        #         "order_fee": "0.0",
+        #         "client_order_id": null,
         #     }
         #
         return self.parse_order(response)
@@ -538,6 +678,7 @@ class liquid(Exchange):
         #         "funding_currency": "USD",
         #         "currency_pair_code": "BTCUSD",
         #         "order_fee": "0.0"
+        #         "client_order_id": null,
         #     }
         #
         # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -617,8 +758,10 @@ class liquid(Exchange):
         if amount is not None and filled is not None:
             remaining = amount - filled
         side = self.safe_string(order, 'side')
+        clientOrderId = self.safe_string(order, 'client_order_id')
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -816,10 +959,11 @@ class liquid(Exchange):
             nonce = self.nonce()
             request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
+            if not ('client_order_id' in query):
+                request['nonce'] = nonce
             headers['X-Quoine-Auth'] = self.jwt(request, self.encode(self.secret))
         else:
             if query:
@@ -830,13 +974,10 @@ class liquid(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
-        exceptions = self.exceptions
         if code == 401:
             # expected non-json response
-            if body in exceptions:
-                raise exceptions[body](self.id + ' ' + body)
-            else:
-                return
+            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if response is None:
@@ -848,8 +989,7 @@ class liquid(Exchange):
             #
             #  {"message": "Order not found"}
             #
-            if message in exceptions:
-                raise exceptions[message](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -862,7 +1002,6 @@ class liquid(Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    if message in exceptions:
-                        raise exceptions[message](feedback)
+                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
         else:
             raise ExchangeError(feedback)

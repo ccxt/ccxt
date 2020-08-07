@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 import math
@@ -12,6 +19,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class btcmarkets(Exchange):
@@ -23,24 +31,36 @@ class btcmarkets(Exchange):
             'countries': ['AU'],  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'has': {
-                'CORS': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
-                'fetchOpenOrders': True,
-                'fetchMyTrades': True,
+                'cancelOrder': True,
                 'cancelOrders': True,
+                'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
+                    'privateV3': 'https://api.btcmarkets.net/v3',
                     'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
-                'doc': 'https://github.com/BTCMarkets/API',
+                'doc': [
+                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://github.com/BTCMarkets/API',
+                ],
             },
             'api': {
                 'public': {
@@ -51,6 +71,14 @@ class btcmarkets(Exchange):
                         'v2/market/{id}/tickByTime/{timeframe}',
                         'v2/market/{id}/trades',
                         'v2/market/active',
+                        'v3/markets',
+                        'v3/markets/{marketId}/ticker',
+                        'v3/markets/{marketId}/trades',
+                        'v3/markets/{marketId}/orderbook',
+                        'v3/markets/{marketId}/candles',
+                        'v3/markets/tickers',
+                        'v3/markets/orderbooks',
+                        'v3/time',
                     ],
                 },
                 'private': {
@@ -74,6 +102,43 @@ class btcmarkets(Exchange):
                         'order/trade/history',
                         'order/createBatch',  # they promise it's coming soon...
                         'order/detail',
+                    ],
+                },
+                'privateV3': {
+                    'get': [
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                        'trades',
+                        'trades/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                        'deposits',
+                        'deposits/{id}',
+                        'transfers',
+                        'transfers/{id}',
+                        'addresses',
+                        'withdrawal-fees',
+                        'assets',
+                        'accounts/me/trading-fees',
+                        'accounts/me/withdrawal-limits',
+                        'accounts/me/balances',
+                        'accounts/me/transactions',
+                        'reports/{id}',
+                    ],
+                    'post': [
+                        'orders',
+                        'batchorders',
+                        'withdrawals',
+                        'reports',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/{id}',
+                        'batchorders/{ids}',
+                    ],
+                    'put': [
+                        'orders/{id}',
                     ],
                 },
                 'web': {
@@ -125,7 +190,7 @@ class btcmarkets(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, item, currency=None):
+    def parse_transaction(self, transaction, currency=None):
         #
         #     {
         #         status: 'Complete',
@@ -172,10 +237,10 @@ class btcmarkets(Exchange):
         #         "cryptoPaymentDetail": null
         #     }
         #
-        timestamp = self.safe_integer(item, 'creationTime')
-        lastUpdate = self.safe_integer(item, 'lastUpdate')
-        transferType = self.safe_string(item, 'transferType')
-        cryptoPaymentDetail = self.safe_value(item, 'cryptoPaymentDetail', {})
+        timestamp = self.safe_integer(transaction, 'creationTime')
+        lastUpdate = self.safe_integer(transaction, 'lastUpdate')
+        transferType = self.safe_string(transaction, 'transferType')
+        cryptoPaymentDetail = self.safe_value(transaction, 'cryptoPaymentDetail', {})
         address = self.safe_string(cryptoPaymentDetail, 'address')
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
         type = None
@@ -185,16 +250,21 @@ class btcmarkets(Exchange):
             type = 'withdrawal'
         else:
             type = transferType
-        fee = self.safe_float(item, 'fee')
-        status = self.parse_transaction_status(self.safe_string(item, 'status'))
-        ccy = self.safe_string(item, 'currency')
+        fee = self.safe_float(transaction, 'fee')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        ccy = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(ccy)
-        # todo: self logic is duplicated below
-        amount = self.safe_float(item, 'amount')
+        # for some currencies the exchange requires the amount to be scaled, like BTC, ETH, BCH
+        # values in other currencies may have to be treated "as is", without scaling, like XRP
+        # https://github.com/ccxt/ccxt/issues/7413
+        amount = self.safe_value(transaction, 'amount')
         if amount is not None:
-            amount = amount * 1e-8
+            if isinstance(amount, basestring):
+                amount = self.safe_float(transaction, 'amount')
+            else:
+                amount = amount / 100000000
         return {
-            'id': self.safe_string(item, 'fundTransferId'),
+            'id': self.safe_string(transaction, 'fundTransferId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -209,30 +279,27 @@ class btcmarkets(Exchange):
                 'currency': code,
                 'cost': fee,
             },
-            'info': item,
+            'info': transaction,
         }
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetV2MarketActive(params)
+        response = await self.publicGetV3Markets(params)
         result = []
-        markets = self.safe_value(response, 'markets')
-        for i in range(0, len(markets)):
-            market = markets[i]
-            baseId = self.safe_string(market, 'instrument')
-            quoteId = self.safe_string(market, 'currency')
-            id = baseId + '/' + quoteId
+        for i in range(0, len(response)):
+            market = response[i]
+            baseId = self.safe_string(market, 'baseAssetName')
+            quoteId = self.safe_string(market, 'quoteAssetName')
+            id = self.safe_string(market, 'marketId')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = 2
-            amountPrecision = 4
-            minAmount = 0.001  # where does it come from?
+            pricePrecision = self.safe_float(market, 'priceDecimals')
+            amountPrecision = self.safe_float(market, 'amountDecimals')
+            minAmount = self.safe_float(market, 'minOrderAmount')
+            maxAmount = self.safe_float(market, 'maxOrderAmount')
             minPrice = None
             if quote == 'AUD':
-                if (base == 'XRP') or (base == 'OMG'):
-                    pricePrecision = 4
-                amountPrecision = -math.log10(minAmount)
                 minPrice = math.pow(10, -pricePrecision)
             precision = {
                 'amount': amountPrecision,
@@ -241,7 +308,7 @@ class btcmarkets(Exchange):
             limits = {
                 'amount': {
                     'min': minAmount,
-                    'max': None,
+                    'max': maxAmount,
                 },
                 'price': {
                     'min': minPrice,
@@ -289,7 +356,7 @@ class btcmarkets(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":1572307200000,
@@ -397,7 +464,7 @@ class btcmarkets(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -444,8 +511,8 @@ class btcmarkets(Exchange):
         })
         request['currency'] = market['quote']
         request['instrument'] = market['base']
-        request['price'] = int(price * multiplier)
-        request['volume'] = int(amount * multiplier)
+        request['price'] = int(self.decimal_to_precision(price * multiplier, ROUND, 0))
+        request['volume'] = int(self.decimal_to_precision(amount * multiplier, ROUND, 0))
         request['orderSide'] = orderSide
         request['ordertype'] = self.capitalize(type)
         request['clientRequestId'] = str(self.nonce())
@@ -529,6 +596,7 @@ class btcmarkets(Exchange):
                 'currency': feeCurrencyCode,
                 'cost': feeCost,
             },
+            'takerOrMaker': None,
         }
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None):
@@ -568,9 +636,11 @@ class btcmarkets(Exchange):
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
         id = self.safe_string(order, 'id')
+        clientOrderId = self.safe_string(order, 'clientRequestId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -673,6 +743,26 @@ class btcmarkets(Exchange):
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
+        elif api == 'privateV3':
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            secret = base64.b64decode(self.secret)  # or stringToBase64
+            pathWithLeadingSlash = '/v3/' + path
+            auth = method + pathWithLeadingSlash + nonce
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
+            if method == 'GET':
+                if params:
+                    url += '?' + self.urlencode(params)
+            else:
+                body = self.json(params)
+            headers = {
+                'Accept': 'application/json',
+                'Accept-Charset': 'UTF-8',
+                'Content-Type': 'application/json',
+                'BM-AUTH-APIKEY': self.apiKey,
+                'BM-AUTH-TIMESTAMP': nonce,
+                'BM-AUTH-SIGNATURE': signature,
+            }
         else:
             if params:
                 url += '?' + self.urlencode(params)
@@ -684,9 +774,6 @@ class btcmarkets(Exchange):
         if 'success' in response:
             if not response['success']:
                 error = self.safe_string(response, 'errorCode')
-                message = self.id + ' ' + self.json(response)
-                if error in self.exceptions:
-                    ExceptionClass = self.exceptions[error]
-                    raise ExceptionClass(message)
-                else:
-                    raise ExchangeError(message)
+                feedback = self.id + ' ' + body
+                self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+                raise ExchangeError(feedback)

@@ -14,6 +14,7 @@ except NameError:
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class whitebit(Exchange):
@@ -72,7 +73,7 @@ class whitebit(Exchange):
                     'publicV1': 'https://whitebit.com/api/v1/public',
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -117,6 +118,7 @@ class whitebit(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    '503': ExchangeNotAvailable,  # {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol,  # {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -551,21 +553,43 @@ class whitebit(Exchange):
         if limit is not None:
             request['limit'] = limit  # default == max == 500
         response = await self.publicV1GetKline(self.extend(request, params))
-        result = self.safe_value(response, 'result')
+        #
+        #     {
+        #         "success":true,
+        #         "message":"",
+        #         "result":[
+        #             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        #             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        #             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1591488000,
+        #         "0.025025",
+        #         "0.025025",
+        #         "0.025029",
+        #         "0.025023",
+        #         "6.181",
+        #         "0.154686629"
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,  # timestamp
-            float(ohlcv[1]),  # open
-            float(ohlcv[3]),  # high
-            float(ohlcv[4]),  # low
-            float(ohlcv[2]),  # close
-            float(ohlcv[5]),  # volume
+            self.safe_timestamp(ohlcv, 0),  # timestamp
+            self.safe_float(ohlcv, 1),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 5),  # volume
         ]
 
     async def fetch_status(self, params={}):
-        response = await self.webGetV1Healthcheck()
+        response = await self.webGetV1Healthcheck(params)
         status = self.safe_integer(response, 'status')
         formattedStatus = 'ok'
         if status == 503:
@@ -592,8 +616,8 @@ class whitebit(Exchange):
             success = self.safe_value(response, 'success')
             if not success:
                 feedback = self.id + ' ' + body
-                message = self.safe_value(response, 'message')
-                if isinstance(message, basestring):
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+                status = self.safe_string(response, 'status')
+                if isinstance(status, basestring):
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)

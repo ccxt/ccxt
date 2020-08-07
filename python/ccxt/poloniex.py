@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 
@@ -29,7 +30,8 @@ class poloniex(Exchange):
             'name': 'Poloniex',
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
-            'certified': True,  # 2019-06-07
+            'certified': False,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'createDepositAddress': True,
@@ -73,7 +75,7 @@ class poloniex(Exchange):
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
-                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
+                'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
             'api': {
                 'public': {
@@ -124,12 +126,9 @@ class poloniex(Exchange):
             },
             'fees': {
                 'trading': {
-                    # https://github.com/ccxt/ccxt/issues/6064
-                    # starting from October 21, 2019 17:00 UTC
-                    # all spot trading fees will be reduced to 0.00%
-                    # until December 31, 2019 23:59 UTC
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    # starting from Jan 8 2020
+                    'maker': 0.0009,
+                    'taker': 0.0009,
                 },
                 'funding': {},
             },
@@ -167,6 +166,17 @@ class poloniex(Exchange):
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'XAP': 'API Coin',
+                # self is not documented in the API docs for Poloniex
+                # https://github.com/ccxt/ccxt/issues/7084
+                # when the user calls withdraw('USDT', amount, address, tag, params)
+                # with params = {'currencyToWithdrawAs': 'USDTTRON'}
+                # or params = {'currencyToWithdrawAs': 'USDTETH'}
+                # fetchWithdrawals('USDT') returns the corresponding withdrawals
+                # with a USDTTRON or a USDTETH currency id, respectfully
+                # therefore we have map them back to the original code USDT
+                # otherwise the returned withdrawals are filtered out
+                'USDTTRON': 'USDT',
+                'USDTETH': 'USDT',
             },
             'options': {
                 'limits': {
@@ -187,6 +197,7 @@ class poloniex(Exchange):
                     'Permission denied': PermissionDenied,
                     'Connection timed out. Please try again.': RequestTimeout,
                     'Internal error. Please try again.': ExchangeNotAvailable,
+                    'Currently in maintenance mode.': OnMaintenance,
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
@@ -220,7 +231,19 @@ class poloniex(Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "date":1590913773,
+        #         "high":0.02491611,
+        #         "low":0.02491611,
+        #         "open":0.02491611,
+        #         "close":0.02491611,
+        #         "volume":0,
+        #         "quoteVolume":0,
+        #         "weightedAverage":0.02491611
+        #     }
+        #
         return [
             self.safe_timestamp(ohlcv, 'date'),
             self.safe_float(ohlcv, 'open'),
@@ -242,13 +265,20 @@ class poloniex(Exchange):
             if limit is None:
                 request['start'] = request['end'] - self.parse_timeframe('1w')  # max range = 1 week
             else:
-                request['start'] = request['end'] - self.sum(limit) * self.parse_timeframe(timeframe)
+                request['start'] = request['end'] - limit * self.parse_timeframe(timeframe)
         else:
             request['start'] = int(since / 1000)
             if limit is not None:
                 end = self.sum(request['start'], limit * self.parse_timeframe(timeframe))
                 request['end'] = end
         response = self.publicGetReturnChartData(self.extend(request, params))
+        #
+        #     [
+        #         {"date":1590913773,"high":0.02491611,"low":0.02491611,"open":0.02491611,"close":0.02491611,"volume":0,"quoteVolume":0,"weightedAverage":0.02491611},
+        #         {"date":1590913800,"high":0.02495324,"low":0.02489501,"open":0.02491797,"close":0.02493693,"volume":0.0927415,"quoteVolume":3.7227869,"weightedAverage":0.02491185},
+        #         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_markets(self, params={}):
@@ -325,16 +355,13 @@ class poloniex(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 
-    def fetch_order_books(self, symbols=None, params={}):
+    def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         request = {
             'currencyPair': 'all',
         }
-        #
-        #     if limit is not None:
-        #         request['depth'] = limit  # 100
-        #     }
-        #
+        if limit is not None:
+            request['depth'] = limit  # 100
         response = self.publicGetReturnOrderBook(self.extend(request, params))
         marketIds = list(response.keys())
         result = {}
@@ -419,13 +446,11 @@ class poloniex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
+            fee = self.safe_float(currency, 'txFee')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -433,7 +458,7 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -449,7 +474,7 @@ class poloniex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
@@ -465,74 +490,76 @@ class poloniex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchMyTrades(symbol defined, specific market)
+        # fetchMyTrades
         #
         #     {
-        #         globalTradeID: 394698946,
-        #         tradeID: 45210255,
-        #         date: '2018-10-23 17:28:55',
-        #         type: 'sell',
-        #         rate: '0.03114126',
-        #         amount: '0.00018753',
-        #         total: '0.00000583'
+        #       globalTradeID: 471030550,
+        #       tradeID: '42582',
+        #       date: '2020-06-16 09:47:50',
+        #       rate: '0.000079980000',
+        #       amount: '75215.00000000',
+        #       total: '6.01569570',
+        #       fee: '0.00095000',
+        #       feeDisplay: '0.26636100 TRX(0.07125%)',
+        #       orderNumber: '5963454848',
+        #       type: 'sell',
+        #       category: 'exchange'
         #     }
         #
-        # fetchMyTrades(symbol None, all markets)
+        # createOrder(taker trades)
         #
         #     {
-        #         globalTradeID: 394131412,
-        #         tradeID: '5455033',
-        #         date: '2018-10-16 18:05:17',
-        #         rate: '0.06935244',
-        #         amount: '1.40308443',
-        #         total: '0.09730732',
-        #         fee: '0.00100000',
-        #         orderNumber: '104768235081',
-        #         type: 'sell',
-        #         category: 'exchange'
+        #         'amount': '200.00000000',
+        #         'date': '2019-12-15 16:04:10',
+        #         'rate': '0.00000355',
+        #         'total': '0.00071000',
+        #         'tradeID': '119871',
+        #         'type': 'buy',
+        #         'takerAdjustment': '200.00000000'
         #     }
         #
-        id = self.safe_string(trade, 'globalTradeID')
+        id = self.safe_string_2(trade, 'globalTradeID', 'tradeID')
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
-        base = None
-        quote = None
         if (not market) and ('currencyPair' in trade):
-            currencyPair = trade['currencyPair']
-            if currencyPair in self.markets_by_id:
-                market = self.markets_by_id[currencyPair]
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
             else:
-                parts = currencyPair.split('_')
-                quote = parts[0]
-                base = parts[1]
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
         price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
-        if 'fee' in trade:
-            rate = self.safe_float(trade, 'fee')
-            feeCost = None
-            currency = None
-            if side == 'buy':
-                currency = base
-                feeCost = amount * rate
-            else:
-                currency = quote
-                if cost is not None:
-                    feeCost = cost * rate
-            fee = {
-                'type': None,
-                'rate': rate,
-                'cost': feeCost,
-                'currency': currency,
-            }
+        feeDisplay = self.safe_string(trade, 'feeDisplay')
+        if feeDisplay is not None:
+            parts = feeDisplay.split(' ')
+            feeCost = self.safe_float(parts, 0)
+            if feeCost is not None:
+                feeCurrencyId = self.safe_string(parts, 1)
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+                feeRate = self.safe_string(parts, 2)
+                if feeRate is not None:
+                    feeRate = feeRate.replace('(', '')
+                    feeRateParts = feeRate.split('%')
+                    feeRate = self.safe_string(feeRateParts, 0)
+                    feeRate = float(feeRate) / 100
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeRate,
+                }
+        takerOrMaker = None
+        takerAdjustment = self.safe_float(trade, 'takerAdjustment')
+        if takerAdjustment is not None:
+            takerOrMaker = 'taker'
         return {
             'id': id,
             'info': trade,
@@ -542,7 +569,7 @@ class poloniex(Exchange):
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -570,7 +597,7 @@ class poloniex(Exchange):
         request = {'currencyPair': pair}
         if since is not None:
             request['start'] = int(since / 1000)
-            request['end'] = self.seconds() + 1  # adding 1 is a fix for  #3411
+            request['end'] = self.sum(self.seconds(), 1)  # adding 1 is a fix for  #3411
         # limit is disabled(does not really work as expected)
         if limit is not None:
             request['limit'] = int(limit)
@@ -580,49 +607,59 @@ class poloniex(Exchange):
         #
         #     [
         #         {
-        #             globalTradeID: 394700861,
-        #             tradeID: 45210354,
-        #             date: '2018-10-23 18:01:58',
-        #             type: 'buy',
-        #             rate: '0.03117266',
-        #             amount: '0.00000652',
-        #             total: '0.00000020'
+        #             globalTradeID: 470912587,
+        #             tradeID: '42543',
+        #             date: '2020-06-15 17:31:22',
+        #             rate: '0.000083840000',
+        #             amount: '95237.60321429',
+        #             total: '7.98472065',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.36137761 TRX(0.07125%)',
+        #             orderNumber: '5926344995',
+        #             type: 'sell',
+        #             category: 'exchange'
         #         },
         #         {
-        #             globalTradeID: 394698946,
-        #             tradeID: 45210255,
-        #             date: '2018-10-23 17:28:55',
+        #             globalTradeID: 470974497,
+        #             tradeID: '42560',
+        #             date: '2020-06-16 00:41:23',
+        #             rate: '0.000078220000',
+        #             amount: '1000000.00000000',
+        #             total: '78.22000000',
+        #             fee: '0.00095000',
+        #             feeDisplay: '3.48189819 TRX(0.07125%)',
+        #             orderNumber: '5945490830',
         #             type: 'sell',
-        #             rate: '0.03114126',
-        #             amount: '0.00018753',
-        #             total: '0.00000583'
+        #             category: 'exchange'
         #         }
         #     ]
         #
         # all markets(symbol None)
         #
         #     {
-        #         BTC_BCH: [{
-        #             globalTradeID: 394131412,
-        #             tradeID: '5455033',
-        #             date: '2018-10-16 18:05:17',
-        #             rate: '0.06935244',
-        #             amount: '1.40308443',
-        #             total: '0.09730732',
-        #             fee: '0.00100000',
-        #             orderNumber: '104768235081',
-        #             type: 'sell',
+        #        BTC_GNT: [{
+        #             globalTradeID: 470839947,
+        #             tradeID: '4322347',
+        #             date: '2020-06-15 12:25:24',
+        #             rate: '0.000005810000',
+        #             amount: '1702.04429303',
+        #             total: '0.00988887',
+        #             fee: '0.00095000',
+        #             feeDisplay: '4.18235294 TRX(0.07125%)',
+        #             orderNumber: '102290272520',
+        #             type: 'buy',
         #             category: 'exchange'
-        #         }, {
-        #             globalTradeID: 394126818,
-        #             tradeID: '5455007',
-        #             date: '2018-10-16 16:55:34',
-        #             rate: '0.06935244',
-        #             amount: '0.00155709',
-        #             total: '0.00010798',
-        #             fee: '0.00200000',
-        #             orderNumber: '104768179137',
-        #             type: 'sell',
+        #     }, {
+        #             globalTradeID: 470895902,
+        #             tradeID: '4322413',
+        #             date: '2020-06-15 16:19:00',
+        #             rate: '0.000005980000',
+        #             amount: '18.66879219',
+        #             total: '0.00011163',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.04733727 TRX(0.07125%)',
+        #             orderNumber: '102298304480',
+        #             type: 'buy',
         #             category: 'exchange'
         #         }],
         #     }
@@ -648,9 +685,12 @@ class poloniex(Exchange):
                         symbol = base + '/' + quote
                         trades = response[id]
                         for j in range(0, len(trades)):
-                            result.append(self.extend(self.parse_trade(trades[j]), {
+                            market = {
                                 'symbol': symbol,
-                            }))
+                                'base': base,
+                                'quote': quote,
+                            }
+                            result.append(self.parse_trade(trades[j], market))
         return self.filter_by_since_limit(result, since, limit)
 
     def parse_order_status(self, status):
@@ -688,6 +728,34 @@ class poloniex(Exchange):
         #         margin: 0,
         #     }
         #
+        # createOrder
+        #
+        #     {
+        #         'orderNumber': '9805453960',
+        #         'resultingTrades': [
+        #             {
+        #                 'amount': '200.00000000',
+        #                 'date': '2019-12-15 16:04:10',
+        #                 'rate': '0.00000355',
+        #                 'total': '0.00071000',
+        #                 'tradeID': '119871',
+        #                 'type': 'buy',
+        #                 'takerAdjustment': '200.00000000',
+        #             },
+        #         ],
+        #         'fee': '0.00000000',
+        #         'clientOrderId': '12345',
+        #         'currencyPair': 'BTC_MANA',
+        #         # ---------------------------------------------------------
+        #         # the following fields are injected by createOrder
+        #         'timestamp': timestamp,
+        #         'status': 'open',
+        #         'type': type,
+        #         'side': side,
+        #         'price': price,
+        #         'amount': amount,
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
@@ -696,12 +764,19 @@ class poloniex(Exchange):
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'startingAmount', remaining)
+        amount = self.safe_float(order, 'startingAmount')
         filled = None
         cost = 0
         if amount is not None:
@@ -709,39 +784,65 @@ class poloniex(Exchange):
                 filled = amount - remaining
                 if price is not None:
                     cost = filled * price
+        else:
+            amount = remaining
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        average = None
+        lastTradeTimestamp = None
         if filled is None:
             if trades is not None:
                 filled = 0
                 cost = 0
-                for i in range(0, len(trades)):
-                    trade = trades[i]
-                    tradeAmount = trade['amount']
-                    tradePrice = trade['price']
-                    filled = self.sum(filled, tradeAmount)
-                    cost += tradePrice * tradeAmount
-        status = self.parse_order_status(self.safe_string(order, 'status'))
+                tradesLength = len(trades)
+                if tradesLength > 0:
+                    lastTradeTimestamp = trades[0]['timestamp']
+                    for i in range(0, tradesLength):
+                        trade = trades[i]
+                        tradeAmount = trade['amount']
+                        tradePrice = trade['price']
+                        filled = self.sum(filled, tradeAmount)
+                        cost = self.sum(cost, tradePrice * tradeAmount)
+                        lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
+                remaining = max(amount - filled, 0)
+                if filled >= amount:
+                    status = 'closed'
+        if (filled is not None) and (cost is not None) and (filled > 0):
+            average = cost / filled
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side', type)
         if type == side:
             type = None
         id = self.safe_string(order, 'orderNumber')
+        fee = None
+        feeCost = self.safe_float(order, 'fee')
+        if feeCost is not None:
+            feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_open_orders(self, orders, market, result):
@@ -837,13 +938,37 @@ class poloniex(Exchange):
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'currencyPair': market['id'],
             'rate': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': amount,
         }
-        response = getattr(self, method)(self.extend(request, params))
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+        # remember the timestamp before issuing the request
         timestamp = self.milliseconds()
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         'orderNumber': '9805453960',
+        #         'resultingTrades': [
+        #             {
+        #                 'amount': '200.00000000',
+        #                 'date': '2019-12-15 16:04:10',
+        #                 'rate': '0.00000355',
+        #                 'total': '0.00071000',
+        #                 'tradeID': '119871',
+        #                 'type': 'buy',
+        #                 'takerAdjustment': '200.00000000',
+        #             },
+        #         ],
+        #         'fee': '0.00000000',
+        #         'currencyPair': 'BTC_MANA',
+        #     }
+        #
         order = self.parse_order(self.extend({
             'timestamp': timestamp,
             'status': 'open',
@@ -874,6 +999,7 @@ class poloniex(Exchange):
                 'id': newid,
                 'price': price,
                 'status': 'open',
+                'trades': [],
             })
             if amount is not None:
                 self.orders[newid]['amount'] = amount
@@ -890,9 +1016,14 @@ class poloniex(Exchange):
         self.load_markets()
         response = None
         try:
-            response = self.privatePostCancelOrder(self.extend({
-                'orderNumber': id,
-            }, params))
+            request = {}
+            clientOrderId = self.safe_value(params, 'clientOrderId')
+            if clientOrderId is None:
+                request['orderNumber'] = id
+            else:
+                request['clientOrderId'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+            response = self.privatePostCancelOrder(self.extend(request, params))
         except Exception as e:
             if isinstance(e, CancelPending):
                 # A request to cancel the order has been sent already.
@@ -1034,9 +1165,16 @@ class poloniex(Exchange):
             'amount': amount,
             'address': address,
         }
-        if tag:
+        if tag is not None:
             request['paymentId'] = tag
         response = self.privatePostWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         response: 'Withdrew 1.00000000 USDT.',
+        #         email2FA: False,
+        #         withdrawalNumber: 13449869
+        #     }
+        #
         return {
             'info': response,
             'id': self.safe_string(response, 'withdrawalNumber'),
@@ -1055,81 +1193,108 @@ class poloniex(Exchange):
             request['limit'] = limit
         response = self.privatePostReturnDepositsWithdrawals(self.extend(request, params))
         #
-        #     {   deposits: [{     currency: "BTC",
-        #                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        #                               amount: "0.01063000",
-        #                        confirmations:  1,
-        #                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        #                            timestamp:  1507916888,
-        #                               status: "COMPLETE"                                                          },
-        #                      {     currency: "ETH",
-        #                              address: "0x20108ba20b65c04d82909e91df06618107460197",
-        #                               amount: "4.00000000",
-        #                        confirmations:  38,
-        #                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        #                            timestamp:  1525060430,
-        #                               status: "COMPLETE"                                                            }  ],
-        #       withdrawals: [{withdrawalNumber:  8224394,
-        #                                currency: "EMC2",
-        #                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        #                                  amount: "63.10796020",
-        #                                     fee: "0.01000000",
-        #                               timestamp:  1510819838,
-        #                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        #                               ipAddress: "5.220.220.200"                                                               },
-        #                      {withdrawalNumber:  9290444,
-        #                                currency: "ETH",
-        #                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        #                                  amount: "0.15500000",
-        #                                     fee: "0.00500000",
-        #                               timestamp:  1514099289,
-        #                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        #                               ipAddress: "5.228.227.214"                                                                 },
-        #                      {withdrawalNumber:  11518260,
-        #                                currency: "BTC",
-        #                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        #                                  amount: "0.20000000",
-        #                                     fee: "0.00050000",
-        #                               timestamp:  1527918155,
-        #                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        #                               ipAddress: "211.8.195.26"                                                                }    ]}
+        #     {
+        #         "adjustments":[],
+        #         "deposits":[
+        #             {
+        #                 currency: "BTC",
+        #                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        #                 amount: "0.01063000",
+        #                 confirmations:  1,
+        #                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        #                 timestamp:  1507916888,
+        #                 status: "COMPLETE"
+        #             },
+        #             {
+        #                 currency: "ETH",
+        #                 address: "0x20108ba20b65c04d82909e91df06618107460197",
+        #                 amount: "4.00000000",
+        #                 confirmations: 38,
+        #                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        #                 timestamp: 1525060430,
+        #                 status: "COMPLETE"
+        #             }
+        #         ],
+        #         "withdrawals":[
+        #             {
+        #                 "withdrawalNumber":13449869,
+        #                 "currency":"USDTTRON",  # not documented in API docs, see commonCurrencies in describe()
+        #                 "address":"TXGaqPW23JdRWhsVwS2mRsGsegbdnAd3Rw",
+        #                 "amount":"1.00000000",
+        #                 "fee":"0.00000000",
+        #                 "timestamp":1591573420,
+        #                 "status":"COMPLETE: dadf427224b3d44b38a2c13caa4395e4666152556ca0b2f67dbd86a95655150f",
+        #                 "ipAddress":"74.116.3.247",
+        #                 "canCancel":0,
+        #                 "canResendEmail":0,
+        #                 "paymentID":null,
+        #                 "scope":"crypto"
+        #             },
+        #             {
+        #                 withdrawalNumber: 8224394,
+        #                 currency: "EMC2",
+        #                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        #                 amount: "63.10796020",
+        #                 fee: "0.01000000",
+        #                 timestamp: 1510819838,
+        #                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        #                 ipAddress: "5.220.220.200"
+        #             },
+        #             {
+        #                 withdrawalNumber: 9290444,
+        #                 currency: "ETH",
+        #                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
+        #                 amount: "0.15500000",
+        #                 fee: "0.00500000",
+        #                 timestamp: 1514099289,
+        #                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        #                 ipAddress: "5.228.227.214"
+        #             },
+        #             {
+        #                 withdrawalNumber: 11518260,
+        #                 currency: "BTC",
+        #                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        #                 amount: "0.20000000",
+        #                 fee: "0.00050000",
+        #                 timestamp: 1527918155,
+        #                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        #                 ipAddress: "211.8.195.26"
+        #             }
+        #         ]
+        #     }
         #
         return response
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.fetch_transactions_helper(code, since, limit, params)
-        for i in range(0, len(response['deposits'])):
-            response['deposits'][i]['type'] = 'deposit'
-        for i in range(0, len(response['withdrawals'])):
-            response['withdrawals'][i]['type'] = 'withdrawal'
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
-        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
-        transactions = self.array_concat(deposits, withdrawals)
-        return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
+        withdrawals = self.safe_value(response, 'withdrawals', [])
+        deposits = self.safe_value(response, 'deposits', [])
+        withdrawalTransactions = self.parse_transactions(withdrawals, currency, since, limit)
+        depositTransactions = self.parse_transactions(deposits, currency, since, limit)
+        transactions = self.array_concat(depositTransactions, withdrawalTransactions)
+        return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         response = self.fetch_transactions_helper(code, since, limit, params)
-        for i in range(0, len(response['withdrawals'])):
-            response['withdrawals'][i]['type'] = 'withdrawal'
         currency = None
         if code is not None:
             currency = self.currency(code)
-        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
+        withdrawals = self.safe_value(response, 'withdrawals', [])
+        transactions = self.parse_transactions(withdrawals, currency, since, limit)
+        return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         response = self.fetch_transactions_helper(code, since, limit, params)
-        for i in range(0, len(response['deposits'])):
-            response['deposits'][i]['type'] = 'deposit'
         currency = None
         if code is not None:
             currency = self.currency(code)
-        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
-        return self.filterByCurrencySinceLimit(deposits, code, since, limit)
+        deposits = self.safe_value(response, 'deposits', [])
+        transactions = self.parse_transactions(deposits, currency, since, limit)
+        return self.filter_by_currency_since_limit(transactions, code, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1182,14 +1347,14 @@ class poloniex(Exchange):
             if (numParts > 1) and (txid is None):
                 txid = parts[1]
             status = self.parse_transaction_status(status)
-        type = self.safe_string(transaction, 'type')
+        defaultType = 'withdrawal' if ('withdrawalNumber' in transaction) else 'deposit'
+        type = self.safe_string(transaction, 'type', defaultType)
         id = self.safe_string_2(transaction, 'withdrawalNumber', 'depositNumber')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        feeCost = self.safe_float(transaction, 'fee')
-        if feeCost is None:
-            # according to https://poloniex.com/fees/
-            feeCost = 0  # FIXME: remove hardcoded value that may change any time
+        tag = self.safe_string(transaction, 'paymentID')
+        # according to https://poloniex.com/fees/
+        feeCost = self.safe_float(transaction, 'fee', 0)
         if type == 'withdrawal':
             # poloniex withdrawal amount includes the fee
             amount = amount - feeCost
@@ -1199,7 +1364,7 @@ class poloniex(Exchange):
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': None,
+            'tag': tag,
             'status': status,
             'type': type,
             'updated': None,

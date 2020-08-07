@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,21 +16,48 @@ module.exports = class bitstamp extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api': 'https://www.bitstamp.net/api',
+                'api': {
+                    'public': 'https://www.bitstamp.net/api',
+                    'private': 'https://www.bitstamp.net/api',
+                    'v1': 'https://www.bitstamp.net/api',
+                },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -40,6 +67,7 @@ module.exports = class bitstamp extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -230,8 +258,27 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        //
+        //     {
+        //         "timestamp": "1583652948",
+        //         "microtimestamp": "1583652948955826",
+        //         "bids": [
+        //             [ "8750.00", "1.33685271" ],
+        //             [ "8749.39", "0.07700000" ],
+        //             [ "8746.98", "0.07400000" ],
+        //         ]
+        //         "asks": [
+        //             [ "8754.10", "1.51995636" ],
+        //             [ "8754.71", "1.40000000" ],
+        //             [ "8754.72", "2.50000000" ],
+        //         ]
+        //     }
+        //
+        const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        const timestamp = parseInt (microtimestamp / 1000);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = microtimestamp;
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -504,6 +551,71 @@ module.exports = class bitstamp extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "high": "9064.77",
+        //         "timestamp": "1593961440",
+        //         "volume": "18.49436608",
+        //         "low": "9040.87",
+        //         "close": "9064.77",
+        //         "open": "9040.87"
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'step': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+            } else {
+                limit = 1000;
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+                request['limit'] = limit;
+            }
+        } else {
+            if (since !== undefined) {
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+            }
+            request['limit'] = Math.min (limit, 1000); // min 1, max 1000
+        }
+        const response = await this.publicGetOhlcPair (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "pair": "BTC/USD",
+        //             "ohlc": [
+        //                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        //                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        //                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ohlc = this.safeValue (data, 'ohlc', []);
+        return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -872,10 +984,9 @@ module.exports = class bitstamp extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let lastTradeTimestamp = undefined;
         let symbol = undefined;
-        let marketId = this.safeString (order, 'currency_pair');
+        let marketId = this.safeStringLower (order, 'currency_pair');
         if (marketId !== undefined) {
             marketId = marketId.replace ('/', '');
-            marketId = marketId.toLowerCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -944,6 +1055,7 @@ module.exports = class bitstamp extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -959,6 +1071,7 @@ module.exports = class bitstamp extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -1021,7 +1134,10 @@ module.exports = class bitstamp extends Exchange {
         method += 'Post' + this.capitalize (name);
         method += v1 ? 'Deposit' : '';
         method += 'Address';
-        const response = await this[method] (params);
+        let response = await this[method] (params);
+        if (v1) {
+            response = JSON.parse (response);
+        }
         const address = v1 ? response : this.safeString (response, 'address');
         const tag = v1 ? undefined : this.safeString (response, 'destination_tag');
         this.checkAddress (address);
@@ -1063,7 +1179,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/';
+        let url = this.urls['api'][api] + '/';
         if (api !== 'v1') {
             url += this.version + '/';
         }
@@ -1075,18 +1191,52 @@ module.exports = class bitstamp extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
-            query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
-            }, query);
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            const authVersion = this.safeValue (this.options, 'auth', 'v2');
+            if ((authVersion === 'v1') || (api === 'v1')) {
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+                query = this.extend ({
+                    'key': this.apiKey,
+                    'signature': signature.toUpperCase (),
+                    'nonce': nonce,
+                }, query);
+                body = this.urlencode (query);
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            } else {
+                const xAuth = 'BITSTAMP ' + this.apiKey;
+                const xAuthNonce = this.uuid ();
+                const xAuthTimestamp = this.milliseconds ().toString ();
+                const xAuthVersion = 'v2';
+                let contentType = '';
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                };
+                if (method === 'POST') {
+                    if (Object.keys (query).length) {
+                        body = this.urlencode (query);
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    } else {
+                        // sending an empty POST request will trigger
+                        // an API0020 error returned by the exchange
+                        // therefore for empty requests we send a dummy object
+                        // https://github.com/ccxt/ccxt/issues/6846
+                        body = this.urlencode ({ 'foo': 'bar' });
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    }
+                }
+                const authBody = body ? body : '';
+                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers['X-Auth-Signature'] = signature;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

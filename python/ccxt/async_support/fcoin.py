@@ -14,7 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -33,18 +33,25 @@ class fcoin(Exchange):
             'accountsById': None,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingLimits': False,
                 'withdraw': False,
-                'fetchCurrencies': False,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -156,7 +163,7 @@ class fcoin(Exchange):
                 '400': NotSupported,  # Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,  # Too Many Requests, exceed api request limit
+                '429': RateLimitExceeded,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
                 '2136': AuthenticationError,  # The API key is expired
@@ -376,19 +383,19 @@ class fcoin(Exchange):
                 if id in self.markets_by_id:
                     market = self.markets_by_id[id]
         values = ticker['ticker']
-        last = float(values[0])
+        last = self.safe_float(values, 0)
         if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(values[7]),
-            'low': float(values[8]),
-            'bid': float(values[2]),
-            'bidVolume': float(values[3]),
-            'ask': float(values[4]),
-            'askVolume': float(values[5]),
+            'high': self.safe_float(values, 7),
+            'low': self.safe_float(values, 8),
+            'bid': self.safe_float(values, 2),
+            'bidVolume': self.safe_float(values, 3),
+            'ask': self.safe_float(values, 4),
+            'askVolume': self.safe_float(values, 5),
             'vwap': None,
             'open': None,
             'close': last,
@@ -397,8 +404,8 @@ class fcoin(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(values[9]),
-            'quoteVolume': float(values[10]),
+            'baseVolume': self.safe_float(values, 9),
+            'quoteVolume': self.safe_float(values, 10),
             'info': ticker,
         }
 
@@ -431,6 +438,16 @@ class fcoin(Exchange):
             'cost': cost,
             'fee': fee,
         }
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetServerTime(params)
+        #
+        #     {
+        #         "status": 0,
+        #         "data": 1523430502977
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     async def fetch_trades(self, symbol, since=None, limit=50, params={}):
         await self.load_markets()
@@ -494,6 +511,22 @@ class fcoin(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": "string",
+        #         "symbol": "string",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "string",
+        #         "amount": "string",
+        #         "state": "submitted",
+        #         "executed_value": "string",
+        #         "fill_fees": "string",
+        #         "filled_amount": "string",
+        #         "created_at": 0,
+        #         "source": "web"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -518,13 +551,22 @@ class fcoin(Exchange):
             elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        feeCost = self.safe_float(order, 'fill_fees')
+        feeCost = None
+        feeRebate = self.safe_float(order, 'fees_income')
+        if (feeRebate is not None) and (feeRebate > 0):
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            feeCost = -feeRebate
+        else:
+            feeCost = self.safe_float(order, 'fill_fees')
+            if market is not None:
+                symbol = market['symbol']
+                feeCurrency = market['base'] if (side == 'buy') else market['quote']
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -575,7 +617,7 @@ class fcoin(Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'id'),
             self.safe_float(ohlcv, 'open'),
@@ -600,7 +642,8 @@ class fcoin(Exchange):
             timerange = limit * self.parse_timeframe(timeframe)
             request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = await self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -651,7 +694,5 @@ class fcoin(Exchange):
         status = self.safe_string(response, 'status')
         if status != '0' and status != 'ok':
             feedback = self.id + ' ' + body
-            if status in self.exceptions:
-                exceptions = self.exceptions
-                raise exceptions[status](feedback)
+            self.throw_exactly_matched_exception(self.exceptions, status, feedback)
             raise ExchangeError(feedback)

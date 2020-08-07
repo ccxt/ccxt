@@ -19,7 +19,15 @@ class bitstamp1(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMyTrades': True,
+                'fetchOrder': False,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',

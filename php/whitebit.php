@@ -6,17 +6,19 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\DDoSProtection;
 
 class whitebit extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
-            'countries' => array ( 'EE' ),
+            'countries' => array( 'EE' ),
             'rateLimit' => 500,
-            'has' => array (
+            'has' => array(
                 'cancelOrder' => false,
                 'CORS' => false,
                 'createDepositAddress' => false,
@@ -38,7 +40,7 @@ class whitebit extends Exchange {
                 'privateAPI' => false,
                 'publicAPI' => true,
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => '1m',
                 '3m' => '3m',
                 '5m' => '5m',
@@ -55,26 +57,26 @@ class whitebit extends Exchange {
                 '1w' => '1w',
                 '1M' => '1M',
             ),
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
-                'api' => array (
+                'api' => array(
                     'web' => 'https://whitebit.com/',
                     'publicV2' => 'https://whitebit.com/api/v2/public',
                     'publicV1' => 'https://whitebit.com/api/v1/public',
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
-            'api' => array (
-                'web' => array (
-                    'get' => array (
+            'api' => array(
+                'web' => array(
+                    'get' => array(
                         'v1/healthcheck',
                     ),
                 ),
-                'publicV1' => array (
-                    'get' => array (
+                'publicV1' => array(
+                    'get' => array(
                         'markets',
                         'tickers',
                         'ticker',
@@ -84,8 +86,8 @@ class whitebit extends Exchange {
                         'kline',
                     ),
                 ),
-                'publicV2' => array (
-                    'get' => array (
+                'publicV2' => array(
+                    'get' => array(
                         'markets',
                         'ticker',
                         'assets',
@@ -95,34 +97,35 @@ class whitebit extends Exchange {
                     ),
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'fetchTradesMethod' => 'fetchTradesV1',
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null)
                 ),
-                'broad' => array (
+                'broad' => array(
                     'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
                 ),
             ),
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicV2GetMarkets ($params);
         //
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":array (
+        //         "$result":array(
         //             {
         //                 "name":"BTC_USD",
         //                 "moneyPrec":"2",
@@ -139,7 +142,7 @@ class whitebit extends Exchange {
         //
         $markets = $this->safe_value($response, 'result');
         $result = array();
-        for ($i = 0; $i < count ($markets); $i++) {
+        for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'stock');
@@ -148,7 +151,7 @@ class whitebit extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'tradesEnabled');
-            $entry = array (
+            $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -157,20 +160,20 @@ class whitebit extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
-                'precision' => array (
+                'precision' => array(
                     'amount' => $this->safe_integer($market, 'stockPrec'),
                     'price' => $this->safe_integer($market, 'moneyPrec'),
                 ),
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => $this->safe_float($market, 'minAmount'),
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => $this->safe_float($market, 'minTotal'),
                         'max' => null,
                     ),
@@ -181,7 +184,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicV2GetAssets ($params);
         //
         //     {
@@ -205,7 +208,7 @@ class whitebit extends Exchange {
         $currencies = $this->safe_value($response, 'result');
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
             // breaks down in Python due to utf8 encoding issues on the exchange side
@@ -214,7 +217,7 @@ class whitebit extends Exchange {
             $canWithdraw = $this->safe_value($currency, 'canWithdraw', true);
             $active = $canDeposit && $canWithdraw;
             $code = $this->safe_currency_code($id);
-            $result[$code] = array (
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency, // the original payload
@@ -222,20 +225,20 @@ class whitebit extends Exchange {
                 'active' => $active,
                 'fee' => null,
                 'precision' => null,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => $this->safe_float($currency, 'minWithdrawal'),
                         'max' => $this->safe_float($currency, 'maxWithdrawal'),
                     ),
@@ -245,27 +248,27 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees ($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $response = $this->publicV2GetFee ($params);
         $fees = $this->safe_value($response, 'result');
-        return array (
+        return array(
             'maker' => $this->safe_float($fees, 'makerFee'),
             'taker' => $this->safe_float($fees, 'takerFee'),
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'market' => $market['id'],
         );
-        $response = $this->publicV1GetTicker (array_merge ($request, $params));
+        $response = $this->publicV1GetTicker (array_merge($request, $params));
         //
         //     {
         //         "success":true,
         //         "message":"",
-        //         "result" => array (
+        //         "result" => array(
         //             "bid":"0.021979",
         //             "ask":"0.021996",
         //             "open":"0.02182",
@@ -282,7 +285,7 @@ class whitebit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         // fetchTicker
         //
@@ -314,7 +317,7 @@ class whitebit extends Exchange {
         //         }
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds ());
+        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds());
         $ticker = $this->safe_value($ticker, 'ticker', $ticker);
         $symbol = null;
         if ($market !== null) {
@@ -326,10 +329,10 @@ class whitebit extends Exchange {
         if ($percentage !== null) {
             $change = $this->number_to_string($percentage * 0.01);
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -350,7 +353,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicV1GetTickers ($params);
         //
@@ -358,9 +361,9 @@ class whitebit extends Exchange {
         //         "success":true,
         //         "message":"",
         //         "$result" => {
-        //             "ETH_BTC" => array (
+        //             "ETH_BTC" => array(
         //                 "at":1571022144,
-        //                 "$ticker" => array (
+        //                 "$ticker" => array(
         //                     "bid":"0.022024",
         //                     "ask":"0.022042",
         //                     "low":"0.02161",
@@ -377,7 +380,7 @@ class whitebit extends Exchange {
         $data = $this->safe_value($response, 'result');
         $marketIds = is_array($data) ? array_keys($data) : array();
         $result = array();
-        for ($i = 0; $i < count ($marketIds); $i++) {
+        for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = null;
             $symbol = $marketId;
@@ -391,21 +394,21 @@ class whitebit extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $this->parse_ticker($data[$marketId], $market);
-            $result[$symbol] = array_merge ($ticker, array( 'symbol' => $symbol ));
+            $result[$symbol] = array_merge($ticker, array( 'symbol' => $symbol ));
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'market' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 50, maximum = 100
         }
-        $response = $this->publicV2GetDepthMarket (array_merge ($request, $params));
+        $response = $this->publicV2GetDepthMarket (array_merge($request, $params));
         //
         //     {
         //         "success":true,
@@ -426,26 +429,26 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $timestamp = $this->parse8601 ($this->safe_string($result, 'lastUpdateTimestamp'));
+        $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
         return $this->parse_order_book($result, $timestamp);
     }
 
-    public function fetch_trades_v1 ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades_v1($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'market' => $market['id'],
             'lastId' => 1, // todo add $since
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 50, maximum = 10000
         }
-        $response = $this->publicV1GetHistory (array_merge ($request, $params));
+        $response = $this->publicV1GetHistory (array_merge($request, $params));
         //
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result":array (
+        //         "$result":array(
         //             {
         //                 "id":11887426,
         //                 "type":"buy",
@@ -460,22 +463,22 @@ class whitebit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_trades_v2 ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades_v2($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'market' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 50, maximum = 10000
         }
-        $response = $this->publicV2GetTradesMarket (array_merge ($request, $params));
+        $response = $this->publicV2GetTradesMarket (array_merge($request, $params));
         //
         //     {
         //         "success":true,
         //         "message":"",
-        //         "$result" => array (
-        //             array (
+        //         "$result" => array(
+        //             array(
         //                 "tradeId":11903347,
         //                 "price":"0.022044",
         //                 "volume":"0.029",
@@ -489,12 +492,12 @@ class whitebit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchTradesMethod', 'fetchTradesV2');
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTradesV1
         //
@@ -517,8 +520,8 @@ class whitebit extends Exchange {
         //     }
         //
         $timestamp = $this->safe_value($trade, 'time');
-        if (gettype ($timestamp) === 'string') {
-            $timestamp = $this->parse8601 ($timestamp);
+        if (gettype($timestamp) === 'string') {
+            $timestamp = $this->parse8601($timestamp);
         } else {
             $timestamp = intval ($timestamp * 1000);
         }
@@ -538,10 +541,10 @@ class whitebit extends Exchange {
         if ($amount !== null && $price !== null) {
             $cost = $amount * $price;
         }
-        return array (
+        return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -555,10 +558,10 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'market' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
@@ -568,46 +571,68 @@ class whitebit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default == max == 500
         }
-        $response = $this->publicV1GetKline (array_merge ($request, $params));
-        $result = $this->safe_value($response, 'result');
+        $response = $this->publicV1GetKline (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "$result":[
+        //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        //         ]
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000, // timestamp
-            floatval ($ohlcv[1]), // open
-            floatval ($ohlcv[3]), // high
-            floatval ($ohlcv[4]), // low
-            floatval ($ohlcv[2]), // close
-            floatval ($ohlcv[5]), // volume
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1591488000,
+        //         "0.025025",
+        //         "0.025025",
+        //         "0.025029",
+        //         "0.025023",
+        //         "6.181",
+        //         "0.154686629"
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0), // timestamp
+            $this->safe_float($ohlcv, 1), // open
+            $this->safe_float($ohlcv, 3), // high
+            $this->safe_float($ohlcv, 4), // low
+            $this->safe_float($ohlcv, 2), // close
+            $this->safe_float($ohlcv, 5), // volume
+        );
     }
 
-    public function fetch_status ($params = array ()) {
-        $response = $this->webGetV1Healthcheck ();
+    public function fetch_status($params = array ()) {
+        $response = $this->webGetV1Healthcheck ($params);
         $status = $this->safe_integer($response, 'status');
         $formattedStatus = 'ok';
         if ($status === 503) {
             $formattedStatus = 'maintenance';
         }
-        $this->status = array_merge ($this->status, array (
+        $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
-            'updated' => $this->milliseconds (),
+            'updated' => $this->milliseconds(),
         ));
         return $this->status;
     }
 
-    public function sign ($path, $api = 'publicV1', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+    public function sign($path, $api = 'publicV1', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -618,9 +643,9 @@ class whitebit extends Exchange {
             $success = $this->safe_value($response, 'success');
             if (!$success) {
                 $feedback = $this->id . ' ' . $body;
-                $message = $this->safe_value($response, 'message');
-                if (gettype ($message) === 'string') {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $status = $this->safe_string($response, 'status');
+                if (gettype($status) === 'string') {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
                 }
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);

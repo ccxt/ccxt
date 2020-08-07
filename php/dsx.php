@@ -6,61 +6,70 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class dsx extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'dsx',
             'name' => 'DSX',
-            'countries' => array ( 'UK' ),
+            'countries' => array( 'UK' ),
             'rateLimit' => 1500,
             'version' => 'v3',
-            'has' => array (
+            'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'createMarketOrder' => false,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
-                'fetchOrderBooks' => false,
                 'createDepositAddress' => true,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => false,
                 'fetchDepositAddress' => true,
-                'fetchTransactions' => true,
-                'fetchTickers' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
-            'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
-                'api' => array (
-                    'public' => 'https://dsx.uk/mapi', // market data
-                    'private' => 'https://dsx.uk/tapi', // trading
-                    'dwapi' => 'https://dsx.uk/dwapi', // deposit/withdraw
+            'urls' => array(
+                'logo' => 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
+                'api' => array(
+                    'public' => 'https://dsxglobal.com/mapi', // market data
+                    'private' => 'https://dsxglobal.com/tapi', // trading
+                    'dwapi' => 'https://dsxglobal.com/dwapi', // deposit/withdraw
                 ),
-                'www' => 'https://dsx.uk',
-                'doc' => array (
-                    'https://dsx.uk/developers/publicApi',
+                'www' => 'https://dsxglobal.com',
+                'doc' => array(
+                    'https://dsxglobal.com/developers/publicApi',
                 ),
             ),
-            'fees' => array (
-                'trading' => array (
+            'fees' => array(
+                'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
                     'maker' => 0.15 / 100,
                     'taker' => 0.25 / 100,
                 ),
             ),
-            'timeframes' => array (
+            'timeframes' => array(
                 '1m' => 'm',
                 '1h' => 'h',
                 '1d' => 'd',
             ),
-            'api' => array (
+            'api' => array(
                 // market data (public)
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'barsFromMoment/{pair}/{period}/{start}',
                         'depth/{pair}',
                         'info',
@@ -71,8 +80,8 @@ class dsx extends Exchange {
                     ),
                 ),
                 // trading (private)
-                'private' => array (
-                    'post' => array (
+                'private' => array(
+                    'post' => array(
                         'info/account',
                         'history/transactions',
                         'history/trades',
@@ -87,8 +96,8 @@ class dsx extends Exchange {
                     ),
                 ),
                 // deposit / withdraw (private)
-                'dwapi' => array (
-                    'post' => array (
+                'dwapi' => array(
+                    'post' => array(
                         'deposit/cryptoaddress',
                         'withdraw/crypto',
                         'withdraw/fiat',
@@ -98,14 +107,14 @@ class dsx extends Exchange {
                     ),
                 ),
             ),
-            'exceptions' => array (
-                'exact' => array (
+            'exceptions' => array(
+                'exact' => array(
                     'Sign is invalid' => '\\ccxt\\AuthenticationError', // array("success":0,"error":"Sign is invalid")
                     'Order was rejected. Incorrect price.' => '\\ccxt\\InvalidOrder', // array("success":0,"error":"Order was rejected. Incorrect price.")
                     "Order was rejected. You don't have enough money." => '\\ccxt\\InsufficientFunds', // array("success":0,"error":"Order was rejected. You don't have enough money.")
                     'This method is blocked for your pair of keys' => '\\ccxt\\PermissionDenied', // array("success":0,"error":"This method is blocked for your pair of keys")
                 ),
-                'broad' => array (
+                'broad' => array(
                     'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
                     'Invalid pair name' => '\\ccxt\\ExchangeError', // array("success":0,"error":"Invalid pair name => btc_eth")
                     'invalid api key' => '\\ccxt\\AuthenticationError',
@@ -118,18 +127,19 @@ class dsx extends Exchange {
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'nonce is invalid' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"Parameter => nonce is invalid")
+                    'Incorrect volume' => '\\ccxt\\InvalidOrder', // array("success" => 0,"error":"Order was rejected. Incorrect volume.")
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'fetchTickersMaxLength' => 250,
             ),
-            'commonCurrencies' => array (
+            'commonCurrencies' => array(
                 'DSH' => 'DASH',
             ),
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetInfo ($params);
         //
         //     {
@@ -152,7 +162,7 @@ class dsx extends Exchange {
         $markets = $this->safe_value($response, 'pairs');
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($i = 0; $i < count ($keys); $i++) {
+        for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'base_currency');
@@ -160,22 +170,22 @@ class dsx extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array (
+            $precision = array(
                 'amount' => $this->safe_integer($market, 'decimal_places'),
                 'price' => $this->safe_integer($market, 'decimal_places'),
             );
-            $amountLimits = array (
+            $amountLimits = array(
                 'min' => $this->safe_float($market, 'min_amount'),
                 'max' => $this->safe_float($market, 'max_amount'),
             );
-            $priceLimits = array (
+            $priceLimits = array(
                 'min' => $this->safe_float($market, 'min_price'),
                 'max' => $this->safe_float($market, 'max_price'),
             );
-            $costLimits = array (
+            $costLimits = array(
                 'min' => $this->safe_float($market, 'min_total'),
             );
-            $limits = array (
+            $limits = array(
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
                 'cost' => $costLimits,
@@ -185,7 +195,7 @@ class dsx extends Exchange {
             // see parseMarket below
             // https://github.com/ccxt/ccxt/pull/5786
             $otherId = strtolower($base) . strtolower($quote);
-            $result[] = array (
+            $result[] = array(
                 'id' => $id,
                 'otherId' => $otherId, // https://github.com/ccxt/ccxt/pull/5786
                 'symbol' => $symbol,
@@ -202,7 +212,7 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostInfoAccount ();
         //
@@ -210,20 +220,20 @@ class dsx extends Exchange {
         //         "success" : 1,
         //         "return" : {
         //             "$funds" : {
-        //                 "BTC" : array (
+        //                 "BTC" : array(
         //                     "total" : 0,
         //                     "available" : 0
         //                 ),
-        //                 "USD" : array (
+        //                 "USD" : array(
         //                     "total" : 0,
         //                     "available" : 0
         //                 ),
-        //                 "USDT" : array (
+        //                 "USDT" : array(
         //                     "total" : 0,
         //                     "available" : 0
         //                 }
         //             ),
-        //             "rights" : array (
+        //             "rights" : array(
         //                 "info" : 1,
         //                 "trade" : 1
         //             ),
@@ -237,11 +247,11 @@ class dsx extends Exchange {
         $result = array( 'info' => $response );
         $funds = $this->safe_value($balances, 'funds');
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
+        for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
@@ -249,7 +259,7 @@ class dsx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //   {    high =>  0.03492,
         //         low =>  0.03245,
@@ -265,7 +275,7 @@ class dsx extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'pair');
-        $market = $this->parse_market ($marketId);
+        $market = $this->parse_market($marketId);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -277,10 +287,10 @@ class dsx extends Exchange {
             }
         }
         $last = $this->safe_float($ticker, 'last');
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -301,7 +311,7 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -339,7 +349,7 @@ class dsx extends Exchange {
         $id = $this->safe_string_2($trade, 'number', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'pair');
-        $market = $this->parse_market ($marketId);
+        $market = $this->parse_market($marketId);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -352,7 +362,7 @@ class dsx extends Exchange {
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array (
+            $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
@@ -373,11 +383,11 @@ class dsx extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        return array (
+        return array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -390,18 +400,18 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_trades ($trades, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
-        if (gettype ($trades) === 'array' && count (array_filter (array_keys ($trades), 'is_string')) == 0) {
-            for ($i = 0; $i < count ($trades); $i++) {
+        if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) == 0) {
+            for ($i = 0; $i < count($trades); $i++) {
                 $result[] = $this->parse_trade($trades[$i], $market);
             }
         } else {
             $ids = is_array($trades) ? array_keys($trades) : array();
-            for ($i = 0; $i < count ($ids); $i++) {
+            for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
                 $trade = $this->parse_trade($trades[$id], $market);
-                $result[] = array_merge ($trade, array( 'id' => $id ), $params);
+                $result[] = array_merge($trade, array( 'id' => $id ), $params);
             }
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -409,7 +419,7 @@ class dsx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
@@ -419,7 +429,7 @@ class dsx extends Exchange {
         } else {
             $key = 'base';
         }
-        return array (
+        return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
@@ -427,16 +437,16 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 150, max = 2000
         }
-        $response = $this->publicGetDepthPair (array_merge ($request, $params));
+        $response = $this->publicGetDepthPair (array_merge($request, $params));
         $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
         if (!$market_id_in_reponse) {
             throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
@@ -445,27 +455,30 @@ class dsx extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_order_books ($symbols = null, $params = array ()) {
+    public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if ($symbols === null) {
             $ids = implode('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > 2048) {
-                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            if (strlen($ids) > 2048) {
+                $numIds = is_array($this->ids) ? count($this->ids) : 0;
                 throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $request = array (
+        $request = array(
             'pair' => $ids,
         );
-        $response = $this->publicGetDepthPair (array_merge ($request, $params));
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default = 150, max = 2000
+        }
+        $response = $this->publicGetDepthPair (array_merge($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
@@ -477,28 +490,28 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = $this->ids;
         if ($symbols === null) {
-            $numIds = is_array ($ids) ? count ($ids) : 0;
+            $numIds = is_array($ids) ? count($ids) : 0;
             $ids = implode('-', $ids);
             $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > $this->options['fetchTickersMaxLength']) {
+            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
                 throw new ArgumentsRequired($this->id . ' has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
             }
         } else {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $request = array (
+        $request = array(
             'pair' => $ids,
         );
-        $tickers = $this->publicGetTickerPair (array_merge ($request, $params));
+        $tickers = $this->publicGetTickerPair (array_merge($request, $params));
         //
         //     {
-        //         "bchbtc" : array (
+        //         "bchbtc" : array(
         //             "high" : 0.02989,
         //             "low" : 0.02736,
         //             "avg" : 33.90585,
@@ -526,7 +539,7 @@ class dsx extends Exchange {
         //
         $result = array();
         $keys = is_array($tickers) ? array_keys($tickers) : array();
-        for ($k = 0; $k < count ($keys); $k++) {
+        for ($k = 0; $k < count($keys); $k++) {
             $id = $keys[$k];
             $ticker = $tickers[$id];
             $symbol = $id;
@@ -540,23 +553,23 @@ class dsx extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $tickers = $this->fetch_tickers(array ( $symbol ), $params);
+    public function fetch_ticker($symbol, $params = array ()) {
+        $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $tickers[$symbol];
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetTradesPair (array_merge ($request, $params));
-        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
-            $numElements = is_array ($response) ? count ($response) : 0;
+        $response = $this->publicGetTradesPair (array_merge($request, $params));
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+            $numElements = is_array($response) ? count($response) : 0;
             if ($numElements === 0) {
                 return array();
             }
@@ -564,7 +577,7 @@ class dsx extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "high" : 0.01955,
@@ -575,7 +588,7 @@ class dsx extends Exchange {
         //         "timestamp" : 1565155740000
         //     }
         //
-        return array (
+        return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
@@ -585,10 +598,10 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'pair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
         );
@@ -605,18 +618,18 @@ class dsx extends Exchange {
             // however, it does work properly with seconds
             $request['start'] = intval ($since / 1000);
             if ($limit === null) {
-                $request['end'] = $this->seconds ();
+                $request['end'] = $this->seconds();
             } else {
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $end = $this->sum ($since, $duration * $limit);
+                $end = $this->sum($since, $duration * $limit);
                 $request['end'] = intval ($end / 1000);
             }
         }
-        $response = $this->$method (array_merge ($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
-        //         "ethbtc" => array (
-        //             array (
+        //         "ethbtc" => array(
+        //             array(
         //                 "high" : 0.01955,
         //                 "open" : 0.01955,
         //                 "low" : 0.01955,
@@ -639,13 +652,13 @@ class dsx extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($type === 'market' && $price === null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
         }
-        $request = array (
+        $request = array(
             'pair' => $market['id'],
             'type' => $side,
             'volume' => $this->amount_to_precision($symbol, $amount),
@@ -654,7 +667,7 @@ class dsx extends Exchange {
         );
         $price = floatval ($price);
         $amount = floatval ($amount);
-        $response = $this->privatePostOrderNew (array_merge ($request, $params));
+        $response = $this->privatePostOrderNew (array_merge($request, $params));
         //
         //     {
         //       "success" => 1,
@@ -662,19 +675,19 @@ class dsx extends Exchange {
         //         "received" => 0,
         //         "remains" => 10,
         //         "funds" => {
-        //           "BTC" => array (
+        //           "BTC" => array(
         //             "total" => 100,
         //             "available" => 95
         //           ),
-        //           "USD" => array (
+        //           "USD" => array(
         //             "total" => 10000,
         //             "available" => 9995
         //           ),
-        //           "EUR" => array (
+        //           "EUR" => array(
         //             "total" => 1000,
         //             "available" => 995
         //           ),
-        //           "LTC" => array (
+        //           "LTC" => array(
         //             "total" => 1000,
         //             "available" => 995
         //           }
@@ -694,12 +707,12 @@ class dsx extends Exchange {
         }
         $filled = $this->safe_float($responseReturn, 'received', 0.0);
         $remaining = $this->safe_float($responseReturn, 'remains', $amount);
-        $timestamp = $this->milliseconds ();
-        return array (
+        $timestamp = $this->milliseconds();
+        return array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -715,8 +728,8 @@ class dsx extends Exchange {
         );
     }
 
-    public function parse_order_status ($status) {
-        $statuses = array (
+    public function parse_order_status($status) {
+        $statuses = array(
             '0' => 'open', // Active
             '1' => 'closed', // Filled
             '2' => 'canceled', // Killed
@@ -726,7 +739,7 @@ class dsx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_market ($id) {
+    public function parse_market($id) {
         if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
             return $this->markets_by_id[$id];
         } else {
@@ -745,7 +758,7 @@ class dsx extends Exchange {
         return null;
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // fetchOrder
         //
@@ -759,7 +772,7 @@ class dsx extends Exchange {
         //     "timestampCreated" => 1496670,
         //     "$status" => 0,
         //     "$orderType" => "limit",
-        //     "$deals" => array (
+        //     "$deals" => array(
         //       {
         //         "pair" => "btcusd",
         //         "type" => "buy",
@@ -777,7 +790,7 @@ class dsx extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'timestampCreated');
         $marketId = $this->safe_string($order, 'pair');
-        $market = $this->parse_market ($marketId);
+        $market = $this->parse_market($marketId);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -797,35 +810,36 @@ class dsx extends Exchange {
         $side = $this->safe_string($order, 'type');
         $fee = null;
         $deals = $this->safe_value($order, 'deals', array());
-        $numDeals = is_array ($deals) ? count ($deals) : 0;
+        $numDeals = is_array($deals) ? count($deals) : 0;
         $trades = null;
         $lastTradeTimestamp = null;
         if ($numDeals > 0) {
             $trades = $this->parse_trades($deals);
             $feeCost = null;
             $feeCurrency = null;
-            for ($i = 0; $i < count ($trades); $i++) {
+            for ($i = 0; $i < count($trades); $i++) {
                 $trade = $trades[$i];
                 if ($feeCost === null) {
                     $feeCost = 0;
                 }
-                $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
+                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
                 $feeCurrency = $trade['fee']['currency'];
                 $lastTradeTimestamp = $trade['timestamp'];
             }
             if ($feeCost !== null) {
-                $fee = array (
+                $fee = array(
                     'cost' => $feeCost,
                     'currency' => $feeCurrency,
                 );
             }
         }
-        return array (
+        return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $orderType,
             'side' => $side,
@@ -840,12 +854,12 @@ class dsx extends Exchange {
         );
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderId' => intval ($id),
         );
-        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        $response = $this->privatePostOrderStatus (array_merge($request, $params));
         //
         //     {
         //       "success" => 1,
@@ -858,7 +872,7 @@ class dsx extends Exchange {
         //         "timestampCreated" => 1496670,
         //         "status" => 0,
         //         "orderType" => "limit",
-        //         "deals" => array (
+        //         "deals" => array(
         //           {
         //             "pair" => "btcusd",
         //             "type" => "buy",
@@ -873,17 +887,17 @@ class dsx extends Exchange {
         //       }
         //     }
         //
-        return $this->parse_order(array_merge (array (
+        return $this->parse_order(array_merge(array(
             'id' => $id,
         ), $response['return']));
     }
 
-    public function parse_orders_by_id ($orders, $symbol = null, $since = null, $limit = null) {
+    public function parse_orders_by_id($orders, $symbol = null, $since = null, $limit = null) {
         $ids = is_array($orders) ? array_keys($orders) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $order = $this->parse_order(array_merge (array (
+            $order = $this->parse_order(array_merge(array(
                 'id' => (string) $id,
             ), $orders[$id]));
             $result[] = $order;
@@ -891,15 +905,15 @@ class dsx extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             // 'count' => 10, // Decimal, The maximum number of orders to return
             // 'fromId' => 123, // Decimal, ID of the first order of the selection
             // 'endId' => 321, // Decimal, ID of the last order of the selection
             // 'order' => 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         );
-        $response = $this->privatePostOrders (array_merge ($request, $params));
+        $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //     {
         //       "success" => 1,
@@ -917,12 +931,12 @@ class dsx extends Exchange {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
+        return $this->parse_orders_by_id($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             // 'count' => 10, // Decimal, The maximum number of orders to return
             // 'fromId' => 123, // Decimal, ID of the first order of the selection
             // 'endId' => 321, // Decimal, ID of the last order of the selection
@@ -931,7 +945,7 @@ class dsx extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->privatePostHistoryOrders (array_merge ($request, $params));
+        $response = $this->privatePostHistoryOrders (array_merge($request, $params));
         //
         //     {
         //       "success" => 1,
@@ -949,46 +963,46 @@ class dsx extends Exchange {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
+        return $this->parse_orders_by_id($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'orderId' => $id,
         );
-        $response = $this->privatePostOrderCancel (array_merge ($request, $params));
+        $response = $this->privatePostOrderCancel (array_merge($request, $params));
         if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
             $this->orders[$id]['status'] = 'canceled';
         }
         return $response;
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array();
         $ids = is_array($orders) ? array_keys($orders) : array();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        for ($i = 0; $i < count ($ids); $i++) {
+        for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $order = array_merge (array( 'id' => $id ), $orders[$id]);
-            $result[] = array_merge ($this->parse_order($order, $market), $params);
+            $order = array_merge(array( 'id' => $id ), $orders[$id]);
+            $result[] = array_merge($this->parse_order($order, $market), $params);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         // some derived classes use camelcase notation for $request fields
-        $request = array (
+        $request = array(
             // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
             // 'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
@@ -999,7 +1013,7 @@ class dsx extends Exchange {
             // 'pair' => 'eth_btc', // default = all markets
         );
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1008,7 +1022,7 @@ class dsx extends Exchange {
         if ($since !== null) {
             $request['since'] = intval ($since / 1000);
         }
-        $response = $this->privatePostHistoryTrades (array_merge ($request, $params));
+        $response = $this->privatePostHistoryTrades (array_merge($request, $params));
         $trades = array();
         if (is_array($response) && array_key_exists('return', $response)) {
             $trades = $response['return'];
@@ -1016,12 +1030,12 @@ class dsx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
         if ($since !== null) {
@@ -1030,11 +1044,11 @@ class dsx extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->privatePostHistoryTransactions (array_merge ($request, $params));
+        $response = $this->privatePostHistoryTransactions (array_merge($request, $params));
         //
         //     {
         //         "success" => 1,
-        //         "return" => array (
+        //         "return" => array(
         //             {
         //                 "id" => 1,
         //                 "timestamp" => 11,
@@ -1053,8 +1067,8 @@ class dsx extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status ($status) {
-        $statuses = array (
+    public function parse_transaction_status($status) {
+        $statuses = array(
             '1' => 'failed',
             '2' => 'ok',
             '3' => 'pending',
@@ -1063,7 +1077,7 @@ class dsx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         //     {
         //         "id" => 1,
@@ -1088,18 +1102,18 @@ class dsx extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
-        return array (
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        return array(
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'address' => $this->safe_string($transaction, 'address'),
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
-            'fee' => array (
+            'fee' => array(
                 'currency' => $code,
                 'cost' => $this->safe_float($transaction, 'commission'),
                 'rate' => null,
@@ -1108,25 +1122,25 @@ class dsx extends Exchange {
         );
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
-        $request = array (
+    public function create_deposit_address($code, $params = array ()) {
+        $request = array(
             'new' => 1,
         );
-        $response = $this->fetch_deposit_address ($code, array_merge ($request, $params));
+        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
         return $response;
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
-        $request = array (
+        $currency = $this->currency($code);
+        $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->dwapiPostDepositCryptoaddress (array_merge ($request, $params));
+        $response = $this->dwapiPostDepositCryptoaddress (array_merge($request, $params));
         $result = $this->safe_value($response, 'return', array());
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
-        return array (
+        return array(
             'currency' => $code,
             'address' => $address,
             'tag' => null, // not documented in DSX API
@@ -1134,16 +1148,16 @@ class dsx extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $commission = $this->safe_value($params, 'commission');
         if ($commission === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a `$commission` (withdrawal fee) parameter (string)');
         }
-        $params = $this->omit ($params, $commission);
-        $request = array (
+        $params = $this->omit($params, $commission);
+        $request = array(
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
@@ -1152,9 +1166,9 @@ class dsx extends Exchange {
         if ($tag !== null) {
             $request['address'] .= ':' . $tag;
         }
-        $response = $this->dwapiPostWithdrawCrypto (array_merge ($request, $params));
+        $response = $this->dwapiPostWithdrawCrypto (array_merge($request, $params));
         //
-        //     array (
+        //     array(
         //         {
         //             "success" => 1,
         //             "return" => {
@@ -1165,24 +1179,24 @@ class dsx extends Exchange {
         //
         $data = $this->safe_value($response, 'return', array());
         $id = $this->safe_string($data, 'transactionId');
-        return array (
+        return array(
             'info' => $response,
             'id' => $id,
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private' || $api === 'dwapi') {
             $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array (
+            $nonce = $this->nonce();
+            $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
             ), $query));
-            $signature = $this->decode ($this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64'));
-            $headers = array (
+            $signature = $this->decode($this->hmac($this->encode($body), $this->encode($this->secret), 'sha512', 'base64'));
+            $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
@@ -1190,18 +1204,18 @@ class dsx extends Exchange {
         } else if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $url .= '/' . $this->implode_params($path, $params);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             } else {
                 if ($query) {
-                    $body = $this->json ($query);
-                    $headers = array (
+                    $body = $this->json($query);
+                    $headers = array(
                         'Content-Type' => 'application/json',
                     );
                 }
@@ -1210,7 +1224,7 @@ class dsx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
@@ -1242,7 +1256,7 @@ class dsx extends Exchange {
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
             $success = $this->safe_value($response, 'success', false);
-            if (gettype ($success) === 'string') {
+            if (gettype($success) === 'string') {
                 if (($success === 'true') || ($success === '1')) {
                     $success = true;
                 } else {
@@ -1252,7 +1266,7 @@ class dsx extends Exchange {
             if (!$success) {
                 $code = $this->safe_string($response, 'code');
                 $message = $this->safe_string($response, 'error');
-                $feedback = $this->id . ' ' . $this->json ($response);
+                $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

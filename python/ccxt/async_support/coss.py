@@ -17,9 +17,9 @@ class coss(Exchange):
             'countries': ['SG', 'NL'],
             'rateLimit': 1000,
             'version': 'v1',
-            'certified': True,
+            'certified': False,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -323,14 +323,24 @@ class coss(Exchange):
             }
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1545138960000,
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.02705000",
+        #         "0.00000000"
+        #     ]
+        #
         return [
-            int(ohlcv[0]),   # timestamp
-            float(ohlcv[1]),  # Open
-            float(ohlcv[2]),  # High
-            float(ohlcv[3]),  # Low
-            float(ohlcv[4]),  # Close
-            float(ohlcv[5]),  # base Volume
+            self.safe_integer(ohlcv, 0),   # timestamp
+            self.safe_float(ohlcv, 1),  # Open
+            self.safe_float(ohlcv, 2),  # High
+            self.safe_float(ohlcv, 3),  # Low
+            self.safe_float(ohlcv, 4),  # Close
+            self.safe_float(ohlcv, 5),  # base Volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -342,25 +352,25 @@ class coss(Exchange):
         }
         response = await self.engineGetCs(self.extend(request, params))
         #
-        #     {      tt:   "1m",
-        #         symbol:   "ETH_BTC",
-        #       nextTime:    1545138960000,
-        #         series: [[ 1545138960000,
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.02705000",
-        #                     "0.00000000"    ],
-        #                   ...
-        #                   [ 1545168900000,
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.02684000",
-        #                     "0.00000000"    ]  ],
-        #          limit:    500                    }
+        #     {
+        #         tt: "1m",
+        #         symbol: "ETH_BTC",
+        #         nextTime: 1545138960000,
+        #         series: [
+        #             [
+        #                 1545138960000,
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.02705000",
+        #                 "0.00000000"
+        #             ],
+        #         ],
+        #         limit: 500
+        #     }
         #
-        return self.parse_ohlcvs(response['series'], market, timeframe, since, limit)
+        series = self.safe_value(response, 'series', [])
+        return self.parse_ohlcvs(series, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -783,6 +793,7 @@ class coss(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -873,6 +884,7 @@ class coss(Exchange):
             headers = {
                 'Signature': self.hmac(self.encode(request), self.encode(self.secret)),
                 'Authorization': self.apiKey,
+                'X-Requested-With': 'XMLHttpRequest',
             }
         else:
             if params:

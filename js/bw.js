@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ module.exports = class bw extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bw',
-            'name': 'bw.com',
+            'name': 'BW',
             'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
@@ -28,7 +28,7 @@ module.exports = class bw extends Exchange {
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -67,9 +67,10 @@ module.exports = class bw extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
                 'api': 'https://www.{hostname}',
-                'www': 'https://www.{hostname}',
+                'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
+                'referral': 'https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -77,18 +78,10 @@ module.exports = class bw extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': true,
+                    'tierBased': false,
                     'percentage': true,
                     'taker': 0.2 / 100,
                     'maker': 0.2 / 100,
-                    'tiers': {
-                        'taker': [
-                            [ 0, 0.2 / 100 ],
-                        ],
-                        'maker': [
-                            [ 0, 0.2 / 100 ],
-                        ],
-                    },
                 },
                 'funding': {
                 },
@@ -96,6 +89,10 @@ module.exports = class bw extends Exchange {
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
+                    '1000': ExchangeNotAvailable, // {"datas":null,"resMsg":{"message":"getKlines error:data not exitsts\uff0cplease wait ,dataType=4002_KLINE_1M","method":null,"code":"1000"}}
+                    '2012': OrderNotFound, // {"datas":null,"resMsg":{"message":"entrust not exists or on dealing with system","method":null,"code":"2012"}}
+                    '5017': BadSymbol, // {"datas":null,"resMsg":{"message":"market not exist","method":null,"code":"5017"}}
+                    '10001': RateLimitExceeded, // {"resMsg":{"code":"10001","message":"API frequency limit"}}
                 },
             },
             'api': {
@@ -117,6 +114,7 @@ module.exports = class bw extends Exchange {
                         'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         'exchange/fund/controller/website/fundwebsitecontroller/getwithdrawaddress',
                         'exchange/fund/controller/website/fundwebsitecontroller/getpayoutcoinrecord',
+                        'exchange/entrust/controller/website/EntrustController/getUserEntrustList',
                         // the docs say that the following URLs are HTTP POST
                         // in the docs header and HTTP GET in the docs body
                         // the docs contradict themselves, a typo most likely
@@ -311,7 +309,7 @@ module.exports = class bw extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': parseFloat (this.safeInteger (currency, 'onceDrawLimit')),
+                        'max': this.safeFloat (currency, 'onceDrawLimit'),
                     },
                 },
             };
@@ -336,37 +334,39 @@ module.exports = class bw extends Exchange {
         //     ]
         //
         let symbol = undefined;
-        const marketId = ticker[0];
+        const marketId = this.safeString (ticker, 0);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (market !== undefined) {
             symbol = market['symbol'];
+        } else {
+            symbol = marketId;
         }
         const timestamp = this.milliseconds ();
-        const close = parseFloat (ticker[1]);
+        const close = parseFloat (this.safeValue (ticker, 1));
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker[2]),
-            'low': parseFloat (ticker[3]),
-            'bid': parseFloat (ticker[7]),
+            'high': parseFloat (this.safeValue (ticker, 2)),
+            'low': parseFloat (this.safeValue (ticker, 3)),
+            'bid': parseFloat (this.safeValue (ticker, 7)),
             'bidVolume': this.safeFloat (bid, 'quantity'),
-            'ask': parseFloat (ticker[8]),
+            'ask': parseFloat (this.safeValue (ticker, 8)),
             'askVolume': this.safeFloat (ask, 'quantity'),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': parseFloat (ticker[5]),
+            'change': parseFloat (this.safeValue (ticker, 5)),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker[4]),
-            'quoteVolume': parseFloat (ticker[9]),
+            'baseVolume': parseFloat (this.safeValue (ticker, 4)),
+            'quoteVolume': parseFloat (this.safeValue (ticker, 9)),
             'info': ticker,
         };
     }
@@ -558,7 +558,25 @@ module.exports = class bw extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "K",
+        //         "305",
+        //         "eth_btc",
+        //         "1591511280",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.0123",
+        //         "0",
+        //         "285740.17",
+        //         "1M",
+        //         "false",
+        //         "0.000308"
+        //     ]
+        //
         return [
             this.safeTimestamp (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
@@ -581,9 +599,18 @@ module.exports = class bw extends Exchange {
             request['dataSize'] = limit;
         }
         const response = await this.publicGetApiDataV1Klines (this.extend (request, params));
+        //
+        //     {
+        //         "datas":[
+        //             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        //             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        //             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        //         ],
+        //         "resMsg":{"code":"1","method":null,"message":"success !"}
+        //     }
+        //
         const data = this.safeValue (response, 'datas', []);
-        const ohlcvs = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return this.sortBy (ohlcvs, 0);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -611,7 +638,7 @@ module.exports = class bw extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeInteger (balance, 'currencyTypeId');
+            const currencyId = this.safeString (balance, 'currencyTypeId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'amount');
@@ -667,6 +694,7 @@ module.exports = class bw extends Exchange {
             'status': 'open',
             'fee': undefined,
             'trades': undefined,
+            'clientOrderId': undefined,
         };
     }
 
@@ -736,6 +764,7 @@ module.exports = class bw extends Exchange {
         return {
             'info': order,
             'id': this.safeString (order, 'entrustId'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -859,6 +888,27 @@ module.exports = class bw extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default limit is 20
+        }
+        if (since !== undefined) {
+            request['startDateTime'] = since;
+        }
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', {});
+        const orders = this.safeValue (data, 'entrustList', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -930,13 +980,13 @@ module.exports = class bw extends Exchange {
                 const keys = Object.keys (sortedParams);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                    content += key + sortedParams[key];
+                    content += key + sortedParams[key].toString ();
                 }
             } else {
                 content = body;
             }
-            const signing = this.apiKey + ms + content + this.secret;
-            const hash = this.hash (this.encode (signing), 'md5');
+            const signature = this.apiKey + ms + content + this.secret;
+            const hash = this.hash (this.encode (signature), 'md5');
             if (!headers) {
                 headers = {};
             }

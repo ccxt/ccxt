@@ -6,52 +6,58 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
 class stronghold extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'stronghold',
             'name' => 'Stronghold',
-            'country' => array ( 'US' ),
+            'country' => array( 'US' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'comment' => 'This comment is optional',
-            'urls' => array (
+            'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/52160042-98c1f300-26be-11e9-90dd-da8473944c83.jpg',
-                'api' => array (
+                'api' => array(
                     'public' => 'https://api.stronghold.co',
                     'private' => 'https://api.stronghold.co',
                 ),
                 'www' => 'https://stronghold.co',
-                'doc' => array (
+                'doc' => array(
                     'https://docs.stronghold.co',
                 ),
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
                 'password' => true,
             ),
-            'has' => array (
-                'fetchMarkets' => true,
-                'fetchCurrencies' => true,
-                'fetchOrderBook' => true,
-                'fetchOpenOrders' => true,
-                'fetchTime' => true,
-                'fetchTrades' => true,
-                'fetchMyTrades' => true,
-                'fetchDepositAddress' => false,
+            'has' => array(
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
+                'fetchDepositAddress' => false,
+                'fetchCurrencies' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
                 'fetchTicker' => false,
                 'fetchTickers' => false,
-                'fetchAccounts' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => true,
+                'withdraw' => true,
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
+            'api' => array(
+                'public' => array(
+                    'get' => array(
                         'utilities/time',
                         'utilities/uuid',
                         'venues',
@@ -60,23 +66,23 @@ class stronghold extends Exchange {
                         'venues/{venueId}/markets/{marketId}/orderbook',
                         'venues/{venueId}/markets/{marketId}/trades',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'venues/{venueId}/assets',
                         'iam/credentials',
                         'identities',
                     ),
-                    'patch' => array (
+                    'patch' => array(
                         'identities',
                     ),
-                    'put' => array (
+                    'put' => array(
                         'iam/credentials/{credentialId}',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'iam/credentials/{credentialId}',
                     ),
                 ),
-                'private' => array (
-                    'get' => array (
+                'private' => array(
+                    'get' => array(
                         'venues',
                         'venues/{venueId}/accounts',
                         'venues/{venueId}/accounts/{accountId}',
@@ -85,7 +91,7 @@ class stronghold extends Exchange {
                         'venues/{venueId}/accounts/{accountId}/trades',
                         'venues/{venueId}/accounts/{accountId}/transactions',
                     ),
-                    'post' => array (
+                    'post' => array(
                         'venues/{venueId}/accounts',
                         'venues/{venueId}/accounts/{accountId}/orders',
                         'venues/{venueId}/accounts/{accountId}/deposit',
@@ -96,19 +102,19 @@ class stronghold extends Exchange {
                         'venues/{venueId}/anchor/withdrawal',
                         'venues/{venueId}/testing/friendbot',
                     ),
-                    'delete' => array (
+                    'delete' => array(
                         'venues/{venueId}/accounts/{accountId}/orders/{orderId}',
                     ),
                 ),
             ),
-            'options' => array (
+            'options' => array(
                 'accountId' => null,
                 'venueId' => 'trade-public',
-                'venues' => array (
+                'venues' => array(
                     'trade' => 'trade-public',
                     'sandbox' => 'sandbox-public',
                 ),
-                'paymentMethods' => array (
+                'paymentMethods' => array(
                     'ETH' => 'ethereum',
                     'BTC' => 'bitcoin',
                     'XLM' => 'stellar',
@@ -117,7 +123,7 @@ class stronghold extends Exchange {
                     'SHX' => 'stellar',
                 ),
             ),
-            'exceptions' => array (
+            'exceptions' => array(
                 'CREDENTIAL_MISSING' => '\\ccxt\\AuthenticationError',
                 'CREDENTIAL_INVALID' => '\\ccxt\\AuthenticationError',
                 'CREDENTIAL_REVOKED' => '\\ccxt\\AccountSuspended',
@@ -131,31 +137,31 @@ class stronghold extends Exchange {
         ));
     }
 
-    public function get_active_account () {
+    public function get_active_account() {
         if ($this->options['accountId'] !== null) {
             return $this->options['accountId'];
         }
         $this->load_accounts();
-        $numAccounts = is_array ($this->accounts) ? count ($this->accounts) : 0;
+        $numAccounts = is_array($this->accounts) ? count($this->accounts) : 0;
         if ($numAccounts > 0) {
             return $this->accounts[0]['id'];
         }
         throw new ExchangeError($this->id . ' requires an accountId.');
     }
 
-    public function fetch_accounts ($params = array ()) {
-        $request = array (
+    public function fetch_accounts($params = array ()) {
+        $request = array(
             'venueId' => $this->options['venueId'],
         );
-        $response = $this->privateGetVenuesVenueIdAccounts (array_merge ($request, $params));
+        $response = $this->privateGetVenuesVenueIdAccounts (array_merge($request, $params));
         //
-        //   array ( { id => '34080200-b25a-483d-a734-255d30ba324d',
+        //   array( { id => '34080200-b25a-483d-a734-255d30ba324d',
         //       venueSpecificId => '' } ... )
         //
         return $response['result'];
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->publicGetUtilitiesTime ($params);
         //
         //     {
@@ -168,18 +174,18 @@ class stronghold extends Exchange {
         //         }
         //     }
         //
-        return $this->parse8601 ($this->safe_string($response['result'], 'timestamp'));
+        return $this->parse8601($this->safe_string($response['result'], 'timestamp'));
     }
 
-    public function fetch_markets ($params = array ()) {
-        $request = array (
+    public function fetch_markets($params = array ()) {
+        $request = array(
             'venueId' => $this->options['venueId'],
         );
-        $response = $this->publicGetVenuesVenueIdMarkets (array_merge ($request, $params));
+        $response = $this->publicGetVenuesVenueIdMarkets (array_merge($request, $params));
         $data = $response['result'];
         //
-        //     array (
-        //         array (
+        //     array(
+        //         array(
         //             id => 'SHXUSD',
         //             $baseAssetId => 'SHX/stronghold.co',
         //             counterAssetId => 'USD/stronghold.co',
@@ -193,7 +199,7 @@ class stronghold extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count ($data); $i++) {
+        for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $entry['id'];
             $baseId = $this->safe_string($entry, 'baseAssetId');
@@ -203,17 +209,17 @@ class stronghold extends Exchange {
             $base = $this->safe_currency_code($baseAssetId);
             $quote = $this->safe_currency_code($quoteAssetId);
             $symbol = $base . '/' . $quote;
-            $limits = array (
-                'amount' => array (
+            $limits = array(
+                'amount' => array(
                     'min' => $this->safe_float($entry, 'minimumOrderSize'),
                     'max' => null,
                 ),
             );
-            $precision = array (
+            $precision = array(
                 'price' => $this->safe_integer($entry, 'displayDecimalsPrice'),
                 'amount' => $this->safe_integer($entry, 'displayDecimalsAmount'),
             );
-            $result[$symbol] = array (
+            $result[$symbol] = array(
                 'symbol' => $symbol,
                 'id' => $marketId,
                 'base' => $base,
@@ -223,19 +229,20 @@ class stronghold extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'limits' => $limits,
+                'active' => null,
             );
         }
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
-        $request = array (
+    public function fetch_currencies($params = array ()) {
+        $request = array(
             'venueId' => $this->options['venueId'],
         );
-        $response = $this->publicGetVenuesVenueIdAssets (array_merge ($request, $params));
+        $response = $this->publicGetVenuesVenueIdAssets (array_merge($request, $params));
         //
-        //     array (
-        //         array (
+        //     array(
+        //         array(
         //             id => 'XLM/native',
         //             alias => '',
         //             $code => 'XLM',
@@ -248,31 +255,31 @@ class stronghold extends Exchange {
         //
         $data = $response['result'];
         $result = array();
-        $limits = array (
-            'amount' => array (
+        $limits = array(
+            'amount' => array(
                 'min' => null,
                 'max' => null,
             ),
-            'price' => array (
+            'price' => array(
                 'min' => null,
                 'max' => null,
             ),
-            'cost' => array (
+            'cost' => array(
                 'min' => null,
                 'max' => null,
             ),
-            'withdraw' => array (
+            'withdraw' => array(
                 'min' => null,
                 'max' => null,
             ),
         );
-        for ($i = 0; $i < count ($data); $i++) {
+        for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $assetId = $this->safe_string($entry, 'id');
             $currencyId = $this->safe_string($entry, 'code');
             $code = $this->safe_currency_code($currencyId);
             $precision = $this->safe_integer($entry, 'displayDecimalsFull');
-            $result[$code] = array (
+            $result[$code] = array(
                 'code' => $code,
                 'id' => $assetId,
                 'precision' => $precision,
@@ -280,45 +287,46 @@ class stronghold extends Exchange {
                 'active' => null,
                 'name' => null,
                 'limits' => $limits,
+                'fee' => null,
             );
         }
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array (
+        $request = array(
             'marketId' => $marketId,
             'venueId' => $this->options['venueId'],
         );
-        $response = $this->publicGetVenuesVenueIdMarketsMarketIdOrderbook (array_merge ($request, $params));
+        $response = $this->publicGetVenuesVenueIdMarketsMarketIdOrderbook (array_merge($request, $params));
         //
         //     {
         //         $marketId => 'ETHBTC',
-        //         bids => array (
-        //             array ( '0.031500', '7.385000' ),
+        //         bids => array(
+        //             array( '0.031500', '7.385000' ),
         //             ...,
         //         ),
-        //         asks => array (
-        //             array ( '0.031500', '7.385000' ),
+        //         asks => array(
+        //             array( '0.031500', '7.385000' ),
         //             ...,
         //         ),
         //     }
         //
         $data = $response['result'];
-        $timestamp = $this->parse8601 ($this->safe_string($response, 'timestamp'));
+        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
         return $this->parse_order_book($data, $timestamp);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'marketId' => $market['id'],
             'venueId' => $this->options['venueId'],
         );
-        $response = $this->publicGetVenuesVenueIdMarketsMarketIdTrades (array_merge ($request, $params));
+        $response = $this->publicGetVenuesVenueIdMarketsMarketIdTrades (array_merge($request, $params));
         //
         //     {
         //         "requestId" => "4d343700-b53f-4975-afcc-732ae9d3c828",
@@ -327,8 +335,8 @@ class stronghold extends Exchange {
         //         "statusCode" => 200,
         //         "result" => {
         //             "marketId" => "",
-        //             "trades" => array (
-        //                 array ( "0.9", "3.10", "sell", "2018-11-08T19:22:11.399547Z" ),
+        //             "trades" => array(
+        //                 array( "0.9", "3.10", "sell", "2018-11-08T19:22:11.399547Z" ),
         //                 ...
         //             ),
         //         }
@@ -337,11 +345,11 @@ class stronghold extends Exchange {
         return $this->parse_trades($response['result']['trades'], $market, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
-        //      array ( '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' )
+        //      array( '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' )
         //
         // fetchMyTrades (private)
         //
@@ -365,17 +373,17 @@ class stronghold extends Exchange {
         $side = null;
         $timestamp = null;
         $orderId = null;
-        if (gettype ($trade) === 'array' && count (array_filter (array_keys ($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
             $price = floatval ($trade[0]);
             $amount = floatval ($trade[1]);
             $side = $trade[2];
-            $timestamp = $this->parse8601 ($trade[3]);
+            $timestamp = $this->parse8601($trade[3]);
         } else {
             $id = $this->safe_string($trade, 'id');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'size');
             $side = $this->safe_string($trade, 'side');
-            $timestamp = $this->parse8601 ($this->safe_string($trade, 'executedAt'));
+            $timestamp = $this->parse8601($this->safe_string($trade, 'executedAt'));
             $orderId = $this->safe_string($trade, 'orderId');
             $marketId = $this->safe_string($trade, 'marketId');
             $market = $this->safe_value($this->markets_by_id, $marketId);
@@ -389,11 +397,11 @@ class stronghold extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        return array (
+        return array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'order' => $orderId,
@@ -402,7 +410,7 @@ class stronghold extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'takerOrMaker' => $takerOrMaker,
-            'fee' => array (
+            'fee' => array(
                 'cost' => null,
                 'currency' => null,
                 'rate' => null,
@@ -410,11 +418,11 @@ class stronghold extends Exchange {
         );
     }
 
-    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array_merge (array (
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
         ), $params);
         if (!$request['accountId']) {
             throw new ArgumentsRequired($this->id . " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -422,27 +430,27 @@ class stronghold extends Exchange {
         $response = $this->privateGetVenuesVenueIdAccountsAccountIdTransactions ($request);
         $currency = null;
         if ($code !== null) {
-            $currency = $this->currency ($code);
+            $currency = $this->currency($code);
         }
         return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
-    public function parse_transaction_status ($status) {
-        $statuses = array (
+    public function parse_transaction_status($status) {
+        $statuses = array(
             'queued' => 'pending',
             'settling' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null) {
         // {
         //     "$id" => "6408e003-0f14-4457-9340-ba608992ad5c",
         //     "$status" => "queued",
         //     "$direction" => "outgoing",
         //     "$amount" => "98.95000000",
         //     "$assetId" => "XLM/native",
-        //     "sourceAccount" => array (
+        //     "sourceAccount" => array(
         //       "$id" => "774fa8ef-600b-4636-b9ed-cd6d23421915",
         //       "venueSpecificId" => "GC5FIBIQZTQRMJE34GYF5EKH77GEQ3OHFX3NIP5OKDIZFA6VERLZSHY6"
         //     ),
@@ -463,7 +471,7 @@ class stronghold extends Exchange {
             }
         }
         $amount = $this->safe_float($transaction, 'amount');
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_float($transaction, 'feeAmount');
         $feeRate = null;
         if ($feeCost !== null) {
@@ -471,14 +479,14 @@ class stronghold extends Exchange {
         }
         $direction = $this->safe_string($transaction, 'direction');
         $datetime = $this->safe_string($transaction, 'requestedAt');
-        $timestamp = $this->parse8601 ($datetime);
-        $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
+        $timestamp = $this->parse8601($datetime);
+        $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
         $type = ($direction === 'outgoing' || $direction === 'withdrawal') ? 'withdrawal' : 'deposit';
-        $fee = array (
+        $fee = array(
             'cost' => $feeCost,
             'rate' => $feeRate,
         );
-        return array (
+        return array(
             'id' => $id,
             'info' => $transaction,
             'currency' => $code,
@@ -495,12 +503,12 @@ class stronghold extends Exchange {
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array_merge (array (
+        $market = $this->market($symbol);
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
             'marketID' => $market['id'],
             'type' => $type,
             'side' => $side,
@@ -514,10 +522,10 @@ class stronghold extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array_merge (array (
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
             'orderId' => $id,
         ), $params);
         if (!$request['accountId']) {
@@ -527,15 +535,15 @@ class stronghold extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
-        $request = array_merge (array (
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
         ), $params);
         if (!$request['accountId']) {
             throw new ArgumentsRequired($this->id . " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -544,7 +552,7 @@ class stronghold extends Exchange {
         return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         // { $id => '178596',
         //   $marketId => 'XLMUSD',
         //   side => 'buy',
@@ -575,12 +583,13 @@ class stronghold extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        return array (
+        return array(
             'id' => $id,
+            'clientOrderId' => null,
             'info' => $order,
             'symbol' => $symbol,
             'datetime' => $datetime,
-            'timestamp' => $this->parse8601 ($datetime),
+            'timestamp' => $this->parse8601($datetime),
             'side' => $this->safe_string($order, 'side'),
             'amount' => $amount,
             'filled' => $filled,
@@ -592,14 +601,15 @@ class stronghold extends Exchange {
             'status' => null,
             'type' => null,
             'average' => null,
+            'fee' => null,
         );
     }
 
-    public function nonce () {
-        return $this->seconds ();
+    public function nonce() {
+        return $this->seconds();
     }
 
-    public function set_sandbox_mode ($enabled) {
+    public function set_sandbox_mode($enabled) {
         if ($enabled) {
             $this->options['venueId'] = $this->options['venues']['sandbox'];
         } else {
@@ -607,10 +617,10 @@ class stronghold extends Exchange {
         }
     }
 
-    public function fetch_balance ($params = array ()) {
-        $request = array_merge (array (
+    public function fetch_balance($params = array ()) {
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
         ), $params);
         if (!(is_array($request) && array_key_exists('accountId', $request))) {
             throw new ArgumentsRequired($this->id . " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -618,7 +628,7 @@ class stronghold extends Exchange {
         $response = $this->privateGetVenuesVenueIdAccountsAccountId ($request);
         $balances = $this->safe_value($response['result'], 'balances');
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($balances); $i++) {
+        for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $assetId = $this->safe_string($balance, 'assetId');
             if ($assetId !== null) {
@@ -633,11 +643,11 @@ class stronghold extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array_merge (array (
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
+            'accountId' => $this->get_active_account(),
         ), $params);
         if (!$request['accountId']) {
             throw new ArgumentsRequired($this->id . " fetchMyTrades requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -645,21 +655,21 @@ class stronghold extends Exchange {
         $response = $this->privateGetVenuesVenueIdAccountsAccountIdTrades ($request);
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->market($symbol);
         }
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
+    public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $paymentMethod = $this->safe_string($this->options['paymentMethods'], $code);
         if ($paymentMethod === null) {
             throw new NotSupported($this->id . ' createDepositAddress requires $code to be BTC, ETH, or XLM');
         }
-        $request = array_merge (array (
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
-            'assetId' => $this->currencyId ($code),
+            'accountId' => $this->get_active_account(),
+            'assetId' => $this->currency_id($code),
             'paymentMethod' => $paymentMethod,
         ), $params);
         if (!$request['accountId']) {
@@ -670,7 +680,7 @@ class stronghold extends Exchange {
         //     {
         //         assetId => 'BTC/stronghold.co',
         //         $paymentMethod => 'bitcoin',
-        //         paymentMethodInstructions => array (
+        //         paymentMethodInstructions => array(
         //             deposit_address => 'mzMT9Cfw8JXVWK7rMonrpGfY9tt57ytHt4',
         //             reference => 'sometimes-exists',
         //         ),
@@ -680,7 +690,7 @@ class stronghold extends Exchange {
         $data = $response['result']['paymentMethodInstructions'];
         $address = $data['deposit_address'];
         $tag = $this->safe_string($data, 'reference');
-        return array (
+        return array(
             'currency' => $code,
             'address' => $this->check_address($address),
             'tag' => $tag,
@@ -688,19 +698,19 @@ class stronghold extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $paymentMethod = $this->safe_string($this->options['paymentMethods'], $code);
         if ($paymentMethod === null) {
             throw new NotSupported($this->id . ' withdraw requires $code to be BTC, ETH, or XLM');
         }
-        $request = array_merge (array (
+        $request = array_merge(array(
             'venueId' => $this->options['venueId'],
-            'accountId' => $this->get_active_account (),
-            'assetId' => $this->currencyId ($code),
+            'accountId' => $this->get_active_account(),
+            'assetId' => $this->currency_id($code),
             'amount' => $amount,
             'paymentMethod' => $paymentMethod,
-            'paymentMethodDetails' => array (
+            'paymentMethodDetails' => array(
                 'withdrawal_address' => $address,
             ),
         ), $params);
@@ -718,7 +728,7 @@ class stronghold extends Exchange {
         //         "$amount" => "10",
         //         "feeAmount" => "0.01",
         //         "$paymentMethod" => "bitcoin",
-        //         "paymentMethodDetails" => array (
+        //         "paymentMethodDetails" => array(
         //             "withdrawal_address" => "1vHysJeXYV6nqhroBaGi52QWFarbJ1dmQ"
         //         ),
         //         "direction" => "withdrawal",
@@ -726,13 +736,13 @@ class stronghold extends Exchange {
         //     }
         //
         $data = $response['result'];
-        return array (
+        return array(
             'id' => $this->safe_string($data, 'id'),
             'info' => $response,
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to base error handler by default
         }
@@ -756,28 +766,28 @@ class stronghold extends Exchange {
         }
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $request;
         if ($query) {
             if ($method === 'GET') {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             } else {
-                $body = $this->json ($query);
+                $body = $this->json($query);
             }
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->nonce ();
+            $timestamp = (string) $this->nonce();
             $payload = $timestamp . $method . $request;
             if ($body !== null) {
                 $payload .= $body;
             }
-            $secret = base64_decode ($this->secret);
-            $headers = array (
+            $secret = base64_decode($this->secret);
+            $headers = array(
                 'SH-CRED-ID' => $this->apiKey,
-                'SH-CRED-SIG' => $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64'),
+                'SH-CRED-SIG' => $this->hmac($this->encode($payload), $secret, 'sha256', 'base64'),
                 'SH-CRED-TIME' => $timestamp,
                 'SH-CRED-PASS' => $this->password,
                 'Content-Type' => 'application/json',

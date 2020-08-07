@@ -25,9 +25,15 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -148,7 +154,7 @@ class bit2c(Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currencyId = self.currencyId(code)
+            currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
                 account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
@@ -271,6 +277,7 @@ class bit2c(Exchange):
         status = self.safe_string(order, 'status')
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -286,6 +293,7 @@ class bit2c(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'average': None,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

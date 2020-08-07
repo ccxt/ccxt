@@ -16,31 +16,38 @@ module.exports = class dsx extends Exchange {
             'rateLimit': 1500,
             'version': 'v3',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
-                'fetchOrderBooks': false,
                 'createDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
-                'fetchTransactions': true,
-                'fetchTickers': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
-                    'public': 'https://dsx.uk/mapi', // market data
-                    'private': 'https://dsx.uk/tapi', // trading
-                    'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+                    'public': 'https://dsxglobal.com/mapi', // market data
+                    'private': 'https://dsxglobal.com/tapi', // trading
+                    'dwapi': 'https://dsxglobal.com/dwapi', // deposit/withdraw
                 },
-                'www': 'https://dsx.uk',
+                'www': 'https://dsxglobal.com',
                 'doc': [
-                    'https://dsx.uk/developers/publicApi',
+                    'https://dsxglobal.com/developers/publicApi',
                 ],
             },
             'fees': {
@@ -117,6 +124,7 @@ module.exports = class dsx extends Exchange {
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce, // {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder, // {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
@@ -444,7 +452,7 @@ module.exports = class dsx extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
@@ -461,6 +469,9 @@ module.exports = class dsx extends Exchange {
         const request = {
             'pair': ids,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 150, max = 2000
+        }
         const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
@@ -563,7 +574,7 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "high" : 0.01955,
@@ -822,6 +833,7 @@ module.exports = class dsx extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1251,7 +1263,7 @@ module.exports = class dsx extends Exchange {
             if (!success) {
                 const code = this.safeString (response, 'code');
                 const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + this.json (response);
+                const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

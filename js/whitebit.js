@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ module.exports = class whitebit extends Exchange {
                     'publicV1': 'https://whitebit.com/api/v1/public',
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -107,6 +107,7 @@ module.exports = class whitebit extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '503': ExchangeNotAvailable, // {"response":null,"status":503,"errors":{"message":[""]},"notification":null,"warning":null,"_token":null}
                 },
                 'broad': {
                     'Market is not available': BadSymbol, // {"success":false,"message":{"market":["Market is not available"]},"result":[]}
@@ -568,23 +569,45 @@ module.exports = class whitebit extends Exchange {
             request['limit'] = limit; // default == max == 500
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":[
+        //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1591488000,
+        //         "0.025025",
+        //         "0.025025",
+        //         "0.025029",
+        //         "0.025023",
+        //         "6.181",
+        //         "0.154686629"
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000, // timestamp
-            parseFloat (ohlcv[1]), // open
-            parseFloat (ohlcv[3]), // high
-            parseFloat (ohlcv[4]), // low
-            parseFloat (ohlcv[2]), // close
-            parseFloat (ohlcv[5]), // volume
+            this.safeTimestamp (ohlcv, 0), // timestamp
+            this.safeFloat (ohlcv, 1), // open
+            this.safeFloat (ohlcv, 3), // high
+            this.safeFloat (ohlcv, 4), // low
+            this.safeFloat (ohlcv, 2), // close
+            this.safeFloat (ohlcv, 5), // volume
         ];
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.webGetV1Healthcheck ();
+        const response = await this.webGetV1Healthcheck (params);
         const status = this.safeInteger (response, 'status');
         let formattedStatus = 'ok';
         if (status === 503) {
@@ -617,9 +640,9 @@ module.exports = class whitebit extends Exchange {
             const success = this.safeValue (response, 'success');
             if (!success) {
                 const feedback = this.id + ' ' + body;
-                const message = this.safeValue (response, 'message');
-                if (typeof message === 'string') {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                const status = this.safeString (response, 'status');
+                if (typeof status === 'string') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
                 }
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 throw new ExchangeError (feedback);

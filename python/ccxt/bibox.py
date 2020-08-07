@@ -17,7 +17,9 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -34,21 +36,27 @@ class bibox(Exchange):
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'publicAPI': False,
+                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder': True,
                 'fetchBalance': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchWithdrawals': True,
+                'publicAPI': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -65,14 +73,14 @@ class bibox(Exchange):
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
-                    'https://github.com/Biboxcom/API_Docs_en/wiki',
+                    'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -81,11 +89,14 @@ class bibox(Exchange):
                         'mdata',
                     ],
                     'get': [
+                        'cquery',
                         'mdata',
                     ],
                 },
                 'private': {
                     'post': [
+                        'cquery',
+                        'ctrade',
                         'user',
                         'orderpending',
                         'transfer',
@@ -102,7 +113,7 @@ class bibox(Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': 0.001,
+                    'maker': 0.0008,
                 },
                 'funding': {
                     'tierBased': False,
@@ -112,14 +123,16 @@ class bibox(Exchange):
                 },
             },
             'exceptions': {
-                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
+                '2011': AccountSuspended,  # Account is locked
                 '2015': AuthenticationError,  # Google authenticator is wrong
+                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
                 '2085': InvalidOrder,  # Order quantity is too small
                 '3012': AuthenticationError,  # invalid apiKey
+                '3016': BadSymbol,  # Trading pair error
                 '3024': PermissionDenied,  # wrong apikey permissions
                 '3025': AuthenticationError,  # signature failed
                 '4000': ExchangeNotAvailable,  # current network is unstable
@@ -188,8 +201,8 @@ class bibox(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'info': market,
                 'precision': precision,
@@ -354,9 +367,19 @@ class bibox(Exchange):
         response = self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "time":1591448220000,
+        #         "open":"0.02507029",
+        #         "high":"0.02507029",
+        #         "low":"0.02506349",
+        #         "close":"0.02506349",
+        #         "vol":"5.92000000"
+        #     }
+        #
         return [
-            ohlcv['time'],
+            self.safe_integer(ohlcv, 'time'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -374,7 +397,19 @@ class bibox(Exchange):
             'size': limit,
         }
         response = self.publicGetMdata(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        #
+        #     {
+        #         "result":[
+        #             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
+        #             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
+        #             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
+        #         ],
+        #         "cmd":"kline",
+        #         "ver":"1.1"
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):
         if not self.apiKey or not self.secret:
@@ -389,7 +424,7 @@ class bibox(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
-            name = self.safe_string(currency, 'name')
+            name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
             precision = 8
             deposit = self.safe_value(currency, 'enable_deposit')
@@ -668,6 +703,7 @@ class bibox(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -682,6 +718,7 @@ class bibox(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):
@@ -768,12 +805,20 @@ class bibox(Exchange):
         response = self.privatePostTransfer(request)
         #
         #     {
+        #         "result":"3Jx6RZ9TNMsAoy9NUzBwZf68QBppDruSKW","cmd":"transfer/transferIn"
+        #     }
+        #
+        #     {
         #         "result":"{\"account\":\"PERSONALLY OMITTED\",\"memo\":\"PERSONALLY OMITTED\"}","cmd":"transfer/transferIn"
         #     }
         #
-        result = json.loads(self.safe_string(response, 'result'))
-        address = self.safe_string(result, 'account')
-        tag = self.safe_string(result, 'memo')
+        result = self.safe_string(response, 'result')
+        address = result
+        tag = None
+        if self.is_json_encoded_object(result):
+            parsed = json.loads(result)
+            address = self.safe_string(parsed, 'account')
+            tag = self.safe_string(parsed, 'memo')
         return {
             'currency': code,
             'address': address,
@@ -869,11 +914,8 @@ class bibox(Exchange):
             if 'code' in response['error']:
                 code = self.safe_string(response['error'], 'code')
                 feedback = self.id + ' ' + body
-                exceptions = self.exceptions
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                raise ExchangeError(feedback)
             raise ExchangeError(self.id + ' ' + body)
         if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)

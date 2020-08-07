@@ -101,6 +101,7 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
@@ -273,7 +274,7 @@ class latoken(Exchange):
             'cost': float(cost),
         }
 
-    async def fetch_balance(self, currency=None, params={}):
+    async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountBalances(params)
         #
@@ -333,7 +334,24 @@ class latoken(Exchange):
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
-        symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
+        #
+        #     {
+        #         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
+        #         "symbol":"ETHBTC",
+        #         "volume":11317.037494474000000000,
+        #         "open":0.020033000000000000,
+        #         "low":0.019791000000000000,
+        #         "high":0.020375000000000000,
+        #         "close":0.019923000000000000,
+        #         "priceChange":-0.1500
+        #     }
+        #
+        symbol = None
+        marketId = self.safe_string(ticker, 'symbol')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -599,8 +617,10 @@ class latoken(Exchange):
         lastTradeTimestamp = None
         if (timeFilled is not None) and (timeFilled > 0):
             lastTradeTimestamp = timeFilled
+        clientOrderId = self.safe_string(order, 'cliOrdId')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -616,6 +636,7 @@ class latoken(Exchange):
             'average': None,
             'remaining': remaining,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -799,7 +820,7 @@ class latoken(Exchange):
         if not response:
             return
         #
-        #     {"message": "Request limit reachednot ", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
+        #     {"message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
         #     {"error": {"message": "Pair 370 is not found","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400}}
         #     {"error": {"message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}

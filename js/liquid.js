@@ -16,14 +16,22 @@ module.exports = class liquid extends Exchange {
             'version': '2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -94,6 +102,76 @@ module.exports = class liquid extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.0015,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 25000, 0.0000 ],
+                                [ 50000, -0.00025 ],
+                                [ 100000, -0.00025 ],
+                                [ 1000000, -0.00025 ],
+                                [ 10000000, -0.00025 ],
+                                [ 25000000, -0.00025 ],
+                                [ 50000000, -0.00025 ],
+                                [ 75000000, -0.00025 ],
+                                [ 100000000, -0.00025 ],
+                                [ 200000000, -0.00025 ],
+                                [ 300000000, -0.00025 ],
+                            ],
+                            'taker': [
+                                [ 0, 0.000600 ],
+                                [ 25000, 0.000575 ],
+                                [ 50000, 0.000550 ],
+                                [ 100000, 0.000525 ],
+                                [ 1000000, 0.000500 ],
+                                [ 10000000, 0.000475 ],
+                                [ 25000000, 0.000450 ],
+                                [ 50000000, 0.000425 ],
+                                [ 75000000, 0.000400 ],
+                                [ 100000000, 0.000375 ],
+                                [ 200000000, 0.000350 ],
+                                [ 300000000, 0.000325 ],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [ 0, 0.0015 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.0014 ],
+                                [ 50000, 0.0013 ],
+                                [ 100000, 0.0010 ],
+                                [ 1000000, 0.0008 ],
+                                [ 5000000, 0.0006 ],
+                                [ 10000000, 0.0005 ],
+                                [ 25000000, 0.0005 ],
+                                [ 50000000, 0.00045 ],
+                                [ 100000000, 0.0004 ],
+                                [ 200000000, 0.0003 ],
+                            ],
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.1400 ],
+                                [ 50000, 0.1300 ],
+                                [ 100000, 0.0800 ],
+                                [ 1000000, 0.0004 ],
+                                [ 5000000, 0.00035 ],
+                                [ 10000000, 0.00025 ],
+                                [ 25000000, 0.0000 ],
+                                [ 50000000, 0.0000 ],
+                                [ 100000000, 0.0000 ],
+                                [ 200000000, 0.0000 ],
+                            ],
+                        },
+                    },
+                },
+            },
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -104,6 +182,7 @@ module.exports = class liquid extends Exchange {
                 'not_enough_free_balance': InsufficientFunds,
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
+                'price_too_high': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -177,7 +256,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetProducts ();
+        const spot = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -208,20 +287,73 @@ module.exports = class liquid extends Exchange {
         //         },
         //     ]
         //
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        //
+        //     [
+        //         {
+        //             "id": "603",
+        //             "product_type": "Perpetual",
+        //             "code": "CASH",
+        //             "name": null,
+        //             "market_ask": "1143900",
+        //             "market_bid": "1143250",
+        //             "currency": "JPY",
+        //             "currency_pair_code": "P-BTCJPY",
+        //             "pusher_channel": "product_cash_p-btcjpy_603",
+        //             "taker_fee": "0.0",
+        //             "maker_fee": "0.0",
+        //             "low_market_bid": "1124450.0",
+        //             "high_market_ask": "1151750.0",
+        //             "volume_24h": "0.1756",
+        //             "last_price_24h": "1129850.0",
+        //             "last_traded_price": "1144700.0",
+        //             "last_traded_quantity": "0.014",
+        //             "quoted_currency": "JPY",
+        //             "base_currency": "P-BTC",
+        //             "tick_size": "50.0",
+        //             "perpetual_enabled": true,
+        //             "index_price": "1142636.03935",
+        //             "mark_price": "1143522.18417",
+        //             "funding_rate": "0.00033",
+        //             "fair_price": "1143609.31009",
+        //             "timestamp": "1581558659.195353100",
+        //         },
+        //     ]
+        //
         const currencies = await this.fetchCurrencies ();
         const currenciesByCode = this.indexBy (currencies, 'code');
         const result = [];
+        const markets = this.arrayConcat (spot, perpetual);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = market['id'].toString ();
-            const baseId = market['base_currency'];
-            const quoteId = market['quoted_currency'];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quoted_currency');
+            const productType = this.safeString (market, 'product_type');
+            let type = 'spot';
+            let spot = true;
+            let swap = false;
+            if (productType === 'Perpetual') {
+                spot = false;
+                swap = true;
+                type = 'swap';
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const maker = this.safeFloat (market, 'maker_fee');
-            const taker = this.safeFloat (market, 'taker_fee');
-            const active = !market['disabled'];
+            let symbol = undefined;
+            if (swap) {
+                symbol = this.safeString (market, 'currency_pair_code');
+            } else {
+                symbol = base + '/' + quote;
+            }
+            let maker = this.fees['trading']['maker'];
+            let taker = this.fees['trading']['taker'];
+            if (type === 'swap') {
+                maker = this.safeFloat (market, 'maker_fee', this.fees['trading']['maker']);
+                taker = this.safeFloat (market, 'taker_fee', this.fees['trading']['taker']);
+            }
+            const disabled = this.safeValue (market, 'disabled', false);
+            const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
             const quoteCurrency = this.safeValue (currenciesByCode, quote);
             const precision = {
@@ -265,6 +397,9 @@ module.exports = class liquid extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -393,7 +528,7 @@ module.exports = class liquid extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         // {             id:  12345,
         //         quantity: "6.789",
         //            price: "98765.4321",
@@ -420,13 +555,17 @@ module.exports = class liquid extends Exchange {
             }
         }
         const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -472,13 +611,18 @@ module.exports = class liquid extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const request = {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -501,7 +645,8 @@ module.exports = class liquid extends Exchange {
         //         "product_code": "CASH",
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
-        //         "order_fee": "0.0"
+        //         "order_fee": "0.0",
+        //         "client_order_id": null,
         //     }
         //
         return this.parseOrder (response);
@@ -570,6 +715,7 @@ module.exports = class liquid extends Exchange {
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
         //         "order_fee": "0.0"
+        //         "client_order_id": null,
         //     }
         //
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -656,8 +802,10 @@ module.exports = class liquid extends Exchange {
             remaining = amount - filled;
         }
         const side = this.safeString (order, 'side');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         return {
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -870,10 +1018,12 @@ module.exports = class liquid extends Exchange {
             const nonce = this.nonce ();
             const request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
+            if (!('client_order_id' in query)) {
+                request['nonce'] = nonce;
+            }
             headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {
@@ -888,14 +1038,10 @@ module.exports = class liquid extends Exchange {
         if (code >= 200 && code < 300) {
             return;
         }
-        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in exceptions) {
-                throw new exceptions[body] (this.id + ' ' + body);
-            } else {
-                return;
-            }
+            this.throwExactlyMatchedException (this.exceptions, body, body);
+            return;
         }
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
@@ -910,9 +1056,7 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            if (message in exceptions) {
-                throw new exceptions[message] (feedback);
-            }
+            this.throwExactlyMatchedException (this.exceptions, message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -925,9 +1069,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
-                    }
+                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
                 }
             }
         } else {

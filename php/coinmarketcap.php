@@ -6,17 +6,18 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 
 class coinmarketcap extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinmarketcap',
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
-            'countries' => array ( 'US' ),
-            'has' => array (
+            'countries' => array( 'US' ),
+            'has' => array(
                 'CORS' => true,
                 'privateAPI' => false,
                 'createOrder' => false,
@@ -32,9 +33,9 @@ class coinmarketcap extends Exchange {
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
             ),
-            'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api' => array (
+            'urls' => array(
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
+                'api' => array(
                     'public' => 'https://api.coinmarketcap.com',
                     'files' => 'https://files.coinmarketcap.com',
                     'charts' => 'https://graph.coinmarketcap.com',
@@ -42,30 +43,30 @@ class coinmarketcap extends Exchange {
                 'www' => 'https://coinmarketcap.com',
                 'doc' => 'https://coinmarketcap.com/api',
             ),
-            'requiredCredentials' => array (
+            'requiredCredentials' => array(
                 'apiKey' => false,
                 'secret' => false,
             ),
-            'api' => array (
-                'files' => array (
-                    'get' => array (
+            'api' => array(
+                'files' => array(
+                    'get' => array(
                         'generated/stats/global.json',
                     ),
                 ),
-                'graphs' => array (
-                    'get' => array (
+                'graphs' => array(
+                    'get' => array(
                         'currencies/{name}/',
                     ),
                 ),
-                'public' => array (
-                    'get' => array (
+                'public' => array(
+                    'get' => array(
                         'ticker/',
                         'ticker/{id}/',
                         'global/',
                     ),
                 ),
             ),
-            'currencyCodes' => array (
+            'currencyCodes' => array(
                 'AUD',
                 'BRL',
                 'CAD',
@@ -88,12 +89,12 @@ class coinmarketcap extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         throw new ExchangeError('Fetching order books is not supported by the API of ' . $this->id);
     }
 
-    public function currency_code ($base, $name) {
-        $currencies = array (
+    public function currency_code($base, $name) {
+        $currencies = array(
             'ACChain' => 'ACChain',
             'AdCoin' => 'AdCoin',
             'BatCoin' => 'BatCoin',
@@ -103,6 +104,7 @@ class coinmarketcap extends Exchange {
             'Blocktrade Token' => 'Blocktrade Token',
             'Catcoin' => 'Catcoin',
             'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'CryptoBossCoin' => 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
             'Comet' => 'Comet', // conflict with CMT (CyberMiles)
             'CPChain' => 'CPChain',
             'CrowdCoin' => 'CrowdCoin', // conflict with CRC CryCash
@@ -127,10 +129,13 @@ class coinmarketcap extends Exchange {
             'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
+            'Monarch' => 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
             'PCHAIN' => 'PCHAIN', // conflict with PAI (Project Pai)
+            'Plair' => 'Plair', // conflict with PLA (PLANET)
+            'PlayChip' => 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin' => 'Polcoin',
             'PutinCoin' => 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin' => 'Rcoin', // conflict with RCN (Ripio Credit Network)
@@ -138,27 +143,29 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'Menlo One' => 'Menlo One', // conflict with Harmony (ONE)
+            'BigONE Token' => 'BigONE Token', // conflict with Harmony (ONE)
         );
         return $this->safe_value($currencies, $name, $base);
     }
 
-    public function fetch_markets ($params = array ()) {
-        $request = array (
+    public function fetch_markets($params = array ()) {
+        $request = array(
             'limit' => 0,
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
             $currencies = $this->currencyCodes;
-            for ($j = 0; $j < count ($currencies); $j++) {
+            for ($j = 0; $j < count($currencies); $j++) {
                 $quote = $currencies[$j];
                 $quoteId = strtolower($quote);
                 $baseId = $market['id'];
-                $base = $this->currency_code ($market['symbol'], $market['name']);
+                $base = $this->currency_code($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
-                $result[] = array (
+                $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -166,13 +173,16 @@ class coinmarketcap extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'active' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
                 );
             }
         }
         return $result;
     }
 
-    public function fetch_global ($currency = 'USD') {
+    public function fetch_global($currency = 'USD') {
         $this->load_markets();
         $request = array();
         if ($currency) {
@@ -181,10 +191,10 @@ class coinmarketcap extends Exchange {
         return $this->publicGetGlobal ($request);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'last_updated');
         if ($timestamp === null) {
-            $timestamp = $this->milliseconds ();
+            $timestamp = $this->milliseconds();
         }
         $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
@@ -197,10 +207,10 @@ class coinmarketcap extends Exchange {
             $volumeKey = '24h_volume_' . $market['quoteId'];
             $volume = $this->safe_float($ticker, $volumeKey);
         }
-        return array (
+        return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -221,17 +231,17 @@ class coinmarketcap extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency = 'USD', $params = array ()) {
+    public function fetch_tickers($currency = 'USD', $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $request = array(
             'limit' => 10000,
         );
         if ($currency) {
             $request['convert'] = $currency;
         }
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($t = 0; $t < count ($response); $t++) {
+        for ($t = 0; $t < count($response); $t++) {
             $ticker = $response[$t];
             $currencyId = strtolower($currency);
             $id = $ticker['id'] . '/' . $currencyId;
@@ -246,25 +256,25 @@ class coinmarketcap extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
+        $market = $this->market($symbol);
+        $request = array(
             'convert' => $market['quote'],
             'id' => $market['baseId'],
         );
-        $response = $this->publicGetTickerId (array_merge ($request, $params));
+        $response = $this->publicGetTickerId (array_merge($request, $params));
         $ticker = $response[0];
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_currencies ($params = array ()) {
-        $request = array (
+    public function fetch_currencies($params = array ()) {
+        $request = array(
             'limit' => 0,
         );
-        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         $result = array();
-        for ($i = 0; $i < count ($response); $i++) {
+        for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name');
@@ -272,8 +282,8 @@ class coinmarketcap extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->currency_code ($id, $name);
-            $result[$code] = array (
+            $code = $this->currency_code($id, $name);
+            $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
@@ -281,20 +291,20 @@ class coinmarketcap extends Exchange {
                 'active' => true,
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
+                'limits' => array(
+                    'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array (
+                    'price' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'cost' => array (
+                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array (
+                    'withdraw' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -304,20 +314,20 @@ class coinmarketcap extends Exchange {
         return $result;
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
             if ($response['error']) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
         return $response;

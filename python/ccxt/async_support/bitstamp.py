@@ -12,9 +12,11 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -33,21 +35,48 @@ class bitstamp(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api': 'https://www.bitstamp.net/api',
+                'api': {
+                    'public': 'https://www.bitstamp.net/api',
+                    'private': 'https://www.bitstamp.net/api',
+                    'v1': 'https://www.bitstamp.net/api',
+                },
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
+            },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -57,6 +86,7 @@ class bitstamp(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -244,8 +274,27 @@ class bitstamp(Exchange):
             'pair': self.market_id(symbol),
         }
         response = await self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        #
+        #     {
+        #         "timestamp": "1583652948",
+        #         "microtimestamp": "1583652948955826",
+        #         "bids": [
+        #             ["8750.00", "1.33685271"],
+        #             ["8749.39", "0.07700000"],
+        #             ["8746.98", "0.07400000"],
+        #         ]
+        #         "asks": [
+        #             ["8754.10", "1.51995636"],
+        #             ["8754.71", "1.40000000"],
+        #             ["8754.72", "2.50000000"],
+        #         ]
+        #     }
+        #
+        microtimestamp = self.safe_integer(response, 'microtimestamp')
+        timestamp = int(microtimestamp / 1000)
+        orderbook = self.parse_order_book(response, timestamp)
+        orderbook['nonce'] = microtimestamp
+        return orderbook
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -485,6 +534,66 @@ class bitstamp(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "high": "9064.77",
+        #         "timestamp": "1593961440",
+        #         "volume": "18.49436608",
+        #         "low": "9040.87",
+        #         "close": "9064.77",
+        #         "open": "9040.87"
+        #     }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+            'step': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        if limit is None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                limit = 1000
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+                request['limit'] = limit
+        else:
+            if since is not None:
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+            request['limit'] = min(limit, 1000)  # min 1, max 1000
+        response = await self.publicGetOhlcPair(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "pair": "BTC/USD",
+        #             "ohlc": [
+        #                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        #                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        #                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        #             ],
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ohlc = self.safe_value(data, 'ohlc', [])
+        return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -824,10 +933,9 @@ class bitstamp(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         lastTradeTimestamp = None
         symbol = None
-        marketId = self.safe_string(order, 'currency_pair')
+        marketId = self.safe_string_lower(order, 'currency_pair')
         if marketId is not None:
             marketId = marketId.replace('/', '')
-            marketId = marketId.lower()
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
@@ -881,6 +989,7 @@ class bitstamp(Exchange):
                 }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -896,6 +1005,7 @@ class bitstamp(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -948,6 +1058,8 @@ class bitstamp(Exchange):
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = await getattr(self, method)(params)
+        if v1:
+            response = json.loads(response)
         address = response if v1 else self.safe_string(response, 'address')
         tag = None if v1 else self.safe_string(response, 'destination_tag')
         self.check_address(address)
@@ -983,7 +1095,7 @@ class bitstamp(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/'
+        url = self.urls['api'][api] + '/'
         if api != 'v1':
             url += self.version + '/'
         url += self.implode_params(path, params)
@@ -993,18 +1105,49 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            auth = nonce + self.uid + self.apiKey
-            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-            query = self.extend({
-                'key': self.apiKey,
-                'signature': signature.upper(),
-                'nonce': nonce,
-            }, query)
-            body = self.urlencode(query)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            authVersion = self.safe_value(self.options, 'auth', 'v2')
+            if (authVersion == 'v1') or (api == 'v1'):
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                query = self.extend({
+                    'key': self.apiKey,
+                    'signature': signature.upper(),
+                    'nonce': nonce,
+                }, query)
+                body = self.urlencode(query)
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
+                xAuth = 'BITSTAMP ' + self.apiKey
+                xAuthNonce = self.uuid()
+                xAuthTimestamp = str(self.milliseconds())
+                xAuthVersion = 'v2'
+                contentType = ''
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                }
+                if method == 'POST':
+                    if query:
+                        body = self.urlencode(query)
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                    else:
+                        # sending an empty POST request will trigger
+                        # an API0020 error returned by the exchange
+                        # therefore for empty requests we send a dummy object
+                        # https://github.com/ccxt/ccxt/issues/6846
+                        body = self.urlencode({'foo': 'bar'})
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                authBody = body if body else ''
+                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

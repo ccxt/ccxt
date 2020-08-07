@@ -17,11 +17,32 @@ module.exports = class lykke extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOHLCV': false,
-                'fetchTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchTrades': true,
+                'fetchMyTrades': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'cancelAllOrders': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+            },
+            'timeframes': {
+                '1m': 'Minute',
+                '5m': 'Min5',
+                '15m': 'Min15',
+                '30m': 'Min30',
+                '1h': 'Hour',
+                '4h': 'Hour4',
+                '6h': 'Hour6',
+                '12h': 'Hour12',
+                '1d': 'Day',
+                '1w': 'Week',
+                '1M': 'Month',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -49,8 +70,26 @@ module.exports = class lykke extends Exchange {
             'api': {
                 'mobile': {
                     'get': [
+                        'AssetPairs/rate',
+                        'AssetPairs/rate/{assetPairId}',
+                        'AssetPairs/dictionary/{market}',
+                        'Assets/dictionary',
+                        'Candles/history/{market}/available',
+                        'Candles/history/{market}/{assetPair}/{period}/{type}/{from}/{to}',
+                        'Company/ownershipStructure',
+                        'Company/registrationsCount',
+                        'IsAlive',
+                        'Market',
                         'Market/{market}',
+                        'Market/capitalization/{market}',
+                        'OrderBook',
+                        'OrderBook/{assetPairId}',
                         'Trades/{AssetPairId}',
+                        'Trades/Last/{assetPair}/{n}',
+                    ],
+                    'post': [
+                        'AssetPairs/rate/history',
+                        'AssetPairs/rate/history/{assetPairId}',
                     ],
                 },
                 'public': {
@@ -67,11 +106,20 @@ module.exports = class lykke extends Exchange {
                         'Orders',
                         'Orders/{id}',
                         'Wallets',
+                        'History/trades',
                     ],
                     'post': [
                         'Orders/limit',
                         'Orders/market',
                         'Orders/{id}/Cancel',
+                        'Orders/v2/market',
+                        'Orders/v2/limit',
+                        'Orders/stoplimit',
+                        'Orders/bulk',
+                    ],
+                    'delete': [
+                        'Orders',
+                        'Orders/{id}',
                     ],
                 },
             },
@@ -113,6 +161,24 @@ module.exports = class lykke extends Exchange {
         //     "action": "Buy"
         //   }
         //
+        //  private fetchMyTrades
+        //     {
+        //         Id: '3500b83c-9963-4349-b3ee-b3e503073cea',
+        //         OrderId: '83b50feb-8615-4dc6-b606-8a4168ecd708',
+        //         DateTime: '2020-05-19T11:17:39.31+00:00',
+        //         Timestamp: '2020-05-19T11:17:39.31+00:00',
+        //         State: null,
+        //         Amount: -0.004,
+        //         BaseVolume: -0.004,
+        //         QuotingVolume: 39.3898,
+        //         Asset: 'BTC',
+        //         BaseAssetId: 'BTC',
+        //         QuotingAssetId: 'USD',
+        //         AssetPair: 'BTCUSD',
+        //         AssetPairId: 'BTCUSD',
+        //         Price: 9847.427,
+        //         Fee: { Amount: null, Type: 'Unknown', FeeAssetId: null }
+        //     },
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'AssetPairId');
@@ -121,12 +187,25 @@ module.exports = class lykke extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'dateTime'));
-        const side = this.safeStringLower (trade, 'action');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'volume');
+        const id = this.safeString2 (trade, 'id', 'Id');
+        const orderId = this.safeString (trade, 'OrderId');
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'dateTime', 'DateTime'));
+        const price = this.safeFloat2 (trade, 'price', 'Price');
+        let amount = this.safeFloat2 (trade, 'volume', 'Amount');
+        let side = this.safeStringLower (trade, 'action');
+        if (side === undefined) {
+            if (amount < 0) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        }
+        amount = Math.abs (amount);
         const cost = price * amount;
+        const fee = {
+            'cost': 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
+            'currency': market['quote'],
+        };
         return {
             'id': id,
             'info': trade,
@@ -134,13 +213,13 @@ module.exports = class lykke extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': undefined,
+            'order': orderId,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -156,6 +235,21 @@ module.exports = class lykke extends Exchange {
             'take': limit,
         };
         const response = await this.mobileGetTradesAssetPairId (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (limit !== undefined) {
+            request['take'] = limit; // How many maximum items have to be returned, max 1000 default 100.
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['assetPairId'] = market['id'];
+        }
+        const response = await this.privateGetHistoryTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -176,7 +270,19 @@ module.exports = class lykke extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrdersIdCancel ({ 'id': id });
+        const request = { 'id': id };
+        return await this.privateDeleteOrdersId (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['assetPairId'] = market['id'];
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -186,17 +292,47 @@ module.exports = class lykke extends Exchange {
             'AssetPairId': market['id'],
             'OrderAction': this.capitalize (side),
             'Volume': amount,
+            'Asset': market['baseId'],
         };
-        if (type === 'market') {
-            query['Asset'] = (side === 'buy') ? market['base'] : market['quote'];
-        } else if (type === 'limit') {
+        if (type === 'limit') {
             query['Price'] = price;
         }
-        const method = 'privatePostOrders' + this.capitalize (type);
+        const method = 'privatePostOrdersV2' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
+        //
+        // market
+        //
+        //     {
+        //         "Price": 0
+        //     }
+        //
+        // limit
+        //
+        //     {
+        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        //     }
+        //
+        const id = this.safeString (result, 'Id');
+        price = this.safeFloat (result, 'Price');
         return {
-            'id': undefined,
+            'id': id,
             'info': result,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -255,6 +391,8 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'baseId': undefined,
+                'quoteId': undefined,
             });
         }
         return result;
@@ -311,11 +449,29 @@ module.exports = class lykke extends Exchange {
             'Cancelled': 'canceled',
             'Rejected': 'rejected',
             'Replaced': 'canceled',
+            'Placed': 'open',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "Id": "string",
+        //         "Status": "Unknown",
+        //         "AssetPairId": "string",
+        //         "Volume": 0,
+        //         "Price": 0,
+        //         "RemainingVolume": 0,
+        //         "LastMatchTime": "2020-03-26T20:58:50.710Z",
+        //         "CreatedAt": "2020-03-26T20:58:50.710Z",
+        //         "Type": "Unknown",
+        //         "LowerLimitPrice": 0,
+        //         "LowerPrice": 0,
+        //         "UpperLimitPrice": 0,
+        //         "UpperPrice": 0
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         if (market === undefined) {
@@ -333,20 +489,28 @@ module.exports = class lykke extends Exchange {
             timestamp = this.parse8601 (order['CreatedAt']);
         }
         const price = this.safeFloat (order, 'Price');
-        const amount = this.safeFloat (order, 'Volume');
-        const remaining = this.safeFloat (order, 'RemainingVolume');
+        let side = undefined;
+        let amount = this.safeFloat (order, 'Volume');
+        if (amount < 0) {
+            side = 'sell';
+            amount = Math.abs (amount);
+        } else {
+            side = 'buy';
+        }
+        const remaining = Math.abs (this.safeFloat (order, 'RemainingVolume'));
         const filled = amount - remaining;
         const cost = filled * price;
         const id = this.safeString (order, 'Id');
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': undefined,
@@ -355,6 +519,7 @@ module.exports = class lykke extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -370,25 +535,25 @@ module.exports = class lykke extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetOrders (params);
-        return this.parseOrders (response, undefined, since, limit);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         const request = {
             'status': 'InOrderBook',
         };
-        const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, undefined, since, limit);
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         const request = {
             'status': 'Matched',
         };
-        const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, undefined, since, limit);
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -436,7 +601,7 @@ module.exports = class lykke extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
-            if (method === 'GET') {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }

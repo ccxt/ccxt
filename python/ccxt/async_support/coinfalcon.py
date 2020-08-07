@@ -8,7 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 
 
 class coinfalcon(Exchange):
@@ -21,9 +21,17 @@ class coinfalcon(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'fetchTickers': True,
-                'fetchOpenOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -257,6 +265,23 @@ class coinfalcon(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
+        #         "market":"IOT-BTC"
+        #         "price":"0.0000003"
+        #         "size":"4.0"
+        #         "size_filled":"3.0"
+        #         "fee":"0.0075"
+        #         "fee_currency_code":"iot"
+        #         "funds":"0.0"
+        #         "status":"canceled"
+        #         "order_type":"buy"
+        #         "post_only":false
+        #         "operation_type":"market_order"
+        #         "created_at":"2018-01-12T21:14:06.747828Z"
+        #     }
+        #
         if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId in self.markets_by_id:
@@ -283,6 +308,7 @@ class coinfalcon(Exchange):
         side = self.safe_string(order, 'order_type')
         return {
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -297,6 +323,8 @@ class coinfalcon(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+            'lastTradeTimestamp': None,
+            'average': None,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -381,6 +409,6 @@ class coinfalcon(Exchange):
             return
         ErrorClass = self.safe_value({
             '401': AuthenticationError,
-            '429': DDoSProtection,
+            '429': RateLimitExceeded,
         }, code, ExchangeError)
         raise ErrorClass(body)

@@ -4,7 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
-    , debug = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--debug')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
@@ -15,6 +15,10 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , testnet =
+        process.argv.includes ('--test') ||
+        process.argv.includes ('--testnet') ||
+        process.argv.includes ('--sandbox')
 
 //-----------------------------------------------------------------------------
 
@@ -40,6 +44,11 @@ const ccxt         = require ('../../ccxt.js')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
     , { ExchangeError, NetworkError } = ccxt
+
+//-----------------------------------------------------------------------------
+
+console.log ('Node.js:', process.version)
+console.log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
@@ -105,16 +114,20 @@ try {
 
     const { Agent } = require ('https')
 
-    const agent = new Agent ({
+    const httpsAgent = new Agent ({
         ecdhCurve: 'auto',
     })
 
     exchange = new (ccxt)[exchangeId] ({
         timeout,
         enableRateLimit,
-        agent,
+        httpsAgent,
         ... settings,
     })
+
+    if (testnet) {
+        exchange.setSandboxMode (true)
+    }
 
 } catch (e) {
 
@@ -135,7 +148,7 @@ function printSupportedExchanges () {
     log ('This is an example of a basic command-line interface to all exchanges')
     log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
     log ('Examples:')
-    log ('node', process.argv[1], 'okcoinusd fetchOHLCV BTC/USD 15m')
+    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
@@ -171,7 +184,7 @@ const printHumanReadable = (exchange, result) => {
             })
 
         if (!no_table)
-            if (arrayOfObjects || table) {
+            if (arrayOfObjects || table && Array.isArray (result)) {
                 log (result.length > 0 ? asTable (result.map (element => {
                     let keys = Object.keys (element)
                     delete element['info']
@@ -209,8 +222,7 @@ const printHumanReadable = (exchange, result) => {
 
 async function main () {
 
-    const requirements = exchangeId && methodName
-    if (!requirements) {
+    if (!exchangeId) {
 
         printUsage ()
 
@@ -261,47 +273,54 @@ async function main () {
             }
         }
 
-        if (typeof exchange[methodName] === 'function') {
+        if (methodName) {
 
-            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+            if (typeof exchange[methodName] === 'function') {
 
-            while (true) {
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
-                try {
+                while (true) {
 
-                    const result = await exchange[methodName] (... args)
-                    printHumanReadable (exchange, result)
+                    try {
 
-                } catch (e) {
+                        const result = await exchange[methodName] (... args)
+                        printHumanReadable (exchange, result)
 
-                    if (e instanceof ExchangeError) {
+                    } catch (e) {
 
-                        log.red (e.constructor.name, e.message)
+                        if (e instanceof ExchangeError) {
 
-                    } else if (e instanceof NetworkError) {
+                            log.red (e.constructor.name, e.message)
 
-                        log.yellow (e.constructor.name, e.message)
+                        } else if (e instanceof NetworkError) {
+
+                            log.yellow (e.constructor.name, e.message)
+
+                        }
+
+                        log.dim ('---------------------------------------------------')
+
+                        // rethrow for call-stack // other errors
+                        throw e
 
                     }
 
-                    log.dim ('---------------------------------------------------')
-
-                    // rethrow for call-stack // other errors
-                    throw e
-
+                    if (!poll)
+                        break;
                 }
 
-                if (!poll)
-                    break;
+            } else if (exchange[methodName] === undefined) {
+
+                log.red (exchange.id + '.' + methodName + ': no such property')
+
+            } else {
+
+                printHumanReadable (exchange, exchange[methodName])
             }
-
-        } else if (exchange[methodName] === undefined) {
-
-            log.red (exchange.id + '.' + methodName + ': no such property')
 
         } else {
 
-            printHumanReadable (exchange, exchange[methodName])
+            console.log (exchange)
         }
     }
 }

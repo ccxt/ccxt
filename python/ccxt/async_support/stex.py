@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class stex(Exchange):
@@ -25,22 +26,28 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,  # limit orders only
-                'fetchCurrencies': True,
-                'fetchMarkets': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOHLCV': True,
+                'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchDeposits': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -182,17 +189,21 @@ class stex(Exchange):
                     'maker': 0.002,
                 },
             },
+            'commonCurrencies': {
+                'BHD': 'Bithold',
+            },
             'options': {
                 'parseOrderToPrecision': False,
             },
             'exceptions': {
                 'exact': {
-                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+                    # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
                     # {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
                     'Wrong parameters': BadRequest,
                     'Unauthenticated.': AuthenticationError,  # {"message":"Unauthenticated."}
                     'Server Error': ExchangeError,  # {"message": "Server Error"}
                     'This feature is only enabled for users verifies by Cryptonomica': PermissionDenied,  # {"success":false,"message":"This feature is only enabled for users verifies by Cryptonomica"}
+                    'Too Many Attempts.': DDoSProtection,  # {"message": "Too Many Attempts."}
                 },
                 'broad': {
                     'Not enough': InsufficientFunds,  # {"success":false,"message":"Not enough  ETH"}
@@ -324,8 +335,8 @@ class stex(Exchange):
             minBuyPrice = self.safe_float(market, 'min_buy_price')
             minSellPrice = self.safe_float(market, 'min_sell_price')
             minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_float(market, 'buy_fee_percent')
-            sellFee = self.safe_float(market, 'sell_fee_percent')
+            buyFee = self.safe_float(market, 'buy_fee_percent') / 100
+            sellFee = self.safe_float(market, 'sell_fee_percent') / 100
             fee = max(buyFee, sellFee)
             result.append({
                 'id': id,
@@ -407,6 +418,25 @@ class stex(Exchange):
         #
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetPing(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "server_datetime": {
+        #                 "date": "2019-01-22 15:13:34.233796",
+        #                 "timezone_type": 3,
+        #                 "timezone": "UTC"
+        #             },
+        #             "server_timestamp": 1548170014
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        serverDatetime = self.safe_value(data, 'server_datetime', {})
+        return self.parse8601(self.safe_string(serverDatetime, 'date'))
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -495,6 +525,13 @@ class stex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        percentage = None
+        if last is not None:
+            if (open is not None) and (open > 0):
+                change = last - open
+                percentage = ((100 / open) * last) - 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -506,15 +543,15 @@ class stex(Exchange):
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
+            'baseVolume': self.safe_float(ticker, 'volumeQuote'),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -575,7 +612,7 @@ class stex(Exchange):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time": 1566086400000,
@@ -634,8 +671,8 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        ohlcvs = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -874,6 +911,7 @@ class stex(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1441,10 +1479,10 @@ class stex(Exchange):
             code = self.common_currency_code(self.safe_string(transaction, 'currency_code'))
         if (code is None) and (currency is not None):
             code = currency['code']
-        type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'amount')
+        type = 'deposit' if ('deposit_status_id' in transaction) else 'withdrawal'
+        amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
-        timestamp = self.safe_timestamp(transaction, 'timestamp', 'created_ts')
+        timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
         updated = self.safe_timestamp(transaction, 'updated_ts')
         txid = self.safe_string(transaction, 'txid')
         fee = None
@@ -1477,19 +1515,17 @@ class stex(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyTypeName': currency['name'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageNum': 0,  # also works without it, most likely a typo in the docs
-            # 'sort': 1,  # 1 = asc, 0 = desc
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetDeposits(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1509,28 +1545,31 @@ class stex(Exchange):
         #                 "status_color": "#BC3D51",
         #                 "created_at": "2018-11-28 12:32:08",
         #                 "timestamp": "1543409389",
-        #                 "confirmations": "1 of 2"
+        #                 "confirmations": "1 of 2",
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
+        #                 }
         #             }
         #         ]
         #     }
         #
-        deposits = self.safe_value(response, 'datas', {})
+        deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currencyId': currency['id'],
-            # 'pageSize': limit,  # documented as required, but it works without it
-            # 'pageIndex': 0,  # also works without it, most likely a typo in the docs
-            # 'tab': 'all',  # all, wait(submitted, not audited), success(auditing passed), fail(auditing failed), cancel(canceled by user)
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currencyId'] = currency['id']
         if limit is not None:
-            request['pageSize'] = limit  # default 50
-        response = await self.privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord(self.extend(request, params))
+            request['limit'] = limit
+        if since is not None:
+            request['timeStart'] = since
+        response = await self.profileGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1561,6 +1600,11 @@ class stex(Exchange):
         #                     "protocol_id": 10,
         #                     "protocol_name": "Tether OMNI",
         #                     "supports_new_address_creation": False
+        #                 },
+        #                 "protocol_specific_settings": {
+        #                     "protocol_name": "Tether OMNI",
+        #                     "protocol_id": 10,
+        #                     "block_explorer_url": "https://omniexplorer.info/search/"
         #                 }
         #             }
         #         ]
@@ -1619,11 +1663,66 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
+    async def fetch_funding_fees(self, codes=None, params={}):
+        response = await self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        withdrawFees = {}
+        depositFees = {}
+        for i in range(0, len(data)):
+            id = self.safe_string(data[i], 'id')
+            code = self.safe_currency_code(id)
+            withdrawFees[code] = self.safe_float(data[i], 'withdrawal_fee_const')
+            depositFees[code] = self.safe_float(data[i], 'deposit_fee_const')
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        }
+
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #
-        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Typenot "]}}
+        #     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
         #     {"success":false,"message":"Wrong parameters","errors":{"time":["timeStart or timeEnd is less then 1"]}}
         #     {"success":false,"message":"Not enough  ETH"}
         #

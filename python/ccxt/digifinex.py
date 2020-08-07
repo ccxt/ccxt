@@ -29,14 +29,22 @@ class digifinex(Exchange):
             'version': 'v3',
             'rateLimit': 900,  # 300 for posts
             'has': {
+                'cancelOrder': True,
                 'cancelOrders': True,
-                'fetchOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
+                'fetchTime': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -50,14 +58,14 @@ class digifinex(Exchange):
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
-                'api': 'https://openapi.digifinex.vip',
-                'www': 'https://www.digifinex.vip',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
+                'api': 'https://openapi.digifinex.com',
+                'www': 'https://www.digifinex.com',
                 'doc': [
-                    'https://docs.digifinex.vip',
+                    'https://docs.digifinex.com',
                 ],
-                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
+                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
                 'v2': {
@@ -77,6 +85,7 @@ class digifinex(Exchange):
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ],
                 },
                 'private': {
@@ -111,6 +120,14 @@ class digifinex(Exchange):
                         'spot/order/new',
                         'transfer',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
             'exceptions': {
@@ -149,32 +166,39 @@ class digifinex(Exchange):
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
             },
+            'commonCurrencies': {
+                'BHT': 'Black House Test',
+            },
         })
 
-    def fetch_markets_by_type(self, type, params={}):
-        method = 'publicGet' + self.capitalize(type) + 'Symbols'
-        response = getattr(self, method)(params)
+    def fetch_markets(self, params={}):
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        method = self.safe_string(options, 'method', 'fetch_markets_v2')
+        return getattr(self, method)(params)
+
+    def fetch_markets_v2(self, params={}):
+        response = self.publicGetTradesSymbols(params)
         #
         #     {
-        #         "symbol_list": [
+        #         "symbol_list":[
         #             {
         #                 "order_types":["LIMIT","MARKET"],
         #                 "quote_asset":"USDT",
         #                 "minimum_value":2,
         #                 "amount_precision":4,
         #                 "status":"TRADING",
-        #                 "minimum_amount":0.001,
-        #                 "symbol":"LTC_USDT",
-        #                 "margin_rate":0.3,
+        #                 "minimum_amount":0.0001,
+        #                 "symbol":"BTC_USDT",
+        #                 "is_allow":1,
         #                 "zone":"MAIN",
-        #                 "base_asset":"LTC",
+        #                 "base_asset":"BTC",
         #                 "price_precision":2
-        #             },
+        #             }
         #         ],
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'symbols_list', [])
+        markets = self.safe_value(response, 'symbol_list', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -212,7 +236,9 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            active = None
+            isAllowed = self.safe_value(market, 'is_allow', 1)
+            active = True if isAllowed else False
+            type = 'spot'
             spot = (type == 'spot')
             margin = (type == 'margin')
             result.append({
@@ -232,7 +258,7 @@ class digifinex(Exchange):
             })
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets_v1(self, params={}):
         response = self.publicGetMarkets(params)
         #
         #     {
@@ -522,7 +548,7 @@ class digifinex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id[market]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
@@ -558,6 +584,16 @@ class digifinex(Exchange):
             'fee': fee,
         }
 
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        #
+        #     {
+        #         "server_time": 1589873762,
+        #         "code": 0
+        #     }
+        #
+        return self.safe_timestamp(response, 'server_time')
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -592,14 +628,24 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1556712900,
+        #         2205.899,
+        #         0.029967,
+        #         0.02997,
+        #         0.029871,
+        #         0.029927
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,  # timestamp
-            ohlcv[5],  # open
-            ohlcv[3],  # high
-            ohlcv[4],  # low
-            ohlcv[2],  # close
-            ohlcv[1],  # volume
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 5),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 1),  # volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -804,6 +850,7 @@ class digifinex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -818,6 +865,7 @@ class digifinex(Exchange):
             'average': average,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

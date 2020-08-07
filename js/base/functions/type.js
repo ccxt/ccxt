@@ -3,6 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const isNumber          = Number.isFinite
+    , isInteger         = Number.isInteger
     , isArray           = Array.isArray
     , hasProps          = o => ((o !== undefined) && (o !== null))
     , isString          = s =>                 (typeof s === 'string')
@@ -25,6 +26,7 @@ const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : Na
 module.exports = {
 
     isNumber
+    , isInteger
     , isArray
     , isObject
     , isString

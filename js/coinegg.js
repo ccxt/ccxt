@@ -14,11 +14,18 @@ module.exports = class coinegg extends Exchange {
             'name': 'CoinEgg',
             'countries': [ 'CN', 'UK' ],
             'has': {
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': 'emulated',
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': false,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
@@ -352,6 +359,7 @@ module.exports = class coinegg extends Exchange {
         const id = this.safeString (order, 'id');
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -367,6 +375,7 @@ module.exports = class coinegg extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': info,
+            'average': undefined,
         };
     }
 
@@ -496,10 +505,8 @@ module.exports = class coinegg extends Exchange {
         const errorCode = this.safeString (response, 'code');
         const errorMessages = this.errorMessages;
         const message = this.safeString (errorMessages, errorCode, 'Unknown Error');
-        if (errorCode in this.exceptions) {
-            throw new this.exceptions[errorCode] (this.id + ' ' + message);
-        } else {
-            throw new ExchangeError (this.id + ' ' + message);
-        }
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+        throw new ExchangeError (this.id + ' ' + message);
     }
 };

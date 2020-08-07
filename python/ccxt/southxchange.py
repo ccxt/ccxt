@@ -16,10 +16,17 @@ class southxchange(Exchange):
             'countries': ['AR'],  # Argentina
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -63,6 +70,7 @@ class southxchange(Exchange):
             'commonCurrencies': {
                 'SMT': 'SmartNode',
                 'MTC': 'Marinecoin',
+                'BHD': 'Bithold',
             },
         })
 
@@ -86,6 +94,8 @@ class southxchange(Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -228,6 +238,7 @@ class southxchange(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -241,6 +252,8 @@ class southxchange(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
         return result
 

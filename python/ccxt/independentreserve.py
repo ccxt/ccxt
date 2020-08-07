@@ -15,10 +15,19 @@ class independentreserve(Exchange):
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
                 'api': {
                     'public': 'https://api.independentreserve.com/Public',
                     'private': 'https://api.independentreserve.com/Private',
@@ -72,6 +81,9 @@ class independentreserve(Exchange):
                     'tierBased': False,
                 },
             },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -94,6 +106,9 @@ class independentreserve(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 
@@ -162,11 +177,34 @@ class independentreserve(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        #         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        #         "Type": "MarketBid",
+        #         "VolumeOrdered": 5.0,
+        #         "VolumeFilled": 5.0,
+        #         "Price": null,
+        #         "AvgPrice": 100.0,
+        #         "ReservedAmount": 0.0,
+        #         "Status": "Filled",
+        #         "PrimaryCurrencyCode": "Xbt",
+        #         "SecondaryCurrencyCode": "Usd"
+        #     }
+        #
         symbol = None
-        if market is None:
+        baseId = self.safe_string(order, 'PrimaryCurrencyCode')
+        quoteId = self.safe_string(order, 'PrimaryCurrencyCode')
+        base = None
+        quote = None
+        if (baseId is not None) and (quoteId is not None):
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+        elif market is not None:
             symbol = market['symbol']
-        else:
-            market = self.find_market(order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode'])
+            base = market['base']
+            quote = market['quote']
         orderType = self.safe_value(order, 'Type')
         if orderType.find('Market') >= 0:
             orderType = 'market'
@@ -177,7 +215,7 @@ class independentreserve(Exchange):
             side = 'buy'
         elif orderType.find('Offer') >= 0:
             side = 'sell'
-        timestamp = self.parse8601(order['CreatedTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_float(order, 'VolumeOrdered')
         if amount is None:
             amount = self.safe_float(order, 'Volume')
@@ -190,14 +228,10 @@ class independentreserve(Exchange):
                 remaining = amount - filled
                 if feeRate is not None:
                     feeCost = feeRate * filled
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['base']
         fee = {
             'rate': feeRate,
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': base,
         }
         id = self.safe_string(order, 'OrderGuid')
         status = self.parse_order_status(self.safe_string(order, 'Status'))
@@ -207,6 +241,7 @@ class independentreserve(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -221,6 +256,7 @@ class independentreserve(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):
