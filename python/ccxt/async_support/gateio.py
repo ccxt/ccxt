@@ -302,7 +302,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': 8,
+                'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {

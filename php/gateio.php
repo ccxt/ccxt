@@ -302,7 +302,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => 8,
+                'amount' => $this->safe_integer($details, 'amount_decimal_places'),
                 'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
