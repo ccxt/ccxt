@@ -1593,9 +1593,29 @@ module.exports = class okex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const balance = this.safeValue (info, id, {});
             const account = this.account ();
+            const totalAvailBalance = this.safeFloat (balance, 'total_avail_balance');
+            if (this.safeString (balance, 'margin_mode') === 'fixed') {
+                const contracts = this.safeValue (balance, 'contracts', []);
+                let free = totalAvailBalance;
+                for (let i = 0; i < contracts.length; i++) {
+                    const contract = contracts[i];
+                    const fixedBalance = this.safeFloat (contract, 'fixed_balance');
+                    const realizedPnl = this.safeFloat (contract, 'realized_pnl');
+                    const marginFrozen = this.safeFloat (contract, 'margin_frozen');
+                    const marginForUnfilled = this.safeFloat (contract, 'margin_for_unfilled');
+                    const margin = this.sum (fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled;
+                    free = this.sum (free, margin);
+                }
+                account['free'] = free;
+            } else {
+                const realizedPnl = this.safeFloat (balance, 'realized_pnl');
+                const unrealizedPnl = this.safeFloat (balance, 'unrealized_pnl');
+                const marginFrozen = this.safeFloat (balance, 'margin_frozen');
+                const marginForUnfilled = this.safeFloat (balance, 'margin_for_unfilled');
+                account['free'] = this.sum (totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled;
+            }
             // it may be incorrect to use total, free and used for swap accounts
             account['total'] = this.safeFloat (balance, 'equity');
-            account['free'] = this.safeFloat (balance, 'total_avail_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
