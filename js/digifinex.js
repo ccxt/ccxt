@@ -555,7 +555,7 @@ module.exports = class digifinex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[market];
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
