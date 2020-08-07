@@ -1599,13 +1599,20 @@ module.exports = class okex extends Exchange {
                 let free = totalAvailBalance;
                 for (let i = 0; i < contracts.length; i++) {
                     let cont = contracts[i];
-                    free += this.sum(this.safeFloat (cont, 'fixed_balance'), this.safeFloat (cont, 'realized_pnl'))
-                            - this.sum(this.safeFloat (cont, 'margin_frozen'), this.safeFloat (cont, 'margin_for_unfilled'));
+                    const fixedBalance = this.safeFloat (cont, 'fixed_balance');
+                    const realizedPnl = this.safeFloat (cont, 'realized_pnl');
+                    const marginFrozen = this.safeFloat (cont, 'margin_frozen');
+                    const marginForUnfilled = this.safeFloat (cont, 'margin_for_unfilled');
+                    const margin = this.sum (fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled;
+                    free = this.sum (free, margin);
                 }
                 account['free'] = free;
             } else {
-                account['free'] = this.sum(totalAvailBalance, this.safeFloat (balance, 'realized_pnl'), this.safeFloat (balance, 'unrealized_pnl'))
-                                  - this.sum(this.safeFloat (balance, 'margin_frozen'), this.safeFloat (balance, 'margin_for_unfilled'));
+                const realizedPnl = this.safeFloat (balance, 'realized_pnl');
+                const unrealizedPnl = this.safeFloat (balance, 'unrealized_pnl');
+                const marginFrozen = this.safeFloat (balance, 'margin_frozen');
+                const marginForUnfilled = this.safeFloat (balance, 'margin_for_unfilled');
+                account['free'] = this.sum (totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled;
             }
             // it may be incorrect to use total, free and used for swap accounts
             account['total'] = this.safeFloat (balance, 'equity');
