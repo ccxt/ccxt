@@ -872,7 +872,7 @@ You can hide the changes in the generated files by running this command (after t
 npm run git-ignore-generated-files
 ```
 
-Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occured in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
+Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occurred in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
 
 ```
 npm run git-unignore-generated-files
