@@ -548,7 +548,7 @@ class digifinex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id[market]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
