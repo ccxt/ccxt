@@ -1598,11 +1598,11 @@ module.exports = class okex extends Exchange {
                 const contracts = this.safeValue (balance, 'contracts', []);
                 let free = totalAvailBalance;
                 for (let i = 0; i < contracts.length; i++) {
-                    const cont = contracts[i];
-                    const fixedBalance = this.safeFloat (cont, 'fixed_balance');
-                    const realizedPnl = this.safeFloat (cont, 'realized_pnl');
-                    const marginFrozen = this.safeFloat (cont, 'margin_frozen');
-                    const marginForUnfilled = this.safeFloat (cont, 'margin_for_unfilled');
+                    const contract = contracts[i];
+                    const fixedBalance = this.safeFloat (contract, 'fixed_balance');
+                    const realizedPnl = this.safeFloat (contract, 'realized_pnl');
+                    const marginFrozen = this.safeFloat (contract, 'margin_frozen');
+                    const marginForUnfilled = this.safeFloat (contract, 'margin_for_unfilled');
                     const margin = this.sum (fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled;
                     free = this.sum (free, margin);
                 }
