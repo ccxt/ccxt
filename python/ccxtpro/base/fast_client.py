@@ -43,7 +43,7 @@ class FastClient(AiohttpClient):
                 self.switcher = asyncio.ensure_future(switcher())
 
         def network_error(exception):
-            return ccxt.NetworkError(exception if exception else 1006)
+            self.on_error(ccxt.NetworkError(exception if exception else 1006))
 
         connection = self.connection._conn
         if connection.closed:
