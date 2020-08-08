@@ -418,7 +418,7 @@ module.exports = class vinex extends Exchange {
         if (status) {
             request['status'] = status;
         }
-        const orders = this.privateGetGetMyOrders (this.extend (request, params));
+        const orders = await this.privateGetGetMyOrders (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -491,27 +491,25 @@ module.exports = class vinex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const headers = {};
+            headers = {};
             headers['api-key'] = this.apiKey;
             if (!('time_stamp' in params)) {
                 params['time_stamp'] = this.seconds ();
             }
-            // query['recv_window'] = 60
+            // Create signature
+            const keys = Object.keys (params);
+            keys.sort ();
+            const keysLength = keys.length;
+            let plainText = '';
+            for (let i = 0; i < keysLength - 1; i++) {
+                plainText += this.safeString (params, keys[i]) + '_';
+            }
+            plainText += this.safeString (params, keys[keysLength - 1]);
+            headers['signature'] = this.hmac (this.encode (plainText), this.encode (this.secret), 'sha256');
             if (method === 'GET') {
-                if (params) {
-                    url += '?' + this.urlencode (params);
-                }
+                url += '?' + this.urlencode (params);
             } else if (params) {
                 body = this.urlencode (params);
-                const keys = Object.keys (params);
-                keys.sort ();
-                const keysLength = keys.length;
-                let plainText = '';
-                for (let i = 0; i < keysLength - 1; i++) {
-                    plainText += this.safeString (params, keys[i]) + '_';
-                }
-                plainText += params[keys[keysLength - 1]];
-                headers['signature'] = this.hmac (this.encode (plainText), this.encode (this.secret), 'sha256');
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }
