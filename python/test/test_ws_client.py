@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
-import ccxt
-from ccxtpro.base.exchange import Exchange
+import os
+import sys
 import asyncio
 import subprocess
 import datetime
+
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root)
+
+import ccxtpro  # noqa: F401
+from ccxtpro.base.exchange import Exchange  # noqa: F401
 
 
 def resolver(client, message):
@@ -21,7 +27,7 @@ async def main():
         try:
             output.append(await ws.watch('ws://localhost:8080', 'lol', None, None, None))
             # time.sleep(0.02)  # represent some processing on the user end
-        except ccxt.NetworkError as e:
+        except ccxtpro.NetworkError as e:
             print(datetime.datetime.now().isoformat(timespec='milliseconds') + 'Z', 'python error', type(e), e)
             output.append(e)
             if 'Connect call' in str(e):
