@@ -4,6 +4,7 @@ import asyncio
 import subprocess
 import time
 
+
 def resolver(client, message):
     client.resolve(message, 'lol')
 
@@ -21,13 +22,14 @@ async def main():
             output.append(await ws.watch('ws://localhost:8080', 'lol', None, None, None))
             time.sleep(0.02)  # represent some processing on the user end
         except ccxtpro.NetworkError as e:
-            print('got error', e)
-            string = str(e)
-            if 'Connect call' in string or 'await wasn\'t used with future' in string:
+            output.append(e)
+            if 'Connect call' in str(e):
                 await ws.close()
-                return
-            output.append(string)
+                exit(0)
 
 asyncio.run(main())
-print('awaited output:')
-print(*output, sep='\n')
+last = -1
+for x in output:
+    assert x > last
+    if isinstance(x, int):
+        last = x
