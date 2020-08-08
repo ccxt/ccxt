@@ -59,3 +59,7 @@ class FastClient(AiohttpClient):
     def resolve(self, result, message_hash=None):
         super(FastClient, self).resolve(result, message_hash)
         self.change_context = True
+
+    def reset(self, error):
+        super(FastClient, self).reset(error)
+        self.stack.clear()
