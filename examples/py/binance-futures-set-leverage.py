@@ -1,10 +1,29 @@
-# Change Initial Leverage (TRADE)
-# Example - Set Leverage of 40 for symbol 'ADAUSDT'
-# Assumes you know how to set exchange object
+# -*- coding: utf-8 -*-
 
-symbol = 'ADAUSDT'
-leverage =  40
-lev = exchange.fapiPrivate_post_leverage({
-    'symbol': symbol,
-    'leverage': leverage
+import os
+import sys
+
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root + '/python')
+
+import ccxt  # noqa: E402
+
+
+exchange = ccxt.binance({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': True,
 })
+
+exchange.load_markets()
+
+symbol = 'ADA/USDT'
+market = exchange.market(symbol)
+leverage =  40
+
+response = exchange.fapiPrivate_post_leverage({
+    'symbol': market['id'],
+    'leverage': leverage,
+})
+
+print(response)
