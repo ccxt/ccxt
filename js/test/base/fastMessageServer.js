@@ -12,8 +12,8 @@ class WebSocketServer {
     constructor (config = {}) {
 
         const defaults = {
-            terminateTimeout: undefined, // terminate the connection immediately or later
-            closeTimeout: undefined, // close after a while
+            terminateTimeout: 1000, // terminate the connection immediately or later
+            closeTimeout: 500, // close after a while
             closeCode: 1000, // default closing code 1000 = ok
             handshakeDelay: undefined, // delay the handshake to simulate connection timeout
             port: 8080,
@@ -26,11 +26,17 @@ class WebSocketServer {
             this[property] = value
         }
 
+        // exhibit a different behaviour on each connection
+        this.connectionIndex = -1
+        this.connections = ['terminateTest', 'terminateTest with timeout', 'closeTest', 'closeTest with timeout'];
+        this.message = 0
         this.server = http.createServer ()
         this.wss = new WebSocket.Server ({ noServer: true })
         this.wss.on ('connection', this.onConnection.bind (this))
         this.server.on ('upgrade', this.onUpgrade.bind (this))
+    }
 
+    run () {
         console.log (new Date (), 'listening port', this.port)
         this.server.listen (this.port)
     }
@@ -41,34 +47,38 @@ class WebSocketServer {
 
         // terminate any incoming connection
         // immediately after it has been successfully established
-        if (Number.isInteger (this.terminateTimeout)) {
-            if (this.terminateTimeout) {
-                setTimeout (() => { ws.terminate () }, this.terminateTimeout)
-            } else {
-                ws.terminate ()
-            }
+        this.connectionIndex++
+        if (this.connectionIndex < this.connections.length) {
+            console.log (new Date (), this.connections[this.connectionIndex])
+        } else {
+            process.exit (0)
         }
-
-        // close the connection after a certain amount of time
-        if (Number.isInteger (this.closeTimeout)) {
-            if (this.closeTimeout) {
-                setTimeout (() => {
+        const blaster = setInterval (() => {
+            ws.send (this.connections[this.connectionIndex] + ' ' + this.message++)
+        }, 1)
+        switch (this.connectionIndex) {
+            case 0:
+                ws.terminate ()
+                clearInterval (blaster)
+                break
+            case 1:
+                setTimeout (() => { ws.terminate (); clearInterval (blaster) }, this.terminateTimeout)
+                break
+            case 2:
+                ws.close (this.closeCode)
+                clearInterval (blaster)
+                break
+            case 3:
+                let interval = undefined
+                interval = setTimeout (() => {
                     console.log (new Date (), 'Closing with code', this.closeCode, typeof this)
                     // ws.terminate ()
                     ws.close (this.closeCode)
+                    clearInterval (interval)
+                    clearInterval (blaster)
                 }, this.closeTimeout)
-            } else {
-                ws.close (this.closeCode)
-            }
+                break
         }
-
-        // ws.send ('something')
-        let i = 0
-        const blaster = setInterval (() => {
-            console.log ('sending ' + i)
-            ws.send (i++)
-        }, 1)
-        // sleep in the php code to see the lag
 
         // other stuff that might be useful
         ws.on ('message', function incoming (message) {
@@ -84,7 +94,6 @@ class WebSocketServer {
         })
         ws.on ('close', function incoming (code) {
             console.log (new Date (), 'onClose', code)
-            clearInterval (blaster)
         })
         // ws.ping ()
     }
@@ -112,5 +121,5 @@ module.exports = WebSocketServer
 // if launched in console instead of being required as a module
 
 if (require.main === module) {
-    (async () => { const wss = new WebSocketServer () }) ()
+    (async () => { const wss = new WebSocketServer (); wss.run () }) ()
 }
