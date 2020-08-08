@@ -2,9 +2,7 @@
 import ccxtpro
 import asyncio
 import subprocess
-import time
 import datetime
-import contextlib
 
 
 def resolver(client, message):
