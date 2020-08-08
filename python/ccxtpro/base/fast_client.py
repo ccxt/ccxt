@@ -53,7 +53,7 @@ class FastClient(AiohttpClient):
         protocol = connection.protocol
         queue = protocol._payload_parser.queue
         queue.feed_data = feed_data
-        #queue.set_exception = network_error
+        # queue.set_exception = network_error
         protocol.connection_lost = network_error
 
     def resolve(self, result, message_hash=None):
