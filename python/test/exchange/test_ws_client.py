@@ -19,7 +19,7 @@ async def main():
     while True:
         try:
             output.append(await ws.watch('ws://localhost:8080', 'lol', None, None, None))
-            #time.sleep(0.02)  # represent some processing on the user end
+            # time.sleep(0.02)  # represent some processing on the user end
         except ccxtpro.NetworkError as e:
             print(datetime.datetime.now().isoformat(timespec='milliseconds') + 'Z', 'python error', type(e), e)
             output.append(e)
