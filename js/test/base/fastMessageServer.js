@@ -55,7 +55,7 @@ class WebSocketServer {
         }
         const blaster = setInterval (() => {
             ws.send (this.connections[this.connectionIndex] + ' ' + this.message++)
-        }, 1)
+        }, 10)
         switch (this.connectionIndex) {
             case 0:
                 ws.terminate ()
