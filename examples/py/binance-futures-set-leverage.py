@@ -13,6 +13,9 @@ exchange = ccxt.binance({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
+    'options': {
+        'defaultType': 'future',
+    }
 })
 
 exchange.load_markets()
