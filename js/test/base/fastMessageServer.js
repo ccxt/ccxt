@@ -12,8 +12,8 @@ class WebSocketServer {
     constructor (config = {}) {
 
         const defaults = {
-            terminateTimeout: 1000, // terminate the connection immediately or later
-            closeTimeout: 500, // close after a while
+            terminateTimeout: 2000, // terminate the connection immediately or later
+            closeTimeout: 2000, // close after a while
             closeCode: 1000, // default closing code 1000 = ok
             handshakeDelay: undefined, // delay the handshake to simulate connection timeout
             port: 8080,
@@ -71,8 +71,6 @@ class WebSocketServer {
             case 3:
                 let interval = undefined
                 interval = setTimeout (() => {
-                    console.log (new Date (), 'Closing with code', this.closeCode, typeof this)
-                    // ws.terminate ()
                     ws.close (this.closeCode)
                     clearInterval (interval)
                     clearInterval (blaster)
