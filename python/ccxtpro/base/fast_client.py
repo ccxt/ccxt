@@ -42,9 +42,6 @@ class FastClient(AiohttpClient):
             if self.switcher is None or self.switcher.done():
                 self.switcher = asyncio.ensure_future(switcher())
 
-        def network_error(exception):
-            self.on_error(ccxt.NetworkError(exception))
-
         connection = self.connection._conn
         if connection.closed:
             # connection got terminated after the connection was made and before the receive loop ran
@@ -53,8 +50,8 @@ class FastClient(AiohttpClient):
         protocol = connection.protocol
         queue = protocol._payload_parser.queue
         queue.feed_data = feed_data
-        queue.set_exception = network_error
-        protocol.connection_lost = network_error
+        queue.set_exception = self.on_error
+        protocol.connection_lost = self.on_error
 
     def resolve(self, result, message_hash=None):
         super(FastClient, self).resolve(result, message_hash)
