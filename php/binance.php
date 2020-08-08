@@ -235,7 +235,6 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
-                        'leverageBracket',
                     ),
                 ),
                 'fapiData' => array(
@@ -256,6 +255,7 @@ class binance extends Exchange {
                         'order',
                         'account',
                         'balance',
+                        'leverageBracket',
                         'positionMargin/history',
                         'positionRisk',
                         'positionSide/dual',

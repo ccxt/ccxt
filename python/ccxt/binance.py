@@ -247,7 +247,6 @@ class binance(Exchange):
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
-                        'leverageBracket',
                     ],
                 },
                 'fapiData': {
@@ -268,6 +267,7 @@ class binance(Exchange):
                         'order',
                         'account',
                         'balance',
+                        'leverageBracket',
                         'positionMargin/history',
                         'positionRisk',
                         'positionSide/dual',
