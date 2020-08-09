@@ -612,11 +612,7 @@ module.exports = class btcmarkets extends Exchange {
         //         "targetAmount": "1000"
         //     }
         //
-        const id = this.safeString (response, 'orderId');
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseOrder (response, market);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
@@ -746,20 +742,57 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "orderId": "7524",
+        //         "marketId": "BTC-AUD",
+        //         "side": "Bid",
+        //         "type": "Limit",
+        //         "creationTime": "2019-08-30T11:08:21.956000Z",
+        //         "price": "100.12",
+        //         "amount": "1.034",
+        //         "openAmount": "1.034",
+        //         "status": "Accepted",
+        //         "clientOrderId": "1234-5678",
+        //         "timeInForce": "IOC",
+        //         "postOnly": false,
+        //         "selfTrade": "P",
+        //         "triggerAmount": "105",
+        //         "targetAmount": "1000"
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
         const marketId = this.safeString (order, 'marketId');
-        const symbol = this.lookupSymbolFromMarketId (marketId);
-        let side = undefined;
-        if (this.safeString (order, 'side') === 'Bid') {
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        let side = this.safeString (order, 'side');
+        if (side === 'Bid') {
             side = 'buy';
-        } else {
+        } else if (side === 'Ask') {
             side = 'sell';
         }
         const type = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'openAmount');
-        const filled = amount - remaining;
+        let filled = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         if (price !== undefined) {
@@ -767,10 +800,12 @@ module.exports = class btcmarkets extends Exchange {
                 cost = price * filled;
             }
         }
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         return {
             'info': order,
-            'id': this.safeString (order, 'orderId'),
-            'clientOrderId': undefined,
+            'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
