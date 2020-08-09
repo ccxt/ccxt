@@ -730,27 +730,27 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        if (!params['status']) {
-            request['status'] = 'all';
+        const request = {
+            'status': 'all',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let market = undefined;
-        if (symbol) {
-            market = this.market (symbol);
-            request['marketId'] = market['id'];
-        }
-        if (since) {
-            request['after'] = since;
-        }
         const response = await this.privateV3GetOrders (this.extend (request, params));
-        return this.parseOrders (response);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
+        const request = { 'status': 'open' };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
