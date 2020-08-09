@@ -534,7 +534,7 @@ module.exports = class btcmarkets extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.ordered ({
+        const request = {
             'marketId': market['id'],
             // 'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
@@ -546,7 +546,7 @@ module.exports = class btcmarkets extends Exchange {
             // 'postOnly': false, // boolean if this is a post-only order
             // 'selfTrade': 'A', // A = allow, P = prevent
             // 'clientOrderId': this.uuid (),
-        });
+        };
         const lowercaseType = type.toLowerCase ();
         const orderTypes = this.safeValue (this.options, 'orderTypes', {
             'limit': 'Limit',
@@ -903,10 +903,10 @@ module.exports = class btcmarkets extends Exchange {
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
             const pathWithLeadingSlash = '/v3' + uri;
+            const query = this.keysort (this.omit (params, this.extractParams (path)));
             if (method !== 'GET') {
-                body = this.json (params);
+                body = this.json (query);
             } else {
-                const query = this.keysort (this.omit (params, this.extractParams (path)));
                 let queryString = '';
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
