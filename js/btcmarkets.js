@@ -21,6 +21,7 @@ module.exports = class btcmarkets extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -32,6 +33,7 @@ module.exports = class btcmarkets extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -165,7 +167,7 @@ module.exports = class btcmarkets extends Exchange {
         });
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (limit !== undefined) {
@@ -174,8 +176,24 @@ module.exports = class btcmarkets extends Exchange {
         if (since !== undefined) {
             request['after'] = since;
         }
-        const response = await this.privateV3GetTransfers (this.extend (request, params));
-        return this.parseTransactions (response, undefined, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateV3GetTransfers', code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateV3GetDeposits', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateV3GetWithdrawals', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -242,7 +260,10 @@ module.exports = class btcmarkets extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'creationTime'));
         const lastUpdate = this.parse8601 (this.safeString (transaction, 'lastUpdate'));
-        const transferType = this.parseTransactionType (this.safeString (transaction, 'type'));
+        let type = this.parseTransactionType (this.safeStringLower (transaction, 'type'));
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+        }
         const cryptoPaymentDetail = this.safeValue (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
@@ -255,14 +276,10 @@ module.exports = class btcmarkets extends Exchange {
                 tag = addressParts[1];
             }
         }
-        let type = undefined;
-        if (transferType === 'DEPOSIT') {
-            type = 'deposit';
-        } else if (transferType === 'WITHDRAW') {
-            type = 'withdrawal';
-        } else {
-            type = transferType;
-        }
+        const addressTo = address;
+        const tagTo = tag;
+        const addressFrom = undefined;
+        const tagFrom = undefined;
         const fee = this.safeFloat (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
@@ -274,7 +291,11 @@ module.exports = class btcmarkets extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': tag,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
             'type': type,
             'amount': amount,
             'currency': code,
