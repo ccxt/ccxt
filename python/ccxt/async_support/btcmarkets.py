@@ -198,6 +198,7 @@ class btcmarkets(Exchange):
         return self.safe_string(statuses, type, type)
 
     def parse_transaction(self, transaction, currency=None):
+        #
         #    {
         #         "id": "6500230339",
         #         "assetName": "XRP",
@@ -241,6 +242,7 @@ class btcmarkets(Exchange):
         #         "fee": "0",
         #         "lastUpdate": "2017-07-31T08:50:01.290000Z"
         #     }
+        #
         timestamp = self.parse8601(self.safe_string(transaction, 'creationTime'))
         lastUpdate = self.parse8601(self.safe_string(transaction, 'lastUpdate'))
         transferType = self.parse_transaction_type(self.safe_string(transaction, 'type'))
@@ -263,9 +265,8 @@ class btcmarkets(Exchange):
             type = transferType
         fee = self.safe_float(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        ccy = self.safe_string(transaction, 'assetName')
-        code = self.safe_currency_code(ccy)
-        # todo: self logic is duplicated below
+        currencyId = self.safe_string(transaction, 'assetName')
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'amount')
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -472,31 +473,89 @@ class btcmarkets(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_timestamp(trade, 'date')
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "id":"6191646611",
+        #         "price":"539.98",
+        #         "amount":"0.5",
+        #         "timestamp":"2020-08-09T15:21:05.016000Z",
+        #         "side":"Ask"
+        #     }
+        #
+        # private fetchMyTrades
+        #
+        #     {
+        #         "id": "36014819",
+        #         "marketId": "XRP-AUD",
+        #         "timestamp": "2019-06-25T16:01:02.977000Z",
+        #         "price": "0.67",
+        #         "amount": "1.50533262",
+        #         "side": "Ask",
+        #         "fee": "0.00857285",
+        #         "orderId": "3648306",
+        #         "liquidityType": "Taker",
+        #         "clientOrderId": "48"
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        marketId = self.safe_string(trade, 'marketId')
         symbol = None
-        if market is not None:
+        base = None
+        quote = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        id = self.safe_string(trade, 'tid')
+            base = market['base']
+            quote = market['quote']
+        feeCurrencyCode = None
+        if quote == 'AUD':
+            feeCurrencyCode = quote
+        else:
+            feeCurrencyCode = base
+        side = self.safe_string(trade, 'side')
+        if side == 'Bid':
+            side = 'buy'
+        elif side == 'Ask':
+            side = 'sell'
+        id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        orderId = self.safe_string(trade, 'orderId')
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        takerOrMaker = self.safe_string_lower(trade, 'liquidityType')
         return {
             'info': trade,
             'id': id,
-            'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'order': orderId,
             'symbol': symbol,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -504,9 +563,16 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = {
             # 'since': 59868345231,
-            'id': market['id'],
+            'marketId': market['id'],
         }
-        response = await self.publicGetMarketIdTrades(self.extend(request, params))
+        response = await self.publicGetV3MarketsMarketIdTrades(self.extend(request, params))
+        #
+        #     [
+        #         {"id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"},
+        #         {"id":"6191646610","price":"539.99","amount":"0.5","timestamp":"2020-08-09T15:21:05.015000Z","side":"Ask"},
+        #         {"id":"6191646590","price":"540","amount":"0.00233785","timestamp":"2020-08-09T15:21:04.171000Z","side":"Bid"},
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -619,70 +685,6 @@ class btcmarkets(Exchange):
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
-
-    def parse_my_trade(self, trade, market):
-        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        side = None
-        if self.safe_string(trade, 'side') == 'Bid':
-            side = 'buy'
-        else:
-            side = 'sell'
-        marketId = self.safe_string(trade, 'marketId')
-        symbol = self.lookup_symbol_from_market_id(marketId)
-        market = self.market(symbol)
-        # BTCMarkets always charge in AUD for AUD-related transactions.
-        feeCurrencyCode = None
-        if market is None:
-            # happens for some markets like BCH-BTC
-            baseId, quoteId = marketId.split('-')
-            if quoteId == 'AUD':
-                feeCurrencyCode = self.safe_currency_code(quoteId)
-            else:
-                feeCurrencyCode = self.safe_currency_code(baseId)
-        else:
-            if market['quote'] == 'AUD':
-                feeCurrencyCode = market['quote']
-            else:
-                feeCurrencyCode = market['base']
-        id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        feeCost = self.safe_float(trade, 'fee')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        orderId = self.safe_string(trade, 'orderId')
-        type = None
-        if price is None:
-            type = 'market'
-        else:
-            type = 'limit'
-        return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'order': orderId,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': {
-                'currency': feeCurrencyCode,
-                'cost': feeCost,
-            },
-            'takerOrMaker': None,
-        }
-
-    def parse_my_trades(self, trades, market=None, since=None, limit=None):
-        result = []
-        for i in range(0, len(trades)):
-            trade = self.parse_my_trade(trades[i], market)
-            result.append(trade)
-        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -815,7 +817,34 @@ class btcmarkets(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateV3GetTrades(self.extend(request, params))
-        return self.parse_my_trades(response, market, since, limit)
+        #
+        #     [
+        #         {
+        #             "id": "36014819",
+        #             "marketId": "XRP-AUD",
+        #             "timestamp": "2019-06-25T16:01:02.977000Z",
+        #             "price": "0.67",
+        #             "amount": "1.50533262",
+        #             "side": "Ask",
+        #             "fee": "0.00857285",
+        #             "orderId": "3648306",
+        #             "liquidityType": "Taker",
+        #             "clientOrderId": "48"
+        #         },
+        #         {
+        #             "id": "3568960",
+        #             "marketId": "GNT-AUD",
+        #             "timestamp": "2019-06-20T08:44:04.488000Z",
+        #             "price": "0.1362",
+        #             "amount": "0.85",
+        #             "side": "Bid",
+        #             "fee": "0.00098404",
+        #             "orderId": "3543015",
+        #             "liquidityType": "Maker"
+        #         }
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     def lookup_symbol_from_market_id(self, marketId):
         market = None
@@ -838,6 +867,7 @@ class btcmarkets(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + uri
+        query = self.keysort(self.omit(params, self.extract_params(path)))
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
@@ -852,7 +882,6 @@ class btcmarkets(Exchange):
                 body = self.json(params)
                 auth += body
             else:
-                query = self.keysort(self.omit(params, self.extract_params(path)))
                 queryString = ''
                 if query:
                     queryString = self.urlencode(query)
@@ -890,8 +919,8 @@ class btcmarkets(Exchange):
                 'BM-AUTH-SIGNATURE': signature,
             }
         else:
-            if params:
-                url += '?' + self.urlencode(params)
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

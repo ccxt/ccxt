@@ -198,6 +198,7 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_transaction($transaction, $currency = null) {
+        //
         //    {
         //         "id" => "6500230339",
         //         "assetName" => "XRP",
@@ -241,6 +242,7 @@ class btcmarkets extends Exchange {
         //         "$fee" => "0",
         //         "$lastUpdate" => "2017-07-31T08:50:01.290000Z"
         //     }
+        //
         $timestamp = $this->parse8601($this->safe_string($transaction, 'creationTime'));
         $lastUpdate = $this->parse8601($this->safe_string($transaction, 'lastUpdate'));
         $transferType = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
@@ -266,9 +268,8 @@ class btcmarkets extends Exchange {
         }
         $fee = $this->safe_float($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $ccy = $this->safe_string($transaction, 'assetName');
-        $code = $this->safe_currency_code($ccy);
-        // todo => this logic is duplicated below
+        $currencyId = $this->safe_string($transaction, 'assetName');
+        $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
         return array(
             'id' => $this->safe_string($transaction, 'id'),
@@ -492,12 +493,65 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $timestamp = $this->safe_timestamp($trade, 'date');
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "$id":"6191646611",
+        //         "$price":"539.98",
+        //         "$amount":"0.5",
+        //         "$timestamp":"2020-08-09T15:21:05.016000Z",
+        //         "$side":"Ask"
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "$id" => "36014819",
+        //         "$marketId" => "XRP-AUD",
+        //         "$timestamp" => "2019-06-25T16:01:02.977000Z",
+        //         "$price" => "0.67",
+        //         "$amount" => "1.50533262",
+        //         "$side" => "Ask",
+        //         "$fee" => "0.00857285",
+        //         "$orderId" => "3648306",
+        //         "liquidityType" => "Taker",
+        //         "clientOrderId" => "48"
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
+        $marketId = $this->safe_string($trade, 'marketId');
         $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        $base = null;
+        $quote = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
         }
-        $id = $this->safe_string($trade, 'tid');
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+            $base = $market['base'];
+            $quote = $market['quote'];
+        }
+        $feeCurrencyCode = null;
+        if ($quote === 'AUD') {
+            $feeCurrencyCode = $quote;
+        } else {
+            $feeCurrencyCode = $base;
+        }
+        $side = $this->safe_string($trade, 'side');
+        if ($side === 'Bid') {
+            $side = 'buy';
+        } else if ($side === 'Ask') {
+            $side = 'sell';
+        }
+        $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -506,20 +560,30 @@ class btcmarkets extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $orderId = $this->safe_string($trade, 'orderId');
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
+        $takerOrMaker = $this->safe_string_lower($trade, 'liquidityType');
         return array(
             'info' => $trade,
             'id' => $id,
-            'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'order' => $orderId,
             'symbol' => $symbol,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'takerOrMaker' => $takerOrMaker,
+            'fee' => $fee,
         );
     }
 
@@ -528,9 +592,16 @@ class btcmarkets extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             // 'since' => 59868345231,
-            'id' => $market['id'],
+            'marketId' => $market['id'],
         );
-        $response = $this->publicGetMarketIdTrades (array_merge($request, $params));
+        $response = $this->publicGetV3MarketsMarketIdTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         array("id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"),
+        //         array("id":"6191646610","price":"539.99","amount":"0.5","timestamp":"2020-08-09T15:21:05.015000Z","side":"Ask"),
+        //         array("id":"6191646590","price":"540","amount":"0.00233785","timestamp":"2020-08-09T15:21:04.171000Z","side":"Bid"),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -655,80 +726,6 @@ class btcmarkets extends Exchange {
             'rate' => $rate,
             'cost' => floatval ($this->fee_to_precision($symbol, $rate * $cost)),
         );
-    }
-
-    public function parse_my_trade($trade, $market) {
-        $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $side = null;
-        if ($this->safe_string($trade, 'side') === 'Bid') {
-            $side = 'buy';
-        } else {
-            $side = 'sell';
-        }
-        $marketId = $this->safe_string($trade, 'marketId');
-        $symbol = $this->lookup_symbol_from_market_id($marketId);
-        $market = $this->market($symbol);
-        // BTCMarkets always charge in AUD for AUD-related transactions.
-        $feeCurrencyCode = null;
-        if ($market === null) {
-            // happens for some markets like BCH-BTC
-            list($baseId, $quoteId) = explode('-', $marketId);
-            if ($quoteId === 'AUD') {
-                $feeCurrencyCode = $this->safe_currency_code($quoteId);
-            } else {
-                $feeCurrencyCode = $this->safe_currency_code($baseId);
-            }
-        } else {
-            if ($market['quote'] === 'AUD') {
-                $feeCurrencyCode = $market['quote'];
-            } else {
-                $feeCurrencyCode = $market['base'];
-            }
-        }
-        $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $feeCost = $this->safe_float($trade, 'fee');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $orderId = $this->safe_string($trade, 'orderId');
-        $type = null;
-        if ($price === null) {
-            $type = 'market';
-        } else {
-            $type = 'limit';
-        }
-        return array(
-            'info' => $trade,
-            'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'order' => $orderId,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => array(
-                'currency' => $feeCurrencyCode,
-                'cost' => $feeCost,
-            ),
-            'takerOrMaker' => null,
-        );
-    }
-
-    public function parse_my_trades($trades, $market = null, $since = null, $limit = null) {
-        $result = array();
-        for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->parse_my_trade($trades[$i], $market);
-            $result[] = $trade;
-        }
-        return $result;
     }
 
     public function parse_order_status($status) {
@@ -881,7 +878,34 @@ class btcmarkets extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateV3GetTrades (array_merge($request, $params));
-        return $this->parse_my_trades($response, $market, $since, $limit);
+        //
+        //     array(
+        //         array(
+        //             "id" => "36014819",
+        //             "marketId" => "XRP-AUD",
+        //             "timestamp" => "2019-06-25T16:01:02.977000Z",
+        //             "price" => "0.67",
+        //             "amount" => "1.50533262",
+        //             "side" => "Ask",
+        //             "fee" => "0.00857285",
+        //             "orderId" => "3648306",
+        //             "liquidityType" => "Taker",
+        //             "clientOrderId" => "48"
+        //         ),
+        //         {
+        //             "id" => "3568960",
+        //             "marketId" => "GNT-AUD",
+        //             "timestamp" => "2019-06-20T08:44:04.488000Z",
+        //             "price" => "0.1362",
+        //             "amount" => "0.85",
+        //             "side" => "Bid",
+        //             "fee" => "0.00098404",
+        //             "orderId" => "3543015",
+        //             "liquidityType" => "Maker"
+        //         }
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function lookup_symbol_from_market_id($marketId) {
@@ -910,6 +934,7 @@ class btcmarkets extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $uri;
+        $query = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
@@ -924,7 +949,6 @@ class btcmarkets extends Exchange {
                 $body = $this->json($params);
                 $auth .= $body;
             } else {
-                $query = $this->keysort($this->omit($params, $this->extract_params($path)));
                 $queryString = '';
                 if ($query) {
                     $queryString = $this->urlencode($query);
@@ -967,8 +991,8 @@ class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE' => $signature,
             );
         } else {
-            if ($params) {
-                $url .= '?' . $this->urlencode($params);
+            if ($query) {
+                $url .= '?' . $this->urlencode($query);
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
