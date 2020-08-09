@@ -615,11 +615,7 @@ class btcmarkets extends Exchange {
         //         "targetAmount" => "1000"
         //     }
         //
-        $id = $this->safe_string($response, 'orderId');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
@@ -749,20 +745,57 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "orderId" => "7524",
+        //         "$marketId" => "BTC-AUD",
+        //         "$side" => "Bid",
+        //         "$type" => "Limit",
+        //         "creationTime" => "2019-08-30T11:08:21.956000Z",
+        //         "$price" => "100.12",
+        //         "$amount" => "1.034",
+        //         "openAmount" => "1.034",
+        //         "$status" => "Accepted",
+        //         "$clientOrderId" => "1234-5678",
+        //         "timeInForce" => "IOC",
+        //         "postOnly" => false,
+        //         "selfTrade" => "P",
+        //         "triggerAmount" => "105",
+        //         "targetAmount" => "1000"
+        //     }
+        //
         $timestamp = $this->parse8601($this->safe_string($order, 'creationTime'));
         $marketId = $this->safe_string($order, 'marketId');
-        $symbol = $this->lookup_symbol_from_market_id($marketId);
-        $side = null;
-        if ($this->safe_string($order, 'side') === 'Bid') {
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if (($symbol === null) && ($market !== null)) {
+            $symbol = $market['symbol'];
+        }
+        $side = $this->safe_string($order, 'side');
+        if ($side === 'Bid') {
             $side = 'buy';
-        } else {
+        } else if ($side === 'Ask') {
             $side = 'sell';
         }
         $type = $this->safe_string_lower($order, 'type');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $remaining = $this->safe_float($order, 'openAmount');
-        $filled = $amount - $remaining;
+        $filled = null;
+        if (($amount !== null) && ($remaining !== null)) {
+            $filled = max (0, $amount - $remaining);
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = null;
         if ($price !== null) {
@@ -770,10 +803,12 @@ class btcmarkets extends Exchange {
                 $cost = $price * $filled;
             }
         }
+        $id = $this->safe_string($order, 'orderId');
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'info' => $order,
-            'id' => $this->safe_string($order, 'orderId'),
-            'clientOrderId' => null,
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
