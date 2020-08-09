@@ -132,9 +132,9 @@ function test_orders($exchange, $symbol) {
             test_order($exchange, $order, $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
-    } # else {
-        # dump(green($symbol), 'fetchOrders () not supported');
-    #}
+    } else {
+        dump(green($symbol), 'fetchOrders () not supported');
+    }
 }
 
 //-----------------------------------------------------------------------------

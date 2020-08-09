@@ -273,8 +273,7 @@ async def test_orders(exchange, symbol):
             test_order(exchange, order, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
     else:
-        pass
-        # dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -284,7 +283,7 @@ async def test_closed_orders(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = await exchange.fetch_orders(symbol)
+        orders = await exchange.fetch_closed_orders(symbol)
         for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'closed' or order['status'] == 'canceled'
@@ -300,7 +299,7 @@ async def test_open_orders(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = await exchange.fetch_orders(symbol)
+        orders = await exchange.fetch_open_orders(symbol)
         for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'open'
@@ -380,15 +379,6 @@ async def test_exchange(exchange):
     dump(green(exchange.id), 'fetched balance')
 
     await asyncio.sleep(exchange.rateLimit / 1000)
-
-    if exchange.has['fetchOrders']:
-        try:
-            orders = await exchange.fetch_orders(symbol)
-            dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
-        except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-        # except ccxt.NotSupported as e:
-        #     dump(yellow(type(e).__name__), e.args)
 
     # time.sleep(delay)
 
