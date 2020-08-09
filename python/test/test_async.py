@@ -269,11 +269,12 @@ async def test_orders(exchange, symbol):
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
         orders = await exchange.fetch_orders(symbol)
-        if orders:
-            test_order(exchange, orders[0], symbol, int(time.time() * 1000))
+        for order in orders:
+            test_order(exchange, order, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+        pass
+        # dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -284,8 +285,7 @@ async def test_closed_orders(exchange, symbol):
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
         orders = await exchange.fetch_orders(symbol)
-        if orders:
-            order = orders[0]
+        for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'closed' or order['status'] == 'canceled'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
@@ -301,8 +301,7 @@ async def test_open_orders(exchange, symbol):
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
         orders = await exchange.fetch_orders(symbol)
-        if orders:
-            order = orders[0]
+        for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'open'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')

@@ -128,13 +128,13 @@ function test_orders($exchange, $symbol) {
 
         dump(green($symbol), 'fetching orders...');
         $orders = $exchange->fetch_orders($symbol);
-        if (count($orders) > 0) {
-            test_order($exchange, $orders[0], $symbol, time() * 1000);
+        foreach ($orders as $order) {
+            test_order($exchange, $order, $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
-    } else {
-        dump(green($symbol), 'fetchOrders () not supported');
-    }
+    } # else {
+        # dump(green($symbol), 'fetchOrders () not supported');
+    #}
 }
 
 //-----------------------------------------------------------------------------
@@ -146,8 +146,7 @@ function test_closed_orders($exchange, $symbol) {
 
         dump(green($symbol), 'fetching closed orders...');
         $orders = $exchange->fetch_cloed_orders($symbol);
-        if (count($orders) > 0) {
-            $order = $orders[0];
+        foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'closed' || $order['status'] === 'canceled');
         }
@@ -166,8 +165,7 @@ function test_open_orders($exchange, $symbol) {
 
         dump(green($symbol), 'fetching open orders...');
         $orders = $exchange->fetch_open_orders($symbol);
-        if (count($orders) > 0) {
-            $order = $orders[0];
+        foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'open');
         }
