@@ -244,10 +244,9 @@ async function testExchange (exchange) {
     ]
 
     for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        if (exchange.symbols.includes (symbols[s]) &&
-            (('active' in exchange.markets[symbols[s]]) ? exchange.markets[symbols[s]]['active'] : true)) {
-            symbol = symbols[s]
+        if (exchange.symbols.includes (symbols[i]) &&
+            (('active' in exchange.markets[symbols[i]]) ? exchange.markets[symbols[i]]['active'] : true)) {
+            symbol = symbols[i]
             break
         }
     }
