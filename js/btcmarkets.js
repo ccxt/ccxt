@@ -535,11 +535,6 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             request['type'] = 'Market';
         }
-        if (side === 'buy') {
-            request['side'] = 'Bid';
-        } else {
-            request['side'] = 'Ask';
-        }
         // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
         const response = await this.privateV3PostOrders (this.extend (request, params));
         const id = this.safeString (response, 'orderId');
