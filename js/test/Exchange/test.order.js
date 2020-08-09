@@ -18,11 +18,11 @@ function testOrder (exchange, order, symbol, now) {
     assert (order['price'] > 0);
     assert (typeof order['amount'] === 'number');
     assert (order['amount'] >= 0);
-    if (order['filled']) {
+    if (order['filled'] !== undefined) {
         assert (typeof order['filled'] === 'number');
         assert ((order['filled'] >= 0) && (order['filled'] <= order['amount']));
     }
-    if (order['remaining']) {
+    if (order['remaining'] !== undefined) {
         assert (typeof order['remaining'] === 'number');
         assert ((order['remaining'] >= 0) && (order['remaining'] <= order['amount']));
     }

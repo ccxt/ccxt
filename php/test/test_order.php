@@ -24,11 +24,11 @@ function test_order($exchange, $order, $symbol, $now) {
     assert ($order['price'] > 0);
     assert ((is_float($order['amount']) || is_int($order['amount'])));
     assert ($order['amount'] >= 0);
-    if ($order['filled']) {
+    if ($order['filled'] !== null) {
         assert ((is_float($order['filled']) || is_int($order['filled'])));
         assert (($order['filled'] >= 0) && ($order['filled'] <= $order['amount']));
     }
-    if ($order['remaining']) {
+    if ($order['remaining'] !== null) {
         assert ((is_float($order['remaining']) || is_int($order['remaining'])));
         assert (($order['remaining'] >= 0) && ($order['remaining'] <= $order['amount']));
     }

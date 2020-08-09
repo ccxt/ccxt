@@ -34,11 +34,11 @@ def test_order(exchange, order, symbol, now):
     assert order['price'] > 0
     assert isinstance(order['amount'], numbers.Real)
     assert order['amount'] >= 0
-    if order['filled']:
+    if order['filled'] is not None:
         assert isinstance(order['filled'], numbers.Real)
         assert(order['filled'] >= 0) and (order['filled'] <= order['amount'])
 
-    if order['remaining']:
+    if order['remaining'] is not None:
         assert isinstance(order['remaining'], numbers.Real)
         assert(order['remaining'] >= 0) and (order['remaining'] <= order['amount'])
 
