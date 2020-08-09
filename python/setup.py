@@ -81,7 +81,7 @@ setup(
             'yarl==1.1.0',
         ],
         'qa': [
-            'flake8==3.5.0'
+            'flake8==3.8.3'
         ],
         'doc': [
             'Sphinx==1.7.0'
