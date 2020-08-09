@@ -773,7 +773,7 @@ module.exports = class btcmarkets extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateV3GetTrades (this.extend (request, params));
-        return this.parseMyTrades (response, market);
+        return this.parseMyTrades (response, market, since, limit);
     }
 
     lookupSymbolFromMarketId (marketId) {
