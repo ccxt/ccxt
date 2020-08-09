@@ -12,7 +12,7 @@ const asTable   = require ('as-table')
     , log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
-    , ccxt      = require ('../../ccxt.js')
+    , ccxt      = require ('../../ccxt.js') // eslint-disable-line import/order
     , chai      = require ('chai')
     , assert    = chai.assert
 
@@ -61,18 +61,20 @@ const exchange = new (ccxt)[exchangeId] ({
 const tests = {}
 const properties = Object.keys (exchange.has)
 properties
+    // eslint-disable-next-line no-path-concat
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
     .forEach ((property) => {
-        // eslint-disable-next-line import/no-dynamic-require
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
         tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
     })
 
 const errors = require ('../base/errors.js')
 
 Object.keys (errors)
+    // eslint-disable-next-line no-path-concat
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach ((error) => {
-        // eslint-disable-next-line import/no-dynamic-require
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
         tests[error] = require (__dirname + '/errors/test.' + error + '.js')
     })
 
@@ -82,11 +84,13 @@ const keysGlobal = 'keys.json'
 const keysLocal = 'keys.local.json'
 
 const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-// eslint-disable-next-line import/no-dynamic-require
+// eslint-disable-next-line import/no-dynamic-require, no-path-concat
 const settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
-    for (const key in settings) {
+    const keys = Object.keys (settings)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
         if (settings[key]) {
             settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
         }
@@ -96,13 +100,13 @@ if (settings) {
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
-    log.error.bright ('[Skipped]', { exchange: exchangeId, symbol: exchangeSymbol || 'all' })
+    log.error.bright ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' })
     process.exit ()
 }
 
 //-----------------------------------------------------------------------------
 
-const testSymbol = async (exchange, symbol) => {
+async function testSymbol (exchange, symbol) {
 
     if (exchange.id !== 'coinmarketcap') {
         await tests['loadMarkets'] (exchange)
@@ -133,7 +137,7 @@ const testSymbol = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-const loadExchange = async (exchange) => {
+async function loadExchange (exchange) {
 
     const markets = await exchange.loadMarkets ()
 
@@ -181,7 +185,7 @@ const loadExchange = async (exchange) => {
 
 //-----------------------------------------------------------------------------
 
-const testExchange = async (exchange) => {
+async function testExchange (exchange) {
 
     const codes = [
         'BTC',
@@ -215,10 +219,11 @@ const testExchange = async (exchange) => {
         'ZEC',
         'ZRX',
     ]
+
     let code = codes[0]
-    for (let c in codes) {
-        if (c in exchange.currencies) {
-            code = c
+    for (let i = 0; i < codes.length; i++) {
+        if (codes[i] in exchange.currencies) {
+            code = codes[i]
         }
     }
 
@@ -237,7 +242,9 @@ const testExchange = async (exchange) => {
         'LTC/BTC',
         'ZRX/WETH',
     ]
-    for (let s in symbols) {
+
+    for (let i = 0; i < symbols.length; i++) {
+        const s = symbols[i]
         if (exchange.symbols.includes (symbols[s]) &&
             (('active' in exchange.markets[symbols[s]]) ? exchange.markets[symbols[s]]['active'] : true)) {
             symbol = symbols[s]
@@ -247,7 +254,7 @@ const testExchange = async (exchange) => {
 
     if (exchange.id === 'okex') {
         // okex has different order creation params for spot and futures markets
-        // this will stick okex to spot market until there is a way to test
+        // this forces okex to use a spot market until there is a way to test
         // several markets per exchange
         symbol = 'BTC/USDT'
     }
@@ -327,10 +334,10 @@ const testExchange = async (exchange) => {
 
 //-----------------------------------------------------------------------------
 
-const tryAllProxies = async function (exchange, proxies) {
+async function tryAllProxies (exchange, proxies) {
 
     let currentProxy = 0
-    const maxRetries   = proxies.length
+    const maxRetries = proxies.length
 
     if (settings && ('proxy' in settings)) {
         currentProxy = proxies.indexOf (settings.proxy)
@@ -375,7 +382,7 @@ const tryAllProxies = async function (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
-;(async function test () {
+async function test () {
 
     if (exchangeSymbol) {
 
@@ -387,4 +394,6 @@ const tryAllProxies = async function (exchange, proxies) {
         await tryAllProxies (exchange, proxies)
     }
 
-}) ()
+}
+
+test ()
