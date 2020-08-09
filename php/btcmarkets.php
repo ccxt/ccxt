@@ -33,11 +33,12 @@ class btcmarkets extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
                 'api' => array(
                     'public' => 'https://api.btcmarkets.net',
                     'private' => 'https://api.btcmarkets.net',
@@ -333,6 +334,16 @@ class btcmarkets extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetV3Time ($params);
+        //
+        //     {
+        //         "timestamp" => "2019-09-01T18:34:27.045000Z"
+        //     }
+        //
+        return $this->parse8601($this->safe_string($response, 'timestamp'));
     }
 
     public function fetch_balance($params = array ()) {

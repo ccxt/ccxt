@@ -45,11 +45,12 @@ class btcmarkets(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchTicker': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
@@ -334,6 +335,15 @@ class btcmarkets(Exchange):
                 'precision': precision,
             })
         return result
+
+    def fetch_time(self, params={}):
+        response = self.publicGetV3Time(params)
+        #
+        #     {
+        #         "timestamp": "2019-09-01T18:34:27.045000Z"
+        #     }
+        #
+        return self.parse8601(self.safe_string(response, 'timestamp'))
 
     def fetch_balance(self, params={}):
         self.load_markets()
