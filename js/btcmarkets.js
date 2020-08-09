@@ -30,11 +30,12 @@ module.exports = class btcmarkets extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
@@ -330,6 +331,16 @@ module.exports = class btcmarkets extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetV3Time (params);
+        //
+        //     {
+        //         "timestamp": "2019-09-01T18:34:27.045000Z"
+        //     }
+        //
+        return this.parse8601 (this.safeString (response, 'timestamp'));
     }
 
     async fetchBalance (params = {}) {
