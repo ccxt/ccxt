@@ -8,6 +8,7 @@ import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -513,17 +514,76 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = self.ordered({
             'marketId': market['id'],
+            # 'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
+            # 'type': 'Limit',  # "Limit", "Market", "Stop Limit", "Stop", "Take Profit"
             'side': 'Bid' if (side == 'buy') else 'Ask',
-            'clientOrderId': self.safe_value(params, 'clientOrderId'),
+            # 'triggerPrice': self.price_to_precision(symbol, triggerPrice),  # required for Stop, Stop Limit, Take Profit orders
+            # 'targetAmount': self.amount_to_precision(symbol, targetAmount),  # target amount when a desired target outcome is required for order execution
+            # 'timeInForce': 'GTC',  # GTC, FOK, IOC
+            # 'postOnly': False,  # boolean if self is a post-only order
+            # 'selfTrade': 'A',  # A = allow, P = prevent
+            # 'clientOrderId': self.uuid(),
         })
-        if type == 'limit':
-            request['price'] = self.price_to_precision(symbol, price)
-            request['type'] = 'Limit'
-        else:
-            request['type'] = 'Market'
-        # todo: add support for "Stop Limit" "Stop" "Take Profit" order types
+        lowercaseType = type.lower()
+        orderTypes = self.safe_value(self.options, 'orderTypes', {
+            'limit': 'Limit',
+            'market': 'Market',
+            'stop': 'Stop',
+            'stop limit': 'Stop Limit',
+            'take profit': 'Take Profit',
+        })
+        request['type'] = self.safe_string(orderTypes, lowercaseType, type)
+        priceIsRequired = False
+        triggerPriceIsRequired = False
+        if lowercaseType == 'limit':
+            priceIsRequired = True
+        # elif lowercaseType == 'market':
+        #     ...
+        # }
+        elif lowercaseType == 'stop limit':
+            triggerPriceIsRequired = True
+            priceIsRequired = True
+        elif lowercaseType == 'take profit':
+            triggerPriceIsRequired = True
+        elif lowercaseType == 'stop':
+            triggerPriceIsRequired = True
+        if priceIsRequired:
+            if price is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + 'order')
+            else:
+                request['price'] = self.price_to_precision(symbol, price)
+        if triggerPriceIsRequired:
+            triggerPrice = self.safe_float(params, 'triggerPrice')
+            params = self.omit(params, 'triggerPrice')
+            if triggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order')
+            else:
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+        params = self.omit(params, 'clientOrderId')
         response = await self.privateV3PostOrders(self.extend(request, params))
+        #
+        #     {
+        #         "orderId": "7524",
+        #         "marketId": "BTC-AUD",
+        #         "side": "Bid",
+        #         "type": "Limit",
+        #         "creationTime": "2019-08-30T11:08:21.956000Z",
+        #         "price": "100.12",
+        #         "amount": "1.034",
+        #         "openAmount": "1.034",
+        #         "status": "Accepted",
+        #         "clientOrderId": "1234-5678",
+        #         "timeInForce": "IOC",
+        #         "postOnly": False,
+        #         "selfTrade": "P",
+        #         "triggerAmount": "105",
+        #         "targetAmount": "1000"
+        #     }
+        #
         id = self.safe_string(response, 'orderId')
         return {
             'info': response,
