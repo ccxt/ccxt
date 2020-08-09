@@ -584,11 +584,7 @@ class btcmarkets(Exchange):
         #         "targetAmount": "1000"
         #     }
         #
-        id = self.safe_string(response, 'orderId')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_order(response, market)
 
     def cancel_orders(self, ids, symbol=None, params={}):
         self.load_markets()
@@ -701,28 +697,63 @@ class btcmarkets(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "orderId": "7524",
+        #         "marketId": "BTC-AUD",
+        #         "side": "Bid",
+        #         "type": "Limit",
+        #         "creationTime": "2019-08-30T11:08:21.956000Z",
+        #         "price": "100.12",
+        #         "amount": "1.034",
+        #         "openAmount": "1.034",
+        #         "status": "Accepted",
+        #         "clientOrderId": "1234-5678",
+        #         "timeInForce": "IOC",
+        #         "postOnly": False,
+        #         "selfTrade": "P",
+        #         "triggerAmount": "105",
+        #         "targetAmount": "1000"
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string(order, 'creationTime'))
         marketId = self.safe_string(order, 'marketId')
-        symbol = self.lookup_symbol_from_market_id(marketId)
-        side = None
-        if self.safe_string(order, 'side') == 'Bid':
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        side = self.safe_string(order, 'side')
+        if side == 'Bid':
             side = 'buy'
-        else:
+        elif side == 'Ask':
             side = 'sell'
         type = self.safe_string_lower(order, 'type')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         remaining = self.safe_float(order, 'openAmount')
-        filled = amount - remaining
+        filled = None
+        if (amount is not None) and (remaining is not None):
+            filled = max(0, amount - remaining)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = None
         if price is not None:
             if filled is not None:
                 cost = price * filled
+        id = self.safe_string(order, 'orderId')
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
-            'id': self.safe_string(order, 'orderId'),
-            'clientOrderId': None,
+            'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
