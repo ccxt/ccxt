@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class btcmarkets extends Exchange {
 
@@ -538,18 +539,82 @@ class btcmarkets extends Exchange {
         $market = $this->market($symbol);
         $request = $this->ordered(array(
             'marketId' => $market['id'],
+            // 'price' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
+            // 'type' => 'Limit', // "Limit", "Market", "Stop Limit", "Stop", "Take Profit"
             'side' => ($side === 'buy') ? 'Bid' : 'Ask',
-            'clientOrderId' => $this->safe_value($params, 'clientOrderId'),
+            // 'triggerPrice' => $this->price_to_precision($symbol, $triggerPrice), // required for Stop, Stop Limit, Take Profit orders
+            // 'targetAmount' => $this->amount_to_precision($symbol, targetAmount), // target $amount when a desired target outcome is required for order execution
+            // 'timeInForce' => 'GTC', // GTC, FOK, IOC
+            // 'postOnly' => false, // boolean if this is a post-only order
+            // 'selfTrade' => 'A', // A = allow, P = prevent
+            // 'clientOrderId' => $this->uuid(),
         ));
-        if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['type'] = 'Limit';
-        } else {
-            $request['type'] = 'Market';
+        $lowercaseType = strtolower($type);
+        $orderTypes = $this->safe_value($this->options, 'orderTypes', array(
+            'limit' => 'Limit',
+            'market' => 'Market',
+            'stop' => 'Stop',
+            'stop limit' => 'Stop Limit',
+            'take profit' => 'Take Profit',
+        ));
+        $request['type'] = $this->safe_string($orderTypes, $lowercaseType, $type);
+        $priceIsRequired = false;
+        $triggerPriceIsRequired = false;
+        if ($lowercaseType === 'limit') {
+            $priceIsRequired = true;
+        // } else if ($lowercaseType === 'market') {
+        //     ...
+        // }
+        } else if ($lowercaseType === 'stop limit') {
+            $triggerPriceIsRequired = true;
+            $priceIsRequired = true;
+        } else if ($lowercaseType === 'take profit') {
+            $triggerPriceIsRequired = true;
+        } else if ($lowercaseType === 'stop') {
+            $triggerPriceIsRequired = true;
         }
-        // todo => add support for "Stop Limit" "Stop" "Take Profit" order types
+        if ($priceIsRequired) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . 'order');
+            } else {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($triggerPriceIsRequired) {
+            $triggerPrice = $this->safe_float($params, 'triggerPrice');
+            $params = $this->omit($params, 'triggerPrice');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for a ' . $type . 'order');
+            } else {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, 'clientOrderId');
         $response = $this->privateV3PostOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "orderId" => "7524",
+        //         "marketId" => "BTC-AUD",
+        //         "$side" => "Bid",
+        //         "$type" => "Limit",
+        //         "creationTime" => "2019-08-30T11:08:21.956000Z",
+        //         "$price" => "100.12",
+        //         "$amount" => "1.034",
+        //         "openAmount" => "1.034",
+        //         "status" => "Accepted",
+        //         "$clientOrderId" => "1234-5678",
+        //         "timeInForce" => "IOC",
+        //         "postOnly" => false,
+        //         "selfTrade" => "P",
+        //         "triggerAmount" => "105",
+        //         "targetAmount" => "1000"
+        //     }
+        //
         $id = $this->safe_string($response, 'orderId');
         return array(
             'info' => $response,
