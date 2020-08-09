@@ -538,7 +538,7 @@ class btcmarkets extends Exchange {
         $market = $this->market($symbol);
         $request = $this->ordered(array(
             'marketId' => $market['id'],
-            'amount' => $this->price_to_precision($symbol, $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'side' => ($side === 'buy') ? 'Bid' : 'Ask',
             'clientOrderId' => $this->safe_value($params, 'clientOrderId'),
         ));

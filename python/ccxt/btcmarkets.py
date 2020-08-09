@@ -513,7 +513,7 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = self.ordered({
             'marketId': market['id'],
-            'amount': self.price_to_precision(symbol, amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'side': 'Bid' if (side == 'buy') else 'Ask',
             'clientOrderId': self.safe_value(params, 'clientOrderId'),
         })
