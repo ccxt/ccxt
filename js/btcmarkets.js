@@ -761,19 +761,19 @@ module.exports = class btcmarkets extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let market = undefined;
-        if (symbol) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];
         }
-        if (since) {
+        if (since !== undefined) {
             request['after'] = since;
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privateV3GetTrades (this.extend (request, params));
-        return this.parseMyTrades (response);
+        return this.parseMyTrades (response, market);
     }
 
     lookupSymbolFromMarketId (marketId) {
