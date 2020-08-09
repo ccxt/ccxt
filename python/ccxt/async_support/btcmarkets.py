@@ -30,6 +30,7 @@ class btcmarkets(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -41,6 +42,7 @@ class btcmarkets(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
+                'fetchWithdrawals': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -173,15 +175,27 @@ class btcmarkets(Exchange):
             },
         })
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions_with_method(self, method, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['after'] = since
-        response = await self.privateV3GetTransfers(self.extend(request, params))
-        return self.parse_transactions(response, None, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_transactions(response, currency, since, limit)
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_with_method('privateV3GetTransfers', code, since, limit, params)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_with_method('privateV3GetDeposits', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_with_method('privateV3GetWithdrawals', code, since, limit, params)
 
     def parse_transaction_status(self, status):
         # todo: find more statuses
@@ -245,7 +259,9 @@ class btcmarkets(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'creationTime'))
         lastUpdate = self.parse8601(self.safe_string(transaction, 'lastUpdate'))
-        transferType = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        type = self.parse_transaction_type(self.safe_string_lower(transaction, 'type'))
+        if type == 'withdraw':
+            type = 'withdrawal'
         cryptoPaymentDetail = self.safe_value(transaction, 'paymentDetail', {})
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
         address = self.safe_string(cryptoPaymentDetail, 'address')
@@ -256,13 +272,10 @@ class btcmarkets(Exchange):
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        type = None
-        if transferType == 'DEPOSIT':
-            type = 'deposit'
-        elif transferType == 'WITHDRAW':
-            type = 'withdrawal'
-        else:
-            type = transferType
+        addressTo = address
+        tagTo = tag
+        addressFrom = None
+        tagFrom = None
         fee = self.safe_float(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         currencyId = self.safe_string(transaction, 'assetName')
@@ -274,7 +287,11 @@ class btcmarkets(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': tag,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
             'type': type,
             'amount': amount,
             'currency': code,

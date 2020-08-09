@@ -24,6 +24,7 @@ class btcmarkets extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -35,6 +36,7 @@ class btcmarkets extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -168,7 +170,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -177,8 +179,24 @@ class btcmarkets extends Exchange {
         if ($since !== null) {
             $request['after'] = $since;
         }
-        $response = $this->privateV3GetTransfers (array_merge($request, $params));
-        return $this->parse_transactions($response, null, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method('privateV3GetTransfers', $code, $since, $limit, $params);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method('privateV3GetDeposits', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method('privateV3GetWithdrawals', $code, $since, $limit, $params);
     }
 
     public function parse_transaction_status($status) {
@@ -245,7 +263,10 @@ class btcmarkets extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($transaction, 'creationTime'));
         $lastUpdate = $this->parse8601($this->safe_string($transaction, 'lastUpdate'));
-        $transferType = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
+        $type = $this->parse_transaction_type($this->safe_string_lower($transaction, 'type'));
+        if ($type === 'withdraw') {
+            $type = 'withdrawal';
+        }
         $cryptoPaymentDetail = $this->safe_value($transaction, 'paymentDetail', array());
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
@@ -258,14 +279,10 @@ class btcmarkets extends Exchange {
                 $tag = $addressParts[1];
             }
         }
-        $type = null;
-        if ($transferType === 'DEPOSIT') {
-            $type = 'deposit';
-        } else if ($transferType === 'WITHDRAW') {
-            $type = 'withdrawal';
-        } else {
-            $type = $transferType;
-        }
+        $addressTo = $address;
+        $tagTo = $tag;
+        $addressFrom = null;
+        $tagFrom = null;
         $fee = $this->safe_float($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $currencyId = $this->safe_string($transaction, 'assetName');
@@ -277,7 +294,11 @@ class btcmarkets extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => $address,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
             'tag' => $tag,
+            'tagTo' => $tagTo,
+            'tagFrom' => $tagFrom,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
