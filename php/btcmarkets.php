@@ -537,7 +537,7 @@ class btcmarkets extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = $this->ordered(array(
+        $request = array(
             'marketId' => $market['id'],
             // 'price' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -549,7 +549,7 @@ class btcmarkets extends Exchange {
             // 'postOnly' => false, // boolean if this is a post-only order
             // 'selfTrade' => 'A', // A = allow, P = prevent
             // 'clientOrderId' => $this->uuid(),
-        ));
+        );
         $lowercaseType = strtolower($type);
         $orderTypes = $this->safe_value($this->options, 'orderTypes', array(
             'limit' => 'Limit',
@@ -906,10 +906,10 @@ class btcmarkets extends Exchange {
             $nonce = (string) $this->nonce();
             $secret = base64_decode($this->secret); // or stringToBase64
             $pathWithLeadingSlash = '/v3' . $uri;
+            $query = $this->keysort($this->omit($params, $this->extract_params($path)));
             if ($method !== 'GET') {
-                $body = $this->json($params);
+                $body = $this->json($query);
             } else {
-                $query = $this->keysort($this->omit($params, $this->extract_params($path)));
                 $queryString = '';
                 if ($query) {
                     $queryString = $this->urlencode($query);

@@ -512,7 +512,7 @@ class btcmarkets(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = self.ordered({
+        request = {
             'marketId': market['id'],
             # 'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
@@ -524,7 +524,7 @@ class btcmarkets(Exchange):
             # 'postOnly': False,  # boolean if self is a post-only order
             # 'selfTrade': 'A',  # A = allow, P = prevent
             # 'clientOrderId': self.uuid(),
-        })
+        }
         lowercaseType = type.lower()
         orderTypes = self.safe_value(self.options, 'orderTypes', {
             'limit': 'Limit',
@@ -836,10 +836,10 @@ class btcmarkets(Exchange):
             nonce = str(self.nonce())
             secret = base64.b64decode(self.secret)  # or stringToBase64
             pathWithLeadingSlash = '/v3' + uri
+            query = self.keysort(self.omit(params, self.extract_params(path)))
             if method != 'GET':
-                body = self.json(params)
+                body = self.json(query)
             else:
-                query = self.keysort(self.omit(params, self.extract_params(path)))
                 queryString = ''
                 if query:
                     queryString = self.urlencode(query)
