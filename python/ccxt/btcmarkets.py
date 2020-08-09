@@ -4,22 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class btcmarkets(Exchange):
@@ -156,6 +148,13 @@ class btcmarkets(Exchange):
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
+                'InsufficientFund': InsufficientFunds,
+                'InvalidPrice': InvalidOrder,
+                'InvalidAmount': InvalidOrder,
+                'MissingArgument': InvalidOrder,
+                'OrderAlreadyCancelled': InvalidOrder,
+                'OrderNotFound': OrderNotFound,
+                'OrderStatusIsFinal': InvalidOrder,
             },
             'fees': {
                 'percentage': True,
@@ -179,10 +178,9 @@ class btcmarkets(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['since'] = since
-        response = self.privateGetFundtransferHistory(self.extend(request, params))
-        transactions = response['fundTransfers']
-        return self.parse_transactions(transactions, None, since, limit)
+            request['after'] = since
+        response = self.privateV3GetTransfers(self.extend(request, params))
+        return self.parse_transactions(response, None, since, limit)
 
     def parse_transaction_status(self, status):
         # todo: find more statuses
@@ -191,59 +189,70 @@ class btcmarkets(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_transaction_type(self, type):
+        statuses = {
+            'Withdraw': 'withdrawal',
+            'Deposit': 'deposit',
+        }
+        return self.safe_string(statuses, type, type)
+
     def parse_transaction(self, transaction, currency=None):
-        #
-        #     {
-        #         status: 'Complete',
-        #         fundTransferId: 1904311906,
-        #         description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
-        #         creationTime: 1529418358525,
-        #         currency: 'ETH',
-        #         amount: 828965701,
-        #         fee: 0,
-        #         transferType: 'WITHDRAW',
-        #         errorMessage: null,
-        #         lastUpdate: 1529418376754,
-        #         cryptoPaymentDetail: {
-        #             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
-        #             txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
-        #         }
-        #     }
-        #
-        #     {
-        #         status: 'Complete',
-        #         fundTransferId: 494077500,
-        #         description: 'BITCOIN Deposit, B 0.1000',
-        #         creationTime: 1501077601015,
-        #         currency: 'BTC',
-        #         amount: 10000000,
-        #         fee: 0,
-        #         transferType: 'DEPOSIT',
-        #         errorMessage: null,
-        #         lastUpdate: 1501077601133,
-        #         cryptoPaymentDetail: null
-        #     }
-        #
-        #     {
-        #         "fee": 0,
-        #         "amount": 56,
+        #    {
+        #         "id": "6500230339",
+        #         "assetName": "XRP",
+        #         "amount": "500",
+        #         "type": "Deposit",
+        #         "creationTime": "2020-07-27T07:52:08.640000Z",
         #         "status": "Complete",
-        #         "currency": "BCHABC",
-        #         "lastUpdate": 1542339164044,
-        #         "description": "BitcoinCashABC Deposit, P 0.00000056",
-        #         "creationTime": 1542339164003,
-        #         "errorMessage": null,
-        #         "transferType": "DEPOSIT",
-        #         "fundTransferId": 2527326972,
-        #         "cryptoPaymentDetail": null
-        #     }
+        #         "description": "RIPPLE Deposit, XRP 500",
+        #         "fee": "0",
+        #         "lastUpdate": "2020-07-27T07:52:08.665000Z",
+        #         "paymentDetail": {
+        #             "txId": "lsjflsjdfljsd",
+        #             "address": "kjasfkjsdf?dt=873874545"
+        #         }
+        #    }
         #
-        timestamp = self.safe_integer(transaction, 'creationTime')
-        lastUpdate = self.safe_integer(transaction, 'lastUpdate')
-        transferType = self.safe_string(transaction, 'transferType')
-        cryptoPaymentDetail = self.safe_value(transaction, 'cryptoPaymentDetail', {})
-        address = self.safe_string(cryptoPaymentDetail, 'address')
+        #    {
+        #         "id": "500985282",
+        #         "assetName": "BTC",
+        #         "amount": "0.42570126",
+        #         "type": "Withdraw",
+        #         "creationTime": "2017-07-29T12:49:03.931000Z",
+        #         "status": "Complete",
+        #         "description": "BTC withdraw from [nick-btcmarkets@snowmonkey.co.uk] to Address: 1B9DsnSYQ54VMqFHVJYdGoLMCYzFwrQzsj amount: 0.42570126 fee: 0.00000000",
+        #         "fee": "0.0005",
+        #         "lastUpdate": "2017-07-29T12:52:20.676000Z",
+        #         "paymentDetail": {
+        #             "txId": "fkjdsfjsfljsdfl",
+        #             "address": "a;daddjas;djas"
+        #         }
+        #    }
+        #
+        #    {
+        #         "id": "505102262",
+        #         "assetName": "XRP",
+        #         "amount": "979.836",
+        #         "type": "Deposit",
+        #         "creationTime": "2017-07-31T08:50:01.053000Z",
+        #         "status": "Complete",
+        #         "description": "Ripple Deposit, X 979.8360",
+        #         "fee": "0",
+        #         "lastUpdate": "2017-07-31T08:50:01.290000Z"
+        #     }
+        timestamp = self.parse8601(self.safe_string(transaction, 'creationTime'))
+        lastUpdate = self.parse8601(self.safe_string(transaction, 'lastUpdate'))
+        transferType = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        cryptoPaymentDetail = self.safe_value(transaction, 'paymentDetail', {})
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
+        address = self.safe_string(cryptoPaymentDetail, 'address')
+        tag = None
+        if address is not None:
+            addressParts = address.split('?dt=')
+            numParts = len(addressParts)
+            if numParts > 1:
+                address = addressParts[0]
+                tag = addressParts[1]
         type = None
         if transferType == 'DEPOSIT':
             type = 'deposit'
@@ -253,24 +262,17 @@ class btcmarkets(Exchange):
             type = transferType
         fee = self.safe_float(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        ccy = self.safe_string(transaction, 'currency')
+        ccy = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(ccy)
-        # for some currencies the exchange requires the amount to be scaled, like BTC, ETH, BCH
-        # values in other currencies may have to be treated "as is", without scaling, like XRP
-        # https://github.com/ccxt/ccxt/issues/7413
-        amount = self.safe_value(transaction, 'amount')
-        if amount is not None:
-            if isinstance(amount, basestring):
-                amount = self.safe_float(transaction, 'amount')
-            else:
-                amount = amount / 100000000
+        # todo: self logic is duplicated below
+        amount = self.safe_float(transaction, 'amount')
         return {
-            'id': self.safe_string(transaction, 'fundTransferId'),
+            'id': self.safe_string(transaction, 'id'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -347,19 +349,14 @@ class btcmarkets(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAccountBalance(params)
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
+        response = self.privateV3GetAccountsMeBalances(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
-            multiplier = 100000000
             total = self.safe_float(balance, 'balance')
-            if total is not None:
-                total /= multiplier
-            used = self.safe_float(balance, 'pendingFunds')
-            if used is not None:
-                used /= multiplier
+            used = self.safe_float(balance, 'locked')
             account = self.account()
             account['used'] = used
             account['total'] = total
@@ -514,20 +511,20 @@ class btcmarkets(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        multiplier = 100000000  # for price and volume
-        orderSide = 'Bid' if (side == 'buy') else 'Ask'
         request = self.ordered({
-            'currency': market['quote'],
+            'marketId': market['id'],
+            'amount': self.price_to_precision(symbol, amount),
+            'side': 'Bid' if (side == 'buy') else 'Ask',
+            'clientOrderId': self.safe_value(params, 'clientOrderId'),
         })
-        request['currency'] = market['quote']
-        request['instrument'] = market['base']
-        request['price'] = int(self.decimal_to_precision(price * multiplier, ROUND, 0))
-        request['volume'] = int(self.decimal_to_precision(amount * multiplier, ROUND, 0))
-        request['orderSide'] = orderSide
-        request['ordertype'] = self.capitalize(type)
-        request['clientRequestId'] = str(self.nonce())
-        response = self.privatePostOrderCreate(self.extend(request, params))
-        id = self.safe_string(response, 'id')
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
+            request['type'] = 'Limit'
+        else:
+            request['type'] = 'Market'
+        # todo: add support for "Stop Limit" "Stop" "Take Profit" order types
+        response = self.privateV3PostOrders(self.extend(request, params))
+        id = self.safe_string(response, 'orderId')
         return {
             'info': response,
             'id': id,
@@ -538,13 +535,16 @@ class btcmarkets(Exchange):
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])
         request = {
-            'orderIds': ids,
+            'ids': ids,
         }
-        return self.privatePostOrderCancel(self.extend(request, params))
+        return self.privateV3DeleteBatchordersIds(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.cancel_orders([id])
+        request = {
+            'id': id,
+        }
+        return self.privateV3DeleteOrdersId(self.extend(request, params))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -565,31 +565,43 @@ class btcmarkets(Exchange):
         }
 
     def parse_my_trade(self, trade, market):
-        multiplier = 100000000
-        timestamp = self.safe_integer(trade, 'creationTime')
-        side = self.safe_float(trade, 'side')
-        side = 'buy' if (side == 'Bid') else 'sell'
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        side = None
+        if self.safe_string(trade, 'side') == 'Bid':
+            side = 'buy'
+        else:
+            side = 'sell'
+        marketId = self.safe_string(trade, 'marketId')
+        symbol = self.lookup_symbol_from_market_id(marketId)
+        market = self.market(symbol)
         # BTCMarkets always charge in AUD for AUD-related transactions.
         feeCurrencyCode = None
-        symbol = None
-        if market is not None:
-            feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
-            symbol = market['symbol']
+        if market is None:
+            # happens for some markets like BCH-BTC
+            baseId, quoteId = marketId.split('-')
+            if quoteId == 'AUD':
+                feeCurrencyCode = self.safe_currency_code(quoteId)
+            else:
+                feeCurrencyCode = self.safe_currency_code(baseId)
+        else:
+            if market['quote'] == 'AUD':
+                feeCurrencyCode = market['quote']
+            else:
+                feeCurrencyCode = market['base']
         id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
-        if price is not None:
-            price /= multiplier
-        amount = self.safe_float(trade, 'volume')
-        if amount is not None:
-            amount /= multiplier
+        amount = self.safe_float(trade, 'amount')
         feeCost = self.safe_float(trade, 'fee')
-        if feeCost is not None:
-            feeCost /= multiplier
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
         orderId = self.safe_string(trade, 'orderId')
+        type = None
+        if price is None:
+            type = 'market'
+        else:
+            type = 'limit'
         return {
             'info': trade,
             'id': id,
@@ -597,7 +609,7 @@ class btcmarkets(Exchange):
             'datetime': self.iso8601(timestamp),
             'order': orderId,
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
@@ -616,45 +628,45 @@ class btcmarkets(Exchange):
             result.append(trade)
         return result
 
+    def parse_order_status(self, status):
+        statuses = {
+            'Accepted': 'open',
+            'Placed': 'open',
+            'Partially Matched': 'open',
+            'Fully Matched': 'closed',
+            'Cancelled': 'canceled',
+            'Partially Cancelled': 'canceled',
+            'Failed': 'rejected',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
-        multiplier = 100000000
-        side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
-        type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
-        timestamp = self.safe_integer(order, 'creationTime')
-        if market is None:
-            market = self.market(order['instrument'] + '/' + order['currency'])
-        status = 'open'
-        if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':
-            status = 'canceled'
-        elif order['status'] == 'Fully Matched' or order['status'] == 'Partially Matched':
-            status = 'closed'
-        price = self.safe_float(order, 'price') / multiplier
-        amount = self.safe_float(order, 'volume') / multiplier
-        remaining = self.safe_float(order, 'openVolume', 0.0) / multiplier
+        timestamp = self.parse8601(self.safe_string(order, 'creationTime'))
+        marketId = self.safe_string(order, 'marketId')
+        symbol = self.lookup_symbol_from_market_id(marketId)
+        side = None
+        if self.safe_string(order, 'side') == 'Bid':
+            side = 'buy'
+        else:
+            side = 'sell'
+        type = self.safe_string_lower(order, 'type')
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        remaining = self.safe_float(order, 'openAmount')
         filled = amount - remaining
-        trades = self.parse_my_trades(order['trades'], market)
-        numTrades = len(trades)
-        cost = filled * price
-        average = None
-        lastTradeTimestamp = None
-        if numTrades > 0:
-            cost = 0
-            for i in range(0, numTrades):
-                trade = trades[i]
-                cost = self.sum(cost, trade['cost'])
-            if filled > 0:
-                average = cost / filled
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-        id = self.safe_string(order, 'id')
-        clientOrderId = self.safe_string(order, 'clientRequestId')
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = price * filled
         return {
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'orderId'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -662,66 +674,72 @@ class btcmarkets(Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'average': average,
+            'average': None,
             'status': status,
-            'trades': trades,
+            'trades': None,
             'fee': None,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        ids = [int(id)]
         request = {
-            'orderIds': ids,
+            'id': id,
         }
-        response = self.privatePostOrderDetail(self.extend(request, params))
-        numOrders = len(response['orders'])
-        if numOrders < 1:
-            raise OrderNotFound(self.id + ' No matching order found: ' + id)
-        order = response['orders'][0]
-        return self.parse_order(order)
-
-    def create_paginated_request(self, market, since=None, limit=None):
-        limit = 100 if (limit is None) else limit
-        since = 0 if (since is None) else since
-        request = self.ordered({
-            'currency': market['quoteId'],
-            'instrument': market['baseId'],
-            'limit': limit,
-            'since': since,
-        })
-        return request
+        response = self.privateV3GetOrdersId(self.extend(request, params))
+        return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ': fetchOrders requires a `symbol` argument.')
         self.load_markets()
-        market = self.market(symbol)
-        request = self.create_paginated_request(market, since, limit)
-        response = self.privatePostOrderHistory(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        request = {
+            'status': 'all',
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['marketId'] = market['id']
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateV3GetOrders(self.extend(request, params))
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ': fetchOpenOrders requires a `symbol` argument.')
-        self.load_markets()
-        market = self.market(symbol)
-        request = self.create_paginated_request(market, since, limit)
-        response = self.privatePostOrderOpen(self.extend(request, params))
-        return self.parse_orders(response['orders'], market)
+        request = {'status': 'open'}
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ': fetchMyTrades requires a `symbol` argument.')
         self.load_markets()
-        market = self.market(symbol)
-        request = self.create_paginated_request(market, since, limit)
-        response = self.privatePostOrderTradeHistory(self.extend(request, params))
-        return self.parse_my_trades(response['trades'], market)
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['marketId'] = market['id']
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateV3GetTrades(self.extend(request, params))
+        return self.parse_my_trades(response, market, since, limit)
+
+    def lookup_symbol_from_market_id(self, marketId):
+        market = None
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        return symbol
 
     def nonce(self):
         return self.milliseconds()
@@ -757,14 +775,21 @@ class btcmarkets(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             secret = base64.b64decode(self.secret)  # or stringToBase64
-            pathWithLeadingSlash = '/v3/' + path
-            auth = method + pathWithLeadingSlash + nonce
-            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
-            if method == 'GET':
-                if params:
-                    url += '?' + self.urlencode(params)
-            else:
+            pathWithLeadingSlash = '/v3' + uri
+            if method != 'GET':
                 body = self.json(params)
+            else:
+                query = self.keysort(self.omit(params, self.extract_params(path)))
+                queryString = ''
+                if query:
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
+            auth = None
+            if body:
+                auth = method + pathWithLeadingSlash + nonce + body
+            else:
+                auth = method + pathWithLeadingSlash + nonce
+            signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',
@@ -787,3 +812,11 @@ class btcmarkets(Exchange):
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)
+        # v3 api errors
+        if code >= 400:
+            errorCode = self.safe_string(response, 'code')
+            message = self.safe_string(response, 'message')
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            raise ExchangeError(feedback)
