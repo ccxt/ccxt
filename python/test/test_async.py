@@ -21,6 +21,7 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
+from test_order import test_order  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -255,9 +256,59 @@ async def test_trades(exchange, symbol):
         trades = await exchange.fetch_trades(symbol)
         if trades:
             test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+async def test_orders(exchange, symbol):
+    if exchange.has['fetchOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = await exchange.fetch_orders(symbol)
+        if orders:
+            test_order(exchange, orders[0], symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+async def test_closed_orders(exchange, symbol):
+    if exchange.has['fetchClosedOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = await exchange.fetch_orders(symbol)
+        if orders:
+            order = orders[0]
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'closed' or order['status'] == 'canceled'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+async def test_open_orders(exchange, symbol):
+    if exchange.has['fetchOpenOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = await exchange.fetch_orders(symbol)
+        if orders:
+            order = orders[0]
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'open'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
+
 
 # ------------------------------------------------------------------------------
 
@@ -272,6 +323,9 @@ async def test_symbol(exchange, symbol):
     else:
         await test_order_book(exchange, symbol)
         await test_trades(exchange, symbol)
+        await test_orders(exchange, symbol)
+        await test_open_orders(exchange, symbol)
+        await test_closed_orders(exchange, symbol)
 
     await test_tickers(exchange, symbol)
     await test_ohlcv(exchange, symbol)

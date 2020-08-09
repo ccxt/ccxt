@@ -20,6 +20,7 @@ sys.path.append(root)
 
 import ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
+from test_order import test_order  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -226,9 +227,59 @@ def test_trades(exchange, symbol):
         trades = exchange.fetch_trades(symbol)
         if trades:
             test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_orders(exchange, symbol):
+    if exchange.has['fetchOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_orders(symbol)
+        if orders:
+            test_order(exchange, orders[0], symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_closed_orders(exchange, symbol):
+    if exchange.has['fetchClosedOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_orders(symbol)
+        if orders:
+            order = orders[0]
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'closed' or order['status'] == 'canceled'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_open_orders(exchange, symbol):
+    if exchange.has['fetchOpenOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_orders(symbol)
+        if orders:
+            order = orders[0]
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'open'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
+
 
 # ------------------------------------------------------------------------------
 
@@ -243,6 +294,9 @@ def test_symbol(exchange, symbol):
     else:
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
+        test_orders(exchange, symbol)
+        test_open_orders(exchange, symbol)
+        test_closed_orders(exchange, symbol)
 
     test_tickers(exchange, symbol)
     test_ohlcv(exchange, symbol)

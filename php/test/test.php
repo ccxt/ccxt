@@ -119,15 +119,77 @@ function test_trades($exchange, $symbol) {
     }
 }
 
+//-----------------------------------------------------------------------------
+
+function test_orders($exchange, $symbol) {
+    if ($exchange->has['fetchOrders']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        dump(green($symbol), 'fetching orders...');
+        $orders = $exchange->fetch_orders($symbol);
+        if (count($orders) > 0) {
+            test_order($exchange, $orders[0], $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($orders)), 'orders');
+    } else {
+        dump(green($symbol), 'fetchOrders () not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_closed_orders($exchange, $symbol) {
+    if ($exchange->has['fetchClosedOrders']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        dump(green($symbol), 'fetching closed orders...');
+        $orders = $exchange->fetch_cloed_orders($symbol);
+        if (count($orders) > 0) {
+            $order = $orders[0];
+            test_order($exchange, $order, $symbol, time() * 1000);
+            assert($order['status'] === 'closed' || $order['status'] === 'canceled');
+        }
+        dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
+    } else {
+        dump(green($symbol), 'fetchClosedOrders () not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_open_orders($exchange, $symbol) {
+    if ($exchange->has['fetchOpenOrders']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        dump(green($symbol), 'fetching open orders...');
+        $orders = $exchange->fetch_open_orders($symbol);
+        if (count($orders) > 0) {
+            $order = $orders[0];
+            test_order($exchange, $order, $symbol, time() * 1000);
+            assert($order['status'] === 'open');
+        }
+        dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
+    } else {
+        dump(green($symbol), 'fetchOpenOrders () not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 function test_symbol($exchange, $symbol) {
     test_ticker($exchange, $symbol);
     if ($exchange->id === 'coinmarketcap') {
         dump(var_export($exchange->fetchGlobal()));
     } else {
         test_order_book($exchange, $symbol);
+        test_trades($exchange, $symbol);
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
     }
-
-    test_trades($exchange, $symbol);
 }
 
 function load_exchange($exchange) {
