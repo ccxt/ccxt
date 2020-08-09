@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -536,18 +536,82 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = this.ordered ({
             'marketId': market['id'],
+            // 'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
+            // 'type': 'Limit', // "Limit", "Market", "Stop Limit", "Stop", "Take Profit"
             'side': (side === 'buy') ? 'Bid' : 'Ask',
-            'clientOrderId': this.safeValue (params, 'clientOrderId'),
+            // 'triggerPrice': this.priceToPrecision (symbol, triggerPrice), // required for Stop, Stop Limit, Take Profit orders
+            // 'targetAmount': this.amountToPrecision (symbol, targetAmount), // target amount when a desired target outcome is required for order execution
+            // 'timeInForce': 'GTC', // GTC, FOK, IOC
+            // 'postOnly': false, // boolean if this is a post-only order
+            // 'selfTrade': 'A', // A = allow, P = prevent
+            // 'clientOrderId': this.uuid (),
         });
-        if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['type'] = 'Limit';
-        } else {
-            request['type'] = 'Market';
+        const lowercaseType = type.toLowerCase ();
+        const orderTypes = this.safeValue (this.options, 'orderTypes', {
+            'limit': 'Limit',
+            'market': 'Market',
+            'stop': 'Stop',
+            'stop limit': 'Stop Limit',
+            'take profit': 'Take Profit',
+        });
+        request['type'] = this.safeString (orderTypes, lowercaseType, type);
+        let priceIsRequired = false;
+        let triggerPriceIsRequired = false;
+        if (lowercaseType === 'limit') {
+            priceIsRequired = true;
+        // } else if (lowercaseType === 'market') {
+        //     ...
+        // }
+        } else if (lowercaseType === 'stop limit') {
+            triggerPriceIsRequired = true;
+            priceIsRequired = true;
+        } else if (lowercaseType === 'take profit') {
+            triggerPriceIsRequired = true;
+        } else if (lowercaseType === 'stop') {
+            triggerPriceIsRequired = true;
         }
-        // todo: add support for "Stop Limit" "Stop" "Take Profit" order types
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + 'order');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (triggerPriceIsRequired) {
+            const triggerPrice = this.safeFloat (params, 'triggerPrice');
+            params = this.omit (params, 'triggerPrice');
+            if (triggerPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order');
+            } else {
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        params = this.omit (params, 'clientOrderId');
         const response = await this.privateV3PostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "orderId": "7524",
+        //         "marketId": "BTC-AUD",
+        //         "side": "Bid",
+        //         "type": "Limit",
+        //         "creationTime": "2019-08-30T11:08:21.956000Z",
+        //         "price": "100.12",
+        //         "amount": "1.034",
+        //         "openAmount": "1.034",
+        //         "status": "Accepted",
+        //         "clientOrderId": "1234-5678",
+        //         "timeInForce": "IOC",
+        //         "postOnly": false,
+        //         "selfTrade": "P",
+        //         "triggerAmount": "105",
+        //         "targetAmount": "1000"
+        //     }
+        //
         const id = this.safeString (response, 'orderId');
         return {
             'info': response,
