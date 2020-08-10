@@ -8,7 +8,7 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 
-function test_trade ($exchange, $trade, $symbol, $now) {
+function test_trade($exchange, $trade, $symbol, $now) {
     assert ($trade);
     $sampleTrade = array(
         'info' => array( 'a' => 1, 'b' => 2, 'c' => 3 ),    // the original decoded JSON as is

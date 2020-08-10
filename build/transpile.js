@@ -718,8 +718,8 @@ class Transpiler {
         }
 
         // match all variables instantiated as function parameters
-        let functionParamRegex = /function (\w+) \(([^)]+)\)/g
-        js = js.replace (functionParamRegex, (match, group1, group2) => 'function ' + unCamelCase (group1) + ' (' + group2 + ')')
+        let functionParamRegex = /function\s*(\w+)\s*\(([^)]+)\)/g
+        js = js.replace (functionParamRegex, (match, group1, group2) => 'function ' + unCamelCase (group1) + '(' + group2 + ')')
         let functionParamVariables
         while (functionParamVariables = functionParamRegex.exec (js)) {
             const match = functionParamVariables[2]
@@ -1318,19 +1318,28 @@ class Transpiler {
     // ============================================================================
 
     transpileExchangeTests () {
-        this.transpileTradeTests ();
+        const tests = [
+            {
+                'jsFile': './js/test/Exchange/test.trade.js',
+                'pyFile': './python/test/test_trade.py',
+                'phpFile': './php/test/test_trade.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.order.js',
+                'pyFile': './python/test/test_order.py',
+                'phpFile': './php/test/test_order.php',
+            },
+        ]
+        for (const test of tests) {
+            this.transpileTest (test)
+        }
     }
 
     // ============================================================================
 
-    transpileTradeTests () {
-        const jsFile = './js/test/Exchange/test.trade.js'
-        const pyFile = './python/test/test_trade.py'
-        const phpFile = './php/test/test_trade.php'
-
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-        let js = fs.readFileSync (jsFile).toString ()
+    transpileTest (test) {
+        log.magenta ('Transpiling from', test.jsFile.yellow)
+        let js = fs.readFileSync (test.jsFile).toString ()
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -1354,8 +1363,8 @@ class Transpiler {
         const php = this.getPHPPreamble (false) + phpBody;
 
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteFile (test.pyFile, python)
+        overwriteFile (test.phpFile, php)
     }
 
     // ============================================================================
