@@ -23,7 +23,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': false,
@@ -54,6 +54,7 @@ module.exports = class bithumbglobal extends Exchange {
                         'spot/cancelOrder',
                         'spot/placeOrder',
                         'spot/singleOrder',
+                        'spot/openOrders',
                     ],
                 },
             },
@@ -248,6 +249,23 @@ module.exports = class bithumbglobal extends Exchange {
         const response = await this.privatePostSpotSingleOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'count': limit,
+            // 'page': 1, // page count starts with 1
+        };
+        const response = await this.privatePostSpotOpenOrders (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        const list = this.safeValue (data, 'list');
+        return this.parseOrders (list, market, since, limit);
     }
 
     parseOrderStatus (status) {
