@@ -149,8 +149,7 @@ class Client(object):
         self.error = error
         self.reset(error)
         self.on_error_callback(self, error)
-        if not self.closed():
-            ensure_future(self.close(1006))
+        self.free(1006)
 
     def on_close(self, code):
         if self.verbose:
@@ -158,6 +157,9 @@ class Client(object):
         if not self.error:
             self.reset(NetworkError(code))
         self.on_close_callback(self, code)
+        self.free(code)
+
+    def free(self, code):
         if not self.closed():
             ensure_future(self.close(code))
 

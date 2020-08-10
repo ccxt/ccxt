@@ -67,20 +67,5 @@ class FastClient(AiohttpClient):
         super(FastClient, self).reset(error)
         self.stack.clear()
 
-    def on_error(self, error):
-        if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'on_error', error)
-        self.error = error
-        self.reset(error)
-        self.on_error_callback(self, error)
-        if self.transport:
-            self.transport.close()
-
-    def on_close(self, code):
-        if self.verbose:
-            self.print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
-        if not self.error:
-            self.reset(NetworkError(code))
-        self.on_close_callback(self, code)
-        if self.transport:
-            self.transport.close()
+    def free(self, code):
+        self.transport.close()
