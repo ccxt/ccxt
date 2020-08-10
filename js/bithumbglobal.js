@@ -24,6 +24,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -42,6 +43,23 @@ module.exports = class bithumbglobal extends Exchange {
                 'doc': 'https://github.com/bithumb-pro/bithumb.pro-official-api-docs/blob/master/rest-api.md',
                 'fees': 'https://www.bithumb.pro/en-us/fee',
             },
+            'timeframes': {
+                '1m': 'm1',
+                '3m': 'm3',
+                '5m': 'm5',
+                '15m': 'm15',
+                '30m': 'm30',
+                '1h': 'h1',
+                '2h': 'h2',
+                '4h': 'h4',
+                '6h': 'h6',
+                '8h': 'h8',
+                '12h': 'h12',
+                '1d': 'd1',
+                '3d': 'd3',
+                '7d': 'w1',
+                '1M': 'M1',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -49,6 +67,7 @@ module.exports = class bithumbglobal extends Exchange {
                         'spot/orderBook',
                         'spot/ticker',
                         'spot/trades',
+                        'spot/kline',
                     ],
                 },
                 'private': {
@@ -284,6 +303,44 @@ module.exports = class bithumbglobal extends Exchange {
         const response = await this.publicGetSpotTrades (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeTimestamp (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'o'),
+            this.safeFloat (ohlcv, 'h'),
+            this.safeFloat (ohlcv, 'l'),
+            this.safeFloat (ohlcv, 'c'),
+            this.safeFloat (ohlcv, 'v'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        let end = undefined;
+        let start = undefined;
+        if (since === undefined) {
+            end = this.seconds ();
+            start = end - duration * limit;
+        } else {
+            start = parseInt (since / 1000);
+            end = since + duration * limit;
+        }
+        const request = {
+            'symbol': market['id'],
+            'type': this.timeframes[timeframe],
+            'start': start,
+            'end': end,
+        };
+        const response = await this.publicGetSpotKline (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
