@@ -299,7 +299,10 @@ module.exports = class bithumbglobal extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'orderId');
-        let symbol = undefined;
+        let symbol = this.safeString (order, 'symbol');
+        if (market === undefined) {
+            market = this.markets_by_id[symbol];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         } else {
