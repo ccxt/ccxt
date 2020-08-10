@@ -149,7 +149,9 @@ class Exchange(BaseExchange):
         try:
             return await future
         except asyncio.CancelledError as e:
-            await self.close()
+            if self.session:
+                print('Received Interrupt closing aiohttp ClientSession...')
+                await self.close()
             raise e
 
     def on_error(self, client, error):
@@ -164,14 +166,6 @@ class Exchange(BaseExchange):
             # server disconnected a working connection
             if client.url in self.clients:
                 del self.clients[client.url]
-
-    async def close(self):
-        keys = list(self.clients.keys())
-        for key in keys:
-            await self.clients[key].close()
-            if key in self.clients:
-                del self.clients[key]
-        return await super(Exchange, self).close()
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
