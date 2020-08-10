@@ -13,7 +13,7 @@ from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttle import throttle
-
+import asyncio
 
 # -----------------------------------------------------------------------------
 
@@ -146,7 +146,11 @@ class Exchange(BaseExchange):
         client = self.client(url)
         future = client.future(message_hash)
         await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
-        return await future
+        try:
+            return await future
+        except asyncio.CancelledError as e:
+            await self.close()
+            raise e
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
