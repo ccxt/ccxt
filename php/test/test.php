@@ -184,8 +184,8 @@ function test_symbol($exchange, $symbol) {
     } else {
         test_order_book($exchange, $symbol);
         test_trades($exchange, $symbol);
-        test_orders($exchange, $symbol);
         if ($exchange->apiKey) {
+            test_orders($exchange, $symbol);
             test_closed_orders($exchange, $symbol);
             test_open_orders($exchange, $symbol);
         }

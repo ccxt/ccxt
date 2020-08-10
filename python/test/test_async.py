@@ -321,8 +321,8 @@ async def test_symbol(exchange, symbol):
     else:
         await test_order_book(exchange, symbol)
         await test_trades(exchange, symbol)
-        await test_orders(exchange, symbol)
         if exchange.apiKey:
+            await test_orders(exchange, symbol)
             await test_open_orders(exchange, symbol)
             await test_closed_orders(exchange, symbol)
 
