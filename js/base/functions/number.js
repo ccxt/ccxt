@@ -52,7 +52,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
         const e = parseInt (n_e[1])
         const neg = (s[0] === '-')
         if (e) {
-            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + n.toString ().substring (neg)
+            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + n.substring (neg)
             return x
         }
     } else {
