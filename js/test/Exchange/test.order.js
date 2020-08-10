@@ -24,7 +24,7 @@ function testOrder (exchange, order, symbol, now) {
     assert ('price' in order);
     assert (typeof order['price'] === 'number');
     assert (order['price'] > 0);
-    asserr ('amount' in order);
+    assert ('amount' in order);
     assert (typeof order['amount'] === 'number');
     assert (order['amount'] >= 0);
     assert ('filled' in order);
