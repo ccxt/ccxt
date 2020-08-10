@@ -146,13 +146,7 @@ class Exchange(BaseExchange):
         client = self.client(url)
         future = client.future(message_hash)
         await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
-        try:
-            return await future
-        except asyncio.CancelledError as e:
-            if self.session:
-                print('Received Interrupt closing aiohttp ClientSession...')
-                await self.close()
-            raise e
+        return await future
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
