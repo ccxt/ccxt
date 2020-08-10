@@ -325,6 +325,19 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicV3GetMarkets (params);
+        //
+        //     [
+        //         {
+        //             "marketId":"COMP-AUD",
+        //             "baseAssetName":"COMP",
+        //             "quoteAssetName":"AUD",
+        //             "minOrderAmount":"0.00007",
+        //             "maxOrderAmount":"1000000",
+        //             "amountDecimals":"8",
+        //             "priceDecimals":"2"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -1079,8 +1092,9 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             };
+            request = '/api' + request;
         } else if (api === 'publicV3') {
-            request = '/' + this.version + request;
+            request = '/api/' + this.version + request;
             if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
             }
