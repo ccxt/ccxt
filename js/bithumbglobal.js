@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ module.exports = class bithumbglobal extends Exchange {
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'CORS': true,
                 'createMarketOrder': false,
                 'createOrder': false,
@@ -51,6 +51,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'private': {
                     'post': [
                         'spot/assetList',
+                        'spot/cancelOrder',
                     ],
                 },
             },
@@ -63,6 +64,9 @@ module.exports = class bithumbglobal extends Exchange {
             'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
                 'exact': {
+                    // 9002 occurs when there are missing/wrong parameters, the signature does not need to be wrong
+                    '9002': BadRequest, // {"data":null,"code":"9002","msg":"verifySignature failed","timestamp":1597061538013,"startTime":null}
+                    '20004': InvalidOrder, // {"data":null,"code":"20004","msg":"order absent","timestamp":1597061829420,"startTime":null}
                 },
                 'broad': {
                 },
@@ -185,6 +189,19 @@ module.exports = class bithumbglobal extends Exchange {
             result[safeCode] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        return await this.privatePostSpotCancelOrder (this.extend (request, params));
     }
 
     nonce () {
