@@ -73,7 +73,8 @@ class FastClient(AiohttpClient):
         self.error = error
         self.reset(error)
         self.on_error_callback(self, error)
-        self.transport.close()
+        if self.transport:
+            self.transport.close()
 
     def on_close(self, code):
         if self.verbose:
@@ -81,4 +82,5 @@ class FastClient(AiohttpClient):
         if not self.error:
             self.reset(NetworkError(code))
         self.on_close_callback(self, code)
-        self.transport.close()
+        if self.transport:
+            self.transport.close()
