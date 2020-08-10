@@ -14,6 +14,7 @@ module.exports = class btcmarkets extends Exchange {
             'name': 'BTC Markets',
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            'version': 'v3',
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -40,7 +41,8 @@ module.exports = class btcmarkets extends Exchange {
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
-                    'privateV3': 'https://api.btcmarkets.net/v3',
+                    'publicV3': 'https://api.btcmarkets.net',
+                    'privateV3': 'https://api.btcmarkets.net',
                     'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
@@ -89,6 +91,18 @@ module.exports = class btcmarkets extends Exchange {
                         'order/trade/history',
                         'order/createBatch', // they promise it's coming soon...
                         'order/detail',
+                    ],
+                },
+                'publicV3': {
+                    'get': [
+                        'markets',
+                        'markets/{marketId}/ticker',
+                        'markets/{marketId}/trades',
+                        'markets/{marketId}/orderbook',
+                        'markets/{marketId}/candles',
+                        'markets/tickers',
+                        'markets/orderbooks',
+                        'time',
                     ],
                 },
                 'privateV3': {
@@ -310,7 +324,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetV3Markets (params);
+        const response = await this.publicV3GetMarkets (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -470,37 +484,98 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "marketId":"BAT-AUD",
+        //         "bestBid":"0.3751",
+        //         "bestAsk":"0.377",
+        //         "lastPrice":"0.3769",
+        //         "volume24h":"56192.97613335",
+        //         "volumeQte24h":"21179.13270465",
+        //         "price24h":"0.0119",
+        //         "pricePct24h":"3.26",
+        //         "low24h":"0.3611",
+        //         "high24h":"0.3799",
+        //         "timestamp":"2020-08-09T18:28:23.280000Z"
+        //     }
+        //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (ticker, 'marketId');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeFloat (ticker, 'lastPrice');
+        const baseVolume = this.safeFloat (ticker, 'volume24h');
+        const quoteVolume = this.safeFloat (ticker, 'volumeQte24h');
+        let vwap = undefined;
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
+            vwap = quoteVolume / baseVolume;
+        }
+        const change = this.safeFloat (ticker, 'price24h');
+        const percentage = this.safeFloat (ticker, 'pricePct24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bestBid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24h'),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        const response = await this.publicV3GetMarketsMarketIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "marketId":"BAT-AUD",
+        //         "bestBid":"0.3751",
+        //         "bestAsk":"0.377",
+        //         "lastPrice":"0.3769",
+        //         "volume24h":"56192.97613335",
+        //         "volumeQte24h":"21179.13270465",
+        //         "price24h":"0.0119",
+        //         "pricePct24h":"3.26",
+        //         "low24h":"0.3611",
+        //         "high24h":"0.3799",
+        //         "timestamp":"2020-08-09T18:28:23.280000Z"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTicker2 (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -950,8 +1025,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const uri = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + uri;
+        let request = '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -963,17 +1037,17 @@ module.exports = class btcmarkets extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
+                auth = request + "\n" + nonce + "\n"; // eslint-disable-line quotes
                 body = this.json (params);
                 auth += body;
             } else {
                 let queryString = '';
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
-                    url += '?' + queryString;
+                    request += '?' + queryString;
                     queryString += "\n"; // eslint-disable-line quotes
                 }
-                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
+                auth = request + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
             }
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
@@ -982,22 +1056,19 @@ module.exports = class btcmarkets extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
-            const pathWithLeadingSlash = '/v3' + uri;
+            request = '/' + this.version + request;
             const query = this.keysort (this.omit (params, this.extractParams (path)));
-            if (method !== 'GET') {
-                body = this.json (query);
-            } else {
+            let auth = undefined;
+            if ((method === 'GET') || (method === 'DELETE')) {
+                auth = method + request + nonce;
                 let queryString = '';
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
-                    url += '?' + queryString;
+                    request += '?' + queryString;
                 }
-            }
-            let auth = undefined;
-            if (body) {
-                auth = method + pathWithLeadingSlash + nonce + body;
             } else {
-                auth = method + pathWithLeadingSlash + nonce;
+                body = this.json (query);
+                auth = method + request + nonce + body;
             }
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
@@ -1008,11 +1079,17 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             };
+        } else if (api === 'publicV3') {
+            request = '/' + this.version + request;
+            if (Object.keys (query).length) {
+                request += '?' + this.urlencode (query);
+            }
         } else {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                request += '?' + this.urlencode (query);
             }
         }
+        const url = this.urls['api'][api] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
