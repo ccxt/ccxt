@@ -176,9 +176,8 @@ module.exports = class bithumbglobal extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
         };
         const response = await this.publicGetSpotOrderBook (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
