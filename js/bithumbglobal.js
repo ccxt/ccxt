@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder } = require ('./base/errors');
+const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ module.exports = class bithumbglobal extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'createMarketOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -52,6 +52,7 @@ module.exports = class bithumbglobal extends Exchange {
                     'post': [
                         'spot/assetList',
                         'spot/cancelOrder',
+                        'spot/placeOrder',
                     ],
                 },
             },
@@ -61,15 +62,21 @@ module.exports = class bithumbglobal extends Exchange {
                     'taker': 0.1 / 100,
                 },
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': DECIMAL_PLACES,
             'exceptions': {
                 'exact': {
                     // 9002 occurs when there are missing/wrong parameters, the signature does not need to be wrong
                     '9002': BadRequest, // {"data":null,"code":"9002","msg":"verifySignature failed","timestamp":1597061538013,"startTime":null}
+                    '20000': InvalidOrder, // {"data":null,"code":"20000","msg":"order params error","timestamp":1597064915274,"startTime":null}
                     '20004': OrderNotFound, // {"data":null,"code":"20004","msg":"order absent","timestamp":1597061829420,"startTime":null}
+                    '20012': BadRequest, // {"data":null,"code":"20012","msg":"cancel failed,order status changed","timestamp":1597065978595,"startTime":null}
+                    '20044': InvalidOrder, // {"data":null,"code":"20044","msg":"quantity accuracy is wrong for placing order","timestamp":1597066179132,"startTime":null}
                 },
                 'broad': {
                 },
+            },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -86,6 +93,7 @@ module.exports = class bithumbglobal extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const accuracy = this.safeValue (market, 'accuracy', {});
             result.push ({
                 'id': currencyId,
                 'symbol': symbol,
@@ -94,8 +102,8 @@ module.exports = class bithumbglobal extends Exchange {
                 'info': market,
                 'active': true,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.safeFloat (accuracy, 1),
+                    'price': this.safeFloat (accuracy, 0),
                 },
                 'limits': {
                     'amount': {
@@ -189,6 +197,41 @@ module.exports = class bithumbglobal extends Exchange {
             result[safeCode] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': type.toLowerCase (),
+            'side': side.toLowerCase (),
+        };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else {
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice) {
+                if (price !== undefined) {
+                    amount = amount * price;
+                } else {
+                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument (the exchange-specific behaviour)");
+                }
+            }
+            request['price'] = '-1';
+            request['quantity'] = this.priceToPrecision (symbol, amount);
+        }
+        const response = await this.privatePostSpotPlaceOrder (this.extend (request, params));
+        const responseData = this.safeValue (response, 'data', {});
+        const id = this.safeString (responseData, 'orderId');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'id': id,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
