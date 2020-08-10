@@ -27,7 +27,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
                 'withdraw': false,
@@ -182,6 +182,12 @@ module.exports = class bithumbglobal extends Exchange {
         const response = await this.publicGetSpotOrderBook (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, undefined, 'b', 's', 0, 1);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const tickers = await this.fetchTickers ([symbol], params);
+        return tickers[0];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
