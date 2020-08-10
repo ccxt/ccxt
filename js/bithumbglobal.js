@@ -24,7 +24,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -53,6 +53,7 @@ module.exports = class bithumbglobal extends Exchange {
                         'spot/assetList',
                         'spot/cancelOrder',
                         'spot/placeOrder',
+                        'spot/singleOrder',
                     ],
                 },
             },
@@ -231,6 +232,82 @@ module.exports = class bithumbglobal extends Exchange {
             'type': type,
             'side': side,
             'id': id,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = await this.privatePostSpotSingleOrder (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open',
+            'cancel': 'canceled',
+            'success': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'orderId');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            const base = this.safeCurrencyCode (this.safeString (order, 'coinType'));
+            const quote = this.safeCurrencyCode (this.safeString (order, 'marketType'));
+            symbol = base + '/' + quote;
+        }
+        const timestamp = this.safeInteger (order, 'createTime');
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const filled = this.safeFloat (order, 'tradedNum');
+        let price = this.safeFloat (order, 'price');
+        let avgPrice = this.safeFloat (order, 'avgPrice');
+        let amount = undefined;
+        if (type === 'market') {
+            amount = this.safeFloat (order, 'tradedNum');
+        } else {
+            amount = this.safeFloat (order, 'quantity');
+            if (avgPrice === 0) {
+                avgPrice = undefined;
+            }
+        }
+        if (status !== 'open') {
+            price = avgPrice;
+        }
+        const remaining = amount - filled;
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': avgPrice,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
