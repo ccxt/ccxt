@@ -145,7 +145,7 @@ function test_closed_orders($exchange, $symbol) {
         usleep($delay);
 
         dump(green($symbol), 'fetching closed orders...');
-        $orders = $exchange->fetch_cloed_orders($symbol);
+        $orders = $exchange->fetch_closed_orders($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'closed' || $order['status'] === 'canceled');
