@@ -293,8 +293,9 @@ def test_symbol(exchange, symbol):
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
         test_orders(exchange, symbol)
-        test_open_orders(exchange, symbol)
-        test_closed_orders(exchange, symbol)
+        if exchange.apiKey:
+            test_open_orders(exchange, symbol)
+            test_closed_orders(exchange, symbol)
 
     test_tickers(exchange, symbol)
     test_ohlcv(exchange, symbol)
