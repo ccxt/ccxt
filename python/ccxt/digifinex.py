@@ -41,6 +41,7 @@ class digifinex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -593,6 +594,20 @@ class digifinex(Exchange):
         #     }
         #
         return self.safe_timestamp(response, 'server_time')
+
+    def fetch_status(self, params={}):
+        self.publicGetPing(params)
+        #
+        #     {
+        #         "msg": "pong",
+        #         "code": 0
+        #     }
+        #
+        self.status = self.extend(self.status, {
+            'status': 'ok',
+            'updated': self.milliseconds(),
+        })
+        return self.status
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
