@@ -142,13 +142,11 @@ class Exchange(BaseExchange):
             if self.verbose:
                 self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
         future = client.future(message_hash)
-        # we intentionally do not use await here to avoid unhandled exceptions
-        # the policy is to make sure that 100% of promises are resolved or rejected
-        ensure_future(self.connect_client(client, message_hash, message, subscribe_hash, subscription))
-        return future
+        await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
+        return await future
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
