@@ -28,7 +28,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'withdraw': false,
             },
@@ -47,6 +47,7 @@ module.exports = class bithumbglobal extends Exchange {
                     'get': [
                         'spot/config',
                         'spot/orderBook',
+                        'spot/ticker',
                     ],
                 },
                 'private': {
@@ -181,6 +182,63 @@ module.exports = class bithumbglobal extends Exchange {
         const response = await this.publicGetSpotOrderBook (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, undefined, 'b', 's', 0, 1);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols === undefined) {
+            request['symbol'] = 'ALL';
+        } else {
+            const marketIds = this.marketIds (symbols);
+            request['symbol'] = marketIds.join (',');
+        }
+        const response = await this.publicGetSpotTicker (this.extend (request, params));
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker, market = undefined, timestamp = undefined) {
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 's');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'c');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'p'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'info': ticker,
+        };
+    }
+
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        const timestamp = this.safeInteger (rawTickers, 'timestamp');
+        const data = this.safeValue (rawTickers, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            tickers.push (this.parseTicker (data[i], undefined, timestamp));
+        }
+        return tickers;
     }
 
     async fetchBalance (params = {}) {
