@@ -29,7 +29,7 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'withdraw': false,
             },
             'urls': {
@@ -48,6 +48,7 @@ module.exports = class bithumbglobal extends Exchange {
                         'spot/config',
                         'spot/orderBook',
                         'spot/ticker',
+                        'spot/trades',
                     ],
                 },
                 'private': {
@@ -245,6 +246,45 @@ module.exports = class bithumbglobal extends Exchange {
             tickers.push (this.parseTicker (data[i], undefined, timestamp));
         }
         return tickers;
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 't');
+        const side = this.safeString (trade, 's');
+        const price = this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'v');
+        const cost = price * amount;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': undefined,
+            'order': undefined,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const id = market['id'];
+        const request = {
+            'symbol': id,
+        };
+        const response = await this.publicGetSpotTrades (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
