@@ -771,10 +771,12 @@ module.exports = class binance extends ccxt.binance {
         const rawStatus = this.safeString (message, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
+        const clientOrderId = this.safeString (message, 'c');
         const parsed = {
             'info': message,
             'symbol': symbol,
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,

@@ -124,7 +124,7 @@ class Client(object):
             self.connected.resolve(self.url)
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
-        except TimeoutError as e:
+        except TimeoutError:
             # connection timeout
             error = RequestTimeout('Connection timeout')
             if self.verbose:

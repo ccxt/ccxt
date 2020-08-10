@@ -77,11 +77,11 @@ setup(
         ':python_version>="3.5.2"': [
             'aiohttp>=3.0.1',
             'aiodns==1.1.1',
-            'ccxt>=1.32.75',
+            'ccxt>=1.32.88',
             'yarl==1.1.0',
         ],
         'qa': [
-            'flake8==3.5.0'
+            'flake8==3.7.9'
         ],
         'doc': [
             'Sphinx==1.7.0'

@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
 const fs = require ('fs')
     , log = require ('ololog').handleNodeErrors ()
-    // eslint-disable-next-line import/no-dynamic-require
+    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
     , ccxtpro = require (__dirname + '/../../ccxt.pro.js')
 
-const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter (x => !x.startsWith ('--'))
+const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 
 // ----------------------------------------------------------------------------
@@ -48,6 +48,7 @@ const exchangeOptions = {
     timeout,
     // print,
 }
+
 const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 // exchange.urls.api = exchange.urls.test
@@ -56,12 +57,13 @@ const exchange = new (ccxtpro)[exchangeId] (exchangeOptions)
 
 const tests = {}
 
+// eslint-disable-next-line no-path-concat
 const pathToExchangeTests = __dirname + '/Exchange/'
 fs.readdirSync (pathToExchangeTests)
     .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.js$/))
     .forEach ((file) => {
         const key = file.slice (5, -3)
-        // eslint-disable-next-line import/no-dynamic-require
+        // eslint-disable-next-line global-require, import/no-dynamic-require
         tests[key] = require (pathToExchangeTests + file)
     })
 
@@ -70,7 +72,7 @@ fs.readdirSync (pathToExchangeTests)
 const keysGlobal = 'keys.json'
     , keysLocal = 'keys.local.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-    // eslint-disable-next-line import/no-dynamic-require
+    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
     , settings = require (__dirname + '/../../' + keysFile)[exchangeId]
 
 if (settings) {
@@ -154,9 +156,9 @@ async function testExchange (exchange) {
         'ZRX',
     ]
     let code = codes[0]
-    for (let c in codes) {
-        if (c in exchange.currencies) {
-            code = c
+    for (let i = 0; i < codes.length; i++) {
+        if (codes[i] in exchange.currencies) {
+            code = codes[i]
         }
     }
 
@@ -177,10 +179,11 @@ async function testExchange (exchange) {
         'LTC/BTC',
         'ZRX/WETH',
     ]
-    for (let s in symbols) {
-        if (exchange.symbols.includes (symbols[s]) &&
-            (('active' in exchange.markets[symbols[s]]) ? exchange.markets[symbols[s]]['active'] : true)) {
-            symbol = symbols[s]
+
+    for (let i = 0; i < symbols.length; i++) {
+        if (exchange.symbols.includes (symbols[i]) &&
+            (('active' in exchange.markets[symbols[i]]) ? exchange.markets[symbols[i]]['active'] : true)) {
+            symbol = symbols[i]
             break
         }
     }
@@ -196,11 +199,12 @@ async function testExchange (exchange) {
 
 //-----------------------------------------------------------------------------
 
-(async () => {
+async function test () {
 
     await exchange.loadMarkets ()
     await testExchange (exchange, exchangeSymbol)
     console.log (new Date (), 'Done.')
     process.exit ()
+}
 
-}) ()
+test ()

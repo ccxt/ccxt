@@ -774,10 +774,12 @@ class binance extends \ccxt\binance {
         $rawStatus = $this->safe_string($message, 'X');
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
+        $clientOrderId = $this->safe_string($message, 'c');
         $parsed = array(
             'info' => $message,
             'symbol' => $symbol,
             'id' => $orderId,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,

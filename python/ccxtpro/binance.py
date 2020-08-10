@@ -703,10 +703,12 @@ class binance(Exchange, ccxt.binance):
         rawStatus = self.safe_string(message, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None
+        clientOrderId = self.safe_string(message, 'c')
         parsed = {
             'info': message,
             'symbol': symbol,
             'id': orderId,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
