@@ -205,9 +205,8 @@ module.exports = class bithumbglobal extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
             'type': type.toLowerCase (),
             'side': side.toLowerCase (),
         };
@@ -355,10 +354,9 @@ module.exports = class bithumbglobal extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
             'orderId': id,
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
         };
         return await this.privatePostSpotCancelOrder (this.extend (request, params));
     }
