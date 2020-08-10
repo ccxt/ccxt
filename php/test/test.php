@@ -6,6 +6,7 @@ date_default_timezone_set('UTC');
 
 include_once 'ccxt.php';
 include_once 'test_trade.php';
+include_once 'test_order.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -72,7 +73,6 @@ foreach ($config as $id => $params) {
 }
 
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
-$exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_ticker($exchange, $symbol) {
     $delay = $exchange->rateLimit * 1000;
@@ -242,6 +242,7 @@ function test_exchange($exchange) {
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
