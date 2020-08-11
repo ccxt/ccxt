@@ -557,8 +557,8 @@ class kraken extends Exchange {
         $this->load_markets();
         $symbols = ($symbols === null) ? $this->symbols : $symbols;
         $marketIds = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->markets[$symbol];
             if ($market['active'] && !$market['darkpool']) {
                 $marketIds[] = $market['id'];

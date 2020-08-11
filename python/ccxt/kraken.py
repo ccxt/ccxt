@@ -547,8 +547,8 @@ class kraken(Exchange):
         self.load_markets()
         symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.markets[symbol]
             if market['active'] and not market['darkpool']:
                 marketIds.append(market['id'])
