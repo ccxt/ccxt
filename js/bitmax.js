@@ -1664,7 +1664,9 @@ module.exports = class bitmax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '';
         let query = params;
+        let accountGroup = undefined;
         if (api === 'accountGroup') {
+            accountGroup = params['account-group'].toString ();
             url += this.implodeParams ('/{account-group}', params);
             query = this.omit (params, 'account-group');
         }
@@ -1678,7 +1680,15 @@ module.exports = class bitmax extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const auth = timestamp + '+' + request;
+            const requestParts = request.split ('/');
+            if (api === 'accountGroup' && requestParts[0] === accountGroup) {
+                requestParts.shift ();
+            }
+            if (requestParts[0] === 'cash') {
+                requestParts.shift ();
+            }
+            const authPath = requestParts.join ('/');
+            const auth = timestamp + '+' + authPath;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
