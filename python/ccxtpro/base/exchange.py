@@ -142,11 +142,15 @@ class Exchange(BaseExchange):
             if self.verbose:
                 self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
-    async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    async def connect_then_wait(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
         future = client.future(message_hash)
         await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
         return await future
+
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+        # ensures that this future will get awaited for
+        return ensure_future(self.connect_then_wait(url, message_hash, message, subscribe_hash, subscription))
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
