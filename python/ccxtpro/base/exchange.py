@@ -102,10 +102,10 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        ensure_future(self.spawn_async(method, *args))
+        asyncio.ensure_future(self.spawn_async(method, *args))
 
     def delay(self, timeout, method, *args):
-        ensure_future(self.delay_async(timeout, method, *args))
+        asyncio.ensure_future(self.delay_async(timeout, method, *args))
 
     def handle_message(self, client, message):
         always = True
