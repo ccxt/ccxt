@@ -7,12 +7,12 @@ __version__ = '0.3.40'
 # -----------------------------------------------------------------------------
 
 from ccxtpro.base.functions import inflate, inflate64, gunzip
-from asyncio import ensure_future
 from ccxtpro.base.fast_client import FastClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttle import throttle
+import asyncio
 
 # -----------------------------------------------------------------------------
 
@@ -122,19 +122,24 @@ class Exchange(BaseExchange):
     async def connect_client(self, client, message_hash, message=None, subscribe_hash=None, subscription=None):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
-        # base exchange self.open starts the aiohttp Session in an async context
-        self.open()
-        await client.connect(self.session, backoff_delay)
-        if subscribe_hash not in client.subscriptions:
-            client.subscriptions[subscribe_hash] = subscription or True
-            if self.enableRateLimit and client.throttle:
-                options = self.safe_value(self.options, 'ws', {})
-                rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                await client.throttle(rateLimit)
-            # todo: decouple signing from subscriptions
-            if message:
-                message = self.sign_message(client, message_hash, message)
-                await client.send(message)
+        try:
+            # base exchange self.open starts the aiohttp Session in an async context
+            self.open()
+            await client.connect(self.session, backoff_delay)
+            if subscribe_hash not in client.subscriptions:
+                client.subscriptions[subscribe_hash] = subscription or True
+                if self.enableRateLimit and client.throttle:
+                    options = self.safe_value(self.options, 'ws', {})
+                    rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
+                    await client.throttle(rateLimit)
+                # todo: decouple signing from subscriptions
+                if message:
+                    message = self.sign_message(client, message_hash, message)
+                    await client.send(message)
+        except Exception as e:
+            client.reject(e, message_hash)
+            if self.verbose:
+                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
 
     async def connect_then_wait(self, client, future, message_hash, message, subscribe_hash, subscription):
         await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
@@ -143,8 +148,11 @@ class Exchange(BaseExchange):
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
         future = client.future(message_hash)
-        if not client.connected.done():
-            return ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
+        if client.pending_connection:
+            return client.pending_connection
+        elif not client.connected.done():
+            client.pending_connection = asyncio.ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
+            return client.pending_connection
         else:
             return future
 
@@ -163,3 +171,11 @@ class Exchange(BaseExchange):
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
+
+    async def close(self):
+        for client in self.clients.values():
+            if client.pending_connection:
+                client.pending_connection.cancel()
+        if self.clients:
+            await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
+        await super(Exchange, self).close()

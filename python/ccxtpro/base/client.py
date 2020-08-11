@@ -31,6 +31,7 @@ class Client(object):
     inflate = False
     throttle = None
     connecting = False
+    pending_connection = None  # used in watch
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {
@@ -149,7 +150,9 @@ class Client(object):
         self.error = error
         self.reset(error)
         self.on_error_callback(self, error)
-        self.free(1006)
+        if not self.closed():
+            self.free()
+            ensure_future(self.close(1006))
 
     def on_close(self, code):
         if self.verbose:
@@ -157,11 +160,26 @@ class Client(object):
         if not self.error:
             self.reset(NetworkError(code))
         self.on_close_callback(self, code)
-        self.free(code)
-
-    def free(self, code):
         if not self.closed():
+            self.free()
             ensure_future(self.close(code))
+
+    def free(self):
+        # removes the "Task exception was not retrieved errors"
+        # ```
+        # f = asyncio.Future()
+        # f.set_exception(RuntimeError)
+        # f.cancel()  # try deleting this line
+        # del f
+        # ```
+        # canceling a future does not affect it's resolved or rejected state
+        # if it is already done, and rejected errors are still passed to the user
+        # sometimes our users will do a call like asyncio.wait([...], return_when=asyncio.FIRST_COMPLETED)
+        # we don't need all our futures to have been awaited for
+        for future in self.futures.values():
+            future.cancel()
+        if self.pending_connection:
+            self.pending_connection.cancel()
 
     def reset(self, error):
         self.connected.reject(error)
