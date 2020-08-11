@@ -119,7 +119,7 @@ class huobipro extends Exchange {
                     'get' => array(
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
-                        'account/accounts/array(sub-uid)',
+                        'account/accounts/{sub-uid}',
                         'account/history',
                         'cross-margin/loan-info',
                         'fee/fee-rate/get',
