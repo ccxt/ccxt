@@ -602,7 +602,7 @@ module.exports = class ataix extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             headers = {
-                'Authorization': 'api-ax <' + this.apiKey + '>',
+                'X-API-Key': this.apiKey,
             };
             if (method === 'GET') {
                 url += '?' + this.urlencode (query);
