@@ -91,7 +91,7 @@ class bitmax extends Exchange {
                 ),
                 'accountGroup' => array(
                     'get' => array(
-                        'array(account-category)/balance',
+                        '{account-category}/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -100,21 +100,21 @@ class bitmax extends Exchange {
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        'array(account-category)/order/open',
-                        'array(account-category)/order/status',
-                        'array(account-category)/order/hist/current',
+                        '{account-category}/order/open',
+                        '{account-category}/order/status',
+                        '{account-category}/order/hist/current',
                         'order/hist',
                     ),
                     'post' => array(
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        'array(account-category)/order',
-                        'array(account-category)/order/batch',
+                        '{account-category}/order',
+                        '{account-category}/order/batch',
                     ),
                     'delete' => array(
-                        'array(account-category)/order',
-                        'array(account-category)/order/all',
-                        'array(account-category)/order/batch',
+                        '{account-category}/order',
+                        '{account-category}/order/all',
+                        '{account-category}/order/batch',
                     ),
                 ),
                 'private' => array(
@@ -1668,7 +1668,7 @@ class bitmax extends Exchange {
         $url = '';
         $query = $params;
         if ($api === 'accountGroup') {
-            $url .= $this->implode_params('/array(account-group)', $params);
+            $url .= $this->implode_params('/{account-group}', $params);
             $query = $this->omit($params, 'account-group');
         }
         $request = $this->implode_params($path, $query);
