@@ -48,7 +48,7 @@ while True:
         else:
             all_trades = all_trades + trades
     else:
-        break;
+        break
 
 print('Fetched', len(all_trades), 'trades')
 for i in range(0, len(all_trades)):
