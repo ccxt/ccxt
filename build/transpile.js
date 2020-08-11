@@ -1212,6 +1212,9 @@ class Transpiler {
         ].join ("\n")
 
         const phpHeader = [
+            "",
+            "include_once (__DIR__.'/fail_on_all_errors.php');",
+            "",
             "// testDecimalToPrecisionErrorHandling",
             "//",
             "// $this->expectException ('ccxt\\\\BaseError');",
