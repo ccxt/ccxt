@@ -24,7 +24,9 @@ exchange.load_markets ()
 # exchange.verbose = True  # uncomment for debugging
 
 symbol = 'ETH/BTC'
-params = { 'fromId': '0' }
+from_id = '0'
+params = { 'fromId': from_id }
+previous_from_id = from_id
 
 all_trades = []
 
@@ -39,8 +41,12 @@ while True:
         #     trade = trades[i]
         #     print (i, trade['id'], trade['datetime'], trade['amount'])
         last_trade = trades[len(trades) - 1]
-        params['fromId'] = last_trade['id']
-        all_trades = all_trades + trades
+        from_id = last_trade['id']
+        params['fromId'] = from_id
+        if from_id == previous_from_id:
+            break
+        else:
+            all_trades = all_trades + trades
     else:
         break;
 
