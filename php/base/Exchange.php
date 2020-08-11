@@ -2649,7 +2649,7 @@ class Exchange {
             return $s;
         }
         $splitted = explode('E', $s);
-        $number = $splitted[0];
+        $number = rtrim(rtrim($splitted[0], '0'), '.');
         $exp = (int) $splitted[1];
         $len_after_dot = 0;
         if (strpos($number, '.') !== false) {
