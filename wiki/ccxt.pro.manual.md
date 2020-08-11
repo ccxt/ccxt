@@ -461,7 +461,7 @@ if exchange.has['watchOrderBook']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -510,7 +510,7 @@ if exchange.has['watchTicker']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -559,7 +559,7 @@ if exchange.has['watchTickers']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -608,7 +608,7 @@ if exchange.has['watchOHLCV']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -659,7 +659,7 @@ if exchange.has['watchTrades']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -720,7 +720,7 @@ if exchange.has['watchBalance']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
