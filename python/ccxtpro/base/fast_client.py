@@ -5,7 +5,6 @@ __author__ = 'Carlo Revelli'
 import asyncio
 import collections
 from ccxt import NetworkError
-from ccxt.async_support import Exchange
 from ccxtpro.base.aiohttp_client import AiohttpClient
 
 EVERY_MESSAGE = 0

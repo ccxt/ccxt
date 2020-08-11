@@ -13,7 +13,6 @@ from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttle import throttle
-import asyncio
 
 # -----------------------------------------------------------------------------
 
