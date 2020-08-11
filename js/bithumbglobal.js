@@ -491,7 +491,7 @@ module.exports = class bithumbglobal extends Exchange {
                 avgPrice = undefined;
             }
         }
-        if (status !== 'open') {
+        if (filled !== 0) {
             price = avgPrice;
         }
         const remaining = amount - filled;
