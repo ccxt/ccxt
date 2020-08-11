@@ -15,7 +15,7 @@ class FastClient(AiohttpClient):
     change_context = False
     switcher = None
     mode = EVERY_MESSAGE
-    max_pending = 256
+    max_pending = 2 ** 9
     transport = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
@@ -67,4 +67,5 @@ class FastClient(AiohttpClient):
         self.stack.clear()
 
     def free(self, code):
-        self.transport.close()
+        if self.transport:
+            self.transport.close()
