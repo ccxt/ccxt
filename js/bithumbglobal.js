@@ -127,8 +127,8 @@ module.exports = class bithumbglobal extends Exchange {
                 'info': market,
                 'active': true,
                 'precision': {
-                    'amount': this.safeFloat (accuracy, 1),
-                    'price': this.safeFloat (accuracy, 0),
+                    'amount': this.safeInteger (accuracy, 1),
+                    'price': this.safeInteger (accuracy, 0),
                 },
                 'limits': {
                     'amount': {
@@ -155,7 +155,7 @@ module.exports = class bithumbglobal extends Exchange {
         const response = await this.publicGetSpotConfig (params);
         const data = this.safeValue (response, 'data');
         const coinConfig = this.safeValue (data, 'coinConfig');
-        const result = [];
+        const result = {};
         for (let i = 0; i < coinConfig.length; i++) {
             const currency = coinConfig[i];
             const name = this.safeString (currency, 'name');
@@ -206,7 +206,7 @@ module.exports = class bithumbglobal extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const tickers = await this.fetchTickers ([symbol], params);
-        return tickers[0];
+        return tickers[symbol];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -257,11 +257,12 @@ module.exports = class bithumbglobal extends Exchange {
     }
 
     parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
+        const tickers = {};
         const timestamp = this.safeInteger (rawTickers, 'timestamp');
         const data = this.safeValue (rawTickers, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            tickers.push (this.parseTicker (data[i], undefined, timestamp));
+            const ticker = this.parseTicker (data[i], undefined, timestamp);
+            tickers[ticker['symbol']] = ticker;
         }
         return tickers;
     }
@@ -420,9 +421,11 @@ module.exports = class bithumbglobal extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'count': limit,
             // 'page': 1, // page count starts with 1
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privatePostSpotOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const list = this.safeValue (data, 'list');
@@ -437,11 +440,13 @@ module.exports = class bithumbglobal extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'count': limit,
             'status': 'closed',
             'queryRange': 'thisweek', // thisweekago
             // 'page': 1, // page count starts with 1
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privatePostSpotOrderList (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const list = this.safeValue (data, 'list');
