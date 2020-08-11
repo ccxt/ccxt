@@ -1301,11 +1301,9 @@ class wavesexchange extends Exchange {
             $code = null;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->safe_currency_code($currencyId);
-            } else {
-                $code = $this->safe_currency_code($this->safe_string($issueTransaction, 'name'));
+                $result[$code] = $this->account();
+                $result[$code]['total'] = $this->from_wei($balance, $decimals);
             }
-            $result[$code] = $this->account();
-            $result[$code]['total'] = $this->from_wei($balance, $decimals);
         }
         $timestamp = $this->milliseconds();
         $byteArray = array(
