@@ -1302,7 +1302,7 @@ class ftx(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
