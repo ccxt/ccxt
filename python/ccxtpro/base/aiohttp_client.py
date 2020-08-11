@@ -53,7 +53,7 @@ class AiohttpClient(Client):
         elif message.type == WSMsgType.CLOSE:
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'close', self.closed(), message)
-            self.on_close(1000)
+            self.on_close(message.data)
         elif message.type == WSMsgType.CLOSED:
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'closed', self.closed(), message)
