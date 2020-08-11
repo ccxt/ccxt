@@ -287,7 +287,7 @@ class Transpiler {
 
     getPHPRegexes () {
         return [
-            [ /\{([a-zA-Z0-9_]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -338,6 +338,7 @@ class Transpiler {
 
         // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -402,7 +403,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([a-zA-Z0-9_]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
