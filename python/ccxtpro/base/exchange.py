@@ -122,34 +122,31 @@ class Exchange(BaseExchange):
     async def connect_client(self, client, message_hash, message=None, subscribe_hash=None, subscription=None):
         # todo: calculate the backoff using the clients cache
         backoff_delay = 0
-        try:
-            # base exchange self.open starts the aiohttp Session in an async context
-            self.open()
-            await client.connect(self.session, backoff_delay)
-            if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
-                if self.enableRateLimit and client.throttle:
-                    options = self.safe_value(self.options, 'ws', {})
-                    rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                    await client.throttle(rateLimit)
-                # todo: decouple signing from subscriptions
-                if message:
-                    message = self.sign_message(client, message_hash, message)
-                    await client.send(message)
-        except Exception as e:
-            client.reject(e, message_hash)
-            if self.verbose:
-                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
+        await client.connect(self.session, backoff_delay)
+        if subscribe_hash not in client.subscriptions:
+            client.subscriptions[subscribe_hash] = subscription or True
+            if self.enableRateLimit and client.throttle:
+                options = self.safe_value(self.options, 'ws', {})
+                rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
+                await client.throttle(rateLimit)
+            # todo: decouple signing from subscriptions
+            if message:
+                message = self.sign_message(client, message_hash, message)
+                await client.send(message)
 
-    async def connect_then_wait(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
-        client = self.client(url)
-        future = client.future(message_hash)
+    async def connect_then_wait(self, client, future, message_hash, message, subscribe_hash, subscription):
         await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
         return await future
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
-        # ensures that this future will get awaited for
-        return ensure_future(self.connect_then_wait(url, message_hash, message, subscribe_hash, subscription))
+        client = self.client(url)
+        future = client.future(message_hash)
+        if not client.connected.done():
+            return ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
+        else:
+            return future
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
