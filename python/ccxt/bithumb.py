@@ -114,13 +114,13 @@ class bithumb(Exchange):
         data = self.safe_value(response, 'data')
         currencyIds = list(data.keys())
         result = []
+        quote = self.safe_currency_code('KRW')
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             if currencyId == 'date':
                 continue
             market = data[currencyId]
-            base = currencyId
-            quote = 'KRW'
+            base = self.safe_currency_code(currencyId)
             symbol = currencyId + '/' + quote
             active = True
             if isinstance(market, list):

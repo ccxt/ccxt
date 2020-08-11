@@ -107,14 +107,14 @@ class bithumb extends Exchange {
         $data = $this->safe_value($response, 'data');
         $currencyIds = is_array($data) ? array_keys($data) : array();
         $result = array();
+        $quote = $this->safe_currency_code('KRW');
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             if ($currencyId === 'date') {
                 continue;
             }
             $market = $data[$currencyId];
-            $base = $currencyId;
-            $quote = 'KRW';
+            $base = $this->safe_currency_code($currencyId);
             $symbol = $currencyId . '/' . $quote;
             $active = true;
             if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
