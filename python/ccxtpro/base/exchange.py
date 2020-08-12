@@ -119,42 +119,26 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.sign_message() not implemented yet')
         return {}
 
-    async def connect_client(self, client, message_hash, message=None, subscribe_hash=None, subscription=None):
-        # todo: calculate the backoff using the clients cache
+    async def wait_for_connected(self, client, message_hash, message, subscribe_hash, subscription):
         backoff_delay = 0
-        try:
-            # base exchange self.open starts the aiohttp Session in an async context
-            self.open()
-            await client.connect(self.session, backoff_delay)
-            if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
-                if self.enableRateLimit and client.throttle:
-                    options = self.safe_value(self.options, 'ws', {})
-                    rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                    await client.throttle(rateLimit)
-                # todo: decouple signing from subscriptions
-                if message:
-                    message = self.sign_message(client, message_hash, message)
-                    await client.send(message)
-        except Exception as e:
-            client.reject(e, message_hash)
-            if self.verbose:
-                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
-
-    async def connect_then_wait(self, client, future, message_hash, message, subscribe_hash, subscription):
-        await self.connect_client(client, message_hash, message, subscribe_hash, subscription)
-        return await future
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
+        await client.connect(self.session, backoff_delay)
+        if subscribe_hash not in client.subscriptions:
+            client.subscriptions[subscribe_hash] = subscription or True
+            if self.enableRateLimit:
+                options = self.safe_value(self.options, 'ws', {})
+                rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
+                await client.throttle(rateLimit)
+        # todo: decouple signing from subscriptions
+        if message:
+            message = self.sign_message(client, message_hash, message)
+            await client.send(message)
+        return await client.future(message_hash)
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
-        future = client.future(message_hash)
-        if not client.pending_connection:
-            client.pending_connection = asyncio.ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
-            return client.pending_connection
-        elif not client.connected.done():
-            return client.pending_connection
-        else:
-            return future
+        return self.wait_for_connected(client, message_hash, message, subscribe_hash, subscription)
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
