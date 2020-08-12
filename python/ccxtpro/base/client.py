@@ -31,7 +31,6 @@ class Client(object):
     inflate = False
     throttle = None
     connecting = False
-    pending_connection = None  # used in watch
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         defaults = {

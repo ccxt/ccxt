@@ -63,11 +63,3 @@ class FastClient(AiohttpClient):
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.stack.clear()
-        self.free()
-
-    def free(self):
-        # this is some wizardry to stop aiohttp leaking memory
-        if self.transport:
-            self.transport.close()
-            # socket_selector_transport = self.transport._ssl_protocol._app_transport._ssl_protocol._transport
-            # socket_selector_transport.close()

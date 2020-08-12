@@ -119,9 +119,10 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.sign_message() not implemented yet')
         return {}
 
-    async def wait_for_connected(self, client, message_hash, message, subscribe_hash, subscription):
+    async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         # base exchange self.open starts the aiohttp Session in an async context
+        client = self.client(url)
         self.open()
         await client.connect(self.session, backoff_delay)
         if subscribe_hash not in client.subscriptions:
@@ -135,10 +136,6 @@ class Exchange(BaseExchange):
             message = self.sign_message(client, message_hash, message)
             await client.send(message)
         return await client.future(message_hash)
-
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
-        client = self.client(url)
-        return self.wait_for_connected(client, message_hash, message, subscribe_hash, subscription)
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
@@ -157,9 +154,6 @@ class Exchange(BaseExchange):
         return orderbook.limit(limit)
 
     async def close(self):
-        for client in self.clients.values():
-            if client.pending_connection:
-                client.pending_connection.cancel()
         if self.clients:
             await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
         await super(Exchange, self).close()
