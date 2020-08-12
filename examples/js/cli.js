@@ -13,6 +13,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
 
 //-----------------------------------------------------------------------------
 
@@ -100,7 +101,8 @@ function printSupportedExchanges () {
     log ('--no-table        Do not print the fetch response as a table')
     log ('--table           Print the fetch response as a table')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
-    log ('--cors            use CORS proxy for debugging')
+    log ('--cors            Use CORS proxy for debugging')
+    log ('--sign-in         Call signIn() if any')
 }
 
 //-----------------------------------------------------------------------------
@@ -193,6 +195,10 @@ async function main () {
 
         if (!no_load_markets) {
             await exchange.loadMarkets ()
+        }
+
+        if (signIn && exchange.has.signIn) {
+            await exchange.signIn ()
         }
 
         exchange.verbose = verbose
