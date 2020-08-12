@@ -131,10 +131,10 @@ class Exchange(BaseExchange):
                 options = self.safe_value(self.options, 'ws', {})
                 rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
                 await client.throttle(rateLimit)
-        # todo: decouple signing from subscriptions
-        if message:
-            message = self.sign_message(client, message_hash, message)
-            await client.send(message)
+            # todo: decouple signing from subscriptions
+            if message:
+                message = self.sign_message(client, message_hash, message)
+                await client.send(message)
         return await client.future(message_hash)
 
     def on_error(self, client, error):

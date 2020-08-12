@@ -38,8 +38,8 @@ class FastClient(AiohttpClient):
                     self.on_error(NetworkError(error_msg))
                     return
 
-        def feed_data(data, size):
-            self.stack.append(data)
+        def feed_data(message, size):
+            self.stack.append(message)
             if self.switcher is None or self.switcher.done():
                 self.switcher = asyncio.ensure_future(switcher())
 
@@ -63,3 +63,5 @@ class FastClient(AiohttpClient):
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.stack.clear()
+        if self.transport:
+            self.transport.close()
