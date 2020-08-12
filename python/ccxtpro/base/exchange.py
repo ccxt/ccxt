@@ -148,10 +148,10 @@ class Exchange(BaseExchange):
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         client = self.client(url)
         future = client.future(message_hash)
-        if client.pending_connection:
+        if not client.pending_connection:
+            client.pending_connection = asyncio.ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
             return client.pending_connection
         elif not client.connected.done():
-            client.pending_connection = asyncio.ensure_future(self.connect_then_wait(client, future, message_hash, message, subscribe_hash, subscription))
             return client.pending_connection
         else:
             return future
