@@ -43,8 +43,8 @@ class FastClient(AiohttpClient):
             if self.switcher is None or self.switcher.done():
                 self.switcher = asyncio.ensure_future(switcher())
 
-        def network_error(exception):
-            self.on_error(NetworkError(exception if exception else 1006))
+        def feed_eof():
+            self.on_error(NetworkError(1006))
 
         connection = self.connection._conn
         if connection.closed:
@@ -52,11 +52,9 @@ class FastClient(AiohttpClient):
             self.on_close(1006)
             return
         self.transport = connection.transport
-        protocol = connection.protocol
-        queue = protocol._payload_parser.queue
+        queue = connection.protocol._payload_parser.queue
         queue.feed_data = feed_data
-        # queue.set_exception = network_error
-        protocol.connection_lost = network_error
+        queue.feed_eof = feed_eof
 
     def resolve(self, result, message_hash=None):
         super(FastClient, self).resolve(result, message_hash)
@@ -65,13 +63,15 @@ class FastClient(AiohttpClient):
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.stack.clear()
+        self.free()
 
     def free(self):
         # this is some wizardry to stop aiohttp leaking memory
         try:
             socket_selector_transport = self.transport._ssl_protocol._app_transport._ssl_protocol._transport
             socket_selector_transport.close()
+            self.transport.close()
         except AttributeError:
             # already closed
+            print('failed')
             pass
-        return super(FastClient, self).free()
