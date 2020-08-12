@@ -10,5 +10,3 @@ class Future(asyncio.Future):
     def reject(self, error=None):
         if not self.done():
             self.set_exception(error)
-            # ignore future exception was not awaited errors
-            self.cancel()

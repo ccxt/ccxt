@@ -31,7 +31,7 @@ class FastClient(AiohttpClient):
                 if self.mode == EVERY_MESSAGE and self.change_context:
                     await asyncio.sleep(0)
                     self.change_context = False
-                if len(self.stack) > self.max_pending:
+                if len(self.stack) > self.max_pending * len(self.subscriptions):
                     error_msg = 'You are taking too long to synchronously process each update on EVERY_MESSAGE mode, ' \
                                 'as a result you are receiving old updates which is effectively lagging your connection. ' \
                                 'Increase client.max_pending to increase the maximum allowed size of your buffer'
