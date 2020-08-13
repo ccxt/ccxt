@@ -46,6 +46,7 @@ module.exports = class binance extends ccxt.binance {
                 'OHLCVLimit': 1000,
                 'requestId': {},
                 'watchOrderBookLimit': 1000, // default limit
+                'tradeType': 'trade', // 'trade' || 'aggTrade'
             },
         });
     }
@@ -342,7 +343,7 @@ module.exports = class binance extends ccxt.binance {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = 'trade';
+        const name = this.safeString (this.options, 'tradeType', 'trade');
         const messageHash = market['lowercaseId'] + '@' + name;
         const future = this.watchPublic (messageHash, params);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
@@ -364,11 +365,25 @@ module.exports = class binance extends ccxt.binance {
         //         M: true           // binance docs say it should be ignored
         //     }
         //
+        //     {
+        //        "e": "aggTrade",  // Event type
+        //        "E": 123456789,   // Event time
+        //        "s": "BNBBTC",    // Symbol
+        //        "a": 12345,       // Aggregate trade ID
+        //        "p": "0.001",     // Price
+        //        "q": "100",       // Quantity
+        //        "f": 100,         // First trade ID
+        //        "l": 105,         // Last trade ID
+        //        "T": 123456785,   // Trade time
+        //        "m": true,        // Is the buyer the market maker?
+        //        "M": true         // Ignore
+        //     }
+        //
         const event = this.safeString (trade, 'e');
         if (event === undefined) {
             return super.parseTrade (trade, market);
         }
-        const id = this.safeString (trade, 't');
+        const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
@@ -821,6 +836,7 @@ module.exports = class binance extends ccxt.binance {
         const methods = {
             'depthUpdate': this.handleOrderBook,
             'trade': this.handleTrade,
+            'aggTrade': this.handleTrade,
             'kline': this.handleOHLCV,
             '24hrTicker': this.handleTicker,
             'outboundAccountInfo': this.handleBalance,
