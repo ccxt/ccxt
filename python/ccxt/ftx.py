@@ -18,7 +18,7 @@ class ftx(Exchange):
     def describe(self):
         return self.deep_extend(super(ftx, self).describe(), {
             'id': 'ftx',
-            'name': 'FTX', # or FTXUS
+            'name': 'FTX',
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
@@ -226,6 +226,10 @@ class ftx(Exchange):
                 },
                 'fetchOrders': {
                     'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
                 },
             },
         })
@@ -1426,16 +1430,20 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                self.name + '-KEY': self.apiKey,
-                self.name + '-TS': timestamp,
-            }
+            headers = {}
             if method == 'POST':
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers[self.name + '-SIGN'] = signature
+            options = self.safe_value(self.options, 'sign', {})
+            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
+            keyField = headerPrefix + '-KEY'
+            tsField = headerPrefix + '-TS'
+            signField = headerPrefix + '-SIGN'
+            headers[keyField] = self.apiKey
+            headers[tsField] = timestamp
+            headers[signField] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
