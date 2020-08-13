@@ -201,6 +201,7 @@ class ftx extends Exchange {
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
+                    'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
                 ),
                 'broad' => array(
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)

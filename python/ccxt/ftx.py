@@ -205,6 +205,7 @@ class ftx(Exchange):
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
+                    'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
