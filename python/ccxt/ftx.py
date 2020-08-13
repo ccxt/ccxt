@@ -18,7 +18,7 @@ class ftx(Exchange):
     def describe(self):
         return self.deep_extend(super(ftx, self).describe(), {
             'id': 'ftx',
-            'name': 'FTX',
+            'name': 'FTX', # or FTXUS
             'countries': ['HK'],
             'rateLimit': 100,
             'certified': True,
@@ -1427,15 +1427,15 @@ class ftx(Exchange):
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
             headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
+                self.name + '-KEY': self.apiKey,
+                self.name + '-TS': timestamp,
             }
             if method == 'POST':
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            headers[self.name + '-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
