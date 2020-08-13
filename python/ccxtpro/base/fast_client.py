@@ -17,7 +17,7 @@ class FastClient(AiohttpClient):
     switcher = None
     mode = EVERY_MESSAGE
     transport = None
-    max_delay = 2000  # 2 seconds of lag
+    max_delay = 100  # 100 milliseconds of lag
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
@@ -29,14 +29,9 @@ class FastClient(AiohttpClient):
         async def switcher():
             while self.stack:
                 message, time_created = self.stack.popleft()
-                if time.time() - time_created > self.max_delay / 1000:
-                    error_msg = 'You are taking too long to synchronously process each update on EVERY_MESSAGE mode, ' \
-                                'as a result you are receiving old updates which is effectively lagging your connection. ' \
-                                'Increase client.max_delay to increase the maximum allowed size of your buffer'
-                    self.on_error(NetworkError(error_msg))
-                    return
+                lagging = time.time() - time_created > self.max_delay / 1000
                 self.handle_message(message)
-                if self.mode == EVERY_MESSAGE and self.change_context:
+                if self.change_context and not lagging:
                     await asyncio.sleep(0)
                     self.change_context = False
 
