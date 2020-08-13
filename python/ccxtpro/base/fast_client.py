@@ -1,23 +1,17 @@
 """A faster version of aiohttp's websocket client that uses select and other optimizations"""
 
-__author__ = 'Carlo Revelli'
-
 import time
 import asyncio
 import collections
 from ccxt import NetworkError
 from ccxtpro.base.aiohttp_client import AiohttpClient
 
-EVERY_MESSAGE = 0
-NO_LAG = 1
-
 
 class FastClient(AiohttpClient):
     change_context = False
     switcher = None
-    mode = EVERY_MESSAGE
     transport = None
-    max_delay = 100  # 100 milliseconds of lag
+    max_delay = 100  # 100 milliseconds of buffering
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
@@ -60,5 +54,12 @@ class FastClient(AiohttpClient):
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.stack.clear()
+        try:
+            # prevent aiohttp leaking memory
+            socket_selector_transport = self.transport._ssl_protocol._app_transport._ssl_protocol._transport
+            socket_selector_transport.close()
+        except AttributeError:
+            # already closed
+            pass
         if self.transport:
             self.transport.close()

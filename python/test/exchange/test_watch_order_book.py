@@ -11,13 +11,16 @@ async def test_watch_order_book(exchange, symbol):
         response = None
         now = exchange.milliseconds()
         end = now + 20000
+        i = 0
         while now < end:
             try:
                 response = await getattr(exchange, method)(symbol)
+                i += 1
                 now = exchange.milliseconds()
                 test_order_book(exchange, response, method, symbol)
             except NetworkError:
                 now = exchange.milliseconds()
+        print('Received', i, 'order book messages')
         return response
     else:
         print(method, 'not supported')
