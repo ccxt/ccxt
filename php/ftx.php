@@ -1367,7 +1367,7 @@ class ftx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
