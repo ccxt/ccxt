@@ -46,7 +46,9 @@ module.exports = class binance extends ccxt.binance {
                 'OHLCVLimit': 1000,
                 'requestId': {},
                 'watchOrderBookLimit': 1000, // default limit
-                'tradeType': 'trade', // 'trade' || 'aggTrade'
+                'watchTrades': {
+                    'type': 'trade', // 'trade' or 'aggTrade'
+                },
             },
         });
     }
@@ -343,7 +345,8 @@ module.exports = class binance extends ccxt.binance {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = this.safeString (this.options, 'tradeType', 'trade');
+        const options = this.safeValue (this.options, 'watchTrades', {});
+        const name = this.safeString (options, 'type', 'trade');
         const messageHash = market['lowercaseId'] + '@' + name;
         const future = this.watchPublic (messageHash, params);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
