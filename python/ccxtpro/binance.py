@@ -48,6 +48,9 @@ class binance(Exchange, ccxt.binance):
                 'OHLCVLimit': 1000,
                 'requestId': {},
                 'watchOrderBookLimit': 1000,  # default limit
+                'watchTrades': {
+                    'type': 'trade',  # 'trade' or 'aggTrade'
+                },
             },
         })
 
@@ -308,7 +311,8 @@ class binance(Exchange, ccxt.binance):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        name = 'trade'
+        options = self.safe_value(self.options, 'watchTrades', {})
+        name = self.safe_string(options, 'type', 'trade')
         messageHash = market['lowercaseId'] + '@' + name
         future = self.watch_public(messageHash, params)
         return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
@@ -329,10 +333,24 @@ class binance(Exchange, ccxt.binance):
         #         M: True           # binance docs say it should be ignored
         #     }
         #
+        #     {
+        #        "e": "aggTrade",  # Event type
+        #        "E": 123456789,   # Event time
+        #        "s": "BNBBTC",    # Symbol
+        #        "a": 12345,       # Aggregate trade ID
+        #        "p": "0.001",     # Price
+        #        "q": "100",       # Quantity
+        #        "f": 100,         # First trade ID
+        #        "l": 105,         # Last trade ID
+        #        "T": 123456785,   # Trade time
+        #        "m": True,        # Is the buyer the market maker?
+        #        "M": True         # Ignore
+        #     }
+        #
         event = self.safe_string(trade, 'e')
         if event is None:
             return super(binance, self).parse_trade(trade, market)
-        id = self.safe_string(trade, 't')
+        id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_float(trade, 'p')
         amount = self.safe_float(trade, 'q')
@@ -749,6 +767,7 @@ class binance(Exchange, ccxt.binance):
         methods = {
             'depthUpdate': self.handle_order_book,
             'trade': self.handle_trade,
+            'aggTrade': self.handle_trade,
             'kline': self.handle_ohlcv,
             '24hrTicker': self.handle_ticker,
             'outboundAccountInfo': self.handle_balance,
