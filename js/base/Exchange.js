@@ -30,7 +30,7 @@ const {
     , defaultFetch
 } = functions
 
-const {
+const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
