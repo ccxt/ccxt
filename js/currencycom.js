@@ -42,7 +42,28 @@ module.exports = class currencycom extends ccxt.currencycom {
                     '1w': 'W1',
                 },
             },
+            'streaming': {
+                // okex does not support built-in ws protocol-level ping-pong
+                // instead it requires a custom text-based ping-pong
+                'ping': this.ping,
+                'keepAlive': 20000,
+            },
         });
+    }
+
+    ping (client) {
+        // custom ping-pong
+        const requestId = this.requestId ().toString ();
+        return {
+            'destination': 'ping',
+            'correlationId': requestId,
+            'payload': {},
+        };
+    }
+
+    handlePong (client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
     }
 
     handleBalance (client, message, subscription) {
@@ -509,6 +530,7 @@ module.exports = class currencycom extends ccxt.currencycom {
                 'marketdepth.event': this.handleOrderBook,
                 'internal.trade': this.handleTrades,
                 'ohlc.event': this.handleOHLCV,
+                'ping': this.handlePong,
             };
             const method = this.safeValue (methods, destination);
             if (method === undefined) {
