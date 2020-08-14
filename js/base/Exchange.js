@@ -442,40 +442,26 @@ module.exports = class Exchange {
 
     defineRestApi (api, methodName, options = {}) {
 
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
+        const types = Object.keys (api)
+        for (let i = 0; i < types.length; i++) {
+            const type = types[i]
+            const methods = Object.keys (api[type])
+            for (let j = 0; j < methods.length; j++) {
+                const httpMethod = methods[j]
+                const uppercaseMethod = httpMethod.toUpperCase ()
+                const lowercaseMethod = httpMethod.toLowerCase ()
+                const camelcaseMethod = this.capitalize (lowercaseMethod)
+                const paths = api[type][httpMethod]
+                for (let k = 0; k < paths.length; k++) {
+                    const path = paths[k].trim ()
+                    const splitPath = path.split (/[^a-zA-Z0-9]/)
+                    const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+                    const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
 
-                let paths = api[type][httpMethod]
-                for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ()
-                    let splitPath = path.split (/[^a-zA-Z0-9]/)
+                    const camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
+                    const underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
 
-                    let uppercaseMethod  = httpMethod.toUpperCase ()
-                    let lowercaseMethod  = httpMethod.toLowerCase ()
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod)
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes']) {
-                            camelcase += options['suffixes']['camelcase']
-                        }
-                        if ('underscore' in options.suffixes) {
-                            underscore += options['suffixes']['underscore']
-                        }
-                    }
-
-                    if ('underscore_suffix' in options) {
-                        underscore += options.underscoreSuffix;
-                    }
-                    if ('camelcase_suffix' in options) {
-                        camelcase += options.camelcaseSuffix;
-                    }
-
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
+                    const partial = async (params) => this[methodName] (path, type, uppercaseMethod, params || {})
 
                     this[camelcase]  = partial
                     this[underscore] = partial
