@@ -70,7 +70,8 @@ class Exchange(BaseExchange):
                 'verbose': self.verbose,
                 'throttle': throttle(self.extend({
                     'loop': self.asyncio_loop,
-                }, self.tokenBucket))
+                }, self.tokenBucket)),
+                'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
