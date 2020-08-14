@@ -143,7 +143,7 @@ class okex(Exchange):
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                     ],
                     'post': [
                         'order_algo',
@@ -1347,7 +1347,7 @@ class okex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
+        method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles'
         request = {
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
@@ -1355,13 +1355,13 @@ class okex(Exchange):
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             if limit is not None:
-                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
-            request['start'] = self.iso8601(since)
+                request['start'] = self.iso8601(self.sum(since, limit * duration * 1000))
+            request['end'] = self.iso8601(since)
         else:
             now = self.milliseconds()
             if limit is not None:
-                request['start'] = self.iso8601(now - limit * duration * 1000)
-                request['end'] = self.iso8601(now)
+                request['end'] = self.iso8601(now - limit * duration * 1000)
+                request['start'] = self.iso8601(now)
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot markets
