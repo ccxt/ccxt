@@ -440,32 +440,31 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
-
-        const types = Object.keys (api)
-        for (let i = 0; i < types.length; i++) {
-            const type = types[i]
-            const methods = Object.keys (api[type])
-            for (let j = 0; j < methods.length; j++) {
-                const httpMethod = methods[j]
-                const uppercaseMethod = httpMethod.toUpperCase ()
-                const lowercaseMethod = httpMethod.toLowerCase ()
+    defineRestApi (api, methodName, paths = []) {
+        const keys = Object.keys (api)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            const value = api[key]
+            if (Array.isArray (value)) {
+                const uppercaseMethod = key.toUpperCase ()
+                const lowercaseMethod = key.toLowerCase ()
                 const camelcaseMethod = this.capitalize (lowercaseMethod)
-                const paths = api[type][httpMethod]
-                for (let k = 0; k < paths.length; k++) {
-                    const path = paths[k].trim ()
+                for (let k = 0; k < value.length; k++) {
+                    const path = value[k].trim ()
                     const splitPath = path.split (/[^a-zA-Z0-9]/)
                     const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
                     const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
-
-                    const camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    const underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    const partial = async (params) => this[methodName] (path, type, uppercaseMethod, params || {})
-
+                    const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+                    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0)).join ('_')
+                    const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+                    const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+                    const typeArgument = (paths.length > 1) ? paths : paths[0]
+                    const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
                     this[camelcase]  = partial
                     this[underscore] = partial
                 }
+            } else {
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
@@ -621,11 +620,11 @@ module.exports = class Exchange {
             }
 
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_http_response = responseBody
             }
 
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_json_response = json
             }
 
             if (this.verbose) {
