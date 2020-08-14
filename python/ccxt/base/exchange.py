@@ -427,25 +427,19 @@ class Exchange(object):
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
+                uppercase_method = http_method.upper()
+                lowercase_method = http_method.lower()
+                camelcase_method = lowercase_method.capitalize()
                 for url in urls:
                     url = url.strip()
                     split_path = delimiters.split(url)
 
-                    uppercase_method = http_method.upper()
-                    lowercase_method = http_method.lower()
-                    camelcase_method = lowercase_method.capitalize()
                     camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
                     lowercase_path = [x.strip().lower() for x in split_path]
                     underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
 
                     camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
                     underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
-
-                    if 'suffixes' in options:
-                        if 'camelcase' in options['suffixes']:
-                            camelcase += options['suffixes']['camelcase']
-                        if 'underscore' in options['suffixes']:
-                            underscore += options['suffixes']['underscore']
 
                     def partialer():
                         outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
