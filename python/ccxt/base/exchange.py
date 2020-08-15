@@ -422,27 +422,36 @@ class Exchange(object):
             del self.urls['api_backup']
 
     @classmethod
-    def define_rest_api(cls, api, method_name, options={}):
+    def define_rest_api(cls, api, method_name, paths=[]):
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for api_type, methods in api.items():
-            for http_method, urls in methods.items():
-                uppercase_method = http_method.upper()
-                lowercase_method = http_method.lower()
+        for key, value in api.items():
+            if isinstance(value, list):
+                uppercase_method = key.upper()
+                lowercase_method = key.lower()
                 camelcase_method = lowercase_method.capitalize()
-                for url in urls:
-                    url = url.strip()
-                    split_path = delimiters.split(url)
-
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                for path in value:
+                    path = path.strip()
+                    split_path = delimiters.split(path)
                     lowercase_path = [x.strip().lower() for x in split_path]
-                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
-
-                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
+                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+                    camelcase_prefix = ''
+                    underscore_prefix = ''
+                    if len(paths):
+                        camelcase_prefix = paths[0]
+                        underscore_prefix = paths[0]
+                        if len(paths) > 1:
+                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                            api_argument = paths
+                        else:
+                            api_argument = paths[0]
+                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
                     def partialer():
-                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
+                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
 
                         @functools.wraps(entry)
                         def inner(_self, params=None):
@@ -459,6 +468,8 @@ class Exchange(object):
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
+            else:
+                Exchange.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
