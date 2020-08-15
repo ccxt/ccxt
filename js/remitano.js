@@ -135,12 +135,12 @@ module.exports = class remitano extends Exchange {
         if (type !== 'limit') {
             throw new NotSupported (this.id + ' not supported type ' + type + 'for create order, please use type: limit');
         }
-        const coinCurrency = this.currency (market.base);
-        const fiatCurrency = this.currency (market.quote);
+        const coinCurrency = this.currency (market['base']);
+        const fiatCurrency = this.currency (market['quote']);
         const request = {
             'payment_method': 'fiat_wallet',
-            'coin_currency': coinCurrency.code.toLowerCase (),
-            'currency': fiatCurrency.code,
+            'coin_currency': coinCurrency['id'].toLowerCase (),
+            'currency': fiatCurrency['id'].toUpperCase (),
             'offer_type': side,
             'price': price,
             'total_amount': amount,
@@ -385,7 +385,7 @@ module.exports = class remitano extends Exchange {
         const request = {
             'coin_withdrawal[coin_address]': address,
             'coin_withdrawal[coin_amount]': parseFloat (amount),
-            'coin_withdrawal[coin_currency]': currency.code.toLowerCase (),
+            'coin_withdrawal[coin_currency]': currency['id'],
         };
         if (tag !== undefined) {
             request['coin_withdrawal[destination_tag]'] = tag;
