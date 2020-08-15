@@ -442,7 +442,6 @@ class Exchange(object):
                         camelcase_prefix = paths[0]
                         underscore_prefix = paths[0]
                         if len(paths) > 1:
-                            print(paths)
                             camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
                             underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
                             api_argument = paths
