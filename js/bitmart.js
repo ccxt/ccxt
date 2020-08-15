@@ -79,7 +79,7 @@ module.exports = class bitmart extends Exchange {
                     },
                     'contract': {
                         'get': [
-                            'contracts', // https://api-cloud.bitmart.com/contrat/v1/contracts
+                            'contracts', // https://api-cloud.bitmart.com/contract/v1/ifcontract/contracts
                             'pnls',
                             'indexes',
                             'tickers',
@@ -256,15 +256,14 @@ module.exports = class bitmart extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchSpotMarkets (params = {}) {
         const response = await this.publicSpotGetSymbolsDetails (params);
         //
         //     {
         //         "message":"OK",
         //         "code":1000,
         //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
-        //         "data":
-        //         {
+        //         "data":{
         //             "symbols":[
         //                 {
         //                     "symbol":"PRQ_BTC",
@@ -289,7 +288,8 @@ module.exports = class bitmart extends Exchange {
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = symbols[i];
-            const id = this.safeString (market, 'id');
+            const id = this.safeString (market, 'symbol');
+            const numericId = this.safeInteger (market, 'symbol_id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
@@ -311,6 +311,9 @@ module.exports = class bitmart extends Exchange {
                 'amount': amountPrecision,
                 'price': pricePrecision,
             };
+            const minBuyCost = this.safeFloat (market, 'min_buy_amount');
+            const minSellCost = this.safeFloat (market, 'min_sell_amount');
+            const minCost = Math.max (minBuyCost, minSellCost);
             const limits = {
                 'amount': {
                     'min': this.safeFloat (market, 'base_min_size'),
@@ -321,12 +324,13 @@ module.exports = class bitmart extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             };
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -339,6 +343,132 @@ module.exports = class bitmart extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchContractMarkets (params = {}) {
+        const response = await this.publicContractGetContracts (params);
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"7fcedfb5-a660-4780-8a7a-b36a9e2159f7",
+        //         "data":{
+        //             "contracts":[
+        //                 {
+        //                     "contract":{
+        //                         "contract_id":1,
+        //                         "index_id":1,
+        //                         "name":"BTCUSDT",
+        //                         "display_name":"BTCUSDT永续合约",
+        //                         "display_name_en":"BTCUSDT_SWAP",
+        //                         "contract_type":1,
+        //                         "base_coin":"BTC",
+        //                         "quote_coin":"USDT",
+        //                         "price_coin":"BTC",
+        //                         "exchange":"*",
+        //                         "contract_size":"0.0001",
+        //                         "begin_at":"2018-08-17T04:00:00Z",
+        //                         "delive_at":"2020-08-15T12:00:00Z",
+        //                         "delivery_cycle":28800,
+        //                         "min_leverage":"1",
+        //                         "max_leverage":"100",
+        //                         "price_unit":"0.1",
+        //                         "vol_unit":"1",
+        //                         "value_unit":"0.0001",
+        //                         "min_vol":"1",
+        //                         "max_vol":"300000",
+        //                         "liquidation_warn_ratio":"0.85",
+        //                         "fast_liquidation_ratio":"0.8",
+        //                         "settle_type":1,
+        //                         "open_type":3,
+        //                         "compensate_type":1,
+        //                         "status":3,
+        //                         "block":1,
+        //                         "rank":1,
+        //                         "created_at":"2018-07-12T19:16:57Z",
+        //                         "depth_bord":"1.001",
+        //                         "base_coin_zh":"比特币",
+        //                         "base_coin_en":"Bitcoin",
+        //                         "max_rate":"0.00375",
+        //                         "min_rate":"-0.00375"
+        //                     },
+        //                     "risk_limit":{"contract_id":1,"base_limit":"1000000","step":"500000","maintenance_margin":"0.005","initial_margin":"0.01"},
+        //                     "fee_config":{"contract_id":1,"maker_fee":"-0.0003","taker_fee":"0.001","settlement_fee":"0","created_at":"2018-07-12T20:47:22Z"},
+        //                     "plan_order_config":{"contract_id":0,"min_scope":"0.001","max_scope":"2","max_count":10,"min_life_cycle":24,"max_life_cycle":168}
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const contracts = this.safeValue (data, 'contracts', []);
+        const result = [];
+        for (let i = 0; i < contracts.length; i++) {
+            const market = contracts[i];
+            const contract = this.safeValue (market, 'contract', {});
+            const id = this.safeString (contract, 'contract_id');
+            const numericId = this.safeInteger (market, 'contract_id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = this.safeString (contract, 'name');
+            //
+            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
+            // from the above API doc:
+            // quote_increment Minimum order price as well as the price increment
+            // price_min_precision Minimum price precision (digit) used to query price and kline
+            // price_max_precision Maximum price precision (digit) used to query price and kline
+            //
+            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
+            //
+            const quoteIncrement = this.safeString (market, 'quote_increment');
+            const amountPrecision = this.precisionFromString (quoteIncrement);
+            const pricePrecision = this.safeInteger (market, 'price_max_precision');
+            const precision = {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            };
+            const minBuyCost = this.safeFloat (market, 'min_buy_amount');
+            const minSellCost = this.safeFloat (market, 'min_sell_amount');
+            const minCost = Math.max (minBuyCost, minSellCost);
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'base_min_size'),
+                    'max': this.safeFloat (market, 'base_max_size'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'id': id,
+                'numericId': numericId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+                'active': undefined,
+            });
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        const spotMarkets = await this.fetchSpotMarkets ();
+        const contractMarkets = await this.fetchContractMarkets ();
+        const allMarkets = this.arrayConcat (spotMarkets, contractMarkets);
+        return allMarkets;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1040,48 +1170,54 @@ module.exports = class bitmart extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         console.log (api);
         const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
-        let url = baseUrl + '/' + api[1] + '/' + this.version + '/' + this.implodeParams (path, params);
         const type = this.safeString (api, 1);
+        let url = baseUrl + '/' + type + '/' + this.version;
+        if (type === 'contract') {
+            url += '/' + 'ifcontract';
+        }
+        url += '/' + this.implodeParams (path, params);
         api = this.safeString (api, 0);
+        const access = this.safeString (api, 0);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (access === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'token') {
-            this.checkRequiredCredentials ();
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-        } else {
-            const nonce = this.nonce ();
-            this.checkRequiredCredentials ();
-            const token = this.safeString (this.options, 'accessToken');
-            if (token === undefined) {
-                throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
-            }
-            const expires = this.safeInteger (this.options, 'expires');
-            if (expires !== undefined) {
-                if (nonce >= expires) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call the signIn() method');
-                }
-            }
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-            headers = {
-                'Content-Type': 'application/json',
-                'X-BM-TIMESTAMP': nonce.toString (),
-                'X-BM-AUTHORIZATION': 'Bearer ' + token,
-            };
-            if (method !== 'GET') {
-                query = this.keysort (query);
-                body = this.json (query);
-                const message = this.urlencode (query);
-                headers['X-BM-SIGNATURE'] = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
             }
         }
+        // else if (api === 'token') {
+        //     this.checkRequiredCredentials ();
+        //     body = this.urlencode (query);
+        //     headers = {
+        //         'Content-Type': 'application/x-www-form-urlencoded',
+        //     };
+        // } else {
+        //     const nonce = this.nonce ();
+        //     this.checkRequiredCredentials ();
+        //     const token = this.safeString (this.options, 'accessToken');
+        //     if (token === undefined) {
+        //         throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+        //     }
+        //     const expires = this.safeInteger (this.options, 'expires');
+        //     if (expires !== undefined) {
+        //         if (nonce >= expires) {
+        //             throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call the signIn() method');
+        //         }
+        //     }
+        //     if (Object.keys (query).length) {
+        //         url += '?' + this.urlencode (query);
+        //     }
+        //     headers = {
+        //         'Content-Type': 'application/json',
+        //         'X-BM-TIMESTAMP': nonce.toString (),
+        //         'X-BM-AUTHORIZATION': 'Bearer ' + token,
+        //     };
+        //     if (method !== 'GET') {
+        //         query = this.keysort (query);
+        //         body = this.json (query);
+        //         const message = this.urlencode (query);
+        //         headers['X-BM-SIGNATURE'] = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
+        //     }
+        // }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
