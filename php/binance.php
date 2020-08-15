@@ -49,6 +49,9 @@ class binance extends \ccxt\binance {
                 'OHLCVLimit' => 1000,
                 'requestId' => array(),
                 'watchOrderBookLimit' => 1000, // default limit
+                'watchTrades' => array(
+                    'type' => 'trade', // 'trade' or 'aggTrade'
+                ),
             ),
         ));
     }
@@ -345,7 +348,8 @@ class binance extends \ccxt\binance {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $name = 'trade';
+        $options = $this->safe_value($this->options, 'watchTrades', array());
+        $name = $this->safe_string($options, 'type', 'trade');
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $future = $this->watch_public($messageHash, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
@@ -367,11 +371,25 @@ class binance extends \ccxt\binance {
         //         M => true           // binance docs say it should be ignored
         //     }
         //
+        //     {
+        //        "e" => "aggTrade",  // Event type
+        //        "E" => 123456789,   // Event time
+        //        "s" => "BNBBTC",    // Symbol
+        //        "a" => 12345,       // Aggregate $trade ID
+        //        "p" => "0.001",     // Price
+        //        "q" => "100",       // Quantity
+        //        "f" => 100,         // First $trade ID
+        //        "l" => 105,         // Last $trade ID
+        //        "T" => 123456785,   // Trade time
+        //        "m" => true,        // Is the buyer the $market maker?
+        //        "M" => true         // Ignore
+        //     }
+        //
         $event = $this->safe_string($trade, 'e');
         if ($event === null) {
             return parent::parse_trade($trade, $market);
         }
-        $id = $this->safe_string($trade, 't');
+        $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
         $price = $this->safe_float($trade, 'p');
         $amount = $this->safe_float($trade, 'q');
@@ -824,6 +842,7 @@ class binance extends \ccxt\binance {
         $methods = array(
             'depthUpdate' => array($this, 'handle_order_book'),
             'trade' => array($this, 'handle_trade'),
+            'aggTrade' => array($this, 'handle_trade'),
             'kline' => array($this, 'handle_ohlcv'),
             '24hrTicker' => array($this, 'handle_ticker'),
             'outboundAccountInfo' => array($this, 'handle_balance'),
