@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
 
 class phemex extends Exchange {
 
@@ -22,21 +23,22 @@ class phemex extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
-                'fetchMarkets' => true,
+                'cancelAllOrders' => true, // swap contracts only
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchOrderBook' => true,
+                'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'fetchDepositAddress' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -1894,6 +1896,24 @@ class phemex extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'untriggerred' => false, // false to cancel non-conditional orders, true to cancel conditional orders
+            // 'text' => 'up to 40 characters max',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' cancelAllOrders() supports swap $market type orders only');
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        return $this->privateDeleteOrdersAll (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

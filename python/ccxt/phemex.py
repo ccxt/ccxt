@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DuplicateOrderId
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -35,21 +36,22 @@ class phemex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
-                'fetchMarkets': True,
+                'cancelAllOrders': True,  # swap contracts only
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchOrderBook': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
-                'fetchBalance': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -1817,6 +1819,21 @@ class phemex(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': market['id'],
+            # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
+            # 'text': 'up to 40 characters max',
+        }
+        market = None
+        if symbol is not None:
+            if not market['swap']:
+                raise NotSupported(self.id + ' cancelAllOrders() supports swap market type orders only')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        return self.privateDeleteOrdersAll(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
