@@ -1829,9 +1829,9 @@ class phemex(Exchange):
         }
         market = None
         if symbol is not None:
+            market = self.market(symbol)
             if not market['swap']:
                 raise NotSupported(self.id + ' cancelAllOrders() supports swap market type orders only')
-            market = self.market(symbol)
             request['symbol'] = market['id']
         return await self.privateDeleteOrdersAll(self.extend(request, params))
 
