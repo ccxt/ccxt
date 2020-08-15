@@ -25,7 +25,7 @@ class OrderBook(dict):
         # merge to self
         super(OrderBook, self).__init__(defaults)
 
-    def limit(self, n=float('inf')):
+    def limit(self, n=None):
         self['asks'].limit(n)
         self['bids'].limit(n)
         return self
