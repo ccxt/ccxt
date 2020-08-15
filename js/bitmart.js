@@ -14,7 +14,7 @@ module.exports = class bitmart extends Exchange {
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
             'rateLimit': 1000,
-            'version': 'v2',
+            'version': 'v1',
             'has': {
                 'CORS': true,
                 'fetchMarkets': true,
@@ -37,11 +37,11 @@ module.exports = class bitmart extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchOrder': true,
-                'signIn': true,
             },
+            'hostname': 'bitmart.com', // bitmart.com, bitmart.info for HK
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
-                'api': 'https://openapi.bitmart.com',
+                'api': 'https://api-cloud.{hostname}', // bitmart.com, bitmart.info for HK
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
@@ -53,40 +53,126 @@ module.exports = class bitmart extends Exchange {
                 'uid': true,
             },
             'api': {
-                'token': {
-                    'post': [
-                        'authentication',
-                    ],
-                },
                 'public': {
-                    'get': [
-                        'currencies',
-                        'ping',
-                        'steps',
-                        'symbols',
-                        'symbols_details',
-                        'symbols/{symbol}/kline',
-                        'symbols/{symbol}/orders',
-                        'symbols/{symbol}/trades',
-                        'ticker',
-                        'time',
-                    ],
+                    'system': {
+                        'get': [
+                            'time', // https://api-cloud.bitmart.com/system/time
+                            'service', // https://api-cloud.bitmart.com/system/service
+                        ],
+                    },
+                    'account': {
+                        'get': [
+                            'currencies', // https://api-cloud.bitmart.com/account/v1/currencies
+                        ],
+                    },
+                    'spot': {
+                        'get': [
+                            'currencies',
+                            'symbols',
+                            'symbols/details',
+                            'ticker', // ?symbol=BTC_USDT
+                            'steps', // ?symbol=BMX_ETH
+                            'symbols/kline', // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+                            'symbols/book', // ?symbol=BMX_ETH&precision=6
+                            'symbols/trades', // ?symbol=BMX_ETH
+                        ],
+                    },
+                    'contract': {
+                        'get': [
+                            'contracts', // https://api-cloud.bitmart.com/contrat/v1/contracts
+                            'pnls',
+                            'indexes',
+                            'tickers',
+                            'quote',
+                            'indexquote',
+                            'trades',
+                            'depth',
+                            'fundingrate',
+                        ],
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{id}',
-                        'trades',
-                        'wallet',
-                    ],
-                    'post': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{id}',
-                    ],
+                    'account': {
+                        'get': [
+                            'wallet', // ?account_type=1
+                            'deposit/address', // ?currency=USDT-TRC20
+                            'withdraw/charge', // ?currency=BTC
+                            'deposit-withdraw/history', // ?limit=10&offset=1&operationType=withdraw
+                            'deposit-withdraw/detail', // ?id=1679952
+                        ],
+                        'post': [
+                            'withdraw/apply',
+                        ],
+                    },
+                    'spot': {
+                        'get': [
+                            'wallet',
+                            'order_detail',
+                            'orders',
+                            'trades',
+                        ],
+                        'post': [
+                            'submit_order', // https://api-cloud.bitmart.com/spot/v1/submit_order
+                            'cancel_order', // https://api-cloud.bitmart.com/spot/v2/cancel_order
+                            'cancel_orders',
+                        ],
+                    },
+                    'contract': {
+                        'get': [
+                            'userOrders',
+                            'userOrderInfo',
+                            'userTrades',
+                            'orderTrades',
+                            'accounts',
+                            'userPositions',
+                            'userLiqRecords',
+                            'positionFee',
+                        ],
+                        'post': [
+                            'batchOrders',
+                            'submitOrder',
+                            'cancelOrders',
+                            'marginOper',
+                        ],
+                    },
                 },
+                //
+                // ----------------------------------------------------------------------------
+                //
+                // 'token': {
+                //     'post': [
+                //         'authentication',
+                //     ],
+                // },
+                // 'public': {
+                //     'get': [
+                //         'currencies',
+                //         'ping',
+                //         'steps',
+                //         'symbols',
+                //         'symbols_details',
+                //         'symbols/{symbol}/kline',
+                //         'symbols/{symbol}/orders',
+                //         'symbols/{symbol}/trades',
+                //         'ticker',
+                //         'time',
+                //     ],
+                // },
+                // 'private': {
+                //     'get': [
+                //         'orders',
+                //         'orders/{id}',
+                //         'trades',
+                //         'wallet',
+                //     ],
+                //     'post': [
+                //         'orders',
+                //     ],
+                //     'delete': [
+                //         'orders',
+                //         'orders/{id}',
+                //     ],
+                // },
             },
             'timeframes': {
                 '1m': 1,
@@ -170,44 +256,39 @@ module.exports = class bitmart extends Exchange {
         return this.safeInteger (response, 'server_time');
     }
 
-    async signIn (params = {}) {
-        const message = this.apiKey + ':' + this.secret + ':' + this.uid;
-        const data = {
-            'grant_type': 'client_credentials',
-            'client_id': this.apiKey,
-            'client_secret': this.hmac (this.encode (message), this.encode (this.secret), 'sha256'),
-        };
-        const response = await this.tokenPostAuthentication (this.extend (data, params));
-        const accessToken = this.safeString (response, 'access_token');
-        if (!accessToken) {
-            throw new AuthenticationError (this.id + ' signIn() failed to authenticate. Access token missing from response.');
-        }
-        const expiresIn = this.safeInteger (response, 'expires_in');
-        this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
-        this.options['accessToken'] = accessToken;
-        return response;
-    }
-
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetSymbolsDetails (params);
+        const response = await this.publicSpotGetSymbolsDetails (params);
         //
-        //     [
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
+        //         "data":
         //         {
-        //             "id":"1SG_BTC",
-        //             "base_currency":"1SG",
-        //             "quote_currency":"BTC",
-        //             "quote_increment":"0.1",
-        //             "base_min_size":"0.1000000000",
-        //             "base_max_size":"10000000.0000000000",
-        //             "price_min_precision":4,
-        //             "price_max_precision":6,
-        //             "expiration":"NA"
+        //             "symbols":[
+        //                 {
+        //                     "symbol":"PRQ_BTC",
+        //                     "symbol_id":1232,
+        //                     "base_currency":"PRQ",
+        //                     "quote_currency":"BTC",
+        //                     "quote_increment":"1.0000000000",
+        //                     "base_min_size":"1.0000000000",
+        //                     "base_max_size":"10000000.0000000000",
+        //                     "price_min_precision":8,
+        //                     "price_max_precision":10,
+        //                     "expiration":"NA",
+        //                     "min_buy_amount":"0.0001000000",
+        //                     "min_sell_amount":"0.0001000000"
+        //                 },
+        //             ]
         //         }
-        //     ]
+        //     }
         //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = symbols[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
@@ -419,20 +500,26 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrencies (params);
+        const response = await this.publicAccountGetCurrencies (params);
         //
-        //     [
-        //         {
-        //             "name":"CNY1",
-        //             "withdraw_enabled":false,
-        //             "id":"CNY1",
-        //             "deposit_enabled":false
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
+        //         "data":{
+        //             "currencies":[
+        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
+        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
+        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //             ]
         //         }
-        //     ]
+        //     }
         //
+        const data = this.safeValue (response, 'data', {});
+        const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
@@ -951,7 +1038,11 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        console.log (api);
+        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        let url = baseUrl + '/' + api[1] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const type = this.safeString (api, 1);
+        api = this.safeString (api, 0);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -1012,7 +1103,7 @@ module.exports = class bitmart extends Exchange {
         //
         const feedback = this.id + ' ' + body;
         const message = this.safeString2 (response, 'message', 'msg');
-        if (message !== undefined) {
+        if ((message !== undefined) && (message !== 'OK')) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
