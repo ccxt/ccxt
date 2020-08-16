@@ -1,7 +1,6 @@
 """A faster version of aiohttp's websocket client that uses select and other optimizations"""
 
 import time
-import asyncio
 import collections
 from ccxt import NetworkError
 from ccxtpro.base.aiohttp_client import AiohttpClient
