@@ -15,6 +15,7 @@ print('CCXT Version:', ccxt.__version__)
 for exchange_id in ccxt.exchanges:
     try:
         exchange = getattr(ccxt, exchange_id)()
+        print(exchange_id)
         # do what you want with this exchange
         # pprint(dir(exchange))
     except Exception as e:
