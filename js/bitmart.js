@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ROUND, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -219,6 +220,7 @@ module.exports = class bitmart extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Place order error': InvalidOrder, // {"message":"Place order error"}
@@ -304,12 +306,10 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const quoteIncrement = this.safeString (market, 'quote_increment');
-            const amountPrecision = this.precisionFromString (quoteIncrement);
             const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': this.safeFloat (market, 'quote_increment'),
+                'price': parseFloat (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 10)),
             };
             const minBuyCost = this.safeFloat (market, 'min_buy_amount');
             const minSellCost = this.safeFloat (market, 'min_sell_amount');
@@ -336,6 +336,10 @@ module.exports = class bitmart extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': 'spot',
+                'spot': true,
+                'future': false,
+                'swap': false,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -408,9 +412,9 @@ module.exports = class bitmart extends Exchange {
             const market = contracts[i];
             const contract = this.safeValue (market, 'contract', {});
             const id = this.safeString (contract, 'contract_id');
-            const numericId = this.safeInteger (market, 'contract_id');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+            const numericId = this.safeInteger (contract, 'contract_id');
+            const baseId = this.safeString (contract, 'base_coin');
+            const quoteId = this.safeString (contract, 'quote_coin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = this.safeString (contract, 'name');
@@ -423,30 +427,40 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const quoteIncrement = this.safeString (market, 'quote_increment');
-            const amountPrecision = this.precisionFromString (quoteIncrement);
-            const pricePrecision = this.safeInteger (market, 'price_max_precision');
+            const amountPrecision = this.safeFloat (contract, 'vol_unit');
+            const pricePrecision = this.safeFloat (contract, 'price_unit');
             const precision = {
                 'amount': amountPrecision,
                 'price': pricePrecision,
             };
-            const minBuyCost = this.safeFloat (market, 'min_buy_amount');
-            const minSellCost = this.safeFloat (market, 'min_sell_amount');
-            const minCost = Math.max (minBuyCost, minSellCost);
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'base_min_size'),
-                    'max': this.safeFloat (market, 'base_max_size'),
+                    'min': this.safeFloat (contract, 'min_vol'),
+                    'max': this.safeFloat (contract, 'max_vol'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': undefined,
                     'max': undefined,
                 },
             };
+            const contractType = this.safeValue (contract, 'contract_type');
+            let future = false;
+            let swap = false;
+            let type = 'contract';
+            if (contractType === 1) {
+                type = 'swap';
+                swap = true;
+            } else if (contractType === 2) {
+                type = 'future';
+                future = true;
+            }
+            const feeConfig = this.safeValue (market, 'fee_config', {});
+            const maker = this.safeFloat (feeConfig, 'maker_fee');
+            const taker = this.safeFloat (feeConfig, 'taker_fee');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -455,6 +469,12 @@ module.exports = class bitmart extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
+                'type': type,
+                'spot': false,
+                'future': future,
+                'swap': swap,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -568,10 +588,47 @@ module.exports = class bitmart extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const request = {};
+        let method = undefined;
+        if (market['swap'] || market['future']) {
+            method = 'publicContractGetTickers';
+            request['contractID'] = market['id'];
+        } else if (market['spot']) {
+            method = 'publicSpotGetTicker';
+            request['symbol'] = market['id'];
+        }
+        console.log (market);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
+        //         "data":{
+        //             "tickers":[
+        //                 {
+        //                     "symbol":"ETH_BTC",
+        //                     "last_price":"0.036037",
+        //                     "quote_volume_24h":"4380.6660000000",
+        //                     "base_volume_24h":"159.3582006712",
+        //                     "high_24h":"0.036972",
+        //                     "low_24h":"0.035524",
+        //                     "open_24h":"0.036561",
+        //                     "close_24h":"0.036037",
+        //                     "best_ask":"0.036077",
+        //                     "best_ask_size":"9.9500",
+        //                     "best_bid":"0.035983",
+        //                     "best_bid_size":"4.2792",
+        //                     "fluctuation":"-0.0143",
+        //                     "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // old
         //
         //     {
         //         "volume":"97487.38",
@@ -588,7 +645,11 @@ module.exports = class bitmart extends Exchange {
         //         "bid_1_amount":"134.78"
         //     }
         //
-        return this.parseTicker (response, market);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'tickers', []);
+        const tickersById = this.indexBy (tickers, 'symbol');
+        const ticker = this.safeValue (tickersById, market['id']);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1176,11 +1237,15 @@ module.exports = class bitmart extends Exchange {
             url += '/' + 'ifcontract';
         }
         url += '/' + this.implodeParams (path, params);
-        api = this.safeString (api, 0);
+        // api = this.safeString (api, 0);
         const access = this.safeString (api, 0);
         let query = this.omit (params, this.extractParams (path));
+        console.log ("\n\n\n\n\n\n");
+        console.log (access);
+        console.log ("\n\n\n\n\n\n");
         if (access === 'public') {
             if (Object.keys (query).length) {
+                console.log (query);
                 url += '?' + this.urlencode (query);
             }
         }
