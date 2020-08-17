@@ -9,6 +9,7 @@ function test_watch_trades($exchange, $symbol) {
     $skipped_exchanges = array(
         'bitvavo',
         'dsx',
+        'currencycom',
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {
