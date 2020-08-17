@@ -20,6 +20,7 @@ module.exports = class aax extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchTicker': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -45,6 +46,7 @@ module.exports = class aax extends Exchange {
                         'v2/market/orderbook',
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
+                        'v2/market/tickers',
                     ],
                 },
                 'private': {
@@ -287,6 +289,63 @@ module.exports = class aax extends Exchange {
             }
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    parseTicker (ticker, market = undefined, time = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = time;
+        const open = this.safeFloat (ticker, 'o');
+        const last = this.safeFloat (ticker, 'c');
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'v'),
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetV2MarketTickers (this.extend (params));
+        const result = this.safeValue (response, 'tickers', []);
+        const pair = market['id'];
+        for (let i = 0; i < result.length; i++) {
+            const ticker = result[i];
+            if (pair === ticker['s']) {
+                return this.parseTicker (ticker, market, this.safeInteger (response, 't'));
+            }
+        }
+        return null;
     }
 
     async fetchOrderBook (symbol = 'BTC/USDT', limit = 50, params = {}) {

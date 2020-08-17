@@ -27,6 +27,7 @@ class aax extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrders' => true,
+                'fetchTicker' => true,
             ),
             'timeframes' => array(
                 '1m' => 1,
@@ -52,6 +53,7 @@ class aax extends Exchange {
                         'v2/market/orderbook',
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
+                        'v2/market/tickers',
                     ),
                 ),
                 'private' => array(
@@ -294,6 +296,63 @@ class aax extends Exchange {
             }
         }
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ticker ($ticker, $market = null, $time = null) {
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $timestamp = $time;
+        $open = $this->safe_float($ticker, 'o');
+        $last = $this->safe_float($ticker, 'c');
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+            if ($open > 0) {
+                $percentage = $change / $open * 100;
+            }
+        }
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'h'),
+            'low' => $this->safe_float($ticker, 'l'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'v'),
+            'info' => $ticker,
+        );
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetV2MarketTickers (array_merge($params));
+        $result = $this->safe_value($response, 'tickers', array());
+        $pair = $market['id'];
+        for ($i = 0; $i < count($result); $i++) {
+            $ticker = $result[$i];
+            if ($pair === $ticker['s']) {
+                return $this->parse_ticker($ticker, $market, $this->safe_integer($response, 't'));
+            }
+        }
+        return null;
     }
 
     public function fetch_order_book ($symbol = 'BTC/USDT', $limit = 50, $params = array ()) {
