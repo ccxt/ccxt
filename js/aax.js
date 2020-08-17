@@ -270,15 +270,20 @@ module.exports = class aax extends Exchange {
             const lowArr = response['l'];
             const closeArr = response['c'];
             const volumeArr = response['v'];
+            let prevOpenTime = undefined;
             for (let i = 0; i < timeArr.length; i++) {
-                const ohlcvArr = [];
-                ohlcvArr.push (parseInt (timeArr[i]) * 1000);
-                ohlcvArr.push (openArr[i]);
-                ohlcvArr.push (highArr[i]);
-                ohlcvArr.push (lowArr[i]);
-                ohlcvArr.push (closeArr[i]);
-                ohlcvArr.push (volumeArr[i]);
-                result.push (ohlcvArr);
+                const openTime = (parseInt (timeArr[i]) * 1000);
+                if (openTime !== prevOpenTime) {
+                    const ohlcvArr = [];
+                    ohlcvArr.push (openTime);
+                    ohlcvArr.push (openArr[i]);
+                    ohlcvArr.push (highArr[i]);
+                    ohlcvArr.push (lowArr[i]);
+                    ohlcvArr.push (closeArr[i]);
+                    ohlcvArr.push (volumeArr[i]);
+                    result.push (ohlcvArr);
+                    prevOpenTime = openTime;
+                }
             }
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
