@@ -559,7 +559,7 @@ module.exports = class binance extends Exchange {
         //         ],
         //     }
         //
-        // futures (fapi)
+        // futures/usdt-margined (fapi)
         //
         //     {
         //         "timezone":"UTC",
@@ -590,6 +590,76 @@ module.exports = class binance extends Exchange {
         //                 ],
         //                 "orderTypes":["LIMIT","MARKET","STOP"],
         //                 "timeInForce":["GTC","IOC","FOK","GTX"]
+        //             }
+        //         ]
+        //     }
+        //
+        // delivery/coin-margined (dapi)
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "serverTime": 1597667052958,
+        //         "rateLimits": [
+        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":6000},
+        //             {"rateLimitType":"ORDERS","interval":"MINUTE","intervalNum":1,"limit":6000}
+        //         ],
+        //         "exchangeFilters": [],
+        //         "symbols": [
+        //             {
+        //                 "symbol": "BTCUSD_200925",
+        //                 "pair": "BTCUSD",
+        //                 "contractType": "CURRENT_QUARTER",
+        //                 "deliveryDate": 1601020800000,
+        //                 "onboardDate": 1590739200000,
+        //                 "contractStatus": "TRADING",
+        //                 "contractSize": 100,
+        //                 "marginAsset": "BTC",
+        //                 "maintMarginPercent": "2.5000",
+        //                 "requiredMarginPercent": "5.0000",
+        //                 "baseAsset": "BTC",
+        //                 "quoteAsset": "USD",
+        //                 "pricePrecision": 1,
+        //                 "quantityPrecision": 0,
+        //                 "baseAssetPrecision": 8,
+        //                 "quotePrecision": 8,
+        //                 "equalQtyPrecision": 4,
+        //                 "filters": [
+        //                     {"minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"},
+        //                     {"stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"},
+        //                     {"stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"},
+        //                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        //                     {"multiplierDown":"0.9500","multiplierUp":"1.0500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        //                 ],
+        //                 "orderTypes": ["LIMIT","MARKET","STOP","STOP_MARKET","TAKE_PROFIT","TAKE_PROFIT_MARKET","TRAILING_STOP_MARKET"],
+        //                 "timeInForce": ["GTC","IOC","FOK","GTX"]
+        //             },
+        //             {
+        //                 "symbol": "BTCUSD_PERP",
+        //                 "pair": "BTCUSD",
+        //                 "contractType": "PERPETUAL",
+        //                 "deliveryDate": 4133404800000,
+        //                 "onboardDate": 1596006000000,
+        //                 "contractStatus": "TRADING",
+        //                 "contractSize": 100,
+        //                 "marginAsset": "BTC",
+        //                 "maintMarginPercent": "2.5000",
+        //                 "requiredMarginPercent": "5.0000",
+        //                 "baseAsset": "BTC",
+        //                 "quoteAsset": "USD",
+        //                 "pricePrecision": 1,
+        //                 "quantityPrecision": 0,
+        //                 "baseAssetPrecision": 8,
+        //                 "quotePrecision": 8,
+        //                 "equalQtyPrecision": 4,
+        //                 "filters": [
+        //                     {"minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"},
+        //                     {"stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"},
+        //                     {"stepSize":"1","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"},
+        //                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        //                     {"multiplierDown":"0.8500","multiplierUp":"1.1500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        //                 ],
+        //                 "orderTypes": ["LIMIT","MARKET","STOP","STOP_MARKET","TAKE_PROFIT","TAKE_PROFIT_MARKET","TRAILING_STOP_MARKET"],
+        //                 "timeInForce": ["GTC","IOC","FOK","GTX"]
         //             }
         //         ]
         //     }
