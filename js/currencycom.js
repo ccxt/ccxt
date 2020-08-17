@@ -399,9 +399,9 @@ module.exports = class currencycom extends ccxt.currencycom {
     handleDeltas (bookside, deltas) {
         const prices = Object.keys (deltas);
         for (let i = 0; i < prices.length; i++) {
-            const price = parseFloat (prices[i]);
-            const amount = parseFloat (deltas[price]);
-            bookside.store (price, amount);
+            const price = prices[i];
+            const amount = deltas[price];
+            bookside.store (parseFloat (price), parseFloat (amount));
         }
     }
 
