@@ -805,6 +805,10 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, 'future', {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
+        } else if (type === 'delivery') {
+            const options = this.safeValue (this.options, 'delivery', {});
+            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
+            method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
         } else if (type === 'margin') {
             method = 'sapiGetMarginAccount';
         }
