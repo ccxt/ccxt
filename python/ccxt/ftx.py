@@ -1347,7 +1347,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
-        type = 'withdrawal' if 'destinationName' in transaction else 'deposit'
+        type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,

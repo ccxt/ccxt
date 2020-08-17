@@ -1412,7 +1412,7 @@ class ftx extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'tag');
         $fee = $this->safe_float($transaction, 'fee');
-        $type = (is_array($transaction) && array_key_exists('confirmations', $transaction)) ? 'deposit' : 'withdrawal';
+        $type = (is_array($transaction) && array_key_exists('destinationName', $transaction)) ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
             'id' => $id,
