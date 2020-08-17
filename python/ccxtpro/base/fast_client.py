@@ -1,6 +1,6 @@
 """A faster version of aiohttp's websocket client that uses select and other optimizations"""
 
-import time
+import asyncio
 import collections
 from ccxt import NetworkError
 from ccxtpro.base.aiohttp_client import AiohttpClient
@@ -8,7 +8,9 @@ from ccxtpro.base.aiohttp_client import AiohttpClient
 
 class FastClient(AiohttpClient):
     transport = None
-    max_delay = 100  # 100 milliseconds of buffering
+    max_size = 1
+    # equal to the maximum number of frames in a single call to data_received
+    # this is done to avoid lag as much as possible
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
@@ -16,25 +18,30 @@ class FastClient(AiohttpClient):
         # https://github.com/aio-libs/aiohttp/blob/1d296d549050aa335ef542421b8b7dad788246d5/aiohttp/streams.py#L534
         self.stack = collections.deque()
 
-    async def receive_loop(self):
+    def receive_loop(self):
         def handler():
-            message, time_created = self.stack.popleft()
-            lagging = time.time() - time_created > self.max_delay / 1000
+            message = self.stack.popleft()
             self.handle_message(message)
-            while lagging and self.stack:
-                message, time_created = self.stack.popleft()
-                lagging = time.time() - time_created > self.max_delay / 1000
-                self.handle_message(message)
             if self.stack:
                 self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
             if not self.stack:
                 self.asyncio_loop.call_soon(handler)
-            self.stack.append((message, time.time()))
+            if len(self.stack) < self.max_size:
+                self.stack.append(message)
+            else:
+                self.handle_message(message)
 
         def feed_eof():
             self.on_error(NetworkError(1006))
+
+        def wrapper(func):
+            def parse_frame(buf):
+                frames = func(buf)
+                self.max_size = max(self.max_size, len(frames))
+                return frames
+            return parse_frame
 
         connection = self.connection._conn
         if connection.closed:
@@ -42,11 +49,15 @@ class FastClient(AiohttpClient):
             self.on_close(1006)
             return
         self.transport = connection.transport
-        queue = connection.protocol._payload_parser.queue
-        queue.feed_data = feed_data
-        queue.feed_eof = feed_eof
+        ws_reader = connection.protocol._payload_parser
+        ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
+        ws_reader.queue.feed_data = feed_data
+        ws_reader.queue.feed_eof = feed_eof
+        # return a future so super class won't complain
+        return asyncio.sleep(0)
 
     def reset(self, error):
         super(FastClient, self).reset(error)
         self.stack.clear()
-        self.transport.abort()
+        if self.transport:
+            self.transport.abort()
