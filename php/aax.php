@@ -277,15 +277,20 @@ class aax extends Exchange {
             $lowArr = $response['l'];
             $closeArr = $response['c'];
             $volumeArr = $response['v'];
+            $prevOpenTime = null;
             for ($i = 0; $i < count($timeArr); $i++) {
-                $ohlcvArr = array();
-                $ohlcvArr[] = intval ($timeArr[$i]) * 1000;
-                $ohlcvArr[] = $openArr[$i];
-                $ohlcvArr[] = $highArr[$i];
-                $ohlcvArr[] = $lowArr[$i];
-                $ohlcvArr[] = $closeArr[$i];
-                $ohlcvArr[] = $volumeArr[$i];
-                $result[] = $ohlcvArr;
+                $openTime = (intval ($timeArr[$i]) * 1000);
+                if ($openTime !== $prevOpenTime) {
+                    $ohlcvArr = array();
+                    $ohlcvArr[] = $openTime;
+                    $ohlcvArr[] = $openArr[$i];
+                    $ohlcvArr[] = $highArr[$i];
+                    $ohlcvArr[] = $lowArr[$i];
+                    $ohlcvArr[] = $closeArr[$i];
+                    $ohlcvArr[] = $volumeArr[$i];
+                    $result[] = $ohlcvArr;
+                    $prevOpenTime = $openTime;
+                }
             }
         }
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
