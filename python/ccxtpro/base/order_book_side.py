@@ -2,16 +2,20 @@
 
 import operator
 
+LIMIT_BY_KEY = 0
+LIMIT_BY_VALUE_PRICE_KEY = 1
+LIMIT_BY_VALUE_INDEX_KEY = 2
+
 
 class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
     # sorted(..., reverse=self.side)
 
-    def __init__(self, deltas=[], depth=None, limit_by_index=False):
+    def __init__(self, deltas=[], depth=None, limit_type=LIMIT_BY_KEY):
         # allocate memory for the list here (it will not be resized...)
         super(OrderBookSide, self).__init__()
         self._depth = depth or float('inf')
-        self._limit_by_index = limit_by_index
+        self._limit_type = limit_type
         self._index = {}
         for delta in deltas:
             self.storeArray(list(delta))
@@ -20,14 +24,14 @@ class OrderBookSide(list):
         price = delta[0]
         size = delta[1]
         if size:
-            self._index[price] = delta
+            self._index[price] = size
         else:
             if price in self._index:
                 del self._index[price]
 
     def store(self, price, size):
         if size:
-            self._index[price] = [price, size]
+            self._index[price] = size
         else:
             if price in self._index:
                 del self._index[price]
@@ -35,19 +39,24 @@ class OrderBookSide(list):
     def limit(self, n=None):
         n = n or float('inf')
         first_element = operator.itemgetter(0)
-        iterator = self._index.values()
-        array = sorted(iterator, key=first_element, reverse=self.side)
+        iterator = self._index.values() if self._limit_type else self._index.items()
+        generator = (list(t) for t in iterator)  # lazy evaluation
+        array = sorted(generator, key=first_element, reverse=self.side)
         threshold = int(min(self._depth, len(array)))
         self.clear()
         self._index.clear()
         for i in range(threshold):
             delta = array[i]
-            if self._limit_by_index:
+            price = delta[0]
+            size = delta[1]
+            if self._limit_type:
                 last = delta[2]
-                self._index[last] = delta
+                if self._limit_type == LIMIT_BY_VALUE_PRICE_KEY:
+                    self._index[price] = delta
+                else:
+                    self._index[last] = delta
             else:
-                price = delta[0]
-                self._index[price] = delta
+                self._index[price] = size
             if i < n:
                 self.append(delta)
         return self
@@ -59,6 +68,8 @@ class OrderBookSide(list):
 
 
 class CountedOrderBookSide(OrderBookSide):
+    def __init__(self, deltas=[], depth=None):
+        super(CountedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
 
     def store(self, price, size, count):
         if count and size:
@@ -82,7 +93,7 @@ class CountedOrderBookSide(OrderBookSide):
 
 class IndexedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
-        super(IndexedOrderBookSide, self).__init__(deltas, depth, True)
+        super(IndexedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
 
     def store(self, price, size, order_id):
         if size:
@@ -114,27 +125,25 @@ class IndexedOrderBookSide(OrderBookSide):
 
 
 class IncrementalOrderBookSide(OrderBookSide):
+    def __init__(self, deltas=[], depth=None):
+        super(IncrementalOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_KEY)
+
     def store(self, price, size):
-        stored = self._index.get(price)
-        if stored:
-            size = stored[1] = stored[1] + size
+        size = self._index.get(price, 0) + size
         if size <= 0:
             if price in self._index:
                 del self._index[price]
         else:
-            self._index[price] = [price, size]
+            self._index[price] = size
 
     def storeArray(self, delta):
-        price = delta[0]
-        size = delta[1]
-        stored = self._index.get(price)
-        if stored:
-            size = stored[1] = stored[1] + size
+        price, size = delta
+        size = self._index.get(price, 0) + size
         if size <= 0:
             if price in self._index:
                 del self._index[price]
         else:
-            self._index[price] = [price, size]
+            self._index[price] = size
 
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
