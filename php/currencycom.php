@@ -19,7 +19,8 @@ class currencycom extends Exchange {
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
             'rateLimit' => 500,
-            'certified' => false,
+            'certified' => true,
+            'pro' => true,
             'version' => 'v1',
             // new metainfo interface
             'has' => array(

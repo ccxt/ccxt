@@ -26,7 +26,8 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 500,
-            'certified': False,
+            'certified': True,
+            'pro': True,
             'version': 'v1',
             # new metainfo interface
             'has': {
