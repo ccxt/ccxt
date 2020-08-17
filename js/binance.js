@@ -1064,7 +1064,12 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = market['spot'] ? 'publicGetTicker24hr' : 'fapiPublicGetTicker24hr';
+        let method = 'publicGetTicker24hr';
+        if (market['future']) {
+            method = 'fapiPublicGetTicker24hr';
+        } else if (market['delivery']) {
+            method = 'dapiPublicGetTicker24hr';
+        }
         const response = await this[method] (this.extend (request, params));
         return this.parseTicker (response, market);
     }
