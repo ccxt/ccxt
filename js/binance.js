@@ -1839,6 +1839,8 @@ module.exports = class binance extends Exchange {
         let method = 'privateDeleteOrder';
         if (type === 'future') {
             method = 'fapiPrivateDeleteOrder';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateDeleteOrder';
         } else if (type === 'margin') {
             method = 'sapiDeleteMarginOrder';
         }
@@ -1859,7 +1861,12 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const method = (type === 'spot') ? 'privateDeleteOpenOrders' : 'fapiPrivateDeleteAllOpenOrders';
+        let method = 'privateDeleteOpenOrders';
+        if (type === 'future') {
+            method = 'fapiPrivateDeleteAllOpenOrders';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateDeleteAllOpenOrders';
+        }
         const response = await this[method] (this.extend (request, query));
         if (Array.isArray (response)) {
             return this.parseOrders (response, market);
