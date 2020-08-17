@@ -1684,6 +1684,8 @@ module.exports = class binance extends Exchange {
         let method = 'privateGetOrder';
         if (type === 'future') {
             method = 'fapiPrivateGetOrder';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateGetOrder';
         } else if (type === 'margin') {
             method = 'sapiGetMarginOrder';
         }
@@ -1712,6 +1714,8 @@ module.exports = class binance extends Exchange {
         let method = 'privateGetAllOrders';
         if (type === 'future') {
             method = 'fapiPrivateGetAllOrders';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateGetAllOrders';
         } else if (type === 'margin') {
             method = 'sapiGetMarginAllOrders';
         }
