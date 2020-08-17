@@ -1887,6 +1887,8 @@ module.exports = class binance extends Exchange {
             method = 'privateGetMyTrades';
         } else if (type === 'future') {
             method = 'fapiPrivateGetUserTrades';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateGetUserTrades';
         }
         params = this.omit (params, 'type');
         const request = {
