@@ -1,5 +1,4 @@
 {
-    "dsx": {
-        "skip": true
-    }
+    "dsx": { "skip": true },
+    "currencycom": { "skip": true }
 }

@@ -32,6 +32,7 @@ Exchange::$exchanges = array(
     'bitvavo',
     'coinbaseprime',
     'coinbasepro',
+    'currencycom',
     'ftx',
     'gateio',
     'hitbtc',

@@ -67,7 +67,7 @@ module.exports = async (exchange, symbol) => {
             ])
 
             if (response.length > 0) {
-                log (exchange.iso8601 (now), exchange.id, timeframe, symbol, JSON.stringify (response[response.length - 1]))
+                log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles,', JSON.stringify (response[response.length - 1]))
             }
 
         } catch (e) {
