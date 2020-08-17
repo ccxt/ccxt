@@ -493,45 +493,56 @@ module.exports = class bitmart extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker
+        // spot
         //
         //     {
-        //         "volume":"6139.8058",
-        //         "ask_1":"0.021856",
-        //         "base_volume":"131.5157",
-        //         "lowest_price":"0.021090",
-        //         "bid_1":"0.021629",
-        //         "highest_price":"0.021929",
-        //         "ask_1_amount":"0.1245",
-        //         "current_price":"0.021635",
-        //         "fluctuation":"+0.0103",
-        //         "symbol_id":"ETH_BTC",
-        //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC",
-        //         "bid_1_amount":"1.8546"
+        //         "symbol":"ETH_BTC",
+        //         "last_price":"0.036037",
+        //         "quote_volume_24h":"4380.6660000000",
+        //         "base_volume_24h":"159.3582006712",
+        //         "high_24h":"0.036972",
+        //         "low_24h":"0.035524",
+        //         "open_24h":"0.036561",
+        //         "close_24h":"0.036037",
+        //         "best_ask":"0.036077",
+        //         "best_ask_size":"9.9500",
+        //         "best_bid":"0.035983",
+        //         "best_bid_size":"4.2792",
+        //         "fluctuation":"-0.0143",
+        //         "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
         //     }
         //
-        // fetchTickers
+        // contract
         //
         //     {
-        //         "priceChange":"0%",
-        //         "symbolId":1066,
-        //         "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
-        //         "depthEndPrecision":6,
-        //         "ask_1":"0.000095",
-        //         "anchorId":2,
-        //         "anchorName":"BTC",
-        //         "pair":"1SG_BTC",
-        //         "volume":"0.0",
-        //         "coinId":2029,
-        //         "depthStartPrecision":4,
-        //         "high_24h":"0.000035",
-        //         "low_24h":"0.000035",
-        //         "new_24h":"0.000035",
-        //         "closeTime":1589389249342,
-        //         "bid_1":"0.000035",
-        //         "coinName":"1SG",
-        //         "baseVolume":"0.0",
-        //         "openTime":1589302849342
+        //         "last_price":"422.2",
+        //         "open":"430.5",
+        //         "close":"422.2",
+        //         "low":"421.9",
+        //         "high":"436.9",
+        //         "avg_price":"430.8569900089815372072",
+        //         "volume":"2720",
+        //         "total_volume":"18912248",
+        //         "timestamp":1597631495,
+        //         "rise_fall_rate":"-0.0192799070847851336",
+        //         "rise_fall_value":"-8.3",
+        //         "contract_id":2,
+        //         "position_size":"3067404",
+        //         "volume_day":"9557384",
+        //         "amount24":"80995537.0919999999999974153",
+        //         "base_coin_volume":"189122.48",
+        //         "quote_coin_volume":"81484742.475833810590837937856",
+        //         "pps":"1274350547",
+        //         "index_price":"422.135",
+        //         "fair_price":"422.147253318507",
+        //         "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
+        //         "fair_basis":"0.000029027013",
+        //         "fair_value":"0.012253318507",
+        //         "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
+        //         "premium_index":"0.000045851604",
+        //         "funding_rate":"0.000158",
+        //         "next_funding_rate":"0.000099999999",
+        //         "next_funding_at":"2020-08-17T04:00:00Z"
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
@@ -597,7 +608,6 @@ module.exports = class bitmart extends Exchange {
             method = 'publicSpotGetTicker';
             request['symbol'] = market['id'];
         }
-        console.log (market);
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -623,6 +633,49 @@ module.exports = class bitmart extends Exchange {
         //                     "best_bid_size":"4.2792",
         //                     "fluctuation":"-0.0143",
         //                     "url":"https://www.bitmart.com/trade?symbol=ETH_BTC"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"d09b57c4-d99b-4a13-91a8-2df98f889909",
+        //         "data":{
+        //             "tickers":[
+        //                 {
+        //                     "last_price":"422.2",
+        //                     "open":"430.5",
+        //                     "close":"422.2",
+        //                     "low":"421.9",
+        //                     "high":"436.9",
+        //                     "avg_price":"430.8569900089815372072",
+        //                     "volume":"2720",
+        //                     "total_volume":"18912248",
+        //                     "timestamp":1597631495,
+        //                     "rise_fall_rate":"-0.0192799070847851336",
+        //                     "rise_fall_value":"-8.3",
+        //                     "contract_id":2,
+        //                     "position_size":"3067404",
+        //                     "volume_day":"9557384",
+        //                     "amount24":"80995537.0919999999999974153",
+        //                     "base_coin_volume":"189122.48",
+        //                     "quote_coin_volume":"81484742.475833810590837937856",
+        //                     "pps":"1274350547",
+        //                     "index_price":"422.135",
+        //                     "fair_price":"422.147253318507",
+        //                     "depth_price":{"bid_price":"421.9","ask_price":"422","mid_price":"421.95"},
+        //                     "fair_basis":"0.000029027013",
+        //                     "fair_value":"0.012253318507",
+        //                     "rate":{"quote_rate":"0.0006","base_rate":"0.0003","interest_rate":"0.000099999999"},
+        //                     "premium_index":"0.000045851604",
+        //                     "funding_rate":"0.000158",
+        //                     "next_funding_rate":"0.000099999999",
+        //                     "next_funding_at":"2020-08-17T04:00:00Z"
         //                 }
         //             ]
         //         }
@@ -1229,7 +1282,6 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        console.log (api);
         const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const type = this.safeString (api, 1);
         let url = baseUrl + '/' + type + '/' + this.version;
@@ -1239,10 +1291,7 @@ module.exports = class bitmart extends Exchange {
         url += '/' + this.implodeParams (path, params);
         // api = this.safeString (api, 0);
         const access = this.safeString (api, 0);
-        let query = this.omit (params, this.extractParams (path));
-        console.log ("\n\n\n\n\n\n");
-        console.log (access);
-        console.log ("\n\n\n\n\n\n");
+        const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
                 console.log (query);
