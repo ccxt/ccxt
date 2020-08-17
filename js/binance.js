@@ -1543,6 +1543,8 @@ module.exports = class binance extends Exchange {
         let method = 'privatePostOrder';
         if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
+        } else if (orderType === 'delivery') {
+            method = 'dapiPrivatePostOrder';
         } else if (orderType === 'margin') {
             method = 'sapiPostMarginOrder';
         }
