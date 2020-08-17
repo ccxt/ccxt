@@ -1087,7 +1087,12 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const method = (type === 'spot') ? 'publicGetTickerBookTicker' : 'fapiPublicGetTickerBookTicker';
+        let method = 'publicGetTickerBookTicker';
+        if (type === 'future') {
+            method = 'fapiPublicGetTickerBookTicker';
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetTickerBookTicker';
+        }
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
     }
