@@ -1144,7 +1144,12 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const method = market['spot'] ? 'publicGetKlines' : 'fapiPublicGetKlines';
+        let method = 'publicGetKlines';
+        if (market['future']) {
+            method = 'fapiPublicGetKlines';
+        } else if (market['delivery']) {
+            method = 'dapiPublicGetKlines';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         //     [
