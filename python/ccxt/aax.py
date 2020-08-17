@@ -33,6 +33,7 @@ class aax(Exchange):
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': True,
+                'fetchTicker': True,
             },
             'timeframes': {
                 '1m': 1,
@@ -58,6 +59,7 @@ class aax(Exchange):
                         'v2/market/orderbook',
                         'marketdata/v1/getHistMarketData',
                         'v2/market/trades',
+                        'v2/market/tickers',
                     ],
                 },
                 'private': {
@@ -280,6 +282,56 @@ class aax(Exchange):
                 ohlcvArr.append(volumeArr[i])
                 result.append(ohlcvArr)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
+
+    def parse_ticker(self, ticker, market=None, time=None):
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = time
+        open = self.safe_float(ticker, 'o')
+        last = self.safe_float(ticker, 'c')
+        change = None
+        percentage = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
+            if open > 0:
+                percentage = change / open * 100
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'h'),
+            'low': self.safe_float(ticker, 'l'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': None,
+            'quoteVolume': self.safe_float(ticker, 'v'),
+            'info': ticker,
+        }
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetV2MarketTickers(self.extend(params))
+        result = self.safe_value(response, 'tickers', [])
+        pair = market['id']
+        for i in range(0, len(result)):
+            ticker = result[i]
+            if pair == ticker['s']:
+                return self.parse_ticker(ticker, market, self.safe_integer(response, 't'))
+        return None
 
     def fetch_order_book(self, symbol='BTC/USDT', limit=50, params={}):
         self.load_markets()
