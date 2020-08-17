@@ -1301,7 +1301,12 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const defaultMethod = (type === 'future') ? 'fapiPublicGetTrades' : 'publicGetTrades';
+        let defaultMethod = 'publicGetTrades';
+        if (type === 'future') {
+            defaultMethod = 'fapiPublicGetTrades';
+        } else if (type === 'delivery') {
+            defaultMethod = 'dapiPublicGetTrades';
+        }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
             if (since !== undefined) {
@@ -1312,9 +1317,15 @@ module.exports = class binance extends Exchange {
             }
             if (type === 'future') {
                 method = 'fapiPublicGetAggTrades';
+            } else if (type === 'delivery') {
+                method = 'dapiPublicGetAggTrades';
             }
-        } else if ((method === 'publicGetHistoricalTrades') && (type === 'future')) {
-            method = 'fapiPublicGetHistoricalTrades';
+        } else if (method === 'publicGetHistoricalTrades') {
+            if (type === 'future') {
+                method = 'fapiPublicGetHistoricalTrades';
+            } else if (type === 'delivery') {
+                method = 'dapiPublicGetHistoricalTrades';
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
