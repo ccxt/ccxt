@@ -270,15 +270,19 @@ class aax(Exchange):
             lowArr = response['l']
             closeArr = response['c']
             volumeArr = response['v']
+            prevOpenTime = None
             for i in range(0, len(timeArr)):
-                ohlcvArr = []
-                ohlcvArr.append(int(timeArr[i]) * 1000)
-                ohlcvArr.append(openArr[i])
-                ohlcvArr.append(highArr[i])
-                ohlcvArr.append(lowArr[i])
-                ohlcvArr.append(closeArr[i])
-                ohlcvArr.append(volumeArr[i])
-                result.append(ohlcvArr)
+                openTime = (int(timeArr[i]) * 1000)
+                if openTime != prevOpenTime:
+                    ohlcvArr = []
+                    ohlcvArr.append(openTime)
+                    ohlcvArr.append(openArr[i])
+                    ohlcvArr.append(highArr[i])
+                    ohlcvArr.append(lowArr[i])
+                    ohlcvArr.append(closeArr[i])
+                    ohlcvArr.append(volumeArr[i])
+                    result.append(ohlcvArr)
+                    prevOpenTime = openTime
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol='BTC/USDT', limit=50, params={}):

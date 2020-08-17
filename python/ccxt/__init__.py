@@ -67,6 +67,7 @@ from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
 from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
+from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.aax import aax                                    # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
@@ -191,9 +192,9 @@ from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
-from ccxt._1btcxe import _1btcxe                            # noqa: F401
 
 exchanges = [
+    '_1btcxe',
     'aax',
     'acx',
     'adara',
@@ -318,7 +319,6 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
-    '_1btcxe',
 ]
 
 base = [
