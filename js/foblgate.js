@@ -21,8 +21,10 @@ module.exports = class foblgate extends Exchange {
                 'createMarketOrder': true,
                 'fetchTicker': false,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/69025125/89286704-a5495200-d68d-11ea-8486-fe3fa693e4a6.jpg',
@@ -39,14 +41,18 @@ module.exports = class foblgate extends Exchange {
                     'post': [
                         'ccxt/marketList',
                         'ccxt/orderBook',
-                        // 'ccxt/trades',
+                        'ccxt/trades',
                     ],
                 },
                 'private': {
                     'post': [
                         'ccxt/balance',
-                        'ccxt/orderPlace',
-                        'ccxt/orderCancel',
+                        'ccxt/myTrades',
+                        'ccxt/createOrder',
+                        'ccxt/cancelOrder',
+                        'ccxt/orderDetail',
+                        'ccxt/openOrders',
+                        'ccxt/closedOrders',
                     ],
                 },
             },
@@ -86,17 +92,6 @@ module.exports = class foblgate extends Exchange {
         return marketList;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostCcxtBalance (params);
-        // {
-        //     BTC: { total: 0, used: 0, free: 0 },
-        //     ETH: { total: 0, used: 0, free: 0 },
-        //     info: {}
-        // }
-        return this.parseBalance (response);
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -124,6 +119,131 @@ module.exports = class foblgate extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "transaction_date":"2020-04-23 22:21:46",
+        //         "type":"ask",
+        //         "units_traded":"0.0125",
+        //         "price":"8667000",
+        //         "total":"108337"
+        //     }
+        //
+        // fetchOrder (private)
+        //
+        //     {
+        //         "transaction_date": "1572497603902030",
+        //         "price": "8601000",
+        //         "units": "0.005",
+        //         "fee_currency": "KRW",
+        //         "fee": "107.51",
+        //         "total": "43005"
+        //     }
+        //
+        // a workaround for their bug in date format, hours are not 0-padded
+        let timestamp = undefined;
+        const transactionDatetime = this.safeString (trade, 'transaction_date');
+        if (transactionDatetime !== undefined) {
+            const parts = transactionDatetime.split (' ');
+            const numParts = parts.length;
+            if (numParts > 1) {
+                const transactionDate = parts[0];
+                let transactionTime = parts[1];
+                if (transactionTime.length < 8) {
+                    transactionTime = '0' + transactionTime;
+                }
+                timestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+            } else {
+                timestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+            }
+        }
+        if (timestamp !== undefined) {
+            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+        }
+        const type = undefined;
+        let side = this.safeString (trade, 'type');
+        side = (side === 'ask') ? 'sell' : 'buy';
+        const id = this.safeString (trade, 'cont_no');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'units_traded');
+        let cost = this.safeFloat (trade, 'total');
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = price * amount;
+                }
+            }
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairName': symbol,
+            'since': since,
+            'cnt': limit,
+        };
+        const response = await this.publicPostCcxtTrades (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairName': symbol,
+            'cnt': limit,
+            'since': since,
+        };
+        const response = await this.privatePostCcxtMyTrades (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostCcxtBalance (params);
+        // {
+        //     BTC: { total: 0, used: 0, free: 0 },
+        //     ETH: { total: 0, used: 0, free: 0 },
+        //     info: {}
+        // }
+        return this.parseBalance (response);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder type = market, currently not supported.');
@@ -145,11 +265,11 @@ module.exports = class foblgate extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
-        const response = await this.privatePostCcxtOrderPlace (this.extend (request, params));
+        const response = await this.privatePostCcxtCreateOrder (this.extend (request, params));
         // {
         //     info: { data: '2008042' },
         //     id: '2008042',
-        //         symbol: 'BTC/KRW',
+        //     symbol: 'BTC/KRW',
         //     type: 'limit',
         //     side: 'buy',
         //     amount: 0.1,
@@ -163,9 +283,87 @@ module.exports = class foblgate extends Exchange {
         const request = {
             'ordNo': id,
         };
-        const response = await this.privatePostCcxtOrderCancel (this.extend (request, params));
+        const response = await this.privatePostCcxtCancelOrder (this.extend (request, params));
         // { status: '0' }
         return response;
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeValue (order, 'timestamp');
+        const lastTradeTimestamp = this.safeValue (order, 'lastTradeTimestamp');
+        const symbol = this.safeString (order, 'symbol');
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        const cost = this.safeFloat (order, 'cost');
+        const average = this.safeFloat (order, 'average');
+        const filled = this.safeFloat (order, 'filled');
+        const remaining = this.safeFloat (order, 'remaining');
+        const status = this.safeString (order, 'status');
+        const fee = this.safeValue (order, 'fee');
+        let trades = this.safeValue (order, 'trades', []);
+        trades = this.parseTrades (trades, market, undefined, undefined, {
+            'order': id,
+            'type': type,
+        });
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'ordNo': id,
+        };
+        const response = await this.privatePostCcxtOrderDetail (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
+        return this.parseOrder (order);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairName': market['symbol'],
+            'since': since,
+            'cnt': limit,
+        };
+        const response = await this.privatePostCcxtOpenOrders (this.extend (request, params));
+        const orderList = this.safeValue (response, 'orderList', []);
+        return this.parseOrders (orderList, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairName': market['symbol'],
+            'since': since,
+            'cnt': limit,
+        };
+        const response = await this.privatePostCcxtClosedOrders (this.extend (request, params));
+        const orderList = this.safeValue (response, 'orderList', []);
+        return this.parseOrders (orderList, market, since, limit);
     }
 
     nonce () {
