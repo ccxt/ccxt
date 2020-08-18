@@ -31,6 +31,8 @@ class FastClient(AiohttpClient):
             if len(self.stack) < self.max_size:
                 self.stack.append(message)
             else:
+                while self.stack:
+                    self.handle_message(self.stack.pop())
                 self.handle_message(message)
 
         def feed_eof():
