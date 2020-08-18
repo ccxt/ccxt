@@ -546,7 +546,7 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
-        const marketId = this.safeString2 (ticker, 'pair', 'symbol_id');
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
@@ -561,7 +561,7 @@ module.exports = class bitmart extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat2 (ticker, 'current_price', 'new_24h');
+        const last = this.safeFloat (ticker, 'close_24h');
         let percentage = this.safeFloat (ticker, 'fluctuation');
         if (percentage === undefined) {
             percentage = this.safeString (ticker, 'priceChange');
@@ -572,26 +572,38 @@ module.exports = class bitmart extends Exchange {
         } else {
             percentage *= 100;
         }
+        // bitmart base/quote reversed
+        const baseVolume = this.safeFloat (ticker, 'quote_volume_24h');
+        const quoteVolume = this.safeFloat (ticker, 'base_volume_24h');
+        let vwap = undefined;
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
+            vwap = quoteVolume / baseVolume;
+        }
+        const open = this.safeFloat (ticker, 'open_24h');
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat2 (ticker, 'highest_price', 'high_24h'),
             'low': this.safeFloat2 (ticker, 'lowest_price', 'low_24h'),
-            'bid': this.safeFloat (ticker, 'bid_1'),
-            'bidVolume': this.safeFloat (ticker, 'bid_1_amount'),
-            'ask': this.safeFloat (ticker, 'ask_1'),
-            'askVolume': this.safeFloat (ticker, 'ask_1_amount'),
-            'vwap': undefined,
-            'open': undefined,
+            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
+            'ask': this.safeFloat (ticker, 'best_ask'),
+            'askVolume': this.safeFloat (ticker, 'best_ask_size'),
+            'vwap': vwap,
+            'open': this.safeFloat (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat2 (ticker, 'base_volume', 'baseVolume'),
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -681,23 +693,6 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        // old
-        //
-        //     {
-        //         "volume":"97487.38",
-        //         "ask_1":"0.00148668",
-        //         "base_volume":"144.59",
-        //         "lowest_price":"0.00144362",
-        //         "bid_1":"0.00148017",
-        //         "highest_price":"0.00151000",
-        //         "ask_1_amount":"92.03",
-        //         "current_price":"0.00148230",
-        //         "fluctuation":"+0.0227",
-        //         "symbol_id":"XRP_ETH",
-        //         "url":"https://www.bitmart.com/trade?symbol=XRP_ETH",
-        //         "bid_1_amount":"134.78"
-        //     }
-        //
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const tickersById = this.indexBy (tickers, 'symbol');
@@ -707,40 +702,25 @@ module.exports = class bitmart extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.publicGetTicker (params);
-        //
-        //
-        //     [
-        //         {
-        //             "priceChange":"0%",
-        //             "symbolId":1066,
-        //             "website":"https://www.bitmart.com/trade?symbol=1SG_BTC",
-        //             "depthEndPrecision":6,
-        //             "ask_1":"0.000095",
-        //             "anchorId":2,
-        //             "anchorName":"BTC",
-        //             "pair":"1SG_BTC",
-        //             "volume":"0.0",
-        //             "coinId":2029,
-        //             "depthStartPrecision":4,
-        //             "high_24h":"0.000035",
-        //             "low_24h":"0.000035",
-        //             "new_24h":"0.000035",
-        //             "closeTime":1589389249342,
-        //             "bid_1":"0.000035",
-        //             "coinName":"1SG",
-        //             "baseVolume":"0.0",
-        //             "openTime":1589302849342
-        //         },
-        //     ]
-        //
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let method = undefined;
+        if ((type === 'swap') || (type === 'future')) {
+            method = 'publicContractGetTickers';
+        } else if (type === 'spot') {
+            method = 'publicSpotGetTicker';
+        }
+        const response = await this[method] (params);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols, true);
     }
 
     async fetchCurrencies (params = {}) {
