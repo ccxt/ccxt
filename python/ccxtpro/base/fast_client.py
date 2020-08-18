@@ -20,9 +20,9 @@ class FastClient(AiohttpClient):
 
     def receive_loop(self):
         def handler():
-            message = self.stack.popleft()
-            self.handle_message(message)
             if self.stack:
+                message = self.stack.popleft()
+                self.handle_message(message)
                 self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
