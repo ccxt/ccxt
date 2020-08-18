@@ -810,7 +810,8 @@ module.exports = class binance extends ccxt.binance {
             'fee': fee,
             'trades': trades,
         };
-        const length = Object.keys (this.orders).length;
+        const keys = Object.keys (this.orders);
+        const length = keys.length;
         if (length === 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
