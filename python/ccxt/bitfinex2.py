@@ -354,7 +354,7 @@ class bitfinex2(bitfinex):
             quoteId = self.get_currency_id(quoteId)
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': self.safe_integer(market, 'price_precision'),
+                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
             limits = {
                 'amount': {
@@ -668,7 +668,7 @@ class bitfinex2(bitfinex):
         #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         if status is None:

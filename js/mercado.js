@@ -16,15 +16,20 @@ module.exports = class mercado extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
                 'createMarketOrder': true,
-                'fetchOrder': true,
-                'withdraw': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchOHLCV': true,
-                'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -424,7 +429,7 @@ module.exports = class mercado extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'open'),
@@ -454,7 +459,7 @@ module.exports = class mercado extends Exchange {
         }
         const response = await this.v4PublicGetCoinCandle (this.extend (request, params));
         const candles = this.safeValue (response, 'candles', []);
-        return this.parseOHLCVs (candles, market);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -24,7 +24,6 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -44,25 +43,32 @@ class kraken(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchLedgerEntry': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': 'emulated',
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
                 'fetchWithdrawals': True,
-                'fetchDeposits': True,
                 'withdraw': True,
-                'fetchLedgerEntry': True,
-                'fetchLedger': True,
-                'fetchOrderTrades': 'emulated',
-                'fetchTime': True,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -176,7 +182,6 @@ class kraken(Exchange):
                     'get': [
                         # we should really refrain from putting fixed fee numbers and stop hardcoding
                         # we will be using their web APIs to scrape all numbers from these articles
-                        '205893708',  # -What-is-the-minimum-order-size-
                         '360000292886',  # -What-are-the-deposit-fees-
                         '201893608',  # -What-are-the-withdrawal-fees-
                     ],
@@ -233,7 +238,6 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -249,6 +253,8 @@ class kraken(Exchange):
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Order minimum not met': InvalidOrder,
             },
         })
 
@@ -257,29 +263,6 @@ class kraken(Exchange):
 
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
-
-    def fetch_min_order_amounts(self, params={}):
-        response = self.zendeskGet205893708(params)
-        article = self.safe_value(response, 'article')
-        html = self.safe_string(article, 'body')
-        parts = html.split('<td class="wysiwyg-text-align-right">')
-        numParts = len(parts)
-        if numParts < 3:
-            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://kraken.zendesk.com/api/v2/help_center/en-us/articles/205893708')
-        result = {}
-        # skip the part before the header and the header itself
-        for i in range(2, len(parts)):
-            part = parts[i]
-            chunks = part.split('</td>')
-            amountAndCode = chunks[0]
-            if amountAndCode != 'To Be Announced':
-                pieces = amountAndCode.split(' ')
-                numPieces = len(pieces)
-                if numPieces == 2:
-                    amount = float(pieces[0])
-                    code = self.safe_currency_code(pieces[1])
-                    result[code] = amount
-        return result
 
     def fetch_markets(self, params={}):
         response = self.publicGetAssetPairs(params)
@@ -324,15 +307,12 @@ class kraken(Exchange):
         #                 ],
         #                 "fee_volume_currency":"ZUSD",
         #                 "margin_call":80,
-        #                 "margin_stop":40
+        #                 "margin_stop":40,
+        #                 "ordermin": "1"
         #             },
         #         }
         #     }
         #
-        fetchMinOrderAmounts = self.safe_value(self.options, 'fetchMinOrderAmounts', False)
-        limits = {}
-        if fetchMinOrderAmounts:
-            limits = self.fetch_min_order_amounts()
         keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):
@@ -351,9 +331,7 @@ class kraken(Exchange):
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             }
-            minAmount = math.pow(10, -precision['amount'])
-            if base in limits:
-                minAmount = limits[base]
+            minAmount = self.safe_float(market, 'ordermin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -569,8 +547,8 @@ class kraken(Exchange):
         self.load_markets()
         symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.markets[symbol]
             if market['active'] and not market['darkpool']:
                 marketIds.append(market['id'])
@@ -603,7 +581,7 @@ class kraken(Exchange):
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591475640,
@@ -650,7 +628,7 @@ class kraken(Exchange):
         #     }
         result = self.safe_value(response, 'result', {})
         ohlcvs = self.safe_value(result, market['id'], [])
-        return self.parse_ohlcvs(ohlcvs, market)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -968,8 +946,8 @@ class kraken(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': None,
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': None,

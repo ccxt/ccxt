@@ -16,23 +16,30 @@ module.exports = class exmo extends Exchange {
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingFees': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchOrders': 'emulated',
                 'fetchOrderTrades': true,
-                'fetchOrderBooks': true,
-                'fetchMyTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'withdraw': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchFundingFees': true,
-                'fetchCurrencies': true,
                 'fetchTransactions': true,
-                'fetchOHLCV': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -723,10 +730,10 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         const candles = this.safeValue (response, 'candles', []);
-        return this.parseOHLCVs (candles, market);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "t":1584057600000,
@@ -1329,15 +1336,15 @@ module.exports = class exmo extends Exchange {
             }
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
+        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
         let remaining = undefined;
         if (amount !== undefined) {
             remaining = amount - filled;
-        }
-        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled >= amount) {
-            status = 'closed';
-        } else {
-            status = 'open';
+            if (filled >= amount) {
+                status = 'closed';
+            } else {
+                status = 'open';
+            }
         }
         if (market === undefined) {
             market = this.getMarketFromTrades (trades);

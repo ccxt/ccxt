@@ -20,16 +20,23 @@ class bigone extends Exchange {
             'rateLimit' => 1200, // 500 request per 10 minutes
             'has' => array(
                 'cancelAllOrders' => true,
-                'createMarketOrder' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -369,6 +376,20 @@ class bigone extends Exchange {
         return $result;
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "$data" => {
+        //             "$timestamp" => 1527665262168391000
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        return intval ($timestamp / 1000000);
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -587,7 +608,7 @@ class bigone extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         close => '0.021562',
@@ -649,7 +670,7 @@ class bigone extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -761,12 +782,34 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $uppercaseType = strtoupper($type);
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $side, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-            'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            'type' => $uppercaseType,
+            // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
+            // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
+        if ($uppercaseType === 'LIMIT') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
+            if ($isStopLimit || $isStopMarket) {
+                $stopPrice = $this->safe_float($params, 'stop_price');
+                if ($stopPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price parameter');
+                }
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                $params = $this->omit($params, 'stop_price');
+            }
+            if ($isStopLimit) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {

@@ -29,20 +29,27 @@ class bytetrade(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
+                'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchBidsAsks': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'CORS': False,
-                'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchMyTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'withdraw': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -416,7 +423,7 @@ class bytetrade(Exchange):
         rawTickers = await self.marketGetTickers(params)
         return self.parse_tickers(rawTickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591505760000,
@@ -455,7 +462,7 @@ class bytetrade(Exchange):
         #         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -466,7 +473,7 @@ class bytetrade(Exchange):
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'takerOrMaker')
         side = self.safe_string(trade, 'side')
-        datetime = self.safe_string(trade, 'datetime')
+        datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
         fee = self.safe_value(trade, 'fee')
         symbol = None
@@ -890,7 +897,7 @@ class bytetrade(Exchange):
             raise ArgumentsRequired('transfer requires self.apiKey')
         await self.load_markets()
         currency = self.currency(code)
-        amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
+        amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
         amountChain = self.to_wei(amountTruncate, currency['precision']['amount'])
         assetType = int(currency['id'])
         now = self.milliseconds()
@@ -1146,7 +1153,7 @@ class bytetrade(Exchange):
         feeAmount = '300000000000000'
         currency = self.currency(code)
         coinId = currency['id']
-        amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
+        amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
         amountChain = self.to_wei(amountTruncate, currency['info']['externalPrecision'])
         eightBytes = self.integer_pow('2', '64')
         assetFee = 0

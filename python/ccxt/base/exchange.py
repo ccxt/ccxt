@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.29.60'
+__version__ = '1.33.20'
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +38,11 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+# eddsa signing
+try:
+    import axolotl_curve25519 as eddsa
+except ImportError:
+    eddsa = None
 
 # -----------------------------------------------------------------------------
 
@@ -289,6 +294,7 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'privateAPI': True,
         'publicAPI': True,
+        'signIn': False,
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
@@ -309,7 +315,12 @@ class Exchange(object):
     last_response_headers = None
 
     requiresWeb3 = False
+    requiresEddsa = False
     web3 = None
+    base58_encoder = None
+    base58_decoder = None
+    # no lower case l or upper case I, O
+    base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
     commonCurrencies = {
         'XBT': 'BTC',
@@ -374,7 +385,7 @@ class Exchange(object):
                     setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit,
+            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
             'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
@@ -411,33 +422,36 @@ class Exchange(object):
             del self.urls['api_backup']
 
     @classmethod
-    def define_rest_api(cls, api, method_name, options={}):
+    def define_rest_api(cls, api, method_name, paths=[]):
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for api_type, methods in api.items():
-            for http_method, urls in methods.items():
-                for url in urls:
-                    url = url.strip()
-                    split_path = delimiters.split(url)
-
-                    uppercase_method = http_method.upper()
-                    lowercase_method = http_method.lower()
-                    camelcase_method = lowercase_method.capitalize()
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+        for key, value in api.items():
+            if isinstance(value, list):
+                uppercase_method = key.upper()
+                lowercase_method = key.lower()
+                camelcase_method = lowercase_method.capitalize()
+                for path in value:
+                    path = path.strip()
+                    split_path = delimiters.split(path)
                     lowercase_path = [x.strip().lower() for x in split_path]
-                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
-
-                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
-
-                    if 'suffixes' in options:
-                        if 'camelcase' in options['suffixes']:
-                            camelcase += options['suffixes']['camelcase']
-                        if 'underscore' in options['suffixes']:
-                            underscore += options['suffixes']['underscore']
+                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+                    camelcase_prefix = ''
+                    underscore_prefix = ''
+                    if len(paths):
+                        camelcase_prefix = paths[0]
+                        underscore_prefix = paths[0]
+                        if len(paths) > 1:
+                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                            api_argument = paths
+                        else:
+                            api_argument = paths[0]
+                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
                     def partialer():
-                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
+                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
 
                         @functools.wraps(entry)
                         def inner(_self, params=None):
@@ -454,6 +468,8 @@ class Exchange(object):
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
+            else:
+                Exchange.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -550,6 +566,8 @@ class Exchange(object):
                 proxies=self.proxies,
                 verify=self.verify
             )
+            # does not try to detect encoding
+            response.encoding = 'utf-8'
             http_response = response.text
             http_status_code = response.status_code
             http_status_text = response.reason
@@ -867,15 +885,15 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, doseq=False):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params)
+        return _urlencode.urlencode(params, doseq)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
     def rawencode(params={}):
@@ -1158,6 +1176,14 @@ class Exchange(object):
         }
 
     @staticmethod
+    def eddsa(request, secret, curve='ed25519'):
+        random = b'\x00' * 64
+        request = base64.b16decode(request, casefold=True)
+        secret = base64.b16decode(secret, casefold=True)
+        signature = eddsa.calculateSignature(random, secret, request)
+        return Exchange.binary_to_base58(signature)
+
+    @staticmethod
     def unjson(input):
         return json.loads(input)
 
@@ -1255,8 +1281,8 @@ class Exchange(object):
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
-        self.symbols = sorted(list(self.markets.keys()))
-        self.ids = sorted(list(self.markets_by_id.keys()))
+        self.symbols = sorted(self.markets.keys())
+        self.ids = sorted(self.markets_by_id.keys())
         if currencies:
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
@@ -1403,7 +1429,10 @@ class Exchange(object):
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
+
+    def parse_ohlcv(self, ohlcv, market=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
@@ -1414,7 +1443,7 @@ class Exchange(object):
         while i < num_ohlcvs:
             if limit and (len(result) >= limit):
                 break
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
+            ohlcv = self.parse_ohlcv(ohlcvs[i], market)
             i = i + 1
             if since and (ohlcv[0] < since):
                 continue
@@ -1791,11 +1820,15 @@ class Exchange(object):
         return Web3 is not None
 
     def check_required_dependencies(self):
-        if not Exchange.has_web3():
+        if self.requiresWeb3 and not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+        if self.requiresEddsa and eddsa is None:
+            raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
     @staticmethod
     def from_wei(amount, decimals=18):
+        if amount is None:
+            return None
         amount_float = float(amount)
         exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
@@ -1804,6 +1837,8 @@ class Exchange(object):
 
     @staticmethod
     def to_wei(amount, decimals=18):
+        if amount is None:
+            return None
         amount_float = float(amount)
         exponential = '{:.14e}'.format(amount_float)
         n, exponent = exponential.split('e')
@@ -2055,3 +2090,38 @@ class Exchange(object):
 
     def sleep(self, milliseconds):
         return time.sleep(milliseconds / 1000)
+
+    @staticmethod
+    def base58_to_binary(s):
+        """encodes a base58 string to as a big endian integer"""
+        if Exchange.base58_decoder is None:
+            Exchange.base58_decoder = {}
+            Exchange.base58_encoder = {}
+            for i, c in enumerate(Exchange.base58_alphabet):
+                Exchange.base58_decoder[c] = i
+                Exchange.base58_encoder[i] = c
+        result = 0
+        for i in range(len(s)):
+            result *= 58
+            result += Exchange.base58_decoder[s[i]]
+        return Exchange.decimal_to_bytes(result)
+
+    @staticmethod
+    def binary_to_base58(b):
+        if Exchange.base58_encoder is None:
+            Exchange.base58_decoder = {}
+            Exchange.base58_encoder = {}
+            for i, c in enumerate(Exchange.base58_alphabet):
+                Exchange.base58_decoder[c] = i
+                Exchange.base58_encoder[i] = c
+        result = 0
+        # undo decimal_to_bytes
+        for byte in b:
+            result *= 0x100
+            result += byte
+        string = []
+        while result > 0:
+            result, next_character = divmod(result, 58)
+            string.append(Exchange.base58_encoder[next_character])
+        string.reverse()
+        return ''.join(string)

@@ -20,10 +20,17 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'fetchDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -40,7 +47,7 @@ class tidebit(Exchange):
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': [
@@ -279,7 +286,7 @@ class tidebit(Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1498530360,
@@ -323,7 +330,7 @@ class tidebit(Exchange):
         #
         if response == 'None':
             return []
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

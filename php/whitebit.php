@@ -37,6 +37,7 @@ class whitebit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'privateAPI' => false,
                 'publicAPI' => true,
             ),
@@ -65,7 +66,7 @@ class whitebit extends Exchange {
                     'publicV1' => 'https://whitebit.com/api/v1/public',
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
@@ -584,10 +585,10 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591488000,

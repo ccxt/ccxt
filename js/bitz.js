@@ -17,16 +17,25 @@ module.exports = class bitz extends Exchange {
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'fetchTickers': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'createMarketOrder': false,
+                'fetchBalance': true,
+                'fetchDeposits': true,
+                'fetchClosedOrders': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
-                'createMarketOrder': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -42,7 +51,7 @@ module.exports = class bitz extends Exchange {
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -62,6 +71,7 @@ module.exports = class bitz extends Exchange {
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -515,6 +525,21 @@ module.exports = class bitz extends Exchange {
         return result;
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.marketGetGetServerTime (params);
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":[],
+        //         "time":1555490875,
+        //         "microtime":"0.35994200 1555490875",
+        //         "source":"api"
+        //     }
+        //
+        return this.safeTimestamp (response, 'time');
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -617,7 +642,7 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         time: "1535973420000",
@@ -680,7 +705,7 @@ module.exports = class bitz extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const bars = this.safeValue (data, 'bars', []);
-        return this.parseOHLCVs (bars, market);
+        return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {

@@ -16,15 +16,22 @@ module.exports = class coinex extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 1000,
             'has': {
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -42,7 +49,7 @@ module.exports = class coinex extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
                 'api': 'https://api.coinex.com',
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
@@ -347,7 +354,7 @@ module.exports = class coinex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1591484400,
@@ -390,7 +397,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

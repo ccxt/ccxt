@@ -60,6 +60,7 @@ class eterbase extends Exchange {
                 'www' => 'https://www.eterbase.com',
                 'doc' => 'https://developers.eterbase.exchange',
                 'fees' => 'https://www.eterbase.com/exchange/fees',
+                'referral' => 'https://eterbase.exchange/invite/1wjjh4Pe',
             ),
             'api' => array(
                 'markets' => array(
@@ -114,6 +115,7 @@ class eterbase extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
@@ -579,7 +581,7 @@ class eterbase extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1588807500000,
@@ -633,7 +635,7 @@ class eterbase extends Exchange {
         //         array("time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1128,7 +1130,7 @@ class eterbase extends Exchange {
             }
             $signature64 = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
             $signature = $this->decode($signature64);
-            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",$signature="' . $signature . '"';
+            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",' . 'signature="' . $signature . '"';
             $httpHeaders = array(
                 'Date' => $date,
                 'Authorization' => $authorizationHeader,

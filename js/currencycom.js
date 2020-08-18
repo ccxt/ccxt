@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -15,24 +15,26 @@ module.exports = class currencycom extends Exchange {
             'name': 'Currency.com',
             'countries': [ 'BY' ], // Belarus
             'rateLimit': 500,
-            'certified': false,
+            'certified': true,
+            'pro': true,
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
+                'CORS': false,
                 'createOrder': true,
                 'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTradingFees': true,
-                'fetchOHLCV': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchBalance': true,
-                'fetchOpenOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -107,26 +109,32 @@ module.exports = class currencycom extends Exchange {
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'stop': 'RESULT',
                 },
             },
             'exceptions': {
-                'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
-                'API key does not exist': AuthenticationError,
-                'Order would trigger immediately.': InvalidOrder,
-                'Account has insufficient balance for requested action.': InsufficientFunds,
-                'Rest API trading is not enabled.': ExchangeNotAvailable,
-                '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce, // 'your time is ahead of server'
-                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                'broad': {
+                    'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
+                    'API key does not exist': AuthenticationError,
+                    'Order would trigger immediately.': InvalidOrder,
+                    'Account has insufficient balance for requested action.': InsufficientFunds,
+                    'Rest API trading is not enabled.': ExchangeNotAvailable,
+                },
+                'exact': {
+                    '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1021': InvalidNonce, // 'your time is ahead of server'
+                    '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1025': AuthenticationError, // {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
+                    '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
+                    '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                },
             },
         });
     }
@@ -373,9 +381,7 @@ module.exports = class currencycom extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+    parseBalanceResponse (response) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -410,6 +416,34 @@ module.exports = class currencycom extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccount (params);
+        //
+        //     {
+        //         "makerCommission":0.20,
+        //         "takerCommission":0.20,
+        //         "buyerCommission":0.20,
+        //         "sellerCommission":0.20,
+        //         "canTrade":true,
+        //         "canWithdraw":true,
+        //         "canDeposit":true,
+        //         "updateTime":1591056268,
+        //         "balances":[
+        //             {
+        //                 "accountId":5470306579272968,
+        //                 "collateralCurrency":true,
+        //                 "asset":"ETH",
+        //                 "free":0.0,
+        //                 "locked":0.0,
+        //                 "default":false,
+        //             },
+        //         ]
+        //     }
+        //
+        return this.parseBalanceResponse (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -580,7 +614,7 @@ module.exports = class currencycom extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1590971040000,
@@ -622,7 +656,7 @@ module.exports = class currencycom extends Exchange {
         //         [1590971160000,"0.02455","0.02456","0.02453","0.02454",286],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -894,11 +928,10 @@ module.exports = class currencycom extends Exchange {
             // 'guaranteedStopLoss': '54.321',
         };
         if (uppercaseType === 'LIMIT') {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
-            }
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
+        } else if (uppercaseType === 'STOP') {
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         //
@@ -1044,14 +1077,14 @@ module.exports = class currencycom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if ((httpCode === 418) || (httpCode === 429)) {
+            throw new DDoSProtection (this.id + ' ' + httpCode.toString () + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        if (httpCode >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             }
@@ -1065,32 +1098,16 @@ module.exports = class currencycom extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        // check success value for wapi endpoints
-        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue (response, 'success', true);
-        if (!success) {
+        //
+        //     {"code":-1128,"msg":"Combination of optional parameters invalid."}
+        //
+        const errorCode = this.safeString (response, 'code');
+        if ((errorCode !== undefined) && (errorCode !== '0')) {
+            const feedback = this.id + ' ' + this.json (response);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             const message = this.safeString (response, 'msg');
-            let parsedMessage = undefined;
-            if (message !== undefined) {
-                try {
-                    parsedMessage = JSON.parse (message);
-                } catch (e) {
-                    // do nothing
-                    parsedMessage = undefined;
-                }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
-            }
-        }
-        const exceptions = this.exceptions;
-        const message = this.safeString (response, 'msg');
-        if (message in exceptions) {
-            const ExceptionClass = exceptions[message];
-            throw new ExceptionClass (this.id + ' ' + message);
-        }
-        if (!success) {
-            throw new ExchangeError (this.id + ' ' + body);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

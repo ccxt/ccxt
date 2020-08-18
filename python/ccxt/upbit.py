@@ -28,22 +28,29 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
-                'fetchDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': False,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -690,7 +697,7 @@ class upbit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
@@ -733,7 +740,7 @@ class upbit(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         market: "BTC-ETH",
@@ -809,7 +816,7 @@ class upbit(Exchange):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
@@ -1123,7 +1130,10 @@ class upbit(Exchange):
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(trades, market, None, None, {'order': id})
+        trades = self.parse_trades(trades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         numTrades = len(trades)
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing

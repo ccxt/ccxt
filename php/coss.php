@@ -19,7 +19,7 @@ class coss extends Exchange {
             'version' => 'v1',
             'certified' => false,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api' => array(
                     'trade' => 'https://trade.coss.io/c/api/v1',
                     'engine' => 'https://engine.coss.io/api/v1',
@@ -333,7 +333,7 @@ class coss extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1545138960000,
@@ -381,7 +381,7 @@ class coss extends Exchange {
         //     }
         //
         $series = $this->safe_value($response, 'series', array());
-        return $this->parse_ohlcvs($series, $market);
+        return $this->parse_ohlcvs($series, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

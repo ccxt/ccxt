@@ -20,18 +20,25 @@ module.exports = class fcoin extends Exchange {
             'accountsById': undefined,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'withdraw': false,
-                'fetchCurrencies': false,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -443,6 +450,17 @@ module.exports = class fcoin extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetServerTime (params);
+        //
+        //     {
+        //         "status": 0,
+        //         "data": 1523430502977
+        //     }
+        //
+        return this.safeInteger (response, 'data');
+    }
+
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -636,7 +654,7 @@ module.exports = class fcoin extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'id'),
             this.safeFloat (ohlcv, 'open'),
@@ -665,7 +683,7 @@ module.exports = class fcoin extends Exchange {
         }
         const response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     nonce () {

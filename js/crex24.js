@@ -18,21 +18,28 @@ module.exports = class crex24 extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
                 'fetchTransactions': true,
@@ -576,7 +583,7 @@ module.exports = class crex24 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         timestamp: '2019-09-21T10:36:00Z',
@@ -620,7 +627,7 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {

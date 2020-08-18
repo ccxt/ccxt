@@ -22,10 +22,17 @@ class bitbank(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchMyTrades': True,
-                'fetchDepositAddress': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -86,6 +93,8 @@ class bitbank(Exchange):
                 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
                 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy'},
                 'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy'},
+                'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
+                'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
             },
             'fees': {
                 'trading': {
@@ -225,7 +234,7 @@ class bitbank(Exchange):
         response = self.publicGetPairTransactions(self.extend(request, params))
         return self.parse_trades(response['data']['transactions'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         "0.02501786",
@@ -279,7 +288,7 @@ class bitbank(Exchange):
         candlestick = self.safe_value(data, 'candlestick', [])
         first = self.safe_value(candlestick, 0, {})
         ohlcv = self.safe_value(first, 'ohlcv', [])
-        return self.parse_ohlcvs(ohlcv, market)
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

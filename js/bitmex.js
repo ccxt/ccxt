@@ -19,20 +19,26 @@ module.exports = class bitmex extends Exchange {
             'rateLimit': 2000,
             'pro': true,
             'has': {
-                'CORS': false,
-                'fetchOHLCV': true,
-                'withdraw': true,
-                'editOrder': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchLedger': true,
-                'fetchTransactions': 'emulated',
-                'createOrder': true,
-                'cancelOrder': true,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
+                'CORS': false,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': 'emulated',
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -102,6 +108,7 @@ module.exports = class bitmex extends Exchange {
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -256,27 +263,131 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'currency': 'all',
-        };
-        const response = await this.privateGetUserMargin (this.extend (request, params));
+    parseBalanceResponse (response) {
+        //
+        //     [
+        //         {
+        //             "account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     ]
+        //
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableMargin');
-            account['total'] = this.safeFloat (balance, 'marginBalance');
+            let free = this.safeFloat (balance, 'availableMargin');
+            let total = this.safeFloat (balance, 'marginBalance');
             if (code === 'BTC') {
-                account['free'] = account['free'] * 0.00000001;
-                account['total'] = account['total'] * 0.00000001;
+                if (free !== undefined) {
+                    free /= 100000000;
+                }
+                if (total !== undefined) {
+                    total /= 100000000;
+                }
             }
+            account['free'] = free;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'currency': 'all',
+        };
+        const response = await this.privateGetUserMargin (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     ]
+        //
+        return this.parseBalanceResponse (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -508,7 +619,7 @@ module.exports = class bitmex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
-            amount = amount * 1e-8;
+            amount = amount / 100000000;
         }
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
@@ -519,7 +630,7 @@ module.exports = class bitmex extends Exchange {
         }
         let feeCost = this.safeFloat (item, 'fee', 0);
         if (feeCost !== undefined) {
-            feeCost = feeCost * 1e-8;
+            feeCost = feeCost / 100000000;
         }
         const fee = {
             'cost': feeCost,
@@ -527,7 +638,7 @@ module.exports = class bitmex extends Exchange {
         };
         let after = this.safeFloat (item, 'walletBalance');
         if (after !== undefined) {
-            after = after * 1e-8;
+            after = after / 100000000;
         }
         const before = this.sum (after, -amount);
         let direction = undefined;
@@ -665,11 +776,11 @@ module.exports = class bitmex extends Exchange {
         }
         let amount = this.safeInteger (transaction, 'amount');
         if (amount !== undefined) {
-            amount = Math.abs (amount) * 1e-8;
+            amount = Math.abs (amount) / 10000000;
         }
         let feeCost = this.safeInteger (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = feeCost * 1e-8;
+            feeCost = feeCost / 10000000;
         }
         const fee = {
             'cost': feeCost,
@@ -878,7 +989,7 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -938,6 +1049,8 @@ module.exports = class bitmex extends Exchange {
             }
             const ymdhms = this.ymdhms (timestamp);
             request['startTime'] = ymdhms; // starting date filter for results
+        } else {
+            request['reverse'] = true;
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
         //
@@ -947,7 +1060,7 @@ module.exports = class bitmex extends Exchange {
         //         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         //     ]
         //
-        const result = this.parseOHLCVs (response, market);
+        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
         if (fetchOHLCVOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
@@ -1168,6 +1281,9 @@ module.exports = class bitmex extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
+        } else {
+            // by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
+            request['reverse'] = true;
         }
         if (limit !== undefined) {
             request['count'] = limit;
@@ -1238,6 +1354,8 @@ module.exports = class bitmex extends Exchange {
                 request['clOrdID'] = clientOrderId;
             }
             params = this.omit (params, [ 'origClOrdID', 'clOrdID', 'clientOrderId' ]);
+        } else {
+            request['orderID'] = id;
         }
         if (amount !== undefined) {
             request['orderQty'] = amount;

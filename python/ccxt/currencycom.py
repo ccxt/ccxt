@@ -5,10 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -26,24 +26,26 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 500,
-            'certified': False,
+            'certified': True,
+            'pro': True,
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
                 'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTradingFees': True,
-                'fetchOHLCV': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
-                'fetchBalance': True,
-                'fetchOpenOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -118,26 +120,32 @@ class currencycom(Exchange):
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                    'stop': 'RESULT',
                 },
             },
             'exceptions': {
-                'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
-                'API key does not exist': AuthenticationError,
-                'Order would trigger immediately.': InvalidOrder,
-                'Account has insufficient balance for requested action.': InsufficientFunds,
-                'Rest API trading is not enabled.': ExchangeNotAvailable,
-                '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce,  # 'your time is ahead of server'
-                '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
-                '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
-                '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                'broad': {
+                    'FIELD_VALIDATION_ERROR Cancel is available only for LIMIT order': InvalidOrder,
+                    'API key does not exist': AuthenticationError,
+                    'Order would trigger immediately.': InvalidOrder,
+                    'Account has insufficient balance for requested action.': InsufficientFunds,
+                    'Rest API trading is not enabled.': ExchangeNotAvailable,
+                },
+                'exact': {
+                    '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                    '-1021': InvalidNonce,  # 'your time is ahead of server'
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                    '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
+                    '-1025': AuthenticationError,  # {"code":-1025,"msg":"Invalid API-key, IP, or permissions for action"}
+                    '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                    '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
+                    '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                    '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                    '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
+                    '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+                },
             },
         })
 
@@ -365,9 +373,7 @@ class currencycom(Exchange):
             'taker': self.safe_float(response, 'takerCommission'),
         }
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccount(params)
+    def parse_balance_response(self, response):
         #
         #     {
         #         "makerCommission":0.20,
@@ -401,6 +407,33 @@ class currencycom(Exchange):
             account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccount(params)
+        #
+        #     {
+        #         "makerCommission":0.20,
+        #         "takerCommission":0.20,
+        #         "buyerCommission":0.20,
+        #         "sellerCommission":0.20,
+        #         "canTrade":true,
+        #         "canWithdraw":true,
+        #         "canDeposit":true,
+        #         "updateTime":1591056268,
+        #         "balances":[
+        #             {
+        #                 "accountId":5470306579272968,
+        #                 "collateralCurrency":true,
+        #                 "asset":"ETH",
+        #                 "free":0.0,
+        #                 "locked":0.0,
+        #                 "default":false,
+        #             },
+        #         ]
+        #     }
+        #
+        return self.parse_balance_response(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -559,7 +592,7 @@ class currencycom(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1590971040000,
@@ -598,7 +631,7 @@ class currencycom(Exchange):
         #         [1590971160000,"0.02455","0.02456","0.02453","0.02454",286],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -838,10 +871,10 @@ class currencycom(Exchange):
             # 'guaranteedStopLoss': '54.321',
         }
         if uppercaseType == 'LIMIT':
-            if price is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
+        elif uppercaseType == 'STOP':
+            request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrder(self.extend(request, params))
         #
         #     {
@@ -972,13 +1005,13 @@ class currencycom(Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if (code == 418) or (code == 429):
-            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if (httpCode == 418) or (httpCode == 429):
+            raise DDoSProtection(self.id + ' ' + str(httpCode) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
         # following block cointains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
-        if code >= 400:
+        if httpCode >= 400:
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
             if body.find('LOT_SIZE') >= 0:
@@ -987,24 +1020,13 @@ class currencycom(Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return  # fallback to default error handler
-        # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
-        if not success:
+        #
+        #     {"code":-1128,"msg":"Combination of optional parameters invalid."}
+        #
+        errorCode = self.safe_string(response, 'code')
+        if (errorCode is not None) and (errorCode != '0'):
+            feedback = self.id + ' ' + self.json(response)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             message = self.safe_string(response, 'msg')
-            parsedMessage = None
-            if message is not None:
-                try:
-                    parsedMessage = json.loads(message)
-                except Exception as e:
-                    # do nothing
-                    parsedMessage = None
-                if parsedMessage is not None:
-                    response = parsedMessage
-        exceptions = self.exceptions
-        message = self.safe_string(response, 'msg')
-        if message in exceptions:
-            ExceptionClass = exceptions[message]
-            raise ExceptionClass(self.id + ' ' + message)
-        if not success:
-            raise ExchangeError(self.id + ' ' + body)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)

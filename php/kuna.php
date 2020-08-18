@@ -28,7 +28,7 @@ class kuna extends acx {
             'timeframes' => null,
             'urls' => array(
                 'referral' => 'https://kuna.io?r=kunaid-gvfihe8az7o4',
-                'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
                 'api' => 'https://kuna.io',
                 'www' => 'https://kuna.io',
                 'doc' => 'https://kuna.io/documents/api',
@@ -54,7 +54,7 @@ class kuna extends acx {
                         // 'EVR' => 0.01 ETH
                     ),
                     'deposit' => array(
-                        // 'UAH' => (amount) => amount * 0.001 . 5
+                        // 'UAH' => (amount) => amount * 0.001 + 5
                     ),
                 ),
             ),

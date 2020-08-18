@@ -21,12 +21,20 @@ class lbank(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minute1',
@@ -109,6 +117,7 @@ class lbank(Exchange):
             },
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
+                'PNT': 'Penta',
             },
             'options': {
                 'cacheSecretAsPem': True,
@@ -306,7 +315,7 @@ class lbank(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1590969600,
@@ -347,7 +356,7 @@ class lbank(Exchange):
         #         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

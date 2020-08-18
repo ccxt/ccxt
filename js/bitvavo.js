@@ -546,7 +546,7 @@ module.exports = class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
         //
@@ -690,7 +690,7 @@ module.exports = class bitvavo extends Exchange {
         return orderbook;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1590383700000,
@@ -735,7 +735,7 @@ module.exports = class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

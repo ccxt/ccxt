@@ -19,17 +19,19 @@ class bcex extends Exchange {
             'countries' => array( 'CN', 'CA' ),
             'version' => '1',
             'has' => array(
-                'fetchBalance' => true,
-                'fetchMarkets' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchTrades' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchClosedOrders' => 'emulated',
-                'fetchOpenOrders' => true,
                 'fetchTradingLimits' => true,
             ),
             'urls' => array(
@@ -99,6 +101,9 @@ class bcex extends Exchange {
                 '您的btc不足' => '\\ccxt\\InsufficientFunds', // array( code => 1, msg => '您的btc不足' ) - your btc is insufficient
                 '参数非法' => '\\ccxt\\InvalidOrder', // array('code' => 1, 'msg' => '参数非法') - 'Parameter illegal'
                 '订单信息不存在' => '\\ccxt\\OrderNotFound', // array('code' => 1, 'msg' => '订单信息不存在') - 'Order information does not exist'
+            ),
+            'commonCurrencies' => array(
+                'PNT' => 'Penta',
             ),
             'options' => array(
                 'limits' => array(

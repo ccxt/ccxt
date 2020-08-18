@@ -19,20 +19,29 @@ class luno extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
             ),
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api' => 'https://api.mybitx.com/api',
+                'api' => 'https://api.luno.com/api',
                 'www' => 'https://www.luno.com',
                 'doc' => array(
                     'https://www.luno.com/en/api',
@@ -67,6 +76,7 @@ class luno extends Exchange {
                     ),
                     'post' => array(
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -111,6 +121,25 @@ class luno extends Exchange {
                 'active' => null,
                 'precision' => $this->precision,
                 'limits' => $this->limits,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_accounts($params = array ()) {
+        $response = $this->privateGetBalance ($params);
+        $wallets = $this->safe_value($response, 'balance', array());
+        $result = array();
+        for ($i = 0; $i < count($wallets); $i++) {
+            $account = $wallets[$i];
+            $accountId = $this->safe_string($account, 'account_id');
+            $currencyId = $this->safe_string($account, 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $result[] = array(
+                'id' => $accountId,
+                'type' => null,
+                'currency' => $code,
+                'info' => $account,
             );
         }
         return $result;
@@ -455,6 +484,146 @@ class luno extends Exchange {
             'order_id' => $id,
         );
         return $this->privatePostStoporder (array_merge($request, $params));
+    }
+
+    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+        // by default without $entry number or $limit number, return most recent $entry
+        $since = null;
+        $request = array(
+            'min_row' => $entry,
+            'max_row' => $this->sum($entry, $limit),
+        );
+        return $this->fetch_ledger($code, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $currency = null;
+        $id = $this->safe_string($params, 'id'); // $account $id
+        $min_row = $this->safe_value($params, 'min_row');
+        $max_row = $this->safe_value($params, 'max_row');
+        if ($id === null) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $currency $code argument if no $account $id specified in params');
+            }
+            $currency = $this->currency($code);
+            $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+            $account = $this->safe_value($accountsByCurrencyCode, $code);
+            if ($account === null) {
+                throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
+            }
+            $id = $account['id'];
+        }
+        if ($min_row === null && $max_row === null) {
+            $max_row = 0; // Default to most recent transactions
+            $min_row = -1000; // Maximum number of records supported
+        } else if ($min_row === null || $max_row === null) {
+            throw new ExchangeError($this->id . " fetchLedger() require both $params 'max_row' and 'min_row' or neither to be defined");
+        }
+        if ($limit !== null && $max_row - $min_row > $limit) {
+            if ($max_row <= 0) {
+                $min_row = $max_row - $limit;
+            } else if ($min_row > 0) {
+                $max_row = $min_row . $limit;
+            }
+        }
+        if ($max_row - $min_row > 1000) {
+            throw new ExchangeError($this->id . " fetchLedger() requires the $params 'max_row' - 'min_row' <= 1000");
+        }
+        $request = array(
+            'id' => $id,
+            'min_row' => $min_row,
+            'max_row' => $max_row,
+        );
+        $response = $this->privateGetAccountsIdTransactions (array_merge($params, $request));
+        $entries = $this->safe_value($response, 'transactions', array());
+        return $this->parse_ledger($entries, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_comment($comment) {
+        $words = explode(' ', $comment);
+        $types = array(
+            'Withdrawal' => 'fee',
+            'Trading' => 'fee',
+            'Payment' => 'transaction',
+            'Sent' => 'transaction',
+            'Deposit' => 'transaction',
+            'Received' => 'transaction',
+            'Released' => 'released',
+            'Reserved' => 'reserved',
+            'Sold' => 'trade',
+            'Bought' => 'trade',
+            'Failure' => 'failed',
+        );
+        $referenceId = null;
+        $firstWord = $this->safe_string($words, 0);
+        $thirdWord = $this->safe_string($words, 2);
+        $fourthWord = $this->safe_string($words, 3);
+        $type = $this->safe_string($types, $firstWord, null);
+        if (($type === null) && ($thirdWord === 'fee')) {
+            $type = 'fee';
+        }
+        if (($type === 'reserved') && ($fourthWord === 'order')) {
+            $referenceId = $this->safe_string($words, 4);
+        }
+        return array(
+            'type' => $type,
+            'referenceId' => $referenceId,
+        );
+    }
+
+    public function parse_ledger_entry($entry, $currency = null) {
+        // $details = $this->safe_value($entry, 'details', array());
+        $id = $this->safe_string($entry, 'row_index');
+        $account_id = $this->safe_string($entry, 'account_id');
+        $timestamp = $this->safe_value($entry, 'timestamp');
+        $currencyId = $this->safe_string($entry, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $available_delta = $this->safe_float($entry, 'available_delta');
+        $balance_delta = $this->safe_float($entry, 'balance_delta');
+        $after = $this->safe_float($entry, 'balance');
+        $comment = $this->safe_string($entry, 'description');
+        $before = $after;
+        $amount = 0.0;
+        $result = $this->parse_ledger_comment($comment);
+        $type = $result['type'];
+        $referenceId = $result['referenceId'];
+        $direction = null;
+        $status = null;
+        if ($balance_delta !== 0.0) {
+            $before = $after - $balance_delta; // TODO => float precision
+            $status = 'ok';
+            $amount = abs($balance_delta);
+        } else if ($available_delta < 0.0) {
+            $status = 'pending';
+            $amount = abs($available_delta);
+        } else if ($available_delta > 0.0) {
+            $status = 'canceled';
+            $amount = abs($available_delta);
+        }
+        if ($balance_delta > 0 || $available_delta > 0) {
+            $direction = 'in';
+        } else if ($balance_delta < 0 || $available_delta < 0) {
+            $direction = 'out';
+        }
+        return array(
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account_id,
+            'referenceId' => $referenceId,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => $before,
+            'after' => $after,
+            'status' => $status,
+            'fee' => null,
+            'info' => $entry,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

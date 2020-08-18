@@ -11,14 +11,21 @@ module.exports = class rightbtc extends Exchange {
             'name': 'RightBTC',
             'countries': [ 'AE' ],
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
                 'privateAPI': false,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
-                'fetchOrder': 'emulated',
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -30,7 +37,7 @@ module.exports = class rightbtc extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
@@ -349,7 +356,7 @@ module.exports = class rightbtc extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 0),
             parseFloat (ohlcv[2]) / 1e8,
@@ -369,7 +376,7 @@ module.exports = class rightbtc extends Exchange {
         };
         const response = await this.publicGetCandlestickTimeSymbolTradingPair (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
-        return this.parseOHLCVs (result, market);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

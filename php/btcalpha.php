@@ -20,12 +20,19 @@ class btcalpha extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'has' => array(
-                'fetchTicker' => false,
-                'fetchOHLCV' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => false,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -239,7 +246,7 @@ class btcalpha extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1591296000,
@@ -281,7 +288,7 @@ class btcalpha extends Exchange {
         //         array("time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071)
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

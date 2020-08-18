@@ -558,7 +558,7 @@ module.exports = class bw extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         "K",
@@ -610,7 +610,7 @@ module.exports = class bw extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'datas', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

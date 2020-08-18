@@ -45,6 +45,7 @@ class whitebit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFees': True,
                 'privateAPI': False,
                 'publicAPI': True,
             },
@@ -73,7 +74,7 @@ class whitebit(Exchange):
                     'publicV1': 'https://whitebit.com/api/v1/public',
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -565,9 +566,9 @@ class whitebit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591488000,

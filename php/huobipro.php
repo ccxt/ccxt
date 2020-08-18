@@ -25,20 +25,27 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
-                'fetchDepositAddress' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchTradingLimits' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -112,7 +119,7 @@ class huobipro extends Exchange {
                     'get' => array(
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
-                        'account/accounts/array(sub-uid)',
+                        'account/accounts/{sub-uid}',
                         'account/history',
                         'cross-margin/loan-info',
                         'fee/fee-rate/get',
@@ -189,6 +196,7 @@ class huobipro extends Exchange {
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'invalid-parameter' => '\\ccxt\\BadRequest', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
                     'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
+                    'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                 ),
             ),
             'options' => array(
@@ -207,6 +215,11 @@ class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://coinmarketcap.com/currencies/penta/markets/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT' => 'Penta',
             ),
         ));
     }
@@ -684,7 +697,7 @@ class huobipro extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "amount":1.2082,
@@ -731,7 +744,7 @@ class huobipro extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_accounts($params = array ()) {

@@ -35,16 +35,14 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.29.60'
+const version = '1.33.20'
 
 Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
-    '_1btcxe':                 require ('./js/_1btcxe.js'),
     'acx':                     require ('./js/acx.js'),
-    'anxpro':                  require ('./js/anxpro.js'),
     'aofex':                   require ('./js/aofex.js'),
     'bcex':                    require ('./js/bcex.js'),
     'bequant':                 require ('./js/bequant.js'),
@@ -60,11 +58,13 @@ const exchanges = {
     'bitfinex2':               require ('./js/bitfinex2.js'),
     'bitflyer':                require ('./js/bitflyer.js'),
     'bitforex':                require ('./js/bitforex.js'),
+    'bitget':                  require ('./js/bitget.js'),
     'bithumb':                 require ('./js/bithumb.js'),
     'bitkk':                   require ('./js/bitkk.js'),
     'bitmart':                 require ('./js/bitmart.js'),
     'bitmax':                  require ('./js/bitmax.js'),
     'bitmex':                  require ('./js/bitmex.js'),
+    'bitpanda':                require ('./js/bitpanda.js'),
     'bitso':                   require ('./js/bitso.js'),
     'bitstamp':                require ('./js/bitstamp.js'),
     'bitstamp1':               require ('./js/bitstamp1.js'),
@@ -77,7 +77,6 @@ const exchanges = {
     'btcalpha':                require ('./js/btcalpha.js'),
     'btcbox':                  require ('./js/btcbox.js'),
     'btcmarkets':              require ('./js/btcmarkets.js'),
-    'btctradeim':              require ('./js/btctradeim.js'),
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
     'buda':                    require ('./js/buda.js'),
@@ -99,7 +98,6 @@ const exchanges = {
     'coinmate':                require ('./js/coinmate.js'),
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
-    'coolcoin':                require ('./js/coolcoin.js'),
     'coss':                    require ('./js/coss.js'),
     'crex24':                  require ('./js/crex24.js'),
     'currencycom':             require ('./js/currencycom.js'),
@@ -114,12 +112,12 @@ const exchanges = {
     'flowbtc':                 require ('./js/flowbtc.js'),
     'foxbit':                  require ('./js/foxbit.js'),
     'ftx':                     require ('./js/ftx.js'),
-    'fybse':                   require ('./js/fybse.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
     'hbtc':                    require ('./js/hbtc.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hollaex':                 require ('./js/hollaex.js'),
+    'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'huobiru':                 require ('./js/huobiru.js'),
     'ice3x':                   require ('./js/ice3x.js'),
@@ -127,7 +125,6 @@ const exchanges = {
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),
     'itbit':                   require ('./js/itbit.js'),
-    'kkex':                    require ('./js/kkex.js'),
     'kraken':                  require ('./js/kraken.js'),
     'kucoin':                  require ('./js/kucoin.js'),
     'kuna':                    require ('./js/kuna.js'),
@@ -144,6 +141,7 @@ const exchanges = {
     'okcoin':                  require ('./js/okcoin.js'),
     'okex':                    require ('./js/okex.js'),
     'paymium':                 require ('./js/paymium.js'),
+    'phemex':                  require ('./js/phemex.js'),
     'poloniex':                require ('./js/poloniex.js'),
     'probit':                  require ('./js/probit.js'),
     'qtrade':                  require ('./js/qtrade.js'),
@@ -152,17 +150,17 @@ const exchanges = {
     'stex':                    require ('./js/stex.js'),
     'stronghold':              require ('./js/stronghold.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
-    'theocean':                require ('./js/theocean.js'),
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),
-    'topq':                    require ('./js/topq.js'),
     'upbit':                   require ('./js/upbit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),
+    'wavesexchange':           require ('./js/wavesexchange.js'),
     'whitebit':                require ('./js/whitebit.js'),
     'xbtce':                   require ('./js/xbtce.js'),
+    'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),    

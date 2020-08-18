@@ -15,11 +15,19 @@ module.exports = class bitbay extends Exchange {
             'countries': [ 'MT', 'EU' ], // Malta
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'withdraw': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOpenOrders': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -829,7 +837,7 @@ module.exports = class bitbay extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         '1582399800000',
@@ -888,7 +896,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const items = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (items, market);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

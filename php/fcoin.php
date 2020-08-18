@@ -24,18 +24,25 @@ class fcoin extends Exchange {
             'accountsById' => null,
             'hostname' => 'fcoin.com',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchTradingLimits' => false,
                 'withdraw' => false,
-                'fetchCurrencies' => false,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -328,7 +335,7 @@ class fcoin extends Exchange {
         $result = array();
         $length = is_array($orders) ? count($orders) : 0;
         $halfLength = intval ($length / 2);
-        // .= 2 in the for loop below won't transpile
+        // += 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
             $priceField = $this->sum($index, $priceKey);
@@ -445,6 +452,17 @@ class fcoin extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetServerTime ($params);
+        //
+        //     {
+        //         "status" => 0,
+        //         "data" => 1523430502977
+        //     }
+        //
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {
@@ -640,7 +658,7 @@ class fcoin extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
@@ -669,7 +687,7 @@ class fcoin extends Exchange {
         }
         $response = $this->marketGetCandlesTimeframeSymbol (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function nonce() {

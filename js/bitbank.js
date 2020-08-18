@@ -15,10 +15,17 @@ module.exports = class bitbank extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -79,6 +86,8 @@ module.exports = class bitbank extends Exchange {
                 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
                 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
                 'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
+                'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
+                'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
             },
             'fees': {
                 'trading': {
@@ -229,7 +238,7 @@ module.exports = class bitbank extends Exchange {
         return this.parseTrades (response['data']['transactions'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         "0.02501786",
@@ -284,7 +293,7 @@ module.exports = class bitbank extends Exchange {
         const candlestick = this.safeValue (data, 'candlestick', []);
         const first = this.safeValue (candlestick, 0, {});
         const ohlcv = this.safeValue (first, 'ohlcv', []);
-        return this.parseOHLCVs (ohlcv, market);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

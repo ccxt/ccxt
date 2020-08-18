@@ -35,7 +35,7 @@ class bitmax extends Exchange {
                 'cancelAllOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchTransactions' => true,
-                'fetchDeposts' => true,
+                'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -89,9 +89,26 @@ class bitmax extends Exchange {
                         'futures/funding-rates',
                     ),
                 ),
+                'accountCategory' => array(
+                    'get' => array(
+                        'balance',
+                        'order/open',
+                        'order/status',
+                        'order/hist/current',
+                        'risk',
+                    ),
+                    'post' => array(
+                        'order',
+                        'order/batch',
+                    ),
+                    'delete' => array(
+                        'order',
+                        'order/all',
+                        'order/batch',
+                    ),
+                ),
                 'accountGroup' => array(
                     'get' => array(
-                        'array(account-category)/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -100,21 +117,11 @@ class bitmax extends Exchange {
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        'array(account-category)/order/open',
-                        'array(account-category)/order/status',
-                        'array(account-category)/order/hist/current',
                         'order/hist',
                     ),
                     'post' => array(
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        'array(account-category)/order',
-                        'array(account-category)/order/batch',
-                    ),
-                    'delete' => array(
-                        'array(account-category)/order',
-                        'array(account-category)/order/all',
-                        'array(account-category)/order/batch',
                     ),
                 ),
                 'private' => array(
@@ -533,11 +540,11 @@ class bitmax extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $method = 'accountGroupGetCashBalance';
-        if ($accountCategory === 'margin') {
-            $method = 'accountGroupGetMarginBalance';
-        } else if ($accountCategory === 'futures') {
+        $method = 'accountCategoryGetBalance';
+        if ($accountCategory === 'futures') {
             $method = 'accountGroupGetFuturesCollateralBalance';
+        } else {
+            $request['account-category'] = $accountCategory;
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -650,7 +657,7 @@ class bitmax extends Exchange {
         //
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $marketId;
+        $symbol = null;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         } else if ($marketId !== null) {
@@ -768,7 +775,7 @@ class bitmax extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "m":"bar",
@@ -840,7 +847,7 @@ class bitmax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -998,7 +1005,7 @@ class bitmax extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'timestamp');
+        $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
@@ -1101,7 +1108,7 @@ class bitmax extends Exchange {
                 $params = $this->omit($params, 'stopPrice');
             }
         }
-        $response = $this->accountGroupPostAccountCategoryOrder (array_merge($request, $params));
+        $response = $this->accountCategoryPostOrder (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1140,7 +1147,7 @@ class bitmax extends Exchange {
             'account-category' => $accountCategory,
             'orderId' => $id,
         );
-        $response = $this->accountGroupGetAccountCategoryOrderStatus (array_merge($request, $params));
+        $response = $this->accountCategoryGetOrderStatus (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1190,36 +1197,45 @@ class bitmax extends Exchange {
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
         );
-        $response = $this->accountGroupGetAccountCategoryOrderOpen (array_merge($request, $params));
+        $response = $this->accountCategoryGetOrderOpen (array_merge($request, $params));
         //
         //     {
         //         "ac" => "CASH",
         //         "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //         "code" => 0,
         //         "$data" => array(
-        //             {
-        //                 "avgPx" => "0",         // Average filled price of the order
-        //                 "cumFee" => "0",       // cumulative fee paid for this order
+        //             array(
+        //                 "avgPx" => "0",         // Average filled price of the $order
+        //                 "cumFee" => "0",       // cumulative fee paid for this $order
         //                 "cumFilledQty" => "0", // cumulative filled quantity
         //                 "errorCode" => "",     // error code; could be empty
         //                 "feeAsset" => "USDT",  // fee asset
-        //                 "lastExecTime" => 1576019723550, //  The last execution time of the order
+        //                 "lastExecTime" => 1576019723550, //  The last execution time of the $order
         //                 "orderId" => "s16ef21882ea0866943712034f36d83", // server provided orderId
-        //                 "orderQty" => "0.0083",  // order quantity
-        //                 "orderType" => "Limit",  // order type
-        //                 "price" => "7105",       // order price
+        //                 "orderQty" => "0.0083",  // $order quantity
+        //                 "orderType" => "Limit",  // $order type
+        //                 "price" => "7105",       // $order price
         //                 "seqNum" => 8193258,     // sequence number
-        //                 "side" => "Buy",         // order side
-        //                 "status" => "New",       // order status on matching engine
-        //                 "stopPrice" => "",       // only available for stop $market and stop $limit orders; otherwise empty
+        //                 "side" => "Buy",         // $order side
+        //                 "status" => "New",       // $order status on matching engine
+        //                 "stopPrice" => "",       // only available for stop $market and stop $limit $orders; otherwise empty
         //                 "$symbol" => "BTC/USDT",
         //                 "execInst" => "NULL_VAL" // execution instruction
-        //             },
+        //             ),
         //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        if ($accountCategory === 'futures') {
+            return $this->parse_orders($data, $market, $since, $limit);
+        }
+        // a workaround for https://github.com/ccxt/ccxt/issues/7187
+        $orders = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $order = $this->parse_order($data[$i], $market);
+            $orders[] = $order;
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1268,7 +1284,7 @@ class bitmax extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
-        // accountGroupGetAccountCategoryOrderHistCurrent
+        // accountCategoryGetOrderHistCurrent
         //
         //     {
         //         "code":0,
@@ -1367,7 +1383,7 @@ class bitmax extends Exchange {
             $request['id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'id' ));
         }
-        $response = $this->accountGroupDeleteAccountCategoryOrder (array_merge($request, $params));
+        $response = $this->accountCategoryDeleteOrder (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1411,7 +1427,7 @@ class bitmax extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->accountGroupDeleteAccountCategoryOrderAll (array_merge($request, $params));
+        $response = $this->accountCategoryDeleteOrderAll (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1658,12 +1674,18 @@ class bitmax extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '';
         $query = $params;
-        if ($api === 'accountGroup') {
-            $url .= $this->implode_params('/array(account-group)', $params);
+        $accountCategory = ($api === 'accountCategory');
+        if ($accountCategory || ($api === 'accountGroup')) {
+            $url .= $this->implode_params('/{account-group}', $params);
             $query = $this->omit($params, 'account-group');
         }
         $request = $this->implode_params($path, $query);
-        $url .= '/api/pro/' . $this->version . '/' . $request;
+        $url .= '/api/pro/' . $this->version;
+        if ($accountCategory) {
+            $url .= $this->implode_params('/{account-category}', $query);
+            $query = $this->omit($query, 'account-category');
+        }
+        $url .= '/' . $request;
         $query = $this->omit($query, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

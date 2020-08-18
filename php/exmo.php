@@ -22,23 +22,30 @@ class exmo extends Exchange {
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1.1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingFees' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => 'emulated',
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOrderTrades' => true,
-                'fetchOrderBooks' => true,
-                'fetchMyTrades' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
-                'withdraw' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchFundingFees' => true,
-                'fetchCurrencies' => true,
                 'fetchTransactions' => true,
-                'fetchOHLCV' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -366,7 +373,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Payeer', 'dep' => '3.95%', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '2.49%' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 0.5 USD', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 0.5 USD', 'wd' => '-' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.45%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Bank', 'dep' => '0 USD', 'wd' => '-' ),
                                 ),
@@ -375,7 +382,7 @@ class exmo extends Exchange {
                                 'group' => 'eur',
                                 'title' => 'EUR',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% . 0.5  EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% + 0.5  EUR', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '2.95%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Internal Transfer', 'dep' => '0 EUR', 'wd' => '-' ),
@@ -401,7 +408,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Qiwi', 'dep' => '1.49%', 'wd' => '2.49%' ),
                                     array( 'prov' => 'Yandex Money', 'dep' => '1.49%', 'wd' => '1.95 %' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0.99%', 'wd' => '0.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% . 60 RUB' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% + 60 RUB' ),
                                 ),
                             ),
                             array(
@@ -417,7 +424,7 @@ class exmo extends Exchange {
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.05%', 'wd' => '-' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 2 TRY', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 2 TRY', 'wd' => '-' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
                             ),
@@ -428,14 +435,14 @@ class exmo extends Exchange {
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Terminal', 'dep' => '2.6%', 'wd' => '-' ),
                                     array( 'prov' => 'Visa/MasterCard EasyTransfer', 'dep' => '-', 'wd' => '2.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% . 5 UAH', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% + 5 UAH', 'wd' => '-' ),
                                 ),
                             ),
                             array(
                                 'group' => 'kzt',
                                 'title' => 'KZT',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% . 450 KZT' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% + 450 KZT' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
@@ -729,10 +736,10 @@ class exmo extends Exchange {
         //     }
         //
         $candles = $this->safe_value($response, 'candles', array());
-        return $this->parse_ohlcvs($candles, $market);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "t":1584057600000,
@@ -1335,15 +1342,15 @@ class exmo extends Exchange {
             }
             $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
         }
+        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
         $remaining = null;
         if ($amount !== null) {
             $remaining = $amount - $filled;
-        }
-        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled >= $amount) {
-            $status = 'closed';
-        } else {
-            $status = 'open';
+            if ($filled >= $amount) {
+                $status = 'closed';
+            } else {
+                $status = 'open';
+            }
         }
         if ($market === null) {
             $market = $this->get_market_from_trades($trades);

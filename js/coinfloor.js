@@ -15,11 +15,18 @@ module.exports = class coinfloor extends Exchange {
             'rateLimit': 1000,
             'countries': [ 'UK' ],
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
                 'api': 'https://webapi.coinfloor.co.uk/bist',
                 'www': 'https://www.coinfloor.co.uk',
                 'doc': [

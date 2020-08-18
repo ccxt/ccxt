@@ -17,19 +17,20 @@ class bitforex extends Exchange {
             'countries' => array( 'CN' ),
             'version' => 'v1',
             'has' => array(
-                'fetchBalance' => true,
-                'fetchMarkets' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => false,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
-                'fetchMyTrades' => false,
                 'fetchTrades' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchOHLCV' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -45,7 +46,7 @@ class bitforex extends Exchange {
                 '1M' => '1month',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
                 'api' => 'https://api.bitforex.com',
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/githubdev2020/API_Doc_en/wiki',
@@ -382,7 +383,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "close":0.02505143,
@@ -427,7 +428,7 @@ class bitforex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

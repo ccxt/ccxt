@@ -296,7 +296,7 @@ class qtrade(Exchange):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":"2019-12-07T22:55:00Z",
@@ -338,7 +338,7 @@ class qtrade(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         ohlcvs = self.safe_value(data, 'slices', [])
-        return self.parse_ohlcvs(ohlcvs, market)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

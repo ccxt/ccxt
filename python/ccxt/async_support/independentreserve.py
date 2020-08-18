@@ -15,10 +15,19 @@ class independentreserve(Exchange):
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
                 'api': {
                     'public': 'https://api.independentreserve.com/Public',
                     'private': 'https://api.independentreserve.com/Private',

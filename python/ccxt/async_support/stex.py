@@ -26,25 +26,30 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,  # limit orders only
-                'fetchCurrencies': True,
-                'fetchMarkets': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOHLCV': True,
+                'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchDeposits': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
-                'fetchFundingFees': True,
             },
             'version': 'v3',
             'urls': {
@@ -414,6 +419,25 @@ class stex(Exchange):
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
 
+    async def fetch_time(self, params={}):
+        response = await self.publicGetPing(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "server_datetime": {
+        #                 "date": "2019-01-22 15:13:34.233796",
+        #                 "timezone_type": 3,
+        #                 "timezone": "UTC"
+        #             },
+        #             "server_timestamp": 1548170014
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        serverDatetime = self.safe_value(data, 'server_datetime', {})
+        return self.parse8601(self.safe_string(serverDatetime, 'date'))
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -588,7 +612,7 @@ class stex(Exchange):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time": 1566086400000,
@@ -648,7 +672,7 @@ class stex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #

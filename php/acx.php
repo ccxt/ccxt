@@ -18,11 +18,19 @@ class acx extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
-                'withdraw' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -266,6 +274,14 @@ class acx extends Exchange {
         );
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetTimestamp ($params);
+        //
+        //     1594911427
+        //
+        return $response * 1000;
+    }
+
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -276,7 +292,7 @@ class acx extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->safe_float($ohlcv, 1),
@@ -302,7 +318,7 @@ class acx extends Exchange {
             $request['timestamp'] = intval ($since / 1000);
         }
         $response = $this->publicGetK (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status($status) {

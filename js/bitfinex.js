@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,22 +20,30 @@ module.exports = class bitfinex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
+                'CORS': false,
                 'createDepositAddress': true,
+                'createOrder': true,
                 'deposit': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchDeposits': false,
                 'fetchFundingFees': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'withdraw': true,
             },
@@ -289,6 +297,10 @@ module.exports = class bitfinex extends Exchange {
                 'DAT': 'DATA',
                 'DSH': 'DASH',
                 'DRK': 'DRK',
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO': 'PNT',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -331,6 +343,7 @@ module.exports = class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'Invalid X-BFX-SIGNATURE': AuthenticationError,
                     'This API key does not have permission': PermissionDenied, // authenticated but not authorized
                     'not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'minimum size for ': InvalidOrder, // when amount below limits.amount.min
@@ -501,7 +514,7 @@ module.exports = class bitfinex extends Exchange {
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'price_precision'),
-                'amount': undefined,
+                'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
             };
             const limits = {
                 'amount': {
@@ -534,7 +547,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.numberToString (amount);
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -903,7 +916,7 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1457539800000,
@@ -948,7 +961,7 @@ module.exports = class bitfinex extends Exchange {
         //         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     getCurrencyName (code) {
@@ -1182,6 +1195,7 @@ module.exports = class bitfinex extends Exchange {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': this.decode (payload),
                 'X-BFX-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

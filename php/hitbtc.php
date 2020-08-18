@@ -22,24 +22,32 @@ class hitbtc extends Exchange {
             'version' => '2',
             'pro' => true,
             'has' => array(
-                'createDepositAddress' => true,
-                'fetchDepositAddress' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createDepositAddress' => true,
+                'createOrder' => true,
                 'editOrder' => true,
-                'fetchCurrencies' => true,
-                'fetchOHLCV' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
-                'fetchOrderTrades' => false, // not implemented yet
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
-                'fetchWithdrawals' => false,
-                'fetchTransactions' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -158,6 +166,7 @@ class hitbtc extends Exchange {
                 'UNC' => 'Unigame',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
+                'PNT' => 'Penta',
             ),
             'exceptions' => array(
                 '504' => '\\ccxt\\RequestTimeout', // array("error":array("code":504,"message":"Gateway Timeout"))
@@ -360,7 +369,7 @@ class hitbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -403,7 +412,7 @@ class hitbtc extends Exchange {
         //         array("timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

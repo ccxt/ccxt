@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 
 
@@ -34,20 +35,27 @@ class huobipro(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
-                'fetchDepositAddress': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchTradingLimits': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -198,6 +206,7 @@ class huobipro(Exchange):
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'invalid-parameter': BadRequest,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
                     'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
+                    'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                 },
             },
             'options': {
@@ -216,6 +225,11 @@ class huobipro(Exchange):
                 # https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
+                # https://github.com/ccxt/ccxt/issues/7399
+                # https://coinmarketcap.com/currencies/pnetwork/
+                # https://coinmarketcap.com/currencies/penta/markets/
+                # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT': 'Penta',
             },
         })
 
@@ -649,7 +663,7 @@ class huobipro(Exchange):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "amount":1.2082,
@@ -694,7 +708,7 @@ class huobipro(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_accounts(self, params={}):
         await self.load_markets()

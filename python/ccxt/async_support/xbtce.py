@@ -20,10 +20,17 @@ class xbtce(Exchange):
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': False,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -246,7 +253,7 @@ class xbtce(Exchange):
         # no method for trades?
         return await self.privateGetTrade(params)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 'Timestamp'),
             self.safe_float(ohlcv, 'Open'),
@@ -271,7 +278,7 @@ class xbtce(Exchange):
         #         'timestamp': since,
         #         'count': limit,
         #     }, params))
-        #     return self.parse_ohlcvs(response['Bars'], market)
+        #     return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

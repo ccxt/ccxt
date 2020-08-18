@@ -16,19 +16,26 @@ module.exports = class dsx extends Exchange {
             'rateLimit': 1500,
             'version': 'v3',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
-                'fetchOrderBooks': true,
                 'createDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
-                'fetchTransactions': true,
-                'fetchTickers': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -117,6 +124,7 @@ module.exports = class dsx extends Exchange {
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce, // {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder, // {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
@@ -566,7 +574,7 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "high" : 0.01955,
@@ -638,7 +646,7 @@ module.exports = class dsx extends Exchange {
         //     }
         //
         const candles = this.safeValue (response, market['id'], []);
-        return this.parseOHLCVs (candles, market);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

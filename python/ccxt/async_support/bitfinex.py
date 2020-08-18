@@ -18,6 +18,8 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
@@ -34,22 +36,30 @@ class bitfinex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
+                'createOrder': True,
                 'deposit': True,
+                'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchTradingFee': True,
-                'fetchTradingFees': True,
+                'fetchDeposits': False,
                 'fetchFundingFees': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'withdraw': True,
             },
@@ -303,6 +313,10 @@ class bitfinex(Exchange):
                 'DAT': 'DATA',
                 'DSH': 'DASH',
                 'DRK': 'DRK',
+                # https://github.com/ccxt/ccxt/issues/7399
+                # https://coinmarketcap.com/currencies/pnetwork/
+                # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO': 'PNT',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -345,6 +359,7 @@ class bitfinex(Exchange):
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'Invalid X-BFX-SIGNATURE': AuthenticationError,
                     'This API key does not have permission': PermissionDenied,  # authenticated but not authorized
                     'not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'minimum size for ': InvalidOrder,  # when amount below limits.amount.min
@@ -509,7 +524,7 @@ class bitfinex(Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': None,
+                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
             limits = {
                 'amount': {
@@ -540,7 +555,7 @@ class bitfinex(Exchange):
         return result
 
     def amount_to_precision(self, symbol, amount):
-        return self.number_to_string(amount)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -853,7 +868,7 @@ class bitfinex(Exchange):
         response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1457539800000,
@@ -895,7 +910,7 @@ class bitfinex(Exchange):
         #         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, code):
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
@@ -1106,6 +1121,7 @@ class bitfinex(Exchange):
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': self.decode(payload),
                 'X-BFX-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

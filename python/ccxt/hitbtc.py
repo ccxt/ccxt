@@ -31,24 +31,32 @@ class hitbtc(Exchange):
             'version': '2',
             'pro': True,
             'has': {
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'editOrder': True,
-                'fetchCurrencies': True,
-                'fetchOHLCV': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
-                'fetchOrderTrades': False,  # not implemented yet
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': False,
-                'fetchWithdrawals': False,
-                'fetchTransactions': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -167,6 +175,7 @@ class hitbtc(Exchange):
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
+                'PNT': 'Penta',
             },
             'exceptions': {
                 '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -357,7 +366,7 @@ class hitbtc(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -397,7 +406,7 @@ class hitbtc(Exchange):
         #         {"timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"},
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

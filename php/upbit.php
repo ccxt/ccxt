@@ -23,22 +23,29 @@ class upbit extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
-                'fetchDepositAddress' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrderBooks' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
                 'fetchOrders' => false,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'minutes',
@@ -717,7 +724,7 @@ class upbit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => 'limit',
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
@@ -763,7 +770,7 @@ class upbit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         $market => "BTC-ETH",
@@ -843,7 +850,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1180,7 +1187,10 @@ class upbit extends Exchange {
             $feeCurrency = $quote;
         }
         $trades = $this->safe_value($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $market, null, null, array( 'order' => $id ));
+        $trades = $this->parse_trades($trades, $market, null, null, array(
+            'order' => $id,
+            'type' => $type,
+        ));
         $numTrades = is_array($trades) ? count($trades) : 0;
         if ($numTrades > 0) {
             // the $timestamp in fetchOrder $trades is missing

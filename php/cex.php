@@ -21,15 +21,23 @@ class cex extends Exchange {
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -109,10 +117,10 @@ class cex extends Exchange {
                         'XRP' => 0.02,
                     ),
                     'deposit' => array(
-                        // 'USD' => amount => amount * 0.035 . 0.25,
-                        // 'EUR' => amount => amount * 0.035 . 0.24,
-                        // 'RUB' => amount => amount * 0.05 . 15.57,
-                        // 'GBP' => amount => amount * 0.035 . 0.2,
+                        // 'USD' => amount => amount * 0.035 + 0.25,
+                        // 'EUR' => amount => amount * 0.035 + 0.24,
+                        // 'RUB' => amount => amount * 0.05 + 15.57,
+                        // 'GBP' => amount => amount * 0.035 + 0.2,
                         'BTC' => 0.0,
                         'ETH' => 0.0,
                         'BCH' => 0.0,
@@ -134,6 +142,7 @@ class cex extends Exchange {
                     'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
                     'Invalid API key' => '\\ccxt\\AuthenticationError',
                     'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
+                    'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
                 ),
             ),
             'options' => array(
@@ -399,7 +408,7 @@ class cex extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591403940,

@@ -23,22 +23,30 @@ class bitfinex extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
+                'CORS' => false,
                 'createDepositAddress' => true,
+                'createOrder' => true,
                 'deposit' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchTradingFee' => true,
-                'fetchTradingFees' => true,
+                'fetchDeposits' => false,
                 'fetchFundingFees' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
-                'fetchDeposits' => false,
                 'fetchWithdrawals' => false,
                 'withdraw' => true,
             ),
@@ -292,6 +300,10 @@ class bitfinex extends Exchange {
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
                 'DRK' => 'DRK',
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO' => 'PNT',
                 'GSD' => 'GUSD',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
@@ -334,6 +346,7 @@ class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array(
+                    'Invalid X-BFX-SIGNATURE' => '\\ccxt\\AuthenticationError',
                     'This API key does not have permission' => '\\ccxt\\PermissionDenied', // authenticated but not authorized
                     'not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
@@ -504,7 +517,7 @@ class bitfinex extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
-                'amount' => null,
+                'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
             );
             $limits = array(
                 'amount' => array(
@@ -537,7 +550,7 @@ class bitfinex extends Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return $this->number_to_string($amount);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -906,7 +919,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1457539800000,
@@ -951,7 +964,7 @@ class bitfinex extends Exchange {
         //         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function get_currency_name($code) {
@@ -1185,6 +1198,7 @@ class bitfinex extends Exchange {
                 'X-BFX-APIKEY' => $this->apiKey,
                 'X-BFX-PAYLOAD' => $this->decode($payload),
                 'X-BFX-SIGNATURE' => $signature,
+                'Content-Type' => 'application/json',
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

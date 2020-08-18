@@ -463,7 +463,7 @@ class hollaex(Exchange):
         #         ]
         #     }
         #
-        trades = await self.safe_value(response, market['id'], [])
+        trades = self.safe_value(response, market['id'], [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -574,7 +574,7 @@ class hollaex(Exchange):
         #         },
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_ohlcv(self, response, market=None, timeframe='1h', since=None, limit=None):
         #

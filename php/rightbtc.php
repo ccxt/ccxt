@@ -18,14 +18,21 @@ class rightbtc extends Exchange {
             'name' => 'RightBTC',
             'countries' => array( 'AE' ),
             'has' => array(
+                'cancelOrder' => true,
+                'createOrder' => true,
                 'privateAPI' => false,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => false,
-                'fetchOrder' => 'emulated',
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => 'emulated',
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => 'min1',
@@ -37,7 +44,7 @@ class rightbtc extends Exchange {
                 '1w' => 'week',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg',
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
                 'doc' => array(
@@ -356,7 +363,7 @@ class rightbtc extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->safe_integer($ohlcv, 0),
             floatval ($ohlcv[2]) / 1e8,
@@ -376,7 +383,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

@@ -18,11 +18,19 @@ class acx(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
-                'withdraw': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -250,6 +258,13 @@ class acx(Exchange):
             'fee': None,
         }
 
+    def fetch_time(self, params={}):
+        response = self.publicGetTimestamp(params)
+        #
+        #     1594911427
+        #
+        return response * 1000
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -259,7 +274,7 @@ class acx(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_float(ohlcv, 1),
@@ -282,7 +297,7 @@ class acx(Exchange):
         if since is not None:
             request['timestamp'] = int(since / 1000)
         response = self.publicGetK(self.extend(request, params))
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

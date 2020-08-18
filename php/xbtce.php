@@ -20,10 +20,17 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => false,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'referral' => 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -265,7 +272,7 @@ class xbtce extends Exchange {
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 'Timestamp'),
             $this->safe_float($ohlcv, 'Open'),
@@ -291,7 +298,7 @@ class xbtce extends Exchange {
         //         'timestamp' => $since,
         //         'count' => $limit,
         //     ), $params));
-        //     return $this->parse_ohlcvs($response['Bars'], $market);
+        //     return $this->parse_ohlcvs($response['Bars'], $market, $timeframe, $since, $limit);
         throw new NotSupported($this->id . ' fetchOHLCV is disabled by the exchange');
     }
 

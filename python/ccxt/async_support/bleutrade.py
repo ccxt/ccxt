@@ -23,23 +23,29 @@ class bleutrade(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'cancelOrder': False,  # todo
-                'createLimitOrder': False,  # todo
-                'createMarketOrder': False,  # todo
-                'createOrder': False,  # todo
-                'editOrder': False,  # todo
-                'withdraw': False,  # todo
-                'fetchTrades': False,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOrders': False,
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchWithdrawals': True,
-                'fetchOrderTrades': False,
-                'fetchLedger': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
+                'fetchWithdrawals': True,
+                'withdraw': False,
             },
             'timeframes': {
                 '1h': '1h',
@@ -55,7 +61,7 @@ class bleutrade(Exchange):
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -323,7 +329,7 @@ class bleutrade(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
             self.safe_float(ohlcv, 'Open'),
@@ -342,7 +348,8 @@ class bleutrade(Exchange):
             'count': limit,
         }
         response = await self.v3PublicGetGetcandles(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

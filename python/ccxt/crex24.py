@@ -32,21 +32,28 @@ class crex24(Exchange):
             # new metainfo interface
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
@@ -565,7 +572,7 @@ class crex24(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         timestamp: '2019-09-21T10:36:00Z',
@@ -607,7 +614,7 @@ class crex24(Exchange):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

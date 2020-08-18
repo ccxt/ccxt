@@ -23,20 +23,26 @@ class bitmex extends Exchange {
             'rateLimit' => 2000,
             'pro' => true,
             'has' => array(
-                'CORS' => false,
-                'fetchOHLCV' => true,
-                'withdraw' => true,
-                'editOrder' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchLedger' => true,
-                'fetchTransactions' => 'emulated',
-                'createOrder' => true,
-                'cancelOrder' => true,
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
+                'CORS' => false,
+                'createOrder' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => 'emulated',
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -106,6 +112,7 @@ class bitmex extends Exchange {
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -260,27 +267,131 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'currency' => 'all',
-        );
-        $response = $this->privateGetUserMargin (array_merge($request, $params));
+    public function parse_balance_response($response) {
+        //
+        //     array(
+        //         {
+        //             "$account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     )
+        //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableMargin');
-            $account['total'] = $this->safe_float($balance, 'marginBalance');
+            $free = $this->safe_float($balance, 'availableMargin');
+            $total = $this->safe_float($balance, 'marginBalance');
             if ($code === 'BTC') {
-                $account['free'] = $account['free'] * 0.00000001;
-                $account['total'] = $account['total'] * 0.00000001;
+                if ($free !== null) {
+                    $free /= 100000000;
+                }
+                if ($total !== null) {
+                    $total /= 100000000;
+                }
             }
+            $account['free'] = $free;
+            $account['total'] = $total;
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'currency' => 'all',
+        );
+        $response = $this->privateGetUserMargin (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "account":1455728,
+        //             "currency":"XBt",
+        //             "riskLimit":1000000000000,
+        //             "prevState":"",
+        //             "state":"",
+        //             "action":"",
+        //             "amount":263542,
+        //             "pendingCredit":0,
+        //             "pendingDebit":0,
+        //             "confirmedDebit":0,
+        //             "prevRealisedPnl":0,
+        //             "prevUnrealisedPnl":0,
+        //             "grossComm":0,
+        //             "grossOpenCost":0,
+        //             "grossOpenPremium":0,
+        //             "grossExecCost":0,
+        //             "grossMarkValue":0,
+        //             "riskValue":0,
+        //             "taxableMargin":0,
+        //             "initMargin":0,
+        //             "maintMargin":0,
+        //             "sessionMargin":0,
+        //             "targetExcessMargin":0,
+        //             "varMargin":0,
+        //             "realisedPnl":0,
+        //             "unrealisedPnl":0,
+        //             "indicativeTax":0,
+        //             "unrealisedProfit":0,
+        //             "syntheticMargin":null,
+        //             "walletBalance":263542,
+        //             "marginBalance":263542,
+        //             "marginBalancePcnt":1,
+        //             "marginLeverage":0,
+        //             "marginUsedPcnt":0,
+        //             "excessMargin":263542,
+        //             "excessMarginPcnt":1,
+        //             "availableMargin":263542,
+        //             "withdrawableMargin":263542,
+        //             "timestamp":"2020-08-03T12:01:01.246Z",
+        //             "grossLastValue":0,
+        //             "commission":null
+        //         }
+        //     )
+        //
+        return $this->parse_balance_response($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -512,7 +623,7 @@ class bitmex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $amount = $this->safe_float($item, 'amount');
         if ($amount !== null) {
-            $amount = $amount * 1e-8;
+            $amount = $amount / 100000000;
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
         if ($timestamp === null) {
@@ -523,7 +634,7 @@ class bitmex extends Exchange {
         }
         $feeCost = $this->safe_float($item, 'fee', 0);
         if ($feeCost !== null) {
-            $feeCost = $feeCost * 1e-8;
+            $feeCost = $feeCost / 100000000;
         }
         $fee = array(
             'cost' => $feeCost,
@@ -531,7 +642,7 @@ class bitmex extends Exchange {
         );
         $after = $this->safe_float($item, 'walletBalance');
         if ($after !== null) {
-            $after = $after * 1e-8;
+            $after = $after / 100000000;
         }
         $before = $this->sum($after, -$amount);
         $direction = null;
@@ -669,11 +780,11 @@ class bitmex extends Exchange {
         }
         $amount = $this->safe_integer($transaction, 'amount');
         if ($amount !== null) {
-            $amount = abs($amount) * 1e-8;
+            $amount = abs($amount) / 10000000;
         }
         $feeCost = $this->safe_integer($transaction, 'fee');
         if ($feeCost !== null) {
-            $feeCost = $feeCost * 1e-8;
+            $feeCost = $feeCost / 10000000;
         }
         $fee = array(
             'cost' => $feeCost,
@@ -882,7 +993,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -942,6 +1053,8 @@ class bitmex extends Exchange {
             }
             $ymdhms = $this->ymdhms($timestamp);
             $request['startTime'] = $ymdhms; // starting date $filter for results
+        } else {
+            $request['reverse'] = true;
         }
         $response = $this->publicGetTradeBucketed (array_merge($request, $params));
         //
@@ -951,7 +1064,7 @@ class bitmex extends Exchange {
         //         array("$timestamp":"2015-09-25T13:40:00.000Z","$symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0)
         //     )
         //
-        $result = $this->parse_ohlcvs($response, $market);
+        $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
         if ($fetchOHLCVOpenTimestamp) {
             // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open $timestamp by shifting all the timestamps one place
@@ -1172,6 +1285,9 @@ class bitmex extends Exchange {
         );
         if ($since !== null) {
             $request['startTime'] = $this->iso8601($since);
+        } else {
+            // by default reverse=false, i.e. trades are fetched $since the time of $market inception (year 2015 for XBTUSD)
+            $request['reverse'] = true;
         }
         if ($limit !== null) {
             $request['count'] = $limit;
@@ -1242,6 +1358,8 @@ class bitmex extends Exchange {
                 $request['clOrdID'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'origClOrdID', 'clOrdID', 'clientOrderId' ));
+        } else {
+            $request['orderID'] = $id;
         }
         if ($amount !== null) {
             $request['orderQty'] = $amount;

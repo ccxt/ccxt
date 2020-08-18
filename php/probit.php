@@ -143,6 +143,10 @@ class probit extends Exchange {
                     'market' => 'ioc',
                 ),
             ),
+            'commonCurrencies' => array(
+                'BTCBEAR' => 'BEAR',
+                'BTCBULL' => 'BULL',
+            ),
         ));
     }
 
@@ -792,10 +796,10 @@ class probit extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "market_id":"ETH-BTC",

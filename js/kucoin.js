@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchLedger': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
@@ -200,6 +200,7 @@ module.exports = class kucoin extends Exchange {
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
+                    'require more permission': PermissionDenied,
                 },
             },
             'fees': {
@@ -606,7 +607,7 @@ module.exports = class kucoin extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         "1545904980",             // Start time of the candle cycle
@@ -665,7 +666,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -818,21 +819,26 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
+        const id = this.safeString (data, 'orderId');
         const order = {
-            'id': this.safeString (data, 'orderId'),
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'amount': undefined,
             'cost': undefined,
+            'average': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'status': undefined,
             'fee': undefined,
-            'status': 'open',
-            'clientOrderId': clientOrderId,
-            'info': data,
+            'trades': undefined,
         };
         if (!this.safeValue (params, 'quoteAmount')) {
             order['amount'] = amount;
@@ -921,6 +927,12 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // a special case for undefined ids
+        // otherwise a wrong endpoint for all orders will be triggered
+        // https://github.com/ccxt/ccxt/issues/7234
+        if (id === undefined) {
+            throw new InvalidOrder (this.id + ' fetchOrder requires an order id');
+        }
         const request = {
             'orderId': id,
         };
@@ -929,7 +941,7 @@ module.exports = class kucoin extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        const responseData = response['data'];
+        const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
 
@@ -1002,8 +1014,10 @@ module.exports = class kucoin extends Exchange {
         const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
-        let status = order['isActive'] ? 'open' : 'closed';
-        status = order['cancelExist'] ? 'canceled' : status;
+        const isActive = this.safeValue (order, 'isActive', false);
+        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        let status = isActive ? 'open' : 'closed';
+        status = cancelExist ? 'canceled' : status;
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -1792,6 +1806,15 @@ module.exports = class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers['KC-API-SIGN'] = this.decode (signature);
+            const partner = this.safeValue (this.options, 'partner', {});
+            const partnerId = this.safeString (partner, 'id');
+            const partnerSecret = this.safeString (partner, 'secret');
+            if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
+                const partnerPayload = timestamp + partnerId + this.apiKey;
+                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
+                headers['KC-API-PARTNER-SIGN'] = this.decode (partnerSignature);
+                headers['KC-API-PARTNER'] = partnerId;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

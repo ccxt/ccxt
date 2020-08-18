@@ -19,7 +19,7 @@ class coss(Exchange):
             'version': 'v1',
             'certified': False,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -323,7 +323,7 @@ class coss(Exchange):
             }
         return self.parse_balance(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1545138960000,
@@ -370,7 +370,7 @@ class coss(Exchange):
         #     }
         #
         series = self.safe_value(response, 'series', [])
-        return self.parse_ohlcvs(series, market)
+        return self.parse_ohlcvs(series, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

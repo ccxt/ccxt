@@ -21,19 +21,25 @@ class buda extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createDepositAddress' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTrades' => true,
+                'fetchTicker' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -319,7 +325,7 @@ class buda extends Exchange {
         }
         $last = floatval ($ticker['last_price'][0]);
         $percentage = floatval ($ticker['price_variation_24h']);
-        $open = floatval ($this->price_to_precision($symbol, $last / ($percentage . 1)));
+        $open = floatval ($this->price_to_precision($symbol, $last / ($percentage + 1)));
         $change = $last - $open;
         $average = $this->sum($last, $open) / 2;
         return array(

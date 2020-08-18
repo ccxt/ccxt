@@ -548,7 +548,7 @@ class bitvavo extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -692,7 +692,7 @@ class bitvavo extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1590383700000,
@@ -737,7 +737,7 @@ class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

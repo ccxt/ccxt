@@ -30,7 +30,7 @@ const {
     , defaultFetch
 } = functions
 
-const {
+const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
@@ -116,6 +116,7 @@ module.exports = class Exchange {
                 'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
+                'signIn': false,
                 'withdraw': false,
             },
             'urls': {
@@ -267,6 +268,7 @@ module.exports = class Exchange {
         this.myTrades     = undefined
 
         this.requiresWeb3 = false
+        this.requiresEddsa = false
         this.precision = {}
 
         this.enableLastJsonResponse = true
@@ -438,46 +440,31 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
-
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
-
-                let paths = api[type][httpMethod]
-                for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ()
-                    let splitPath = path.split (/[^a-zA-Z0-9]/)
-
-                    let uppercaseMethod  = httpMethod.toUpperCase ()
-                    let lowercaseMethod  = httpMethod.toLowerCase ()
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod)
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes']) {
-                            camelcase += options['suffixes']['camelcase']
-                        }
-                        if ('underscore' in options.suffixes) {
-                            underscore += options['suffixes']['underscore']
-                        }
-                    }
-
-                    if ('underscore_suffix' in options) {
-                        underscore += options.underscoreSuffix;
-                    }
-                    if ('camelcase_suffix' in options) {
-                        camelcase += options.camelcaseSuffix;
-                    }
-
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
-
+    defineRestApi (api, methodName, paths = []) {
+        const keys = Object.keys (api)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            const value = api[key]
+            if (Array.isArray (value)) {
+                const uppercaseMethod = key.toUpperCase ()
+                const lowercaseMethod = key.toLowerCase ()
+                const camelcaseMethod = this.capitalize (lowercaseMethod)
+                for (let k = 0; k < value.length; k++) {
+                    const path = value[k].trim ()
+                    const splitPath = path.split (/[^a-zA-Z0-9]/)
+                    const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+                    const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
+                    const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+                    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
+                    const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+                    const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+                    const typeArgument = (paths.length > 1) ? paths : paths[0]
+                    const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
                     this[camelcase]  = partial
                     this[underscore] = partial
                 }
+            } else {
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
@@ -633,11 +620,11 @@ module.exports = class Exchange {
             }
 
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_http_response = responseBody
             }
 
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_json_response = json
             }
 
             if (this.verbose) {
@@ -1103,15 +1090,13 @@ module.exports = class Exchange {
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = Object.values (array).filter ((entry) =>
+            array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
 
         if (limit !== undefined && limit !== null) {
-            array = ((tail && !sinceIsDefined) ?
-                Object.values (array).slice (-limit) :
-                Object.values (array).slice (0, limit))
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
         }
 
         return array
@@ -1214,7 +1199,7 @@ module.exports = class Exchange {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
@@ -1229,7 +1214,7 @@ module.exports = class Exchange {
             if (limit && (result.length >= limit)) {
                 break;
             }
-            const ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            const ohlcv = this.parseOHLCV (ohlcvs[i], market)
             if (since && (ohlcv[0] < since)) {
                 continue
             }
@@ -1321,7 +1306,7 @@ module.exports = class Exchange {
     }
 
     checkRequiredDependencies () {
-        if (!Exchange.hasWeb3 ()) {
+        if (this.requiresWeb3 && !Exchange.hasWeb3 ()) {
             throw new ExchangeError ('Required dependencies missing: \nnpm i ethereumjs-util ethereumjs-abi --no-save');
         }
     }

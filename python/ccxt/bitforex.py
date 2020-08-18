@@ -27,19 +27,20 @@ class bitforex(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
-                'fetchBalance': True,
-                'fetchMarkets': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': False,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
-                'fetchMyTrades': False,
                 'fetchTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOHLCV': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -55,7 +56,7 @@ class bitforex(Exchange):
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
@@ -380,7 +381,7 @@ class bitforex(Exchange):
             'info': response,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "close":0.02505143,
@@ -423,7 +424,7 @@ class bitforex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

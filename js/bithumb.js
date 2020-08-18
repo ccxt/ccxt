@@ -16,13 +16,18 @@ module.exports = class bithumb extends Exchange {
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
-                'CORS': true,
-                'createOrder': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createMarketOrder': true,
-                'fetchTickers': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -99,14 +104,14 @@ module.exports = class bithumb extends Exchange {
         const data = this.safeValue (response, 'data');
         const currencyIds = Object.keys (data);
         const result = [];
+        const quote = this.safeCurrencyCode ('KRW');
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             if (currencyId === 'date') {
                 continue;
             }
             const market = data[currencyId];
-            const base = currencyId;
-            const quote = 'KRW';
+            const base = this.safeCurrencyCode (currencyId);
             const symbol = currencyId + '/' + quote;
             let active = true;
             if (Array.isArray (market)) {

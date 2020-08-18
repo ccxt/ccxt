@@ -21,25 +21,30 @@ class stex extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false, // limit orders only
-                'fetchCurrencies' => true,
-                'fetchMarkets' => true,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
-                'fetchOrderBook' => true,
-                'fetchOHLCV' => true,
+                'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchFundingFees' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'fetchDeposits' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
-                'fetchFundingFees' => true,
             ),
             'version' => 'v3',
             'urls' => array(
@@ -415,6 +420,26 @@ class stex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "success" => true,
+        //         "$data" => {
+        //             "server_datetime" => array(
+        //                 "date" => "2019-01-22 15:13:34.233796",
+        //                 "timezone_type" => 3,
+        //                 "timezone" => "UTC"
+        //             ),
+        //             "server_timestamp" => 1548170014
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $serverDatetime = $this->safe_value($data, 'server_datetime', array());
+        return $this->parse8601($this->safe_string($serverDatetime, 'date'));
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -600,7 +625,7 @@ class stex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time" => 1566086400000,
@@ -663,7 +688,7 @@ class stex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

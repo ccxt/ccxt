@@ -28,23 +28,30 @@ class gateio(Exchange):
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'createMarketOrder': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': True,
                 'createDepositAddress': True,
-                'fetchDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrderTrades': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -295,7 +302,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': 8,
+                'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {
@@ -364,7 +371,7 @@ class gateio(Exchange):
         response = await self.publicGetOrderBookId(self.extend(request, params))
         return self.parse_order_book(response)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
         return [
             self.safe_integer(ohlcv, 0),  # t
@@ -401,7 +408,7 @@ class gateio(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

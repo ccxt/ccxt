@@ -16,11 +16,19 @@ module.exports = class acx extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'fetchTickers': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
-                'withdraw': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -264,6 +272,14 @@ module.exports = class acx extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTimestamp (params);
+        //
+        //     1594911427
+        //
+        return response * 1000;
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -274,7 +290,7 @@ module.exports = class acx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -300,7 +316,7 @@ module.exports = class acx extends Exchange {
             request['timestamp'] = parseInt (since / 1000);
         }
         const response = await this.publicGetK (this.extend (request, params));
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {

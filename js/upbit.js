@@ -19,22 +19,29 @@ module.exports = class upbit extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
-                'fetchDepositAddress': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrderBooks': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchOrders': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -713,7 +720,7 @@ module.exports = class upbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
@@ -759,7 +766,7 @@ module.exports = class upbit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         market: "BTC-ETH",
@@ -839,7 +846,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1176,7 +1183,10 @@ module.exports = class upbit extends Exchange {
             feeCurrency = quote;
         }
         let trades = this.safeValue (order, 'trades', []);
-        trades = this.parseTrades (trades, market, undefined, undefined, { 'order': id });
+        trades = this.parseTrades (trades, market, undefined, undefined, {
+            'order': id,
+            'type': type,
+        });
         const numTrades = trades.length;
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing

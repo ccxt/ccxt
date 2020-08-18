@@ -24,8 +24,15 @@ class coingi(Exchange):
             'rateLimit': 1000,
             'countries': ['PA', 'BG', 'CN', 'US'],  # Panama, Bulgaria, China, US
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'referral': 'https://www.coingi.com/?r=XTPPMC',

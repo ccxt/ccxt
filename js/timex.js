@@ -12,16 +12,23 @@ module.exports = class timex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
-                'CORS': false,
+                'cancelOrder': true,
                 'cancelOrders': true,
+                'CORS': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
             },
             'timeframes': {
@@ -422,7 +429,7 @@ module.exports = class timex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1104,7 +1111,7 @@ module.exports = class timex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",

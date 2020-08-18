@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -61,7 +62,7 @@ class kucoin(Exchange):
                 'fetchLedger': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
@@ -215,6 +216,7 @@ class kucoin(Exchange):
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
+                    'require more permission': PermissionDenied,
                 },
             },
             'fees': {
@@ -598,7 +600,7 @@ class kucoin(Exchange):
         #
         return self.parse_ticker(response['data'], market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         "1545904980",             # Start time of the candle cycle
@@ -654,7 +656,7 @@ class kucoin(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
@@ -795,21 +797,26 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
+        id = self.safe_string(data, 'orderId')
         order = {
-            'id': self.safe_string(data, 'orderId'),
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'amount': None,
             'cost': None,
+            'average': None,
             'filled': None,
             'remaining': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'status': None,
             'fee': None,
-            'status': 'open',
-            'clientOrderId': clientOrderId,
-            'info': data,
+            'trades': None,
         }
         if not self.safe_value(params, 'quoteAmount'):
             order['amount'] = amount
@@ -889,6 +896,11 @@ class kucoin(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # a special case for None ids
+        # otherwise a wrong endpoint for all orders will be triggered
+        # https://github.com/ccxt/ccxt/issues/7234
+        if id is None:
+            raise InvalidOrder(self.id + ' fetchOrder requires an order id')
         request = {
             'orderId': id,
         }
@@ -896,7 +908,7 @@ class kucoin(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetOrdersOrderId(self.extend(request, params))
-        responseData = response['data']
+        responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
@@ -964,8 +976,10 @@ class kucoin(Exchange):
         cost = self.safe_float(order, 'dealFunds')
         remaining = amount - filled
         # bool
-        status = 'open' if order['isActive'] else 'closed'
-        status = 'canceled' if order['cancelExist'] else status
+        isActive = self.safe_value(order, 'isActive', False)
+        cancelExist = self.safe_value(order, 'cancelExist', False)
+        status = 'open' if isActive else 'closed'
+        status = 'canceled' if cancelExist else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -1684,6 +1698,14 @@ class kucoin(Exchange):
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = self.decode(signature)
+            partner = self.safe_value(self.options, 'partner', {})
+            partnerId = self.safe_string(partner, 'id')
+            partnerSecret = self.safe_string(partner, 'secret')
+            if (partnerId is not None) and (partnerSecret is not None):
+                partnerPayload = timestamp + partnerId + self.apiKey
+                partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
+                headers['KC-API-PARTNER-SIGN'] = self.decode(partnerSignature)
+                headers['KC-API-PARTNER'] = partnerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

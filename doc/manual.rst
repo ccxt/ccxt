@@ -1894,6 +1894,8 @@ Check the ``exchange.has['fetchTicker']`` and ``exchange.has['fetchTickers']`` p
 Ticker structure
 ~~~~~~~~~~~~~~~~
 
+A ticker is a statistical calculation with the information calculated over the past 24 hours for a specific market.
+
 The structure of a ticker is as follows:
 
 .. code:: javascript
@@ -1924,6 +1926,7 @@ The structure of a ticker is as follows:
 Notes On Ticker Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+-  All fields in the ticker represent the past 24 hours prior to ``timestamp``.
 -  The ``bidVolume`` is the volume (amount) of current best bid in the orderbook.
 -  The ``askVolume`` is the volume (amount) of current best ask in the orderbook.
 -  The ``baseVolume`` is the amount of base currency traded (bought or sold) in last 24 hours.

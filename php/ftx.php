@@ -19,12 +19,13 @@ class ftx extends Exchange {
             'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
+            'hostname' => 'ftx.com', // or ftx.us
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www' => 'https://ftx.com',
                 'api' => array(
-                    'public' => 'https://ftx.com',
-                    'private' => 'https://ftx.com',
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
                 ),
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
@@ -32,11 +33,15 @@ class ftx extends Exchange {
             ),
             'has' => array(
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -68,12 +73,24 @@ class ftx extends Exchange {
                         'markets/{market_name}/orderbook', // ?depth={depth}
                         'markets/{market_name}/trades', // ?limit={limit}&start_time={start_time}&end_time={end_time}
                         'markets/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        // futures
                         'futures',
                         'futures/{future_name}',
                         'futures/{future_name}/stats',
                         'funding_rates',
+                        'indexes/{index_name}/weights',
+                        'expired_futures',
+                        'indexes/{market_name}/candles', // ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        // leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        // options
+                        'options/requests',
+                        'options/trades',
+                        'stats/24h_options_volume',
+                        'options/historical_volumes/BTC',
+                        'options/open_interest/BTC',
+                        'options/historical_open_interest/BTC',
                     ),
                 ),
                 'private' => array(
@@ -82,6 +99,7 @@ class ftx extends Exchange {
                         'positions',
                         'wallet/coins',
                         'wallet/balances',
+                        'wallet/all_balances',
                         'wallet/deposit_address/{coin}',
                         'wallet/deposits',
                         'wallet/withdrawals',
@@ -90,35 +108,60 @@ class ftx extends Exchange {
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders', // ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history', // ?market={market}
                         'fills', // ?market={market}
                         'funding_payments',
+                        // leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        // subaccounts
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        // otc
                         'otc/quotes/{quoteId}',
+                        // options
+                        'options/my_requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/my_quotes',
+                        'options/account_info',
+                        'options/positions',
+                        'options/fills',
                     ),
                     'post' => array(
                         'account/leverage',
                         'wallet/withdrawals',
                         'orders',
                         'conditional_orders',
+                        'orders/{order_id}/modify',
+                        'orders/by_client_id/{client_order_id}/modify',
+                        'conditional_orders/{order_id}/modify',
+                        // leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        // subaccounts
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        // otc
                         'otc/quotes/{quote_id}/accept',
                         'otc/quotes',
+                        // options
+                        'options/requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/quotes/{quote_id}/accept',
                     ),
                     'delete' => array(
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        // subaccounts
                         'subaccounts',
+                        // options
+                        'options/requests/{request_id}',
+                        'options/quotes/{quote_id}',
                     ),
                 ),
             ),
@@ -158,6 +201,7 @@ class ftx extends Exchange {
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
+                    'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
                 ),
                 'broad' => array(
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
@@ -179,6 +223,10 @@ class ftx extends Exchange {
                 ),
                 'fetchOrders' => array(
                     'method' => 'privateGetOrdersHistory', // privateGetConditionalOrdersHistory
+                ),
+                'sign' => array(
+                    'ftx.com' => 'FTX',
+                    'ftx.us' => 'FTXUS',
                 ),
             ),
         ));
@@ -497,7 +545,7 @@ class ftx extends Exchange {
         return $this->parse_order_book($result);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "close":177.23,
@@ -581,7 +629,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -872,9 +920,15 @@ class ftx extends Exchange {
         $remaining = $this->safe_float($order, 'remainingSize');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                // support for delisted $market ids
+                // https://github.com/ccxt/ccxt/issues/7113
+                $symbol = $marketId;
+            }
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
@@ -1318,7 +1372,7 @@ class ftx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction) {
+    public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
@@ -1358,7 +1412,7 @@ class ftx extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'tag');
         $fee = $this->safe_float($transaction, 'fee');
-        $type = (is_array($transaction) && array_key_exists('confirmations', $transaction)) ? 'deposit' : 'withdrawal';
+        $type = (is_array($transaction) && array_key_exists('destinationName', $transaction)) ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1434,7 +1488,8 @@ class ftx extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/api/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . $request;
+        $baseUrl = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . $request;
         if ($method !== 'POST') {
             if ($query) {
                 $suffix = '?' . $this->urlencode($query);
@@ -1446,17 +1501,21 @@ class ftx extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $request;
-            $headers = array(
-                'FTX-KEY' => $this->apiKey,
-                'FTX-TS' => $timestamp,
-            );
+            $headers = array();
             if ($method === 'POST') {
                 $body = $this->json($query);
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $headers['FTX-SIGN'] = $signature;
+            $options = $this->safe_value($this->options, 'sign', array());
+            $headerPrefix = $this->safe_string($options, $this->hostname, 'FTX');
+            $keyField = $headerPrefix . '-KEY';
+            $tsField = $headerPrefix . '-TS';
+            $signField = $headerPrefix . '-SIGN';
+            $headers[$keyField] = $this->apiKey;
+            $headers[$tsField] = $timestamp;
+            $headers[$signField] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

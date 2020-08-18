@@ -352,7 +352,7 @@ class bitfinex2 extends bitfinex {
             $quoteId = $this->get_currency_id($quoteId);
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
-                'amount' => $this->safe_integer($market, 'price_precision'),
+                'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
             );
             $limits = array(
                 'amount' => array(
@@ -703,7 +703,7 @@ class bitfinex2 extends bitfinex {
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status($status) {

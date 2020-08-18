@@ -23,12 +23,13 @@ class ftx(Exchange):
             'rateLimit': 100,
             'certified': True,
             'pro': True,
+            'hostname': 'ftx.com',  # or ftx.us
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg',
                 'www': 'https://ftx.com',
                 'api': {
-                    'public': 'https://ftx.com',
-                    'private': 'https://ftx.com',
+                    'public': 'https://{hostname}',
+                    'private': 'https://{hostname}',
                 },
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
@@ -36,11 +37,15 @@ class ftx(Exchange):
             },
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -72,12 +77,24 @@ class ftx(Exchange):
                         'markets/{market_name}/orderbook',  # ?depth={depth}
                         'markets/{market_name}/trades',  # ?limit={limit}&start_time={start_time}&end_time={end_time}
                         'markets/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # futures
                         'futures',
                         'futures/{future_name}',
                         'futures/{future_name}/stats',
                         'funding_rates',
+                        'indexes/{index_name}/weights',
+                        'expired_futures',
+                        'indexes/{market_name}/candles',  # ?resolution={resolution}&limit={limit}&start_time={start_time}&end_time={end_time}
+                        # leverage tokens
                         'lt/tokens',
                         'lt/{token_name}',
+                        # options
+                        'options/requests',
+                        'options/trades',
+                        'stats/24h_options_volume',
+                        'options/historical_volumes/BTC',
+                        'options/open_interest/BTC',
+                        'options/historical_open_interest/BTC',
                     ],
                 },
                 'private': {
@@ -86,6 +103,7 @@ class ftx(Exchange):
                         'positions',
                         'wallet/coins',
                         'wallet/balances',
+                        'wallet/all_balances',
                         'wallet/deposit_address/{coin}',
                         'wallet/deposits',
                         'wallet/withdrawals',
@@ -94,35 +112,60 @@ class ftx(Exchange):
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'conditional_orders',  # ?market={market}
+                        'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history',  # ?market={market}
                         'fills',  # ?market={market}
                         'funding_payments',
+                        # leverage tokens
                         'lt/balances',
                         'lt/creations',
                         'lt/redemptions',
+                        # subaccounts
                         'subaccounts',
                         'subaccounts/{nickname}/balances',
+                        # otc
                         'otc/quotes/{quoteId}',
+                        # options
+                        'options/my_requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/my_quotes',
+                        'options/account_info',
+                        'options/positions',
+                        'options/fills',
                     ],
                     'post': [
                         'account/leverage',
                         'wallet/withdrawals',
                         'orders',
                         'conditional_orders',
+                        'orders/{order_id}/modify',
+                        'orders/by_client_id/{client_order_id}/modify',
+                        'conditional_orders/{order_id}/modify',
+                        # leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
+                        # subaccounts
                         'subaccounts',
                         'subaccounts/update_name',
                         'subaccounts/transfer',
+                        # otc
                         'otc/quotes/{quote_id}/accept',
                         'otc/quotes',
+                        # options
+                        'options/requests',
+                        'options/requests/{request_id}/quotes',
+                        'options/quotes/{quote_id}/accept',
                     ],
                     'delete': [
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
                         'conditional_orders/{order_id}',
+                        # subaccounts
                         'subaccounts',
+                        # options
+                        'options/requests/{request_id}',
+                        'options/quotes/{quote_id}',
                     ],
                 },
             },
@@ -162,6 +205,7 @@ class ftx(Exchange):
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
+                    'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
@@ -183,6 +227,10 @@ class ftx(Exchange):
                 },
                 'fetchOrders': {
                     'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
                 },
             },
         })
@@ -485,7 +533,7 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order_book(result)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "close":177.23,
@@ -564,7 +612,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -840,9 +888,14 @@ class ftx(Exchange):
         remaining = self.safe_float(order, 'remainingSize')
         symbol = None
         marketId = self.safe_string(order, 'market')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                # support for delisted market ids
+                # https://github.com/ccxt/ccxt/issues/7113
+                symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -1254,7 +1307,7 @@ class ftx(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
@@ -1294,7 +1347,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
-        type = 'deposit' if ('confirmations' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1367,7 +1420,8 @@ class ftx(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + request
+        baseUrl = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
+        url = baseUrl + request
         if method != 'POST':
             if query:
                 suffix = '?' + self.urlencode(query)
@@ -1377,16 +1431,20 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
-            }
+            headers = {}
             if method == 'POST':
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            options = self.safe_value(self.options, 'sign', {})
+            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
+            keyField = headerPrefix + '-KEY'
+            tsField = headerPrefix + '-TS'
+            signField = headerPrefix + '-SIGN'
+            headers[keyField] = self.apiKey
+            headers[tsField] = timestamp
+            headers[signField] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

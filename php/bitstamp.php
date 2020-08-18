@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 
 class bitstamp extends Exchange {
@@ -22,11 +23,19 @@ class bitstamp extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchDepositAddress' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -41,6 +50,20 @@ class bitstamp extends Exchange {
                 'www' => 'https://www.bitstamp.net',
                 'doc' => 'https://www.bitstamp.net/api',
             ),
+            'timeframes' => array(
+                '1m' => '60',
+                '3m' => '180',
+                '5m' => '300',
+                '15m' => '900',
+                '30m' => '1800',
+                '1h' => '3600',
+                '2h' => '7200',
+                '4h' => '14400',
+                '6h' => '21600',
+                '12h' => '43200',
+                '1d' => '86400',
+                '1w' => '259200',
+            ),
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
@@ -49,6 +72,7 @@ class bitstamp extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -532,6 +556,71 @@ class bitstamp extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "high" => "9064.77",
+        //         "timestamp" => "1593961440",
+        //         "volume" => "18.49436608",
+        //         "low" => "9040.87",
+        //         "close" => "9064.77",
+        //         "open" => "9040.87"
+        //     }
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 'timestamp'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
+            'step' => $this->timeframes[$timeframe],
+        );
+        $duration = $this->parse_timeframe($timeframe);
+        if ($limit === null) {
+            if ($since === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+            } else {
+                $limit = 1000;
+                $start = intval ($since / 1000);
+                $request['start'] = $start;
+                $request['end'] = $this->sum($start, $limit * $duration);
+                $request['limit'] = $limit;
+            }
+        } else {
+            if ($since !== null) {
+                $start = intval ($since / 1000);
+                $request['start'] = $start;
+                $request['end'] = $this->sum($start, $limit * $duration);
+            }
+            $request['limit'] = min ($limit, 1000); // min 1, max 1000
+        }
+        $response = $this->publicGetOhlcPair (array_merge($request, $params));
+        //
+        //     {
+        //         "$data" => {
+        //             "pair" => "BTC/USD",
+        //             "$ohlc" => array(
+        //                 array("high" => "9064.77", "timestamp" => "1593961440", "volume" => "18.49436608", "low" => "9040.87", "close" => "9064.77", "open" => "9040.87"),
+        //                 array("high" => "9071.59", "timestamp" => "1593961500", "volume" => "3.48631711", "low" => "9058.76", "close" => "9061.07", "open" => "9064.66"),
+        //                 array("high" => "9067.33", "timestamp" => "1593961560", "volume" => "0.04142833", "low" => "9061.94", "close" => "9061.94", "open" => "9067.33"),
+        //             ),
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $ohlc = $this->safe_value($data, 'ohlc', array());
+        return $this->parse_ohlcvs($ohlc, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

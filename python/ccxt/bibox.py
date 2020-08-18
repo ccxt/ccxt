@@ -36,21 +36,27 @@ class bibox(Exchange):
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'publicAPI': False,
+                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder': True,
                 'fetchBalance': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchWithdrawals': True,
+                'publicAPI': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -361,7 +367,7 @@ class bibox(Exchange):
         response = self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1591448220000,
@@ -403,7 +409,7 @@ class bibox(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_ohlcvs(result, market)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):
         if not self.apiKey or not self.secret:

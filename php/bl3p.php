@@ -19,14 +19,17 @@ class bl3p extends Exchange {
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
                 'CORS' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api' => 'https://api.bl3p.eu',
-                'www' => array(
-                    'https://bl3p.eu',
-                    'https://bitonic.nl',
-                ),
+                'www' => 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc' => array(
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',

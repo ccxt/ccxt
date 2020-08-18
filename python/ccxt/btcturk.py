@@ -19,15 +19,22 @@ class btcturk(Exchange):
             'countries': ['TR'],  # Turkey
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
                 'api': 'https://www.btcturk.com/api',
                 'www': 'https://www.btcturk.com',
                 'doc': 'https://github.com/BTCTrader/broker-api-docs',
@@ -223,7 +230,7 @@ class btcturk(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(self.safe_string(ohlcv, 'Time')),
             self.safe_float(ohlcv, 'Open'),
@@ -240,7 +247,7 @@ class btcturk(Exchange):
         if limit is not None:
             request['last'] = limit
         response = self.publicGetOhlcdata(self.extend(request, params))
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

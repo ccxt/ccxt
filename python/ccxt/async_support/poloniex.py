@@ -30,27 +30,34 @@ class poloniex(Exchange):
             'name': 'Poloniex',
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
-            'certified': True,  # 2019-06-07
+            'certified': False,
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,  # True endpoint for a single open order
                 'fetchOpenOrders': True,  # True endpoint for open orders
                 'fetchOrder': 'emulated',  # no endpoint for a single open-or-closed order(just for an open order only)
+                'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',  # no endpoint for open-or-closed orders(just for open orders only)
                 'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
@@ -231,7 +238,7 @@ class poloniex(Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "date":1590913773,
@@ -279,7 +286,14 @@ class poloniex(Exchange):
         #         {"date":1590914100,"high":0.02498596,"low":0.02488503,"open":0.02493033,"close":0.02497896,"volume":0.21196348,"quoteVolume":8.50291888,"weightedAverage":0.02492832},
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    async def load_markets(self, reload=False, params={}):
+        markets = await super(poloniex, self).load_markets(reload, params)
+        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
+        if (currenciesByNumericId is None) or reload:
+            self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
+        return markets
 
     async def fetch_markets(self, params={}):
         markets = await self.publicGetReturnTicker(params)
@@ -450,6 +464,7 @@ class poloniex(Exchange):
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
+            fee = self.safe_float(currency, 'txFee')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -457,7 +472,7 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -473,7 +488,7 @@ class poloniex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
@@ -489,31 +504,20 @@ class poloniex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchMyTrades(symbol defined, specific market)
+        # fetchMyTrades
         #
         #     {
-        #         globalTradeID: 394698946,
-        #         tradeID: 45210255,
-        #         date: '2018-10-23 17:28:55',
-        #         type: 'sell',
-        #         rate: '0.03114126',
-        #         amount: '0.00018753',
-        #         total: '0.00000583'
-        #     }
-        #
-        # fetchMyTrades(symbol None, all markets)
-        #
-        #     {
-        #         globalTradeID: 394131412,
-        #         tradeID: '5455033',
-        #         date: '2018-10-16 18:05:17',
-        #         rate: '0.06935244',
-        #         amount: '1.40308443',
-        #         total: '0.09730732',
-        #         fee: '0.00100000',
-        #         orderNumber: '104768235081',
-        #         type: 'sell',
-        #         category: 'exchange'
+        #       globalTradeID: 471030550,
+        #       tradeID: '42582',
+        #       date: '2020-06-16 09:47:50',
+        #       rate: '0.000079980000',
+        #       amount: '75215.00000000',
+        #       total: '6.01569570',
+        #       fee: '0.00095000',
+        #       feeDisplay: '0.26636100 TRX(0.07125%)',
+        #       orderNumber: '5963454848',
+        #       type: 'sell',
+        #       category: 'exchange'
         #     }
         #
         # createOrder(taker trades)
@@ -532,43 +536,40 @@ class poloniex(Exchange):
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
-        base = None
-        quote = None
         if (not market) and ('currencyPair' in trade):
-            currencyPair = trade['currencyPair']
-            if currencyPair in self.markets_by_id:
-                market = self.markets_by_id[currencyPair]
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
             else:
-                parts = currencyPair.split('_')
-                quote = parts[0]
-                base = parts[1]
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
         price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
-        if 'fee' in trade:
-            rate = self.safe_float(trade, 'fee')
-            feeCost = None
-            currency = None
-            if side == 'buy':
-                currency = base
-                feeCost = amount * rate
-            else:
-                currency = quote
-                if cost is not None:
-                    feeCost = cost * rate
-            fee = {
-                'type': None,
-                'rate': rate,
-                'cost': feeCost,
-                'currency': currency,
-            }
+        feeDisplay = self.safe_string(trade, 'feeDisplay')
+        if feeDisplay is not None:
+            parts = feeDisplay.split(' ')
+            feeCost = self.safe_float(parts, 0)
+            if feeCost is not None:
+                feeCurrencyId = self.safe_string(parts, 1)
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+                feeRate = self.safe_string(parts, 2)
+                if feeRate is not None:
+                    feeRate = feeRate.replace('(', '')
+                    feeRateParts = feeRate.split('%')
+                    feeRate = self.safe_string(feeRateParts, 0)
+                    feeRate = float(feeRate) / 100
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                    'rate': feeRate,
+                }
         takerOrMaker = None
         takerAdjustment = self.safe_float(trade, 'takerAdjustment')
         if takerAdjustment is not None:
@@ -620,49 +621,59 @@ class poloniex(Exchange):
         #
         #     [
         #         {
-        #             globalTradeID: 394700861,
-        #             tradeID: 45210354,
-        #             date: '2018-10-23 18:01:58',
-        #             type: 'buy',
-        #             rate: '0.03117266',
-        #             amount: '0.00000652',
-        #             total: '0.00000020'
+        #             globalTradeID: 470912587,
+        #             tradeID: '42543',
+        #             date: '2020-06-15 17:31:22',
+        #             rate: '0.000083840000',
+        #             amount: '95237.60321429',
+        #             total: '7.98472065',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.36137761 TRX(0.07125%)',
+        #             orderNumber: '5926344995',
+        #             type: 'sell',
+        #             category: 'exchange'
         #         },
         #         {
-        #             globalTradeID: 394698946,
-        #             tradeID: 45210255,
-        #             date: '2018-10-23 17:28:55',
+        #             globalTradeID: 470974497,
+        #             tradeID: '42560',
+        #             date: '2020-06-16 00:41:23',
+        #             rate: '0.000078220000',
+        #             amount: '1000000.00000000',
+        #             total: '78.22000000',
+        #             fee: '0.00095000',
+        #             feeDisplay: '3.48189819 TRX(0.07125%)',
+        #             orderNumber: '5945490830',
         #             type: 'sell',
-        #             rate: '0.03114126',
-        #             amount: '0.00018753',
-        #             total: '0.00000583'
+        #             category: 'exchange'
         #         }
         #     ]
         #
         # all markets(symbol None)
         #
         #     {
-        #         BTC_BCH: [{
-        #             globalTradeID: 394131412,
-        #             tradeID: '5455033',
-        #             date: '2018-10-16 18:05:17',
-        #             rate: '0.06935244',
-        #             amount: '1.40308443',
-        #             total: '0.09730732',
-        #             fee: '0.00100000',
-        #             orderNumber: '104768235081',
-        #             type: 'sell',
+        #        BTC_GNT: [{
+        #             globalTradeID: 470839947,
+        #             tradeID: '4322347',
+        #             date: '2020-06-15 12:25:24',
+        #             rate: '0.000005810000',
+        #             amount: '1702.04429303',
+        #             total: '0.00988887',
+        #             fee: '0.00095000',
+        #             feeDisplay: '4.18235294 TRX(0.07125%)',
+        #             orderNumber: '102290272520',
+        #             type: 'buy',
         #             category: 'exchange'
-        #         }, {
-        #             globalTradeID: 394126818,
-        #             tradeID: '5455007',
-        #             date: '2018-10-16 16:55:34',
-        #             rate: '0.06935244',
-        #             amount: '0.00155709',
-        #             total: '0.00010798',
-        #             fee: '0.00200000',
-        #             orderNumber: '104768179137',
-        #             type: 'sell',
+        #     }, {
+        #             globalTradeID: 470895902,
+        #             tradeID: '4322413',
+        #             date: '2020-06-15 16:19:00',
+        #             rate: '0.000005980000',
+        #             amount: '18.66879219',
+        #             total: '0.00011163',
+        #             fee: '0.00095000',
+        #             feeDisplay: '0.04733727 TRX(0.07125%)',
+        #             orderNumber: '102298304480',
+        #             type: 'buy',
         #             category: 'exchange'
         #         }],
         #     }
@@ -767,8 +778,15 @@ class poloniex(Exchange):
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
@@ -1112,9 +1130,16 @@ class poloniex(Exchange):
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
-        currency = self.currency(code)
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         response = await self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
@@ -1122,10 +1147,11 @@ class poloniex(Exchange):
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,
@@ -1135,16 +1161,23 @@ class poloniex(Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        currency = self.currency(code)
         response = await self.privatePostReturnDepositAddresses(params)
-        currencyId = currency['id']
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         address = self.safe_string(response, currencyId)
         tag = None
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,

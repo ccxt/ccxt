@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -16,14 +17,22 @@ module.exports = class liquid extends Exchange {
             'version': '2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -94,6 +103,77 @@ module.exports = class liquid extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.0015,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 25000, 0.0000 ],
+                                [ 50000, -0.00025 ],
+                                [ 100000, -0.00025 ],
+                                [ 1000000, -0.00025 ],
+                                [ 10000000, -0.00025 ],
+                                [ 25000000, -0.00025 ],
+                                [ 50000000, -0.00025 ],
+                                [ 75000000, -0.00025 ],
+                                [ 100000000, -0.00025 ],
+                                [ 200000000, -0.00025 ],
+                                [ 300000000, -0.00025 ],
+                            ],
+                            'taker': [
+                                [ 0, 0.000600 ],
+                                [ 25000, 0.000575 ],
+                                [ 50000, 0.000550 ],
+                                [ 100000, 0.000525 ],
+                                [ 1000000, 0.000500 ],
+                                [ 10000000, 0.000475 ],
+                                [ 25000000, 0.000450 ],
+                                [ 50000000, 0.000425 ],
+                                [ 75000000, 0.000400 ],
+                                [ 100000000, 0.000375 ],
+                                [ 200000000, 0.000350 ],
+                                [ 300000000, 0.000325 ],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [ 0, 0.0015 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.0014 ],
+                                [ 50000, 0.0013 ],
+                                [ 100000, 0.0010 ],
+                                [ 1000000, 0.0008 ],
+                                [ 5000000, 0.0006 ],
+                                [ 10000000, 0.0005 ],
+                                [ 25000000, 0.0005 ],
+                                [ 50000000, 0.00045 ],
+                                [ 100000000, 0.0004 ],
+                                [ 200000000, 0.0003 ],
+                            ],
+                            'maker': [
+                                [ 0, 0.0000 ],
+                                [ 10000, 0.0015 ],
+                                [ 20000, 0.1400 ],
+                                [ 50000, 0.1300 ],
+                                [ 100000, 0.0800 ],
+                                [ 1000000, 0.0004 ],
+                                [ 5000000, 0.00035 ],
+                                [ 10000000, 0.00025 ],
+                                [ 25000000, 0.0000 ],
+                                [ 50000000, 0.0000 ],
+                                [ 100000000, 0.0000 ],
+                                [ 200000000, 0.0000 ],
+                            ],
+                        },
+                    },
+                },
+            },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -104,6 +184,7 @@ module.exports = class liquid extends Exchange {
                 'not_enough_free_balance': InsufficientFunds,
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
+                'price_too_high': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -181,30 +262,40 @@ module.exports = class liquid extends Exchange {
         //
         //     [
         //         {
-        //             id: '7',
-        //             product_type: 'CurrencyPair',
-        //             code: 'CASH',
-        //             name: ' CASH Trading',
-        //             market_ask: 8865.79147,
-        //             market_bid: 8853.95988,
-        //             indicator: 1,
-        //             currency: 'SGD',
-        //             currency_pair_code: 'BTCSGD',
-        //             symbol: 'S$',
-        //             btc_minimum_withdraw: null,
-        //             fiat_minimum_withdraw: null,
-        //             pusher_channel: 'product_cash_btcsgd_7',
-        //             taker_fee: 0,
-        //             maker_fee: 0,
-        //             low_market_bid: '8803.25579',
-        //             high_market_ask: '8905.0',
-        //             volume_24h: '15.85443468',
-        //             last_price_24h: '8807.54625',
-        //             last_traded_price: '8857.77206',
-        //             last_traded_quantity: '0.00590974',
-        //             quoted_currency: 'SGD',
-        //             base_currency: 'BTC',
-        //             disabled: false,
+        //             "id":"637",
+        //             "product_type":"CurrencyPair",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"0.00000797",
+        //             "market_bid":"0.00000727",
+        //             "indicator":null,
+        //             "currency":"BTC",
+        //             "currency_pair_code":"TFTBTC",
+        //             "symbol":null,
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_tftbtc_637",
+        //             "taker_fee":"0.0",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"0.00000685",
+        //             "high_market_ask":"0.00000885",
+        //             "volume_24h":"3696.0755956",
+        //             "last_price_24h":"0.00000716",
+        //             "last_traded_price":"0.00000766",
+        //             "last_traded_quantity":"1748.0377978",
+        //             "average_price":null,
+        //             "quoted_currency":"BTC",
+        //             "base_currency":"TFT",
+        //             "tick_size":"0.00000001",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":false,
+        //             "last_event_timestamp":"1596962820.000797146",
+        //             "timestamp":"1596962820.000797146",
+        //             "multiplier_up":"9.0",
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":null
         //         },
         //     ]
         //
@@ -212,32 +303,44 @@ module.exports = class liquid extends Exchange {
         //
         //     [
         //         {
-        //             "id": "603",
-        //             "product_type": "Perpetual",
-        //             "code": "CASH",
-        //             "name": null,
-        //             "market_ask": "1143900",
-        //             "market_bid": "1143250",
-        //             "currency": "JPY",
-        //             "currency_pair_code": "P-BTCJPY",
-        //             "pusher_channel": "product_cash_p-btcjpy_603",
-        //             "taker_fee": "0.0",
-        //             "maker_fee": "0.0",
-        //             "low_market_bid": "1124450.0",
-        //             "high_market_ask": "1151750.0",
-        //             "volume_24h": "0.1756",
-        //             "last_price_24h": "1129850.0",
-        //             "last_traded_price": "1144700.0",
-        //             "last_traded_quantity": "0.014",
-        //             "quoted_currency": "JPY",
-        //             "base_currency": "P-BTC",
-        //             "tick_size": "50.0",
-        //             "perpetual_enabled": true,
-        //             "index_price": "1142636.03935",
-        //             "mark_price": "1143522.18417",
-        //             "funding_rate": "0.00033",
-        //             "fair_price": "1143609.31009",
-        //             "timestamp": "1581558659.195353100",
+        //             "id":"604",
+        //             "product_type":"Perpetual",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"11721.5",
+        //             "market_bid":"11719.0",
+        //             "indicator":null,
+        //             "currency":"USD",
+        //             "currency_pair_code":"P-BTCUSD",
+        //             "symbol":"$",
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_p-btcusd_604",
+        //             "taker_fee":"0.0012",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"11624.5",
+        //             "high_market_ask":"11859.0",
+        //             "volume_24h":"0.271",
+        //             "last_price_24h":"11621.5",
+        //             "last_traded_price":"11771.5",
+        //             "last_traded_quantity":"0.09",
+        //             "average_price":"11771.5",
+        //             "quoted_currency":"USD",
+        //             "base_currency":"P-BTC",
+        //             "tick_size":"0.5",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":true,
+        //             "last_event_timestamp":"1596963309.418853092",
+        //             "timestamp":"1596963309.418853092",
+        //             "multiplier_up":null,
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":300,
+        //             "index_price":"11682.8124",
+        //             "mark_price":"11719.96781",
+        //             "funding_rate":"0.00273",
+        //             "fair_price":"11720.2745"
         //         },
         //     ]
         //
@@ -267,31 +370,22 @@ module.exports = class liquid extends Exchange {
             } else {
                 symbol = base + '/' + quote;
             }
-            const maker = this.safeFloat (market, 'maker_fee');
-            const taker = this.safeFloat (market, 'taker_fee');
+            let maker = this.fees['trading']['maker'];
+            let taker = this.fees['trading']['taker'];
+            if (type === 'swap') {
+                maker = this.safeFloat (market, 'maker_fee', this.fees['trading']['maker']);
+                taker = this.safeFloat (market, 'taker_fee', this.fees['trading']['taker']);
+            }
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
-            const quoteCurrency = this.safeValue (currenciesByCode, quote);
             const precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': 0.00000001,
+                'price': this.safeFloat (market, 'tick_size'),
             };
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
                 minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
-                // precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
-            }
-            let minPrice = undefined;
-            if (quoteCurrency !== undefined) {
-                precision['price'] = this.safeInteger (quoteCurrency['info'], 'quoting_precision');
-                minPrice = Math.pow (10, -precision['price']);
-            }
-            let minCost = undefined;
-            if (minPrice !== undefined) {
-                if (minAmount !== undefined) {
-                    minCost = minPrice * minAmount;
-                }
             }
             const limits = {
                 'amount': {
@@ -299,11 +393,11 @@ module.exports = class liquid extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': minPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': undefined,
                     'max': undefined,
                 },
             };
@@ -528,13 +622,18 @@ module.exports = class liquid extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const request = {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -557,7 +656,8 @@ module.exports = class liquid extends Exchange {
         //         "product_code": "CASH",
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
-        //         "order_fee": "0.0"
+        //         "order_fee": "0.0",
+        //         "client_order_id": null,
         //     }
         //
         return this.parseOrder (response);
@@ -626,6 +726,7 @@ module.exports = class liquid extends Exchange {
         //         "funding_currency": "USD",
         //         "currency_pair_code": "BTCUSD",
         //         "order_fee": "0.0"
+        //         "client_order_id": null,
         //     }
         //
         // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -712,9 +813,10 @@ module.exports = class liquid extends Exchange {
             remaining = amount - filled;
         }
         const side = this.safeString (order, 'side');
+        const clientOrderId = this.safeString (order, 'client_order_id');
         return {
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -927,10 +1029,12 @@ module.exports = class liquid extends Exchange {
             const nonce = this.nonce ();
             const request = {
                 'path': url,
-                'nonce': nonce,
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
+            if (!('client_order_id' in query)) {
+                request['nonce'] = nonce;
+            }
             headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {

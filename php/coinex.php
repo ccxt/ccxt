@@ -19,15 +19,22 @@ class coinex extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 1000,
             'has' => array(
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -45,7 +52,7 @@ class coinex extends Exchange {
                 '1w' => '1week',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
                 'api' => 'https://api.coinex.com',
                 'www' => 'https://www.coinex.com',
                 'doc' => 'https://github.com/coinexcom/coinex_exchange_api/wiki',
@@ -350,7 +357,7 @@ class coinex extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591484400,
@@ -393,7 +400,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

@@ -17,11 +17,19 @@ class bitbay extends Exchange {
             'countries' => array( 'MT', 'EU' ), // Malta
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOpenOrders' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -831,7 +839,7 @@ class bitbay extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         '1582399800000',
@@ -890,7 +898,7 @@ class bitbay extends Exchange {
         //     }
         //
         $items = $this->safe_value($response, 'items', array());
-        return $this->parse_ohlcvs($items, $market);
+        return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

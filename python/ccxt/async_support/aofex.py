@@ -235,7 +235,7 @@ class aofex(Exchange):
             })
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         id:  1584950100,
@@ -303,7 +303,7 @@ class aofex(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

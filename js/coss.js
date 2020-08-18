@@ -17,7 +17,7 @@ module.exports = class coss extends Exchange {
             'version': 'v1',
             'certified': false,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -331,7 +331,7 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1545138960000,
@@ -379,7 +379,7 @@ module.exports = class coss extends Exchange {
         //     }
         //
         const series = this.safeValue (response, 'series', []);
-        return this.parseOHLCVs (series, market);
+        return this.parseOHLCVs (series, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

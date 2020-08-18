@@ -23,19 +23,26 @@ class coinbasepro extends Exchange {
             'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createDepositAddress' => true,
+                'createOrder' => true,
                 'deposit' => true,
                 'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrderTrades' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchTime' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -74,6 +81,7 @@ class coinbasepro extends Exchange {
                     'get' => array(
                         'currencies',
                         'products',
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
@@ -94,13 +102,28 @@ class coinbasepro extends Exchange {
                         'fills',
                         'funding',
                         'fees',
+                        'margin/profile_information',
+                        'margin/buying_power',
+                        'margin/withdrawal_power',
+                        'margin/withdrawal_power_all',
+                        'margin/exit_plan',
+                        'margin/liquidation_history',
+                        'margin/position_refresh_amounts',
+                        'margin/status',
+                        'oracle',
                         'orders',
                         'orders/{id}',
+                        'orders/client:{client_oid}',
                         'otc/orders',
                         'payment-methods',
                         'position',
-                        'reports/{id}',
+                        'profiles',
+                        'profiles/{id}',
+                        'reports/{report_id}',
+                        'transfers',
+                        'transfers/{transfer_id}',
                         'users/self/trailing-volume',
+                        'users/self/exchange-limits',
                     ),
                     'post' => array(
                         'conversions',
@@ -111,13 +134,16 @@ class coinbasepro extends Exchange {
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'profiles/transfer',
                         'reports',
                         'withdrawals/coinbase',
+                        'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
                     ),
                     'delete' => array(
                         'orders',
+                        'orders/client:{client_oid}',
                         'orders/{id}',
                     ),
                 ),
@@ -159,6 +185,8 @@ class coinbasepro extends Exchange {
                     'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
                     'Invalid order id' => '\\ccxt\\InvalidOrder',
                     'Private rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'Trading pair not available' => '\\ccxt\\PermissionDenied',
+                    'Product not found' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
                     'Order already done' => '\\ccxt\\OrderNotFound',
@@ -166,6 +194,7 @@ class coinbasepro extends Exchange {
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
                     'under maintenance' => '\\ccxt\\OnMaintenance',
+                    'size is too small' => '\\ccxt\\InvalidOrder',
                 ),
             ),
         ));
@@ -490,7 +519,7 @@ class coinbasepro extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1591514160,
@@ -535,7 +564,7 @@ class coinbasepro extends Exchange {
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_time($params = array ()) {

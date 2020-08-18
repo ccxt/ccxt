@@ -537,7 +537,7 @@ class bitvavo(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #
@@ -672,7 +672,7 @@ class bitvavo(Exchange):
         orderbook['nonce'] = self.safe_integer(response, 'nonce')
         return orderbook
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1590383700000,
@@ -714,7 +714,7 @@ class bitvavo(Exchange):
         #         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

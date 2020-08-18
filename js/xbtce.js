@@ -16,10 +16,17 @@ module.exports = class xbtce extends Exchange {
             'rateLimit': 2000, // responses are cached every 2 seconds
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': false,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -261,7 +268,7 @@ module.exports = class xbtce extends Exchange {
         return await this.privateGetTrade (params);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 'Timestamp'),
             this.safeFloat (ohlcv, 'Open'),
@@ -287,7 +294,7 @@ module.exports = class xbtce extends Exchange {
         //         'timestamp': since,
         //         'count': limit,
         //     }, params));
-        //     return this.parseOHLCVs (response['Bars'], market);
+        //     return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
     }
 

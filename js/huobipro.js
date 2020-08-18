@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,20 +21,27 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
-                'fetchDepositAddress': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchTradingLimits': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -185,6 +192,7 @@ module.exports = class huobipro extends Exchange {
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'invalid-parameter': BadRequest, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
                     'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'system-maintenance': OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                 },
             },
             'options': {
@@ -203,6 +211,11 @@ module.exports = class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://coinmarketcap.com/currencies/penta/markets/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT': 'Penta',
             },
         });
     }
@@ -680,7 +693,7 @@ module.exports = class huobipro extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "amount":1.2082,
@@ -727,7 +740,7 @@ module.exports = class huobipro extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchAccounts (params = {}) {

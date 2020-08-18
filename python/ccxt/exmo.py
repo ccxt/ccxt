@@ -36,23 +36,30 @@ class exmo(Exchange):
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
                 'fetchOrderTrades': True,
-                'fetchOrderBooks': True,
-                'fetchMyTrades': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchFundingFees': True,
-                'fetchCurrencies': True,
                 'fetchTransactions': True,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -718,9 +725,9 @@ class exmo(Exchange):
         #     }
         #
         candles = self.safe_value(response, 'candles', [])
-        return self.parse_ohlcvs(candles, market)
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "t":1584057600000,
@@ -1258,14 +1265,14 @@ class exmo(Exchange):
                 feeCost = self.sum(feeCost, trade['fee']['cost'])
                 trades.append(trade)
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
+        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
         remaining = None
         if amount is not None:
             remaining = amount - filled
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        if filled >= amount:
-            status = 'closed'
-        else:
-            status = 'open'
+            if filled >= amount:
+                status = 'closed'
+            else:
+                status = 'open'
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None

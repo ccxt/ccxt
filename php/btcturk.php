@@ -17,15 +17,22 @@ class btcturk extends Exchange {
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1d' => '1d',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
                 'api' => 'https://www.btcturk.com/api',
                 'www' => 'https://www.btcturk.com',
                 'doc' => 'https://github.com/BTCTrader/broker-api-docs',
@@ -239,7 +246,7 @@ class btcturk extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'Time')),
             $this->safe_float($ohlcv, 'Open'),
@@ -258,7 +265,7 @@ class btcturk extends Exchange {
             $request['last'] = $limit;
         }
         $response = $this->publicGetOhlcdata (array_merge($request, $params));
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -23,15 +23,22 @@ class coinex(Exchange):
             'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -49,7 +56,7 @@ class coinex(Exchange):
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg',
                 'api': 'https://api.coinex.com',
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
@@ -336,7 +343,7 @@ class coinex(Exchange):
         response = await self.publicGetMarketDeals(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1591484400,
@@ -378,7 +385,7 @@ class coinex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

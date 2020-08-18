@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class eterbase(Exchange):
@@ -63,6 +64,7 @@ class eterbase(Exchange):
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
                 'fees': 'https://www.eterbase.com/exchange/fees',
+                'referral': 'https://eterbase.exchange/invite/1wjjh4Pe',
             },
             'api': {
                 'markets': {
@@ -117,6 +119,7 @@ class eterbase(Exchange):
                 'secret': True,
                 'uid': True,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
@@ -556,7 +559,7 @@ class eterbase(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1588807500000,
@@ -607,7 +610,7 @@ class eterbase(Exchange):
         #         {"time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993},
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -1055,7 +1058,7 @@ class eterbase(Exchange):
                 headersCSV += ' ' + 'digest'
             signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             signature = self.decode(signature64)
-            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"'
+            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"'
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,

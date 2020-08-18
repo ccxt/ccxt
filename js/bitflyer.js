@@ -15,19 +15,27 @@ module.exports = class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'withdraw': true,
-                'fetchMyTrades': true,
-                'fetchOrders': true,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': 'emulated',
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -467,7 +475,8 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const url = this.urls['api'] + request;
+        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

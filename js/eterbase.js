@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -57,6 +57,7 @@ module.exports = class eterbase extends Exchange {
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
                 'fees': 'https://www.eterbase.com/exchange/fees',
+                'referral': 'https://eterbase.exchange/invite/1wjjh4Pe',
             },
             'api': {
                 'markets': {
@@ -111,6 +112,7 @@ module.exports = class eterbase extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -576,7 +578,7 @@ module.exports = class eterbase extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time":1588807500000,
@@ -630,7 +632,7 @@ module.exports = class eterbase extends Exchange {
         //         {"time":1588808400000,"open":0.022044,"high":0.022044,"low":0.022044,"close":0.022044,"volume":3.9615545499999993},
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1125,7 +1127,7 @@ module.exports = class eterbase extends Exchange {
             }
             const signature64 = this.hmac (this.encode (message), this.encode (this.secret), 'sha256', 'base64');
             const signature = this.decode (signature64);
-            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"';
+            const authorizationHeader = 'hmac username="' + this.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"';
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,

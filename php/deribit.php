@@ -20,28 +20,32 @@ class deribit extends Exchange {
             'userAgent' => null,
             'rateLimit' => 500,
             'has' => array(
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createDepositAddress' => true,
+                'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
                 'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'fetchOrderTrades' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'cancelAllOrders' => true,
-                'withdraw' => true,
-                'fetchTime' => true,
-                'fetchStatus' => true,
                 'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => true,
+                'fetchStatus' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -817,7 +821,7 @@ class deribit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $ohlcvs = $this->convert_trading_view_to_ohlcv($result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
-        return $this->parse_ohlcvs($ohlcvs, $market);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

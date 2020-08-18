@@ -21,12 +21,19 @@ class btcalpha(Exchange):
             'countries': ['US'],
             'version': 'v1',
             'has': {
-                'fetchTicker': False,
-                'fetchOHLCV': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': False,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -224,7 +231,7 @@ class btcalpha(Exchange):
         trades = self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1591296000,
@@ -263,7 +270,7 @@ class btcalpha(Exchange):
         #         {"time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071}
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()

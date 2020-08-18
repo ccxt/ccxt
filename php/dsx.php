@@ -19,19 +19,26 @@ class dsx extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'createMarketOrder' => false,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
-                'fetchOrderBooks' => true,
                 'createDepositAddress' => true,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => false,
                 'fetchDepositAddress' => true,
-                'fetchTransactions' => true,
-                'fetchTickers' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -120,6 +127,7 @@ class dsx extends Exchange {
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'nonce is invalid' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"Parameter => nonce is invalid")
+                    'Incorrect volume' => '\\ccxt\\InvalidOrder', // array("success" => 0,"error":"Order was rejected. Incorrect volume.")
                 ),
             ),
             'options' => array(
@@ -569,7 +577,7 @@ class dsx extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "high" : 0.01955,
@@ -641,7 +649,7 @@ class dsx extends Exchange {
         //     }
         //
         $candles = $this->safe_value($response, $market['id'], array());
-        return $this->parse_ohlcvs($candles, $market);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

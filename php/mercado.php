@@ -20,15 +20,20 @@ class mercado extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => true,
-                'fetchOrder' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchOHLCV' => true,
-                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -428,7 +433,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open'),
@@ -458,7 +463,7 @@ class mercado extends Exchange {
         }
         $response = $this->v4PublicGetCoinCandle (array_merge($request, $params));
         $candles = $this->safe_value($response, 'candles', array());
-        return $this->parse_ohlcvs($candles, $market);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

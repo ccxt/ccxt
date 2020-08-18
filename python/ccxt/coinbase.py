@@ -454,8 +454,8 @@ class coinbase(Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
         if market is None:
-            baseId = self.safe_string(totalObject, 'currency')
-            quoteId = self.safe_string(amountObject, 'currency')
+            baseId = self.safe_string(amountObject, 'currency')
+            quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -467,7 +467,7 @@ class coinbase(Exchange):
         amount = self.safe_float(amountObject, 'amount')
         price = None
         if cost is not None:
-            if amount is not None:
+            if (amount is not None) and (amount > 0):
                 price = cost / amount
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')

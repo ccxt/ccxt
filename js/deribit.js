@@ -18,28 +18,32 @@ module.exports = class deribit extends Exchange {
             'userAgent': undefined,
             'rateLimit': 500,
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': true,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
                 'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'fetchOrderTrades': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'withdraw': true,
-                'fetchTime': true,
-                'fetchStatus': true,
                 'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -815,7 +819,7 @@ module.exports = class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const ohlcvs = this.convertTradingViewToOHLCV (result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
-        return this.parseOHLCVs (ohlcvs, market);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

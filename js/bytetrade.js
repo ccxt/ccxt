@@ -19,20 +19,27 @@ module.exports = class bytetrade extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
+                'cancelOrder': true,
+                'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchBidsAsks': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchMyTrades': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'withdraw': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -435,7 +442,7 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTickers (rawTickers, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1591505760000,
@@ -477,7 +484,7 @@ module.exports = class bytetrade extends Exchange {
         //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -489,7 +496,7 @@ module.exports = class bytetrade extends Exchange {
         const type = this.safeString (trade, 'type');
         const takerOrMaker = this.safeString (trade, 'takerOrMaker');
         const side = this.safeString (trade, 'side');
-        const datetime = this.safeString (trade, 'datetime');
+        const datetime = this.iso8601 (timestamp); // this.safeString (trade, 'datetime');
         const order = this.safeString (trade, 'order');
         const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;

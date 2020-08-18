@@ -27,21 +27,28 @@ class crex24 extends Exchange {
             // new metainfo interface
             'has' => array(
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
                 'fetchTransactions' => true,
@@ -585,7 +592,7 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         timestamp => '2019-09-21T10:36:00Z',
@@ -629,7 +636,7 @@ class crex24 extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status($status) {

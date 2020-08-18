@@ -19,16 +19,23 @@ class timex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'has' => array(
-                'CORS' => false,
+                'cancelOrder' => true,
                 'cancelOrders' => true,
+                'CORS' => false,
+                'createOrder' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true, // maker fee only
             ),
             'timeframes' => array(
@@ -230,7 +237,7 @@ class timex extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
-        //         {
+        //         array(
         //             "symbol" => "BTC",
         //             "name" => "Bitcoin",
         //             "address" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
@@ -250,7 +257,7 @@ class timex extends Exchange {
         //             "active" => true,
         //             "withdrawalFee" => "50000000000000000",
         //             "purchaseCommissions" => array()
-        //         },
+        //         ),
         //     )
         //
         $result = array();
@@ -429,7 +436,7 @@ class timex extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -1111,7 +1118,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",

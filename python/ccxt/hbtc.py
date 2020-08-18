@@ -35,27 +35,32 @@ class hbtc(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTime': True,
+                'createOrder': True,
+                'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchBidAsk': True,
                 'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchDepositAddress': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchTradingLimits': True,
+                'fetchCurrencies': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'withdraw': True,
-                'fetchCurrencies': False,
-                'fetchDeposits': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
-                'fetchAccounts': True,
-                'fetchLedger': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -740,7 +745,7 @@ class hbtc(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
         #         1587906000000,  # open time
@@ -784,7 +789,7 @@ class hbtc(Exchange):
         #         [1587906360000,"0.1761","0.1848","0.1761","0.1848","53",0,"9.7944",1,"0","0"],
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

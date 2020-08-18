@@ -45,24 +45,31 @@ class okex(Exchange):
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,  # see below
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTime': True,
-                'fetchTransactions': False,
-                'fetchMyTrades': True,
                 'fetchDepositAddress': True,
-                'fetchOrderTrades': True,
-                'fetchTickers': True,
+                'fetchDeposits': True,
                 'fetchLedger': True,
-                'withdraw': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchTime': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': False,
+                'fetchWithdrawals': True,
                 'futures': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -137,6 +144,7 @@ class okex(Exchange):
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                     ],
                     'post': [
                         'order_algo',
@@ -201,6 +209,7 @@ class okex(Exchange):
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                         'instruments/{instrument_id}/index',
                         'rate',
                         'instruments/{instrument_id}/estimated_price',
@@ -245,6 +254,7 @@ class okex(Exchange):
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                         'instruments/{instrument_id}/index',
                         'rate',
                         'instruments/{instrument_id}/open_interest',
@@ -1286,7 +1296,7 @@ class okex(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         # spot markets
         #
@@ -1340,21 +1350,35 @@ class okex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
+        method = None
+        duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
-        duration = self.parse_timeframe(timeframe)
-        if since is not None:
-            if limit is not None:
-                request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
-            request['start'] = self.iso8601(since)
+        if market['option']:
+            method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
+            if since is not None:
+                if limit is not None:
+                    request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
+                request['start'] = self.iso8601(since)
+            else:
+                if limit is not None:
+                    now = self.milliseconds()
+                    request['start'] = self.iso8601(now - limit * duration * 1000)
+                    request['end'] = self.iso8601(now)
         else:
-            now = self.milliseconds()
-            if limit is not None:
-                request['start'] = self.iso8601(now - limit * duration * 1000)
-                request['end'] = self.iso8601(now)
+            method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles'
+            if since is not None:
+                if limit is None:
+                    limit = 300  # default
+                request['start'] = self.iso8601(self.sum(since, limit * duration * 1000))
+                request['end'] = self.iso8601(since)
+            else:
+                if limit is not None:
+                    now = self.milliseconds()
+                    request['end'] = self.iso8601(now - limit * duration * 1000)
+                    request['start'] = self.iso8601(now)
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot markets
@@ -1401,7 +1425,7 @@ class okex(Exchange):
         #         ]
         #     ]
         #
-        return self.parse_ohlcvs(response, market)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_account_balance(self, response):
         #
@@ -1571,9 +1595,27 @@ class okex(Exchange):
             code = self.safe_currency_code(id)
             balance = self.safe_value(info, id, {})
             account = self.account()
+            totalAvailBalance = self.safe_float(balance, 'total_avail_balance')
+            if self.safe_string(balance, 'margin_mode') == 'fixed':
+                contracts = self.safe_value(balance, 'contracts', [])
+                free = totalAvailBalance
+                for i in range(0, len(contracts)):
+                    contract = contracts[i]
+                    fixedBalance = self.safe_float(contract, 'fixed_balance')
+                    realizedPnl = self.safe_float(contract, 'realized_pnl')
+                    marginFrozen = self.safe_float(contract, 'margin_frozen')
+                    marginForUnfilled = self.safe_float(contract, 'margin_for_unfilled')
+                    margin = self.sum(fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled
+                    free = self.sum(free, margin)
+                account['free'] = free
+            else:
+                realizedPnl = self.safe_float(balance, 'realized_pnl')
+                unrealizedPnl = self.safe_float(balance, 'unrealized_pnl')
+                marginFrozen = self.safe_float(balance, 'margin_frozen')
+                marginForUnfilled = self.safe_float(balance, 'margin_for_unfilled')
+                account['free'] = self.sum(totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled
             # it may be incorrect to use total, free and used for swap accounts
             account['total'] = self.safe_float(balance, 'equity')
-            account['free'] = self.safe_float(balance, 'total_avail_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1767,7 +1809,7 @@ class okex(Exchange):
         request = {
             'instrument_id': market['id'],
             # 'client_oid': 'abcdef1234567890',  # [a-z0-9]{1,32}
-            # 'order_type': '0',  # 0: Normal limit order(Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
+            # 'order_type': '0',  # 0 = Normal limit order, 1 = Post only, 2 = Fill Or Kill, 3 = Immediatel Or Cancel, 4 = Market for futures only
         }
         clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
         if clientOrderId is not None:
@@ -1779,9 +1821,15 @@ class okex(Exchange):
             request = self.extend(request, {
                 'type': type,  # 1:open long 2:open short 3:close long 4:close short for futures
                 'size': size,
-                'price': self.price_to_precision(symbol, price),
                 # 'match_price': '0',  # Order at best counter party price?(0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0(regular order).
             })
+            orderType = self.safe_string(params, 'order_type')
+            # order_type == '4' means a market order
+            isMarketOrder = (type == 'market') or (orderType == '4')
+            if isMarketOrder:
+                request['match_price'] = '1'
+            else:
+                request['price'] = self.price_to_precision(symbol, price)
             if market['futures']:
                 request['leverage'] = '10'  # or '20'
             method = market['type'] + 'PostOrder'
@@ -1823,15 +1871,23 @@ class okex(Exchange):
         #         "result":true
         #     }
         #
-        return self.parse_order(response, market)
+        order = self.parse_order(response, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        if market['futures'] or market['swap']:
+            type = market['type']
+        else:
+            defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
+            type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
@@ -1971,11 +2027,6 @@ class okex(Exchange):
         type = self.safe_string(order, 'type')
         if (side != 'buy') and (side != 'sell'):
             side = self.parse_order_side(type)
-        if (type != 'limit') and (type != 'market'):
-            if 'pnl' in order:
-                type = 'futures'
-            else:
-                type = 'swap'
         symbol = None
         marketId = self.safe_string(order, 'instrument_id')
         if marketId in self.markets_by_id:
@@ -2014,6 +2065,8 @@ class okex(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
+        if len(clientOrderId) < 1:
+            clientOrderId = None  # fix empty clientOrderId string
         return {
             'info': order,
             'id': id,
@@ -2111,8 +2164,12 @@ class okex(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        if market['futures'] or market['swap']:
+            type = market['type']
+        else:
+            defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
+            type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         request = {
@@ -2194,7 +2251,7 @@ class okex(Exchange):
         #     }
         #
         orders = None
-        if market['type'] == 'swap' or market['type'] == 'futures':
+        if market['swap'] or market['futures']:
             orders = self.safe_value(response, 'order_info', [])
         else:
             orders = response
@@ -2333,7 +2390,7 @@ class okex(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['code'] = currency['code']
+            request['currency'] = currency['id']
             method += 'Currency'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)
@@ -2345,7 +2402,7 @@ class okex(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['code'] = currency['code']
+            request['currency'] = currency['id']
             method += 'Currency'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)
@@ -2376,7 +2433,7 @@ class okex(Exchange):
         #
         statuses = {
             '-3': 'pending',
-            '-2': 'pending',
+            '-2': 'canceled',
             '-1': 'failed',
             '0': 'pending',
             '1': 'pending',
@@ -2904,6 +2961,9 @@ class okex(Exchange):
         isArray = isinstance(response[0], list)
         isMargin = (type == 'margin')
         entries = response[0] if (isMargin and isArray) else response
+        if type == 'swap':
+            ledgerEntries = self.parse_ledger(entries)
+            return self.filter_by_symbol_since_limit(ledgerEntries, code, since, limit)
         return self.parse_ledger(entries, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -3011,6 +3071,11 @@ class okex(Exchange):
         before = None
         after = self.safe_float(item, 'balance')
         status = 'ok'
+        marketId = self.safe_string(item, 'instrument_id')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         return {
             'info': item,
             'id': id,
@@ -3019,6 +3084,7 @@ class okex(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
+            'symbol': symbol,
             'amount': amount,
             'before': before,  # balance before
             'after': after,  # balance after
@@ -3075,19 +3141,23 @@ class okex(Exchange):
         return self.safe_string(auth, key, 'private')
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if not response:
+            return  # fallback to default error handler
         feedback = self.id + ' ' + body
         if code == 503:
             # {"message":"name resolution failed"}
             raise ExchangeNotAvailable(feedback)
-        if not response:
-            return  # fallback to default error handler
+        #
+        #     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
+        #
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
-        if message is not None:
+        nonEmptyMessage = ((message is not None) and (message != ''))
+        nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
+        if nonEmptyMessage:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        if nonZeroErrorCode:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            nonEmptyMessage = (message != '')
-            nonZeroErrorCode = (errorCode is not None) and (errorCode != '0')
-            if nonZeroErrorCode or nonEmptyMessage:
-                raise ExchangeError(feedback)  # unknown message
+        if nonZeroErrorCode or nonEmptyMessage:
+            raise ExchangeError(feedback)  # unknown message

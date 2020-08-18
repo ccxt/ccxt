@@ -18,27 +18,29 @@ module.exports = class bybit extends Exchange {
             'userAgent': undefined,
             'rateLimit': 100,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'fetchMarkets': true,
-                'fetchBalance': true,
-                'fetchOHLCV': true,
+                'cancelAllOrders': true,
+                'createOrder': true,
                 'editOrder': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOrderTrades': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
                 'fetchTime': true,
-                'fetchWithdrawals': true,
-                'fetchDeposits': false,
+                'fetchTrades': true,
                 'fetchTransactions': false,
-                'fetchLedger': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -132,11 +134,6 @@ module.exports = class bybit extends Exchange {
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
-                        'position/set-auto-add-margin',
-                        'position/set-leverage',
-                        'position/switch-isolated',
-                        'position/trading-stop',
-                        'position/add-margin',
                         'trade/execution/list',
                         'trade/closed-pnl/list',
                         'risk-limit',
@@ -150,6 +147,11 @@ module.exports = class bybit extends Exchange {
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'position/switch-isolated',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/trading-stop',
+                        'position/add-margin',
                     ],
                 },
                 'position': {
@@ -645,7 +647,7 @@ module.exports = class bybit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         // inverse perpetual BTC/USD
         //
@@ -758,7 +760,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOHLCVs (result, market);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1199,13 +1201,19 @@ module.exports = class bybit extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let qty = this.amountToPrecision (symbol, amount);
+        if (market['inverse']) {
+            qty = parseInt (qty);
+        } else {
+            qty = parseFloat (qty);
+        }
         const request = {
             // orders ---------------------------------------------------------
             'side': this.capitalize (side),
             'symbol': market['id'],
             'order_type': this.capitalize (type),
-            'qty': this.amountToPrecision (symbol, amount), // order quantity in USD, integer only
-            // 'price': this.priceToPrecision (symbol, price), // required for limit orders
+            'qty': qty, // order quantity in USD, integer only
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)), // required for limit orders
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
@@ -1229,7 +1237,7 @@ module.exports = class bybit extends Exchange {
         }
         if (priceIsRequired) {
             if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             } else {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
@@ -1244,8 +1252,8 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
                 method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
-                request['stop_px'] = this.priceToPrecision (symbol, stopPx);
-                request['base_price'] = this.priceToPrecision (symbol, basePrice);
+                request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
+                request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
                 params = this.omit (params, [ 'stop_px', 'base_price' ]);
             }
         } else if (basePrice !== undefined) {
@@ -1364,10 +1372,10 @@ module.exports = class bybit extends Exchange {
             request['order_id'] = id;
         }
         if (amount !== undefined) {
-            request['p_r_qty'] = this.amountToPrecision (symbol, amount);
+            request['p_r_qty'] = parseInt (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
-            request['p_r_price'] = this.priceToPrecision (symbol, price);
+            request['p_r_price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1407,7 +1415,7 @@ module.exports = class bybit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2076,7 +2084,10 @@ module.exports = class bybit extends Exchange {
                 'recv_window': this.options['recvWindow'],
                 'timestamp': timestamp,
             });
-            const auth = this.rawencode (this.keysort (query));
+            let auth = this.rawencode (this.keysort (query));
+            // fix https://github.com/ccxt/ccxt/issues/7377
+            // bybit encodes whole floats as integers without .0
+            auth = auth.replace ('.0&', '&');
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'POST') {
                 body = this.json (this.extend (query, {

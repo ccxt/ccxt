@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,15 +15,23 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -128,6 +136,7 @@ module.exports = class cex extends Exchange {
                     'Rate limit exceeded': RateLimitExceeded,
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
+                    'Sorry, too many clients already': DDoSProtection,
                 },
             },
             'options': {
@@ -393,7 +402,7 @@ module.exports = class cex extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1591403940,

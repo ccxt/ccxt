@@ -20,21 +20,27 @@ class bibox extends Exchange {
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'publicAPI' => false,
+                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchWithdrawals' => true,
+                'publicAPI' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -371,7 +377,7 @@ class bibox extends Exchange {
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1591448220000,
@@ -414,7 +420,7 @@ class bibox extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_currencies($params = array ()) {

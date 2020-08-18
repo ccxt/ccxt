@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -33,18 +34,25 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchDepositAddress': True,
                 'fetchDeposits': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': False,
                 'withdraw': True,
@@ -196,6 +204,8 @@ class yobit(Exchange):
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
                     'invalid nonce': InvalidNonce,  # {"success":0,"error":"invalid nonce(has already been used)"}'
+                    'Total order amount is less than minimal amount': InvalidOrder,
+                    'Rate Limited': RateLimitExceeded,
                 },
             },
         })

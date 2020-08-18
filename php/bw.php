@@ -561,7 +561,7 @@ class bw extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         "K",
@@ -613,7 +613,7 @@ class bw extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'datas', array());
-        return $this->parse_ohlcvs($data, $market);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

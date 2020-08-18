@@ -49,17 +49,15 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
 
-[The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
-
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
 
 [Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
 
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
 
-[The Evolution of CCXT](https://www.youtube.com/watch?v=O5HrvSLeo90) – An awesome Gource visualization video on YouTube! )
-
 [What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
+
+[The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 

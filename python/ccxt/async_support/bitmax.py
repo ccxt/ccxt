@@ -43,7 +43,7 @@ class bitmax(Exchange):
                 'cancelAllOrders': True,
                 'fetchDepositAddress': True,
                 'fetchTransactions': True,
-                'fetchDeposts': True,
+                'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -97,9 +97,26 @@ class bitmax(Exchange):
                         'futures/funding-rates',
                     ],
                 },
+                'accountCategory': {
+                    'get': [
+                        'balance',
+                        'order/open',
+                        'order/status',
+                        'order/hist/current',
+                        'risk',
+                    ],
+                    'post': [
+                        'order',
+                        'order/batch',
+                    ],
+                    'delete': [
+                        'order',
+                        'order/all',
+                        'order/batch',
+                    ],
+                },
                 'accountGroup': {
                     'get': [
-                        '{account-category}/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -108,21 +125,11 @@ class bitmax(Exchange):
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        '{account-category}/order/open',
-                        '{account-category}/order/status',
-                        '{account-category}/order/hist/current',
                         'order/hist',
                     ],
                     'post': [
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        '{account-category}/order',
-                        '{account-category}/order/batch',
-                    ],
-                    'delete': [
-                        '{account-category}/order',
-                        '{account-category}/order/all',
-                        '{account-category}/order/batch',
                     ],
                 },
                 'private': {
@@ -530,11 +537,11 @@ class bitmax(Exchange):
         request = {
             'account-group': accountGroup,
         }
-        method = 'accountGroupGetCashBalance'
-        if accountCategory == 'margin':
-            method = 'accountGroupGetMarginBalance'
-        elif accountCategory == 'futures':
+        method = 'accountCategoryGetBalance'
+        if accountCategory == 'futures':
             method = 'accountGroupGetFuturesCollateralBalance'
+        else:
+            request['account-category'] = accountCategory
         response = await getattr(self, method)(self.extend(request, params))
         #
         # cash
@@ -643,7 +650,7 @@ class bitmax(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
+        symbol = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         elif marketId is not None:
@@ -750,7 +757,7 @@ class bitmax(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "m":"bar",
@@ -819,7 +826,7 @@ class bitmax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -967,7 +974,7 @@ class bitmax(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
+        timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
@@ -1058,7 +1065,7 @@ class bitmax(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
-        response = await self.accountGroupPostAccountCategoryOrder(self.extend(request, params))
+        response = await self.accountCategoryPostOrder(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1096,7 +1103,7 @@ class bitmax(Exchange):
             'account-category': accountCategory,
             'orderId': id,
         }
-        response = await self.accountGroupGetAccountCategoryOrderStatus(self.extend(request, params))
+        response = await self.accountCategoryGetOrderStatus(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1144,7 +1151,7 @@ class bitmax(Exchange):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        response = await self.accountGroupGetAccountCategoryOrderOpen(self.extend(request, params))
+        response = await self.accountCategoryGetOrderOpen(self.extend(request, params))
         #
         #     {
         #         "ac": "CASH",
@@ -1173,7 +1180,14 @@ class bitmax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_orders(data, market, since, limit)
+        if accountCategory == 'futures':
+            return self.parse_orders(data, market, since, limit)
+        # a workaround for https://github.com/ccxt/ccxt/issues/7187
+        orders = []
+        for i in range(0, len(data)):
+            order = self.parse_order(data[i], market)
+            orders.append(order)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1215,7 +1229,7 @@ class bitmax(Exchange):
             request['pageSize'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # accountGroupGetAccountCategoryOrderHistCurrent
+        # accountCategoryGetOrderHistCurrent
         #
         #     {
         #         "code":0,
@@ -1310,7 +1324,7 @@ class bitmax(Exchange):
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = await self.accountGroupDeleteAccountCategoryOrder(self.extend(request, params))
+        response = await self.accountCategoryDeleteOrder(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1352,7 +1366,7 @@ class bitmax(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.accountGroupDeleteAccountCategoryOrderAll(self.extend(request, params))
+        response = await self.accountCategoryDeleteOrderAll(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1586,11 +1600,16 @@ class bitmax(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = ''
         query = params
-        if api == 'accountGroup':
+        accountCategory = (api == 'accountCategory')
+        if accountCategory or (api == 'accountGroup'):
             url += self.implode_params('/{account-group}', params)
             query = self.omit(params, 'account-group')
         request = self.implode_params(path, query)
-        url += '/api/pro/' + self.version + '/' + request
+        url += '/api/pro/' + self.version
+        if accountCategory:
+            url += self.implode_params('/{account-category}', query)
+            query = self.omit(query, 'account-category')
+        url += '/' + request
         query = self.omit(query, self.extract_params(path))
         if api == 'public':
             if query:

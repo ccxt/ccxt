@@ -17,12 +17,20 @@ class lbank extends Exchange {
             'countries' => array( 'CN' ),
             'version' => 'v1',
             'has' => array(
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => false, // status 0 API doesn't work
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => false, // status 0 API doesn't work
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'minute1',
@@ -105,6 +113,7 @@ class lbank extends Exchange {
             ),
             'commonCurrencies' => array(
                 'VET_ERC20' => 'VEN',
+                'PNT' => 'Penta',
             ),
             'options' => array(
                 'cacheSecretAsPem' => true,
@@ -326,7 +335,7 @@ class lbank extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1590969600,
@@ -370,7 +379,7 @@ class lbank extends Exchange {
         //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
         //     ]
         //
-        return $this->parse_ohlcvs($response, $market);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {

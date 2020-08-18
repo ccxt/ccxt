@@ -15,12 +15,20 @@ module.exports = class lbank extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v1',
             'has': {
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': false, // status 0 API doesn't work
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'minute1',
@@ -103,6 +111,7 @@ module.exports = class lbank extends Exchange {
             },
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
+                'PNT': 'Penta',
             },
             'options': {
                 'cacheSecretAsPem': true,
@@ -324,7 +333,7 @@ module.exports = class lbank extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1590969600,
@@ -368,7 +377,7 @@ module.exports = class lbank extends Exchange {
         //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {

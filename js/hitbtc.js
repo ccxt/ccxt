@@ -18,24 +18,32 @@ module.exports = class hitbtc extends Exchange {
             'version': '2',
             'pro': true,
             'has': {
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'editOrder': true,
-                'fetchCurrencies': true,
-                'fetchOHLCV': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchOrderTrades': false, // not implemented yet
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchTransactions': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -154,6 +162,7 @@ module.exports = class hitbtc extends Exchange {
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
+                'PNT': 'Penta',
             },
             'exceptions': {
                 '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -356,7 +365,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "timestamp":"2015-08-20T19:01:00.000Z",
@@ -399,7 +408,7 @@ module.exports = class hitbtc extends Exchange {
         //         {"timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"},
         //     ]
         //
-        return this.parseOHLCVs (response, market);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -293,7 +293,7 @@ class qtrade extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":"2019-12-07T22:55:00Z",
@@ -336,7 +336,7 @@ class qtrade extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ohlcvs = $this->safe_value($data, 'slices', array());
-        return $this->parse_ohlcvs($ohlcvs, $market);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

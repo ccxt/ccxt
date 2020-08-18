@@ -28,20 +28,26 @@ class bitmex(Exchange):
             'rateLimit': 2000,
             'pro': True,
             'has': {
-                'CORS': False,
-                'fetchOHLCV': True,
-                'withdraw': True,
-                'editOrder': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
-                'fetchTransactions': 'emulated',
-                'createOrder': True,
-                'cancelOrder': True,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'CORS': False,
+                'createOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': 'emulated',
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -111,6 +117,7 @@ class bitmex(Exchange):
                         'user/checkReferralCode',
                         'user/commission',
                         'user/depositAddress',
+                        'user/executionHistory',
                         'user/margin',
                         'user/minWithdrawalFee',
                         'user/wallet',
@@ -259,25 +266,126 @@ class bitmex(Exchange):
             })
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        request = {
-            'currency': 'all',
-        }
-        response = self.privateGetUserMargin(self.extend(request, params))
+    def parse_balance_response(self, response):
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableMargin')
-            account['total'] = self.safe_float(balance, 'marginBalance')
+            free = self.safe_float(balance, 'availableMargin')
+            total = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
-                account['free'] = account['free'] * 0.00000001
-                account['total'] = account['total'] * 0.00000001
+                if free is not None:
+                    free /= 100000000
+                if total is not None:
+                    total /= 100000000
+            account['free'] = free
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        request = {
+            'currency': 'all',
+        }
+        response = self.privateGetUserMargin(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
+        return self.parse_balance_response(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -489,7 +597,7 @@ class bitmex(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_float(item, 'amount')
         if amount is not None:
-            amount = amount * 1e-8
+            amount = amount / 100000000
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
         if timestamp is None:
             # https://github.com/ccxt/ccxt/issues/6047
@@ -498,14 +606,14 @@ class bitmex(Exchange):
             timestamp = 0  # see comments above
         feeCost = self.safe_float(item, 'fee', 0)
         if feeCost is not None:
-            feeCost = feeCost * 1e-8
+            feeCost = feeCost / 100000000
         fee = {
             'cost': feeCost,
             'currency': code,
         }
         after = self.safe_float(item, 'walletBalance')
         if after is not None:
-            after = after * 1e-8
+            after = after / 100000000
         before = self.sum(after, -amount)
         direction = None
         if amount < 0:
@@ -632,10 +740,10 @@ class bitmex(Exchange):
             addressTo = address
         amount = self.safe_integer(transaction, 'amount')
         if amount is not None:
-            amount = abs(amount) * 1e-8
+            amount = abs(amount) / 10000000
         feeCost = self.safe_integer(transaction, 'fee')
         if feeCost is not None:
-            feeCost = feeCost * 1e-8
+            feeCost = feeCost / 10000000
         fee = {
             'cost': feeCost,
             'currency': 'BTC',
@@ -831,7 +939,7 @@ class bitmex(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -888,6 +996,8 @@ class bitmex(Exchange):
                 timestamp = self.sum(timestamp, duration)
             ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
+        else:
+            request['reverse'] = True
         response = self.publicGetTradeBucketed(self.extend(request, params))
         #
         #     [
@@ -896,7 +1006,7 @@ class bitmex(Exchange):
         #         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         #     ]
         #
-        result = self.parse_ohlcvs(response, market)
+        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
         if fetchOHLCVOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             # we can emulate the open timestamp by shifting all the timestamps one place
@@ -1100,6 +1210,9 @@ class bitmex(Exchange):
         }
         if since is not None:
             request['startTime'] = self.iso8601(since)
+        else:
+            # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
+            request['reverse'] = True
         if limit is not None:
             request['count'] = limit
         response = self.publicGetTrade(self.extend(request, params))
@@ -1163,6 +1276,8 @@ class bitmex(Exchange):
             if clientOrderId is not None:
                 request['clOrdID'] = clientOrderId
             params = self.omit(params, ['origClOrdID', 'clOrdID', 'clientOrderId'])
+        else:
+            request['orderID'] = id
         if amount is not None:
             request['orderQty'] = amount
         if price is not None:
