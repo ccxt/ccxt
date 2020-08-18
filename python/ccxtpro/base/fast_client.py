@@ -28,12 +28,10 @@ class FastClient(AiohttpClient):
         def feed_data(message, size):
             if not self.stack:
                 self.asyncio_loop.call_soon(handler)
-            if len(self.stack) < self.max_size:
-                self.stack.append(message)
-            else:
+            if len(self.stack) > self.max_size:
                 while self.stack:
                     self.handle_message(self.stack.pop())
-                self.handle_message(message)
+            self.stack.append(message)
 
         def feed_eof():
             self.on_error(NetworkError(1006))
