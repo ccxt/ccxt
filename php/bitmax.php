@@ -89,9 +89,26 @@ class bitmax extends Exchange {
                         'futures/funding-rates',
                     ),
                 ),
+                'accountCategory' => array(
+                    'get' => array(
+                        'balance',
+                        'order/open',
+                        'order/status',
+                        'order/hist/current',
+                        'risk',
+                    ),
+                    'post' => array(
+                        'order',
+                        'order/batch',
+                    ),
+                    'delete' => array(
+                        'order',
+                        'order/all',
+                        'order/batch',
+                    ),
+                ),
                 'accountGroup' => array(
                     'get' => array(
-                        'array(account-category)/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -100,21 +117,11 @@ class bitmax extends Exchange {
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        'array(account-category)/order/open',
-                        'array(account-category)/order/status',
-                        'array(account-category)/order/hist/current',
                         'order/hist',
                     ),
                     'post' => array(
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        'array(account-category)/order',
-                        'array(account-category)/order/batch',
-                    ),
-                    'delete' => array(
-                        'array(account-category)/order',
-                        'array(account-category)/order/all',
-                        'array(account-category)/order/batch',
                     ),
                 ),
                 'private' => array(
@@ -533,11 +540,11 @@ class bitmax extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $method = 'accountGroupGetCashBalance';
-        if ($accountCategory === 'margin') {
-            $method = 'accountGroupGetMarginBalance';
-        } else if ($accountCategory === 'futures') {
+        $method = 'accountCategoryGetBalance';
+        if ($accountCategory === 'futures') {
             $method = 'accountGroupGetFuturesCollateralBalance';
+        } else {
+            $request['account-category'] = $accountCategory;
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1101,7 +1108,7 @@ class bitmax extends Exchange {
                 $params = $this->omit($params, 'stopPrice');
             }
         }
-        $response = $this->accountGroupPostAccountCategoryOrder (array_merge($request, $params));
+        $response = $this->accountCategoryPostOrder (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1140,7 +1147,7 @@ class bitmax extends Exchange {
             'account-category' => $accountCategory,
             'orderId' => $id,
         );
-        $response = $this->accountGroupGetAccountCategoryOrderStatus (array_merge($request, $params));
+        $response = $this->accountCategoryGetOrderStatus (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1190,7 +1197,7 @@ class bitmax extends Exchange {
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
         );
-        $response = $this->accountGroupGetAccountCategoryOrderOpen (array_merge($request, $params));
+        $response = $this->accountCategoryGetOrderOpen (array_merge($request, $params));
         //
         //     {
         //         "ac" => "CASH",
@@ -1277,7 +1284,7 @@ class bitmax extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
-        // accountGroupGetAccountCategoryOrderHistCurrent
+        // accountCategoryGetOrderHistCurrent
         //
         //     {
         //         "code":0,
@@ -1376,7 +1383,7 @@ class bitmax extends Exchange {
             $request['id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'id' ));
         }
-        $response = $this->accountGroupDeleteAccountCategoryOrder (array_merge($request, $params));
+        $response = $this->accountCategoryDeleteOrder (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1420,7 +1427,7 @@ class bitmax extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->accountGroupDeleteAccountCategoryOrderAll (array_merge($request, $params));
+        $response = $this->accountCategoryDeleteOrderAll (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1667,12 +1674,18 @@ class bitmax extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '';
         $query = $params;
-        if ($api === 'accountGroup') {
-            $url .= $this->implode_params('/array(account-group)', $params);
+        $accountCategory = ($api === 'accountCategory');
+        if ($accountCategory || ($api === 'accountGroup')) {
+            $url .= $this->implode_params('/{account-group}', $params);
             $query = $this->omit($params, 'account-group');
         }
         $request = $this->implode_params($path, $query);
-        $url .= '/api/pro/' . $this->version . '/' . $request;
+        $url .= '/api/pro/' . $this->version;
+        if ($accountCategory) {
+            $url .= $this->implode_params('/{account-category}', $query);
+            $query = $this->omit($query, 'account-category');
+        }
+        $url .= '/' . $request;
         $query = $this->omit($query, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {

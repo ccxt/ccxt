@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.32.90';
+$version = '1.33.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.32.90';
+    const VERSION = '1.33.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1062,33 +1062,34 @@ class Exchange {
         }
     }
 
-    public function define_rest_api($api, $method_name, $options = array()) {
-        foreach ($api as $type => $methods) {
-            foreach ($methods as $http_method => $paths) {
-                foreach ($paths as $path) {
+    public function define_rest_api($api, $method_name, $paths = array()) {
+        foreach ($api as $key => $value) {
+            if (static::is_associative($value)) {
+                $copy = $paths;
+                array_push ($copy, $key);
+                $this->define_rest_api($value, $method_name, $copy);
+            } else {
+                $uppercaseMethod = mb_strtoupper($key);
+                $lowercaseMethod = mb_strtolower($key);
+                $camelcaseMethod = static::capitalize($lowercaseMethod);
+                foreach ($value as $path) {
                     $splitPath = mb_split('[^a-zA-Z0-9]', $path);
-
-                    $uppercaseMethod = mb_strtoupper($http_method);
-                    $lowercaseMethod = mb_strtolower($http_method);
-                    $camelcaseMethod = static::capitalize($lowercaseMethod);
                     $camelcaseSuffix = implode(array_map(get_called_class() . '::capitalize', $splitPath));
                     $lowercasePath = array_map('trim', array_map('strtolower', $splitPath));
                     $underscoreSuffix = implode('_', array_filter($lowercasePath));
-
-                    $camelcase = $type . $camelcaseMethod . static::capitalize($camelcaseSuffix);
-                    $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower($underscoreSuffix);
-
-                    if (array_key_exists('suffixes', $options)) {
-                        if (array_key_exists('camelcase', $options['suffixes'])) {
-                            $camelcase .= $options['suffixes']['camelcase'];
-                        }
-                        if (array_key_exists('underscore', $options['suffixes'])) {
-                            $underscore .= $options['suffixes']['underscore'];
-                        }
-                    }
-
-                    $this->defined_rest_api[$camelcase] = array($path, $type, $uppercaseMethod, $method_name);
-                    $this->defined_rest_api[$underscore] = array($path, $type, $uppercaseMethod, $method_name);
+                    $camelcasePrefix = implode('', array_merge(
+                        array($paths[0]),
+                        array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
+                    ));
+                    $underscorePrefix = implode('_', array_merge(
+                        array($paths[0]),
+                        array_filter(array_map('trim', array_slice($paths, 1)))
+                    ));
+                    $camelcase = $camelcasePrefix . $camelcaseMethod . static::capitalize($camelcaseSuffix);
+                    $underscore = $underscorePrefix . '_' . $lowercaseMethod . '_' . mb_strtolower($underscoreSuffix);
+                    $apiArgument = (count($paths) > 1) ? $paths : $paths[0];
+                    $this->defined_rest_api[$camelcase] = array($path, $apiArgument, $uppercaseMethod, $method_name);
+                    $this->defined_rest_api[$underscore] = array($path, $apiArgument, $uppercaseMethod, $method_name);
                 }
             }
         }
@@ -2649,7 +2650,7 @@ class Exchange {
             return $s;
         }
         $splitted = explode('E', $s);
-        $number = $splitted[0];
+        $number = rtrim(rtrim($splitted[0], '0'), '.');
         $exp = (int) $splitted[1];
         $len_after_dot = 0;
         if (strpos($number, '.') !== false) {

@@ -205,6 +205,7 @@ class ftx(Exchange):
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
+                    'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
@@ -226,6 +227,10 @@ class ftx(Exchange):
                 },
                 'fetchOrders': {
                     'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
                 },
             },
         })
@@ -1302,7 +1307,7 @@ class ftx(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
@@ -1342,7 +1347,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
-        type = 'deposit' if ('confirmations' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1426,16 +1431,20 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
-            }
+            headers = {}
             if method == 'POST':
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            options = self.safe_value(self.options, 'sign', {})
+            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
+            keyField = headerPrefix + '-KEY'
+            tsField = headerPrefix + '-TS'
+            signField = headerPrefix + '-SIGN'
+            headers[keyField] = self.apiKey
+            headers[tsField] = timestamp
+            headers[signField] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

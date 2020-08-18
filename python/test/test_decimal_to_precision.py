@@ -95,9 +95,9 @@ assert number_to_string(-12.345) == '-12.345'
 assert number_to_string(12.345) == '12.345'
 assert number_to_string(0) == '0'
 assert number_to_string(7.35946e21) == '7359460000000000000000'
-# the following line breaks the test
-# see https://github.com/ccxt/ccxt/issues/5744
-# assert number_to_string(0.00000001) == '0.00000001'
+assert number_to_string(0.00000001) == '0.00000001'
+assert number_to_string(1e-7) == '0.0000001'
+assert number_to_string(-1e-7) == '-0.0000001'
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNDigitsAfterDot

@@ -82,6 +82,9 @@ class itbit extends Exchange {
                 'ETH/USD' => array( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'ETH', 'quoteId' => 'USD' ),
                 'ETH/EUR' => array( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'ETH', 'quoteId' => 'EUR' ),
                 'ETH/SGD' => array( 'id' => 'ETHSGD', 'symbol' => 'ETH/SGD', 'base' => 'ETH', 'quote' => 'SGD', 'baseId' => 'ETH', 'quoteId' => 'SGD' ),
+                'PAXGUSD' => array( 'id' => 'PAXGUSD', 'symbol' => 'PAXG/USD', 'base' => 'PAXG', 'quote' => 'USD', 'baseId' => 'PAXG', 'quoteId' => 'USD' ),
+                'BCHUSD' => array( 'id' => 'BCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'BCH', 'quoteId' => 'USD' ),
+                'LTCUSD' => array( 'id' => 'LTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'LTC', 'quoteId' => 'USD' ),
             ),
             'fees' => array(
                 'trading' => array(

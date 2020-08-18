@@ -52,7 +52,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
 
 # Exchanges
 
-The CCXT Pro library currently supports the following 24 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 25 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                         | id            | name                                                                                | ver | doc                                                                                          | certified                                                                                                                   | pro                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -67,6 +67,7 @@ The CCXT Pro library currently supports the following 24 cryptocurrency exchange
 | [![bitvavo](https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg)](https://bitvavo.com/?a=24F34952F7)                                         | bitvavo       | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                        | 2   | [API](https://docs.bitvavo.com/)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)](https://prime.coinbase.com)                                          | coinbaseprime | [Coinbase Prime](https://prime.coinbase.com)                                        | *   | [API](https://docs.prime.coinbase.com)                                                       |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)](https://pro.coinbase.com/)                                             | coinbasepro   | [Coinbase Pro](https://pro.coinbase.com/)                                           | *   | [API](https://docs.pro.coinbase.com)                                                         |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)           | currencycom   | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)         | 1   | [API](https://currency.com/api)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=1623029)                                                    | ftx           | [FTX](https://ftx.com/#a=1623029)                                                   | *   | [API](https://github.com/ftexchange/ftx)                                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/signup/2436035)                                         | gateio        | [Gate.io](https://www.gate.io/signup/2436035)                                       | 2   | [API](https://gate.io/api2)                                                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                   | hitbtc        | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | 2   | [API](https://api.hitbtc.com)                                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -461,7 +462,7 @@ if exchange.has['watchOrderBook']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -510,7 +511,7 @@ if exchange.has['watchTicker']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -559,7 +560,7 @@ if exchange.has['watchTickers']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -608,7 +609,7 @@ if exchange.has['watchOHLCV']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -659,7 +660,7 @@ if exchange.has['watchTrades']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP
@@ -720,7 +721,7 @@ if exchange.has['watchBalance']:
         except Exception as e:
             print(e)
             # stop the loop on exception or leave it commented to retry
-            # rasie e
+            # raise e
 ```
 
 ```PHP

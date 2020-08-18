@@ -47,11 +47,12 @@ function numberToString (x) { // avoids scientific notation for too large and to
 
     const s = x.toString ()
     if (Math.abs (x) < 1.0) {
-        const e = parseInt (s.split ('e-')[1])
+        const n_e = s.split ('e-')
+        const n = n_e[0].replace ('.', '')
+        const e = parseInt (n_e[1])
         const neg = (s[0] === '-')
         if (e) {
-            x *= Math.pow (10, e - 1)
-            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
+            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + n.substring (neg)
             return x
         }
     } else {
@@ -65,7 +66,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
             return m[0] + m[1] + (new Array (e + 1)).join ('0')
         }
     }
-    return s;
+    return s
 }
 
 //-----------------------------------------------------------------------------

@@ -1228,10 +1228,8 @@ class wavesexchange(Exchange):
             code = None
             if currencyId in self.currencies_by_id:
                 code = self.safe_currency_code(currencyId)
-            else:
-                code = self.safe_currency_code(self.safe_string(issueTransaction, 'name'))
-            result[code] = self.account()
-            result[code]['total'] = self.from_wei(balance, decimals)
+                result[code] = self.account()
+                result[code]['total'] = self.from_wei(balance, decimals)
         timestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),

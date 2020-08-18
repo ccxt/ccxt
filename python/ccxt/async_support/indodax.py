@@ -155,7 +155,7 @@ class indodax(Exchange):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = self.safe_string(market, 'id')
+            id = self.safe_string(market, 'ticker_id')
             baseId = self.safe_string(market, 'traded_currency')
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
