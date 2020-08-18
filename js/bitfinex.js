@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -509,27 +509,12 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         } else {
             this.handleOrder (client, data);
         }
-        // TODO: move to the abstract caching class
-        let result = [];
-        const values = Object.values (this.orders);
-        for (let i = 0; i < values.length; i++) {
-            const orders = Object.values (values[i]);
-            result = this.arrayConcat (result, orders);
+        // TODO: set this.orders default to undefined
+        const keys = Object.keys (this.orders);
+        const length = keys.length;
+        if (length) {
+            client.resolve (this.orders, 'os');
         }
-        // delete older orders from our structure to prevent memory leaks
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        result = this.sortBy (result, 'timestamp');
-        const resultLength = result.length;
-        if (resultLength > limit) {
-            const toDelete = resultLength - limit;
-            for (let i = 0; i < toDelete; i++) {
-                const id = result[i]['id'];
-                const symbol = result[i]['symbol'];
-                delete this.orders[symbol][id];
-            }
-            result = result.slice (toDelete, resultLength);
-        }
-        client.resolve (result, 'os');
     }
 
     parseWsOrderStatus (status) {
@@ -600,10 +585,14 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'cost': undefined,
             'trades': undefined,
         };
-        if (!(symbol in this.orders)) {
-            this.orders[symbol] = {};
+        const keys = Object.keys (this.orders);
+        const length = keys.length;
+        if (length === 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        this.orders[symbol][id] = parsed;
+        const orderCache = this.orders;
+        orderCache.append (parsed);
         client.resolve (parsed, id);
         return parsed;
     }
