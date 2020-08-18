@@ -180,6 +180,19 @@ class theocean extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array(
             $this->safe_timestamp($ohlcv, 'startTime'),
@@ -201,32 +214,31 @@ class theocean extends Exchange {
             'baseTokenAddress' => $market['baseId'],
             'quoteTokenAddress' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
+            'startTime' => intval ($since),
         );
-        $since = intval ($since);
-        $request['startTime'] = $since;
         $response = $this->publicGetCandlesticks (array_merge($request, $params));
         //
-        //   array(
         //     array(
-        //         "high" => "100.52",
-        //         "low" => "97.23",
-        //         "open" => "98.45",
-        //         "close" => "99.23",
-        //         "baseVolume" => "2400000000000000000000",
-        //         "quoteVolume" => "1200000000000000000000",
-        //         "startTime" => "1512929323784"
-        //     ),
-        //     {
-        //         "high" => "100.52",
-        //         "low" => "97.23",
-        //         "open" => "98.45",
-        //         "close" => "99.23",
-        //         "volume" => "2400000000000000000000",
-        //         "startTime" => "1512929198980"
-        //     }
-        //   )
+        //         array(
+        //             "high" => "100.52",
+        //             "low" => "97.23",
+        //             "open" => "98.45",
+        //             "close" => "99.23",
+        //             "baseVolume" => "2400000000000000000000",
+        //             "quoteVolume" => "1200000000000000000000",
+        //             "startTime" => "1512929323784"
+        //         ),
+        //         {
+        //             "high" => "100.52",
+        //             "low" => "97.23",
+        //             "open" => "98.45",
+        //             "close" => "99.23",
+        //             "volume" => "2400000000000000000000",
+        //             "startTime" => "1512929198980"
+        //         }
+        //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance_by_code($code, $params = array ()) {

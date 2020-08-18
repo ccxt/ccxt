@@ -369,12 +369,12 @@ module.exports = class gateio extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
-            parseInt (ohlcv[0]),   // t
-            parseFloat (ohlcv[5]), // o
-            parseFloat (ohlcv[3]), // h
-            parseFloat (ohlcv[4]), // l
-            parseFloat (ohlcv[2]), // c
-            parseFloat (ohlcv[1]), // v
+            this.safeInteger (ohlcv, 0), // t
+            this.safeFloat (ohlcv, 5), // o
+            this.safeFloat (ohlcv, 3), // h
+            this.safeFloat (ohlcv, 4), // l
+            this.safeFloat (ohlcv, 2), // c
+            this.safeFloat (ohlcv, 1), // v
         ];
     }
 
@@ -405,7 +405,7 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market);
     }
 
     parseTicker (ticker, market = undefined) {

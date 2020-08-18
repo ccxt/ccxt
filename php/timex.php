@@ -429,7 +429,7 @@ class timex extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market);
     }
 
     public function fetch_balance($params = array ()) {

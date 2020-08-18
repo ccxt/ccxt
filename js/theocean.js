@@ -168,6 +168,19 @@ module.exports = class theocean extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         const baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         return [
             this.safeTimestamp (ohlcv, 'startTime'),
@@ -189,32 +202,31 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
             'interval': this.timeframes[timeframe],
+            'startTime': parseInt (since),
         };
-        since = parseInt (since);
-        request['startTime'] = since;
         const response = await this.publicGetCandlesticks (this.extend (request, params));
         //
-        //   [
-        //     {
-        //         "high": "100.52",
-        //         "low": "97.23",
-        //         "open": "98.45",
-        //         "close": "99.23",
-        //         "baseVolume": "2400000000000000000000",
-        //         "quoteVolume": "1200000000000000000000",
-        //         "startTime": "1512929323784"
-        //     },
-        //     {
-        //         "high": "100.52",
-        //         "low": "97.23",
-        //         "open": "98.45",
-        //         "close": "99.23",
-        //         "volume": "2400000000000000000000",
-        //         "startTime": "1512929198980"
-        //     }
-        //   ]
+        //     [
+        //         {
+        //             "high": "100.52",
+        //             "low": "97.23",
+        //             "open": "98.45",
+        //             "close": "99.23",
+        //             "baseVolume": "2400000000000000000000",
+        //             "quoteVolume": "1200000000000000000000",
+        //             "startTime": "1512929323784"
+        //         },
+        //         {
+        //             "high": "100.52",
+        //             "low": "97.23",
+        //             "open": "98.45",
+        //             "close": "99.23",
+        //             "volume": "2400000000000000000000",
+        //             "startTime": "1512929198980"
+        //         }
+        //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market);
     }
 
     async fetchBalanceByCode (code, params = {}) {

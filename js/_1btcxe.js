@@ -163,12 +163,13 @@ module.exports = class _1btcxe extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetHistoricalPrices (this.extend ({
+        const request = {
             'currency': market['id'],
             'timeframe': this.timeframes[timeframe],
-        }, params));
+        };
+        const response = await this.publicGetHistoricalPrices (this.extend (request, params));
         const ohlcvs = this.toArray (this.omit (response['historical-prices'], 'request_currency'));
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (ohlcvs, market);
     }
 
     parseTrade (trade, market = undefined) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.28.78'
+__version__ = '1.29.60'
 
 # -----------------------------------------------------------------------------
 
@@ -262,6 +262,12 @@ class Exchange(BaseExchange):
             raise ExchangeError('updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        raise NotSupported('create_order() not supported yet')
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        raise NotSupported('cancel_order() not supported yet')
 
     async def fetch_trading_fees(self, params={}):
         raise NotSupported('fetch_trading_fees() not supported yet')

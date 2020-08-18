@@ -33,7 +33,7 @@ class indodax(Exchange):
                 'fetchCurrencies': False,
                 'withdraw': True,
             },
-            'version': '1.8',  # as of 9 April 2018
+            'version': '2.0',  # as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
@@ -47,6 +47,8 @@ class indodax(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'server_time',
+                        'pairs',
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
@@ -162,7 +164,32 @@ class indodax(Exchange):
                     'Minimum order': InvalidOrder,
                 },
             },
+            # exchange-specific options
+            'options': {
+                'recvWindow': 5 * 1000,  # default 5 sec
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+            },
         })
+
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetServerTime(params)
+        #
+        #     {
+        #         "timezone": "UTC",
+        #         "server_time": 1571205969552
+        #     }
+        #
+        return self.safe_integer(response, 'server_time')
+
+    async def load_time_difference(self, params={}):
+        serverTime = await self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - serverTime
+        return self.options['timeDifference']
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -493,7 +520,8 @@ class indodax(Exchange):
             self.check_required_credentials()
             body = self.urlencode(self.extend({
                 'method': path,
-                'nonce': self.nonce(),
+                'timestamp': self.nonce(),
+                'recvWindow': self.options['recvWindow'],
             }, params))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

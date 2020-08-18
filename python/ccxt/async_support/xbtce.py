@@ -248,12 +248,12 @@ class xbtce(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['Timestamp'],
-            ohlcv['Open'],
-            ohlcv['High'],
-            ohlcv['Low'],
-            ohlcv['Close'],
-            ohlcv['Volume'],
+            self.safe_integer(ohlcv, 'Timestamp'),
+            self.safe_float(ohlcv, 'Open'),
+            self.safe_float(ohlcv, 'High'),
+            self.safe_float(ohlcv, 'Low'),
+            self.safe_float(ohlcv, 'Close'),
+            self.safe_float(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -271,7 +271,7 @@ class xbtce(Exchange):
         #         'timestamp': since,
         #         'count': limit,
         #     }, params))
-        #     return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
+        #     return self.parse_ohlcvs(response['Bars'], market)
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

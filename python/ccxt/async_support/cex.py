@@ -399,13 +399,23 @@ class cex(Exchange):
         return self.parse_order_book(response, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         1591403940,
+        #         0.024972,
+        #         0.024972,
+        #         0.024969,
+        #         0.024969,
+        #         0.49999900
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -425,8 +435,15 @@ class cex(Exchange):
         }
         try:
             response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
+            #
+            #     {
+            #         "time":20200606,
+            #         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            #     }
+            #
             key = 'data' + self.timeframes[timeframe]
-            ohlcvs = json.loads(response[key])
+            data = self.safe_string(response, key)
+            ohlcvs = json.loads(data)
             return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
         except Exception as e:
             if isinstance(e, NullResponse):

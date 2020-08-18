@@ -363,7 +363,7 @@ class btcmarkets extends Exchange {
         //     }
         //
         $ticks = $this->safe_value($response, 'ticks', array());
-        return $this->parse_ohlcvs($ticks, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ticks, $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
