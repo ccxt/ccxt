@@ -1373,7 +1373,7 @@ class okex extends Exchange {
             'instrument_id' => $market['id'],
             'granularity' => $this->timeframes[$timeframe],
         );
-        if ($market['option']) {
+        if ($market['option'] || $market['spot']) {
             $method = $market['type'] . 'GetInstrumentsInstrumentIdCandles';
             if ($since !== null) {
                 if ($limit !== null) {
