@@ -1356,7 +1356,7 @@ class okex(Exchange):
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
-        if market['option']:
+        if market['option'] or market['spot']:
             method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
             if since is not None:
                 if limit is not None:
