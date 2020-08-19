@@ -30,7 +30,7 @@ class FastClient(AiohttpClient):
                 self.asyncio_loop.call_soon(handler)
             if len(self.stack) > self.max_size:
                 while self.stack:
-                    self.handle_message(self.stack.pop())
+                    self.handle_message(self.stack.popleft())
             self.stack.append(message)
 
         def feed_eof():
