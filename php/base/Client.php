@@ -15,6 +15,12 @@ use Ratchet\RFC6455\Messaging\Message;
 use Exception;
 use RuntimeException;
 
+class headerModifierConnector extends \Ratchet\Client\Connector {
+    public function generateRequest($url, array $subProtocols, array $headers) {
+        return parent::generateRequest($url, $subProtocols, $headers)->withoutHeader('Origin');
+    }
+}
+
 class Client {
 
     public $url;
@@ -130,7 +136,7 @@ class Client {
         }
 
         $connector = new \React\Socket\Connector($this->loop);
-        $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+        $this->connector = new headerModifierConnector($this->loop, $connector);
     }
 
     public function create_connection() {
