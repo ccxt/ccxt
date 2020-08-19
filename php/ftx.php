@@ -916,8 +916,12 @@ class ftx extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
+        $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filledSize');
         $remaining = $this->safe_float($order, 'remainingSize');
+        if (($remaining === 0.0) && ($amount !== null) && ($filled !== null)) {
+            $remaining = max ($amount - $filled, 0);
+        }
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         if ($marketId !== null) {
@@ -936,7 +940,6 @@ class ftx extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
-        $amount = $this->safe_float($order, 'size');
         $average = $this->safe_float($order, 'avgFillPrice');
         $price = $this->safe_float_2($order, 'price', 'triggerPrice', $average);
         $cost = null;
@@ -1459,10 +1462,14 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_transactions($result);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        return $this->parse_transactions($result, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetWalletWithdrawals ($params);
         //
@@ -1482,7 +1489,11 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_transactions($result);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        return $this->parse_transactions($result, $currency, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
