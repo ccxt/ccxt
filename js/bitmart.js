@@ -545,7 +545,7 @@ module.exports = class bitmart extends Exchange {
         //         "next_funding_at":"2020-08-17T04:00:00Z"
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'closeTime', this.milliseconds ());
+        const timestamp = this.safeTimestamp (ticker, 'timestamp', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -561,35 +561,30 @@ module.exports = class bitmart extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'close_24h');
-        let percentage = this.safeFloat (ticker, 'fluctuation');
-        if (percentage === undefined) {
-            percentage = this.safeString (ticker, 'priceChange');
-            if (percentage !== undefined) {
-                percentage = percentage.replace ('%', '');
-                percentage = parseFloat (percentage);
-            }
-        } else {
+        const last = this.safeFloat2 (ticker, 'close_24h', 'last_price');
+        let percentage = this.safeFloat (ticker, 'fluctuation', 'rise_fall_rate');
+        if (percentage !== undefined) {
             percentage *= 100;
         }
         // bitmart base/quote reversed
-        const baseVolume = this.safeFloat (ticker, 'quote_volume_24h');
-        const quoteVolume = this.safeFloat (ticker, 'base_volume_24h');
+        const baseVolume = this.safeFloat2 (ticker, 'quote_volume_24h', 'base_coin_volume');
+        const quoteVolume = this.safeFloat2 (ticker, 'base_volume_24h', 'quote_coin_volume');
         let vwap = undefined;
         if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
             vwap = quoteVolume / baseVolume;
         }
-        const open = this.safeFloat (ticker, 'open_24h');
+        const open = this.safeFloat2 (ticker, 'open_24h', 'open');
         let average = undefined;
         if ((last !== undefined) && (open !== undefined)) {
             average = this.sum (last, open) / 2;
         }
+        average = this.safeFloat (ticker, 'avg_price', average);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat2 (ticker, 'highest_price', 'high_24h'),
-            'low': this.safeFloat2 (ticker, 'lowest_price', 'low_24h'),
+            'high': this.safeFloat2 (ticker, 'high', 'high_24h'),
+            'low': this.safeFloat2 (ticker, 'low', 'low_24h'),
             'bid': this.safeFloat (ticker, 'best_bid'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
             'ask': this.safeFloat (ticker, 'best_ask'),
