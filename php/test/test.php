@@ -7,6 +7,7 @@ date_default_timezone_set('UTC');
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
+include_once 'test_ohlv.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -115,7 +116,7 @@ function test_trades($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
-        dump(green($symbol), 'fetchTrades () not supported');
+        dump(green($symbol), 'fetchTrades() not supported');
     }
 }
 
@@ -133,7 +134,7 @@ function test_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
     } else {
-        dump(green($symbol), 'fetchOrders () not supported');
+        dump(green($symbol), 'fetchOrders() not supported');
     }
 }
 
@@ -152,7 +153,7 @@ function test_closed_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
     } else {
-        dump(green($symbol), 'fetchClosedOrders () not supported');
+        dump(green($symbol), 'fetchClosedOrders() not supported');
     }
 }
 
@@ -171,7 +172,56 @@ function test_open_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
     } else {
-        dump(green($symbol), 'fetchOpenOrders () not supported');
+        dump(green($symbol), 'fetchOpenOrders() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_transactions($exchange, $symbol) {
+    if ($exchange->has['fetchTransactions']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        dump(green($symbol), 'fetching transactions...');
+        $transactions = $exchange->fetch_transactions($symbol);
+        foreach ($transactions as $transaction) {
+            test_order($exchange, $transaction, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($transactions)), 'transactions');
+    } else {
+        dump(green($symbol), 'fetchTransactions() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_ohlcvs($exchange, $symbol) {
+    $ignored_exchanges = array(
+        'cex',
+        'okex',
+        'okexusd',
+    );
+    if (array_key_exists($exchange->id, $ignored_exchanges)) {
+        return;
+    }
+    if ($exchange->has['fetchOHLCV']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
+        $timeframe = array_keys($timeframes)[0];
+        $limit = 10;
+        $duration = $exchange->parse_timeframe($timeframe);
+        $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
+        dump(green($symbol), 'fetching ohlcvs...');
+        $ohlcvs = $exchange->fetch_ohlcv($symbol, $timeframe, $since, $limit);
+        foreach ($ohlcvs as $ohlcv) {
+            test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($ohlcvs)), 'ohlcvs');
+    } else {
+        dump(green($symbol), 'fetchOHLCV() not supported');
     }
 }
 
@@ -184,10 +234,12 @@ function test_symbol($exchange, $symbol) {
     } else {
         test_order_book($exchange, $symbol);
         test_trades($exchange, $symbol);
+        test_ohlcvs($exchange, $symbol);
         if ($exchange->apiKey) {
             test_orders($exchange, $symbol);
             test_closed_orders($exchange, $symbol);
             test_open_orders($exchange, $symbol);
+            test_transactions($exchange, $symbol);
         }
     }
 }
