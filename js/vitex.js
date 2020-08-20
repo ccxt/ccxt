@@ -386,7 +386,12 @@ module.exports = class vitex extends Exchange {
         const cost = this.safeFloat (trade, 'amount');
         const sideTmp = this.safeInteger (trade, 'side');
         const id = this.safeString (trade, 'tradeId');
-        const side = sideTmp === 1 ? 'sell' : 'buy';
+        let side = undefined;
+        if (sideTmp === 1) {
+            side = 'sell';
+        } else if (sideTmp === 0) {
+            side = 'buy';
+        }
         const buyFee = this.safeFloat (trade, 'buyFee');
         const sellFee = this.safeFloat (trade, 'sellFee');
         const amount = this.safeFloat (trade, 'quantity');
@@ -397,7 +402,7 @@ module.exports = class vitex extends Exchange {
         };
         if (side === 'buy') {
             fee['cost'] = buyFee;
-        } else {
+        } else if (side === 'sell') {
             fee['cost'] = sellFee;
         }
         let symbol = undefined;
