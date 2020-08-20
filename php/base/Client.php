@@ -15,7 +15,7 @@ use Ratchet\RFC6455\Messaging\Message;
 use Exception;
 use RuntimeException;
 
-class headerModifierConnector extends \Ratchet\Client\Connector {
+class noOriginHeaderConnector extends \Ratchet\Client\Connector {
     public function generateRequest($url, array $subProtocols, array $headers) {
         return parent::generateRequest($url, $subProtocols, $headers)->withoutHeader('Origin');
     }
@@ -47,6 +47,7 @@ class Client {
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
+    public $noOriginHeader = true;
 
     // ratchet/pawl/reactphp stuff
     public $loop = null;
@@ -136,7 +137,11 @@ class Client {
         }
 
         $connector = new \React\Socket\Connector($this->loop);
-        $this->connector = new headerModifierConnector($this->loop, $connector);
+        if ($this->noOriginHeader) {
+            $this->connector = new noOriginHeaderConnector($this->loop, $connector);
+        } else {
+            $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
+        } 
     }
 
     public function create_connection() {
