@@ -914,8 +914,12 @@ module.exports = class ftx extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filledSize');
-        const remaining = this.safeFloat (order, 'remainingSize');
+        let remaining = this.safeFloat (order, 'remainingSize');
+        if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (amount - filled, 0);
+        }
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         if (marketId !== undefined) {
@@ -934,7 +938,6 @@ module.exports = class ftx extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const amount = this.safeFloat (order, 'size');
         const average = this.safeFloat (order, 'avgFillPrice');
         const price = this.safeFloat2 (order, 'price', 'triggerPrice', average);
         let cost = undefined;
@@ -1410,7 +1413,7 @@ module.exports = class ftx extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'tag');
         const fee = this.safeFloat (transaction, 'fee');
-        const type = ('confirmations' in transaction) ? 'deposit' : 'withdrawal';
+        const type = ('destinationName' in transaction) ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
             'id': id,
@@ -1457,10 +1460,14 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseTransactions (result);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (result, currency, since, limit);
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletWithdrawals (params);
         //
@@ -1480,7 +1487,11 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseTransactions (result);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (result, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

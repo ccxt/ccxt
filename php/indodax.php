@@ -154,7 +154,7 @@ class indodax extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $id = $this->safe_string($market, 'id');
+            $id = $this->safe_string($market, 'ticker_id');
             $baseId = $this->safe_string($market, 'traded_currency');
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);

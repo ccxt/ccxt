@@ -117,6 +117,7 @@ module.exports = class okex extends Exchange {
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                     ],
                     'post': [
                         'order_algo',
@@ -181,6 +182,7 @@ module.exports = class okex extends Exchange {
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                         'instruments/{instrument_id}/index',
                         'rate',
                         'instruments/{instrument_id}/estimated_price',
@@ -225,6 +227,7 @@ module.exports = class okex extends Exchange {
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
                         'instruments/{instrument_id}/candles',
+                        'instruments/{instrument_id}/history/candles',
                         'instruments/{instrument_id}/index',
                         'rate',
                         'instruments/{instrument_id}/open_interest',
@@ -1358,22 +1361,40 @@ module.exports = class okex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
+        let method = undefined;
+        const duration = this.parseTimeframe (timeframe);
         const request = {
             'instrument_id': market['id'],
             'granularity': this.timeframes[timeframe],
         };
-        const duration = this.parseTimeframe (timeframe);
-        if (since !== undefined) {
-            if (limit !== undefined) {
-                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+        if (market['option'] || market['spot']) {
+            method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
+            if (since !== undefined) {
+                if (limit !== undefined) {
+                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                }
+                request['start'] = this.iso8601 (since);
+            } else {
+                if (limit !== undefined) {
+                    const now = this.milliseconds ();
+                    request['start'] = this.iso8601 (now - limit * duration * 1000);
+                    request['end'] = this.iso8601 (now);
+                }
             }
-            request['start'] = this.iso8601 (since);
         } else {
-            const now = this.milliseconds ();
-            if (limit !== undefined) {
-                request['start'] = this.iso8601 (now - limit * duration * 1000);
-                request['end'] = this.iso8601 (now);
+            method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles';
+            if (since !== undefined) {
+                if (limit === undefined) {
+                    limit = 300; // default
+                }
+                request['start'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                request['end'] = this.iso8601 (since);
+            } else {
+                if (limit !== undefined) {
+                    const now = this.milliseconds ();
+                    request['end'] = this.iso8601 (now - limit * duration * 1000);
+                    request['start'] = this.iso8601 (now);
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));

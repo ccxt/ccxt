@@ -243,7 +243,7 @@ async function main () {
             exchange.headers = cfscrapeCookies (www)
 
         if (cors) {
-            exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
+            exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
             exchange.origin = exchange.uuid ()
         }
 

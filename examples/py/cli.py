@@ -96,7 +96,7 @@ config = {
     'enableRateLimit': True,
 }
 
-if not (argv.method and argv.exchange_id):
+if not argv.exchange_id:
     print_usage()
     sys.exit()
 
@@ -111,6 +111,8 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+# pprint(dir(exchange))
 
 # ------------------------------------------------------------------------------
 
@@ -136,16 +138,18 @@ exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
-method = getattr(exchange, argv.method)
-
-# if it is a method, call it
-if callable(method):
-    result = method(*args)
-else:  # otherwise it's a property, print it
-    result = method
-
-if argv.table:
-    result = list(result.values()) if isinstance(result, dict) else result
-    print(table([exchange.omit(v, 'info') for v in result]))
+if argv.method:
+    method = getattr(exchange, argv.method)
+    # if it is a method, call it
+    if callable(method):
+        result = method(*args)
+    else:  # otherwise it's a property, print it
+        result = method
+    if argv.table:
+        result = list(result.values()) if isinstance(result, dict) else result
+        print(table([exchange.omit(v, 'info') for v in result]))
+    else:
+        pprint(result)
 else:
-    pprint(result)
+    pprint(dir(exchange))
+
