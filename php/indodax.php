@@ -98,6 +98,13 @@ class indodax extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
+            'commonCurrencies' => array(
+                'STR' => 'XLM',
+                'BCHABC' => 'BCH',
+                'BCHSV' => 'BSV',
+                'DRK' => 'DASH',
+                'NEM' => 'XEM',
+            ),
         ));
     }
 
