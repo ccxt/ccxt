@@ -565,6 +565,24 @@ class huobipro extends Exchange {
         //
         // fetchMyTrades (private)
         //
+        //     array(
+        //          'symbol' => 'swftcbtc',
+        //          'fee-currency' => 'swftc',
+        //          'filled-fees' => '0',
+        //          'source' => 'spot-api',
+        //          'id' => 83789509854000,
+        //          'type' => 'buy-limit',
+        //          'order-id' => 83711103204909,
+        //          'filled-points' => '0.005826843283532154',
+        //          'fee-deduct-currency' => 'ht',
+        //          'filled-amount' => '45941.53',
+        //          'price' => '0.0000001401',
+        //          'created-at' => 1597933260729,
+        //          'match-id' => 100087455560,
+        //          'role' => 'maker',
+        //          'trade-id' => 100050305348
+        //     ),
+        //
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'symbol');
@@ -597,7 +615,7 @@ class huobipro extends Exchange {
         $feeCost = $this->safe_float($trade, 'filled-fees');
         $feeCurrency = null;
         if ($market !== null) {
-            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+            $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         }
         $filledPoints = $this->safe_float($trade, 'filled-points');
         if ($filledPoints !== null) {

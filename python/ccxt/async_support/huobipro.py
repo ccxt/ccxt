@@ -550,6 +550,24 @@ class huobipro(Exchange):
         #
         # fetchMyTrades(private)
         #
+        #     {
+        #          'symbol': 'swftcbtc',
+        #          'fee-currency': 'swftc',
+        #          'filled-fees': '0',
+        #          'source': 'spot-api',
+        #          'id': 83789509854000,
+        #          'type': 'buy-limit',
+        #          'order-id': 83711103204909,
+        #          'filled-points': '0.005826843283532154',
+        #          'fee-deduct-currency': 'ht',
+        #          'filled-amount': '45941.53',
+        #          'price': '0.0000001401',
+        #          'created-at': 1597933260729,
+        #          'match-id': 100087455560,
+        #          'role': 'maker',
+        #          'trade-id': 100050305348
+        #     },
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -576,7 +594,7 @@ class huobipro(Exchange):
         feeCost = self.safe_float(trade, 'filled-fees')
         feeCurrency = None
         if market is not None:
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
+            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_float(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
