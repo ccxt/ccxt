@@ -5,7 +5,7 @@ const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 const string = require('./base/functions/string');
-const { safeFloat } = require('./base/functions/type');
+const { safeFloat, safeInteger, safeString } = require('./base/functions/type');
 //  ---------------------------------------------------------------------------
 
 module.exports = class equos extends Exchange {
@@ -95,6 +95,7 @@ module.exports = class equos extends Exchange {
                         'getWithdrawRequests',
                         'sendWithdrawRequest',
                         'getUserHistory',
+                        'getOrderHistory',
                         'userTrades',
                     ],
                 },
@@ -123,8 +124,9 @@ module.exports = class equos extends Exchange {
         const results = this.safeValue (response, 'instrumentPairs', []);
         for (let i = 0; i < results.length; i++) {
             const marketResult = this.parseMarket (results[i]);
-            markets.push ();
+            markets.push (marketResult);
         }
+        return markets;
     }
 
     async fetchCurrencies (params = {}) {
@@ -322,13 +324,14 @@ module.exports = class equos extends Exchange {
 
         // returns clOrderId but not orderId
         // HACK: to call twice, will not get merged by kroitor it seems
-        // TODO: Remove before merging la
+        // TODO: Remove before making a pull request
         for (let i = 0; i < 10; i++) {
             try {
-                const orders = this.fetchOrders(symbol);
-                const orderDetails = orders.find(o => o['info']['clOrdId'] === order['clOrdId']);
-                if (orderDetails !== undefined) {
-                    return orderDetails;
+                const fetchedOrders = await this.fetchOrders(symbol);
+                const fetchedOrderDetails = fetchedOrders.find(o => o['info']['clOrdId'] === order['clOrdId']);
+
+                if (fetchedOrderDetails !== undefined) {
+                    return fetchedOrderDetails;
                 }
             } catch (err) {}
         }
@@ -398,15 +401,29 @@ module.exports = class equos extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol, params = {}) {
+
+        // NOTE: We need to fetch order because we need to call the 
         const order = await this.fetchOrder (id, symbol, params);
         if (this.safeString (order, 'status') !== 'open') {
             throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
         }
-        const request = this.safeValue (order, 'info');
-        request['origOrderId'] = this.safeValue (request, 'orderId');
-        const response = await this.privatePostCancelOrder (this.extend (request, params));
-        return this.extend ({ 'info': response }, order);
+        console.log("[cancelOrder] order is: %o", order);
+
+        await this.loadMarkets();
+
+        const clientOrderId = order['info']['orders'][0]['clOrdId'];
+
+        // Equos' API requires the clOrdId and clOrdId
+        const request = {};
+        request['clOrdId'] = clientOrderId;
+        request['instrumentId'] = this.market(symbol)['id'];
+
+        // The API gives back the wrong response without proper id, price, etc.
+        // Therefore, we just return the ID
+        // It will throw an error if it is not cancellable
+        await this.privatePostCancelOrder (this.extend (request, params));
+        return id;
     }
 
     // async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -439,15 +456,13 @@ module.exports = class equos extends Exchange {
         request['orderId'] = id;
         let orderHistoryResponse = await this.privatePostGetOrderHistory (this.extend (request, params));
 
-        // if () {
-
-        // }
         const order = this.parseOrder (orderHistoryResponse, market);
         return order;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -754,7 +769,7 @@ module.exports = class equos extends Exchange {
         }
         let feeTotal = undefined;
         if (this.safeInteger (order, 'feeTotal') !== undefined && this.safeInteger (order, 'fee_scale') !== undefined) {
-            feeTotal = abs(this.convertFromScale (this.safeInteger (order, 'feeTotal'), this.safeInteger (order, 'fee_scale')));
+            feeTotal = Math.abs (this.convertFromScale (this.safeInteger (order, 'feeTotal'), this.safeInteger (order, 'fee_scale')));
         }
         const fee = {                         // fee info, if available
             'currency': currencyCode,        // which currency the fee is (usually quote)
@@ -1238,22 +1253,22 @@ module.exports = class equos extends Exchange {
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
 
         let result = Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params))
-
         // Use id to sort, timestamp is not guaranteed
         // HOWEVER. id is a string and not a number
         // So I need to convert back and forth
         for (let i = 0; i < result.length; i++) {
-            result['id'] = int(result['id']);
+            result['id'] = this.safeInteger (result[i], 'id');
         }
 
         result = this.sortBy (result, 'id')
 
         for (let i = 0; i < result.length; i++) {
-            result['id'] = string(result['id']);
+            result['id'] = this.safeString(result[i], 'id');
         }
 
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const filterred = this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        return filterred;
     }
 
     parseTransactionStatus (status) {
@@ -1328,7 +1343,7 @@ module.exports = class equos extends Exchange {
     /**
      * HACK: Decimal places for order quantity is mapped to order_quantity, which does not correspond to the actual order_quantity
      */
-    getOrderQuantityPrecisionBySymbol(symbol) {
+    getOrderQuantityPrecisionBySymbol (symbol) {
         const mappings = {
             'BTC/USDC': 2,
             'ETH/USDC': 2,
