@@ -510,10 +510,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             this.handleOrder (client, data);
         }
         // TODO: set this.orders default to undefined
-        const keys = Object.keys (this.orders);
-        const length = keys.length;
-        if (length) {
-            client.resolve (this.orders, 'os');
+        if (this.ordersCache) {
+            client.resolve (this.ordersCache, 'os');
         }
     }
 
@@ -585,13 +583,11 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'cost': undefined,
             'trades': undefined,
         };
-        const keys = Object.keys (this.orders);
-        const length = keys.length;
-        if (length === 0) {
+        if (this.ordersCache === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.ordersCache = new ArrayCacheBySymbolById (limit);
         }
-        const orderCache = this.orders;
+        const orderCache = this.ordersCache;
         orderCache.append (parsed);
         client.resolve (parsed, id);
         return parsed;
