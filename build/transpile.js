@@ -762,7 +762,7 @@ class Transpiler {
 
     //-----------------------------------------------------------------------------
 
-    transpilePythonAsyncToSync (oldName, newName) {
+    transpilePythonAsyncToSync () {
 
         const async = './python/test/test_async.py'
         const sync = './python/test/test.py'
