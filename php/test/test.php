@@ -8,6 +8,7 @@ include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlv.php';
+include_once 'test_transaction.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -186,7 +187,7 @@ function test_transactions($exchange, $symbol) {
         dump(green($symbol), 'fetching transactions...');
         $transactions = $exchange->fetch_transactions($symbol);
         foreach ($transactions as $transaction) {
-            test_order($exchange, $transaction, $symbol, time() * 1000);
+            test_transaction($exchange, $transaction, $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($transactions)), 'transactions');
     } else {
