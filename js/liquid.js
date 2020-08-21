@@ -59,6 +59,7 @@ module.exports = class liquid extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'accounts',
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
