@@ -867,6 +867,7 @@ class Exchange {
         $this->precision = array();
         $this->orders = array();
         $this->myTrades = null;
+        $this->ordersCache = null;
         $this->trades = array();
         $this->transactions = array();
         $this->ohlcvs = array();

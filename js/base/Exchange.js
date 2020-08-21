@@ -266,6 +266,7 @@ module.exports = class Exchange {
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
+        this.ordersCache  = undefined  // used in pro
 
         this.requiresWeb3 = false
         this.requiresEddsa = false
