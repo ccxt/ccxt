@@ -509,8 +509,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         } else {
             this.handleOrder (client, data);
         }
-        // TODO: set this.orders default to undefined
-        if (this.ordersCache) {
+        if (this.ordersCache !== undefined) {
             client.resolve (this.ordersCache, 'os');
         }
     }
