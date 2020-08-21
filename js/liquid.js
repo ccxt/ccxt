@@ -425,21 +425,60 @@ module.exports = class liquid extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountsBalance (params);
+        const response = await this.privateGetAccounts (params);
         //
-        //     [
-        //         {"currency":"USD","balance":"0.0"},
-        //         {"currency":"BTC","balance":"0.0"},
-        //         {"currency":"ETH","balance":"0.1651354"}
-        //     ]
+        //     {
+        //         crypto_accounts: [
+        //             {
+        //                 id: 2221179,
+        //                 currency: 'USDT',
+        //                 balance: '0.0',
+        //                 reserved_balance: '0.0',
+        //                 pusher_channel: 'user_xxxxx_account_usdt',
+        //                 lowest_offer_interest_rate: null,
+        //                 highest_offer_interest_rate: null,
+        //                 address: '0',
+        //                 currency_symbol: 'USDT',
+        //                 minimum_withdraw: null,
+        //                 currency_type: 'crypto'
+        //             },
+        //     ],
+        //         fiat_accounts: [
+        //             {
+        //                 id: 1112734,
+        //                 currency: 'USD',
+        //                 balance: '0.0',
+        //                 reserved_balance: '0.0',
+        //                 pusher_channel: 'user_xxxxx_account_usd',
+        //                 lowest_offer_interest_rate: null,
+        //                 highest_offer_interest_rate: null,
+        //                 currency_symbol: '$',
+        //                 send_to_btc_address: null,
+        //                 exchange_rate: '1.0',
+        //                 currency_type: 'fiat'
+        //             }
+        //         ]
+        //     }
         //
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        const crypto = this.safeValue (response, 'crypto_accounts', []);
+        const fiat = this.safeValue (response, 'fiat_accounts', []);
+        for (let i = 0; i < crypto.length; i++) {
+            const balance = crypto[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'reserved_balance');
+            result[code] = account;
+        }
+        for (let i = 0; i < fiat.length; i++) {
+            const balance = fiat[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'reserved_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
