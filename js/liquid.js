@@ -442,7 +442,7 @@ module.exports = class liquid extends Exchange {
         //                 minimum_withdraw: null,
         //                 currency_type: 'crypto'
         //             },
-        //     ],
+        //         ],
         //         fiat_accounts: [
         //             {
         //                 id: 1112734,
