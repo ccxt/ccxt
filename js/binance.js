@@ -810,15 +810,13 @@ module.exports = class binance extends ccxt.binance {
             'fee': fee,
             'trades': trades,
         };
-        const keys = Object.keys (this.orders);
-        const length = keys.length;
-        if (length === 0) {
+        if (this.ordersCache === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+            this.ordersCache = new ArrayCacheBySymbolById (limit);
         }
-        const orderCache = this.orders;
+        const orderCache = this.ordersCache;
         orderCache.append (parsed);
-        client.resolve (this.orders, messageHash);
+        client.resolve (this.ordersCache, messageHash);
     }
 
     handleMessage (client, message) {
