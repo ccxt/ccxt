@@ -1000,13 +1000,48 @@ class bybit(Exchange):
         #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         #     }
         #
+        # conditional order
+        #
+        #     {
+        #         "user_id":##,
+        #         "symbol":"BTCUSD",
+        #         "side":"Buy",
+        #         "order_type":"Market",
+        #         "price":0,
+        #         "qty":10,
+        #         "time_in_force":"GoodTillCancel",
+        #         "stop_order_type":"Stop",
+        #         "trigger_by":"LastPrice",
+        #         "base_price":11833,
+        #         "order_status":"Untriggered",
+        #         "ext_fields":{
+        #             "stop_order_type":"Stop",
+        #             "trigger_by":"LastPrice",
+        #             "base_price":11833,
+        #             "expected_direction":"Rising",
+        #             "trigger_price":12400,
+        #             "close_on_trigger":true,
+        #             "op_from":"api",
+        #             "remark":"145.53.159.48",
+        #             "o_req_num":0
+        #         },
+        #         "leaves_qty":10,
+        #         "leaves_value":0.00080645,
+        #         "reject_reason":null,
+        #         "cross_seq":-1,
+        #         "created_at":"2020-08-21T09:18:48.000Z",
+        #         "updated_at":"2020-08-21T09:18:48.000Z",
+        #         "stop_px":12400,
+        #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         symbol = None
         base = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        id = self.safe_string(order, 'order_id')
+        id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
         amount = self.safe_float(order, 'qty')
