@@ -1339,16 +1339,4 @@ module.exports = class equos extends Exchange {
         const url = this.urls['api'][api] + query;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    /**
-     * HACK: Decimal places for order quantity is mapped to order_quantity, which does not correspond to the actual order_quantity
-     */
-    getOrderQuantityPrecisionBySymbol (symbol) {
-        const mappings = {
-            'BTC/USDC': 2,
-            'ETH/USDC': 2,
-            'ETH/BTC': 3,
-        }
-        return mappings[symbol];
-    }
 };
