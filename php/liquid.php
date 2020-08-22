@@ -194,6 +194,7 @@ class liquid extends Exchange {
             'commonCurrencies' => array(
                 'WIN' => 'WCOIN',
                 'HOT' => 'HOT Token',
+                'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
             'options' => array(
                 'cancelOrderException' => true,

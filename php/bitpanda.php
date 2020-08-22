@@ -240,7 +240,7 @@ class bitpanda extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'MIOTA' => 'IOTA',
+                'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
         ));
     }

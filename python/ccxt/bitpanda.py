@@ -248,7 +248,7 @@ class bitpanda(Exchange):
                 },
             },
             'commonCurrencies': {
-                'MIOTA': 'IOTA',
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
 
