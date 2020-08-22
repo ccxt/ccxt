@@ -59,7 +59,7 @@ module.exports = class liquid extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'accounts',
+                        'accounts', // undocumented https://github.com/ccxt/ccxt/pull/7493
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
