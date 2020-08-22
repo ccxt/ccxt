@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArrayCache } = require ('./base/Cache');
+const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,8 +18,8 @@ module.exports = class ftx extends ccxt.ftx {
                 'watchTrades': true,
                 'watchOHLCV': false, // missing on the exchange side
                 'watchBalance': false, // missing on the exchange side
-                'watchOrders': false, // not implemented yet
-                'watchMyTrades': false, // not implemented yet
+                'watchOrders': true, // not implemented yet
+                'watchMyTrades': true, // not implemented yet
             },
             'urls': {
                 'api': {
@@ -26,6 +27,7 @@ module.exports = class ftx extends ccxt.ftx {
                 },
             },
             'options': {
+                'ordersLimit': 1000,
                 'tradesLimit': 1000,
             },
             'streaming': {
@@ -33,6 +35,10 @@ module.exports = class ftx extends ccxt.ftx {
                 // instead it requires a custom text-based ping-pong
                 'ping': this.ping,
                 'keepAlive': 15000,
+            },
+            'exceptions': {
+                'Invalid login credentials': AuthenticationError,
+                'Not logged in': AuthenticationError,
             },
         });
     }
@@ -49,6 +55,41 @@ module.exports = class ftx extends ccxt.ftx {
         };
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async watchPrivate (channel, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'channel': channel,
+        };
+        const messageHash = channel;
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async authenticate () {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const method = 'login';
+        if (method in client.subscriptions) {
+            return;
+        }
+        const time = this.milliseconds ();
+        const payload = time.toString () + 'websocket_login';
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+        const message = {
+            'args': {
+                'key': this.apiKey,
+                'time': time,
+                'sign': signature,
+            },
+            'op': method,
+        };
+        // ftx does not reply to this message
+        this.spawn (this.watch, url, method, message, method);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -82,9 +123,11 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleUpdate (client, message) {
         const methods = {
-            'trades': this.handleTrades,
+            'trades': this.handleTrade,
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBookUpdate,
+            'orders': this.handleOrder,
+            'fills': this.handleMyTrade,
         };
         const methodName = this.safeString (message, 'channel');
         const method = this.safeValue (methods, methodName);
@@ -241,7 +284,7 @@ module.exports = class ftx extends ccxt.ftx {
         }
     }
 
-    handleTrades (client, message) {
+    handleTrade (client, message) {
         //
         //     {
         //         channel:   "trades",
@@ -288,6 +331,11 @@ module.exports = class ftx extends ccxt.ftx {
     handleSubscriptionStatus (client, message) {
         // todo: handle unsubscription status
         // {'type': 'subscribed', 'channel': 'trades', 'market': 'BTC-PERP'}
+        const channel = this.safeString (message, 'channel');
+        if ((channel === 'orders') || (channel === 'fills')) {
+            // the authentication was s̶u̶c̶c̶e̶s̶s̶f̶u̶l̶ beautiful
+            client.resolve (true, 'login');
+        }
         return message;
     }
 
@@ -305,6 +353,22 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleError (client, message) {
+        const errorMessage = this.safeString (message, 'msg');
+        if (errorMessage in this.exceptions) {
+            const Exception = this.exceptions[errorMessage];
+            if (Exception instanceof AuthenticationError) {
+                const method = 'login';
+                if (method in client.subscriptions) {
+                    delete client.subscriptions[method];
+                }
+            }
+            const error = new Exception (errorMessage);
+            // just reject the private api futures
+            client.reject (error, 'fills');
+            client.reject (error, 'orders');
+        } else {
+            client.reject (new ExchangeError (errorMessage));
+        }
         return message;
     }
 
@@ -320,5 +384,206 @@ module.exports = class ftx extends ccxt.ftx {
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
         return message;
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const future = this.watchPrivate ('orders');
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    handleOrder (client, message) {
+        // futures
+        // { channel: 'orders',
+        //   type: 'update',
+        //   data:
+        //    { id: 8047498974,
+        //      clientId: null,
+        //      market: 'ETH-PERP',
+        //      type: 'limit',
+        //      side: 'buy',
+        //      price: 300,
+        //      size: 0.1,
+        //      status: 'closed',
+        //      filledSize: 0,
+        //      remainingSize: 0,
+        //      reduceOnly: false,
+        //      liquidation: false,
+        //      avgFillPrice: null,
+        //      postOnly: false,
+        //      ioc: false,
+        //      createdAt: '2020-08-22T14:35:07.861545+00:00' } }
+        // spot
+        // { channel: 'orders',
+        //   type: 'update',
+        //   data:
+        //    { id: 8048834542,
+        //      clientId: null,
+        //      market: 'ETH/USD',
+        //      type: 'limit',
+        //      side: 'buy',
+        //      price: 300,
+        //      size: 0.1,
+        //      status: 'new',
+        //      filledSize: 0,
+        //      remainingSize: 0.1,
+        //      reduceOnly: false,
+        //      liquidation: false,
+        //      avgFillPrice: null,
+        //      postOnly: false,
+        //      ioc: false,
+        //      createdAt: '2020-08-22T15:17:32.184123+00:00' } }
+        const messageHash = this.safeString (message, 'channel');
+        const data = this.safeValue (message, 'data');
+        const price = this.safeFloat (data, 'price');
+        const amount = this.safeFloat (data, 'size');
+        const createdAt = this.safeString (data, 'createdAt');
+        const timestamp = this.parse8601 (createdAt);
+        const filled = this.safeFloat (data, 'filledSize');
+        const remaining = this.safeFloat (data, 'remainingSize');
+        const type = this.safeString (data, 'type');
+        const average = this.safeFloat (data, 'avgFillPrice');
+        const side = this.safeString (data, 'side');
+        const marketId = this.safeString (data, 'market');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const id = this.safeString (data, 'id');
+        const rawStatus = this.safeString (data, 'status');
+        const status = this.parseWsOrderStatus (rawStatus);
+        const parsed = {
+            'info': message,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+        if (this.ordersCache === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.ordersCache = new ArrayCacheBySymbolById (limit);
+        }
+        const ordersCache = this.ordersCache;
+        ordersCache.append (parsed);
+        client.resolve (ordersCache, messageHash);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const future = this.watchPrivate ('fills');
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleMyTrade (client, message) {
+        // future
+        // {
+        //   "channel": "fills",
+        //   "data": {
+        //     "fee": 78.05799225,
+        //     "feeRate": 0.0014,
+        //     "future": "BTC-PERP",
+        //     "id": 7828307,
+        //     "liquidity": "taker",
+        //     "market": "BTC-PERP",
+        //     "orderId": 38065410,
+        //     "tradeId": 19129310,
+        //     "price": 3723.75,
+        //     "side": "buy",
+        //     "size": 14.973,
+        //     "time": "2019-05-07T16:40:58.358438+00:00",
+        //     "type": "order"
+        //   },
+        //   "type": "update"
+        // }
+        // spot
+        // { channel: 'fills',
+        //   type: 'update',
+        //   data:
+        //    { id: 182349460,
+        //      market: 'ETH/USD',
+        //      future: null,
+        //      baseCurrency: 'ETH',
+        //      quoteCurrency: 'USD',
+        //      type: 'order',
+        //      side: 'sell',
+        //      price: 391.64,
+        //      size: 0.009,
+        //      orderId: 8049570214,
+        //      time: '2020-08-22T15:42:42.646980+00:00',
+        //      tradeId: 90614141,
+        //      feeRate: 0.000665,
+        //      fee: 0.0023439654,
+        //      feeCurrency: 'USD',
+        //      liquidity: 'taker' } }
+        const messageHash = this.safeString (message, 'channel');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'market');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (data, 'price');
+        const amount = this.safeFloat (data, 'size');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const id = this.safeString (data, 'tradeId');
+        const fee = {
+            'cost': this.safeFloat (data, 'fee'),
+            'currency': this.safeCurrencyCode (this.safeString (data, 'feeCurrency')),
+            'rate': this.safeFloat (data, 'feeRate'),
+        };
+        const time = this.safeString (data, 'time');
+        const timestamp = this.parse8601 (time);
+        const takerOrMaker = this.safeString (data, 'liquidity');
+        const orderId = this.safeString (data, 'orderId');
+        const side = this.safeString (data, 'side');
+        const parsed = {
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const tradesCache = this.myTrades;
+        tradesCache.append (parsed);
+        client.resolve (tradesCache, messageHash);
     }
 };
