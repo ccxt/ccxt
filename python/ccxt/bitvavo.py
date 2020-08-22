@@ -235,6 +235,9 @@ class bitvavo(Exchange):
                     'expires': 1000,  # 1 second
                 },
             },
+            'commonCurrencies': {
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+            },
         })
 
     def fetch_time(self, params={}):
