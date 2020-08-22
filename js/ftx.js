@@ -367,7 +367,8 @@ module.exports = class ftx extends ccxt.ftx {
             client.reject (error, 'fills');
             client.reject (error, 'orders');
         } else {
-            client.reject (new ExchangeError (errorMessage));
+            const error = new ExchangeError (errorMessage);
+            client.reject (error);
         }
         return message;
     }
