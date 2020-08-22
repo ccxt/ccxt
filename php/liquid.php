@@ -64,6 +64,7 @@ class liquid extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'accounts', // undocumented https://github.com/ccxt/ccxt/pull/7493
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
@@ -430,21 +431,60 @@ class liquid extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccountsBalance ($params);
+        $response = $this->privateGetAccounts ($params);
         //
-        //     array(
-        //         array("currency":"USD","$balance":"0.0"),
-        //         array("currency":"BTC","$balance":"0.0"),
-        //         array("currency":"ETH","$balance":"0.1651354")
-        //     )
+        //     {
+        //         crypto_accounts => array(
+        //             array(
+        //                 id => 2221179,
+        //                 currency => 'USDT',
+        //                 $balance => '0.0',
+        //                 reserved_balance => '0.0',
+        //                 pusher_channel => 'user_xxxxx_account_usdt',
+        //                 lowest_offer_interest_rate => null,
+        //                 highest_offer_interest_rate => null,
+        //                 address => '0',
+        //                 currency_symbol => 'USDT',
+        //                 minimum_withdraw => null,
+        //                 currency_type => 'crypto'
+        //             ),
+        //         ),
+        //         fiat_accounts => array(
+        //             {
+        //                 id => 1112734,
+        //                 currency => 'USD',
+        //                 $balance => '0.0',
+        //                 reserved_balance => '0.0',
+        //                 pusher_channel => 'user_xxxxx_account_usd',
+        //                 lowest_offer_interest_rate => null,
+        //                 highest_offer_interest_rate => null,
+        //                 currency_symbol => '$',
+        //                 send_to_btc_address => null,
+        //                 exchange_rate => '1.0',
+        //                 currency_type => 'fiat'
+        //             }
+        //         )
+        //     }
         //
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+        $crypto = $this->safe_value($response, 'crypto_accounts', array());
+        $fiat = $this->safe_value($response, 'fiat_accounts', array());
+        for ($i = 0; $i < count($crypto); $i++) {
+            $balance = $crypto[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'reserved_balance');
+            $result[$code] = $account;
+        }
+        for ($i = 0; $i < count($fiat); $i++) {
+            $balance = $fiat[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'reserved_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
