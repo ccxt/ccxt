@@ -239,6 +239,9 @@ class bitpanda extends Exchange {
                 'broad' => array(
                 ),
             ),
+            'commonCurrencies' => array(
+                'MIOTA' => 'IOTA',
+            ),
         ));
     }
 
