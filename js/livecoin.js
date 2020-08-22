@@ -112,6 +112,7 @@ module.exports = class livecoin extends Exchange {
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'UNUS': 'LEO', // https://github.com/ccxt/ccxt/issues/7496
                 'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
