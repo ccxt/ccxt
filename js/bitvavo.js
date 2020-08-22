@@ -221,6 +221,9 @@ module.exports = class bitvavo extends Exchange {
                     'expires': 1000, // 1 second
                 },
             },
+            'commonCurrencies': {
+                'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            },
         });
     }
 
