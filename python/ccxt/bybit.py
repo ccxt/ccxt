@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -155,9 +154,11 @@ class bybit(Exchange):
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
                         'position/set-leverage',
@@ -1330,8 +1331,6 @@ class bybit(Exchange):
             raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
-        if marketType == 'linear':
-            raise NotSupported(self.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1344,10 +1343,10 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
+        method = 'privateLinearPostOrderReplace' if (marketType == 'linear') else 'openapiPostOrderReplace'
         stopOrderId = self.safe_string(params, 'stop_order_id')
-        method = 'openapiPostOrderReplace'
         if stopOrderId is not None:
-            method = 'openapiPostStopOrderReplace'
+            method = 'privateLinearPostStopOrderReplace' if (marketType == 'linear') else 'openapiPostStopOrderReplace'
             request['stop_order_id'] = stopOrderId
             params = self.omit(params, ['stop_order_id'])
         else:

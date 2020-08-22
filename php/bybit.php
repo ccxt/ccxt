@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -147,9 +146,11 @@ class bybit extends Exchange {
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
                         'position/set-leverage',
@@ -1385,9 +1386,6 @@ class bybit extends Exchange {
         }
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
-        if ($marketType === 'linear') {
-            throw new NotSupported($this->id . ' does not support editOrder for ' . $marketType . ' ' . $symbol . ' $market type');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1400,10 +1398,10 @@ class bybit extends Exchange {
             // 'stop_order_id' => $id, // only for conditional orders
             // 'p_r_trigger_price' => 123.45, // new trigger $price also known as stop_px
         );
+        $method = ($marketType === 'linear') ? 'privateLinearPostOrderReplace' : 'openapiPostOrderReplace';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
-        $method = 'openapiPostOrderReplace';
         if ($stopOrderId !== null) {
-            $method = 'openapiPostStopOrderReplace';
+            $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderReplace' : 'openapiPostStopOrderReplace';
             $request['stop_order_id'] = $stopOrderId;
             $params = $this->omit($params, array( 'stop_order_id' ));
         } else {
