@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.33.45'
+__version__ = '1.33.46'
 
 # -----------------------------------------------------------------------------
 
@@ -470,7 +470,7 @@ class Exchange(object):
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
             else:
-                Exchange.define_rest_api(value, method_name, paths + [key])
+                cls.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())

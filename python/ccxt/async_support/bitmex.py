@@ -1248,8 +1248,9 @@ class bitmex(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': amount,
             'ordType': self.capitalize(type),
@@ -1261,10 +1262,7 @@ class bitmex(Exchange):
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = await self.privatePostOrder(self.extend(request, params))
-        order = self.parse_order(response)
-        id = self.safe_string(order, 'id')
-        self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
@@ -1283,9 +1281,7 @@ class bitmex(Exchange):
         if price is not None:
             request['price'] = price
         response = await self.privatePutOrder(self.extend(request, params))
-        order = self.parse_order(response)
-        self.orders[order['id']] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1303,9 +1299,7 @@ class bitmex(Exchange):
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
-        order = self.parse_order(order)
-        self.orders[order['id']] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(order)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
@@ -1379,7 +1373,7 @@ class bitmex(Exchange):
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         return {
             'info': response,
-            'id': response['transactID'],
+            'id': self.safe_string(response, 'transactID'),
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
