@@ -59,24 +59,25 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchPrivate (channel, params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
+        this.authenticate ();
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'channel': channel,
         };
-        const messageHash = channel;
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, channel, request, channel);
     }
 
-    async authenticate () {
+    authenticate () {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const method = 'login';
-        if (method in client.subscriptions) {
+        const authenticate = 'authenticate';
+        if (authenticate in client.subscriptions) {
             return;
         }
+        client.subscriptions[authenticate] = true;
+        const method = 'login';
         const time = this.milliseconds ();
         const payload = time.toString () + 'websocket_login';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
@@ -89,7 +90,7 @@ module.exports = class ftx extends ccxt.ftx {
             'op': method,
         };
         // ftx does not reply to this message
-        this.spawn (this.watch, url, method, message, method);
+        this.spawn (this.watch, url, method, message);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -357,7 +358,7 @@ module.exports = class ftx extends ccxt.ftx {
         if (errorMessage in this.exceptions) {
             const Exception = this.exceptions[errorMessage];
             if (Exception instanceof AuthenticationError) {
-                const method = 'login';
+                const method = 'authenticate';
                 if (method in client.subscriptions) {
                     delete client.subscriptions[method];
                 }
@@ -366,6 +367,7 @@ module.exports = class ftx extends ccxt.ftx {
             // just reject the private api futures
             client.reject (error, 'fills');
             client.reject (error, 'orders');
+            client.reject (error, 'login');
         } else {
             const error = new ExchangeError (errorMessage);
             client.reject (error);
