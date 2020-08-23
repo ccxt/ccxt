@@ -173,7 +173,8 @@ class coinfalcon(Exchange):
             'level': '3',
         }
         response = await self.publicGetMarketsMarketOrders(self.extend(request, params))
-        return self.parse_order_book(response['data'], None, 'bids', 'asks', 'price', 'size')
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order_book(data, None, 'bids', 'asks', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
@@ -224,7 +225,8 @@ class coinfalcon(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetUserTrades(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -235,7 +237,8 @@ class coinfalcon(Exchange):
         if since is not None:
             request['since'] = self.iso8601(since)
         response = await self.publicGetMarketsMarketTrades(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -341,10 +344,8 @@ class coinfalcon(Exchange):
             request['price'] = str(price)
         request['operation_type'] = type + '_order'
         response = await self.privatePostUserOrders(self.extend(request, params))
-        order = self.parse_order(response['data'], market)
-        id = order['id']
-        self.orders[id] = order
-        return order
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -353,7 +354,8 @@ class coinfalcon(Exchange):
         }
         response = await self.privateDeleteUserOrdersId(self.extend(request, params))
         market = self.market(symbol)
-        return self.parse_order(response['data'], market)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -361,18 +363,22 @@ class coinfalcon(Exchange):
             'id': id,
         }
         response = await self.privateGetUserOrdersId(self.extend(request, params))
-        return self.parse_order(response['data'])
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
+        market = None
         if symbol is not None:
-            request['market'] = self.market_id(symbol)
+            market = self.market(symbol)
+            request['market'] = market['id']
         if since is not None:
             request['since_time'] = self.iso8601(self.milliseconds())
         # TODO: test status=all if it works for closed orders too
         response = await self.privateGetUserOrders(self.extend(request, params))
-        return self.parse_orders(response['data'])
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()

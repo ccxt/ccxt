@@ -477,29 +477,48 @@ class braziliex(Exchange):
             'amount': amount,
         }
         response = getattr(self, method)(self.extend(request, params))
+        #
+        # sell
+        #
+        #     {
+        #         "success":1,
+        #         "message":"  ##RESERVED FOR ORDER / SELL / XMR_BTC / AMOUNT: 0.01 XMR / PRICE: 0.017 BTC / TOTAL: 0.00017000 BTC / FEE: 0.00002500 XMR ",
+        #         "order_number":"590b962ba5b98335965fa0a8"
+        #     }
+        #
+        # buy
+        #
+        #     {
+        #         "success":1,
+        #         "message":"  ##RESERVED FOR ORDER / BUY / XMR_BTC / AMOUNT: 0.005 XMR / PRICE: 0.017 BTC / TOTAL: 0.00008500 BTC / FEE: 0.00000021 BTC ",
+        #         "order_number":"590b962ba5b98335965fa0c0"
+        #     }
+        #
         success = self.safe_integer(response, 'success')
         if success != 1:
             raise InvalidOrder(self.id + ' ' + self.json(response))
-        parts = response['message'].split(' / ')
+        message = self.safe_string(response, 'message')
+        parts = message.split(' / ')
         parts = parts[1:]
         feeParts = parts[5].split(' ')
+        amountParts = parts[2].split(' ')
+        priceParts = parts[3].split(' ')
+        totalParts = parts[4].split(' ')
         order = self.parse_order({
             'timestamp': self.milliseconds(),
             'order_number': response['order_number'],
-            'type': parts[0].lower(),
+            'type': self.safe_string_lower(parts, 0),
             'market': parts[0].lower(),
-            'amount': parts[2].split(' ')[1],
-            'price': parts[3].split(' ')[1],
-            'total': parts[4].split(' ')[1],
+            'amount': self.safe_string(amountParts, 1),
+            'price': self.safe_string(priceParts, 1),
+            'total': self.safe_string(totalParts, 1),
             'fee': {
-                'cost': float(feeParts[1]),
-                'currency': feeParts[2],
+                'cost': self.safe_float(feeParts, 1),
+                'currency': self.safe_string(feeParts, 2),
             },
             'progress': '0.0',
             'info': response,
         }, market)
-        id = order['id']
-        self.orders[id] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -530,7 +549,8 @@ class braziliex(Exchange):
             'market': market['id'],
         }
         response = self.privatePostOpenOrders(self.extend(request, params))
-        return self.parse_orders(response['order_open'], market, since, limit)
+        orders = self.safe_value(response, 'order_open', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -539,7 +559,8 @@ class braziliex(Exchange):
             'market': market['id'],
         }
         response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_trades(response['trade_history'], market, since, limit)
+        trades = self.safe_value(response, 'trade_history', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
