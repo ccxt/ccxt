@@ -400,7 +400,6 @@ module.exports = class coinegg extends Exchange {
             'type': side,
             'info': response,
         }, market);
-        this.orders[id] = order;
         return order;
     }
 
@@ -424,7 +423,8 @@ module.exports = class coinegg extends Exchange {
             'quote': market['quoteId'],
         };
         const response = await this.privatePostTradeViewRegionQuote (this.extend (request, params));
-        return this.parseOrder (response['data'], market);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -438,7 +438,8 @@ module.exports = class coinegg extends Exchange {
             request['since'] = since / 1000;
         }
         const response = await this.privatePostTradeListRegionQuote (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
