@@ -969,9 +969,6 @@ module.exports = class dsx extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
         return response;
     }
 
