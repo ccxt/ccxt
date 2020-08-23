@@ -381,8 +381,6 @@ class ice3x extends Exchange {
             'remaining' => $amount,
             'info' => $response,
         ), $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -399,15 +397,21 @@ class ice3x extends Exchange {
             'order _id' => $id,
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
-        $order = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $order = $this->safe_value($data, 'entity');
         return $this->parse_order($order);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrderList ($params);
-        $orders = $this->safe_value($response['response'], 'entities');
-        return $this->parse_orders($orders, null, $since, $limit);
+        $data = $this->safe_value($response, 'response', array());
+        $orders = $this->safe_value($data, 'entities', array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -423,7 +427,8 @@ class ice3x extends Exchange {
             $request['date_from'] = intval ($since / 1000);
         }
         $response = $this->privatePostTradeList (array_merge($request, $params));
-        $trades = $this->safe_value($response['response'], 'entities');
+        $data = $this->safe_value($response, 'response', array());
+        $trades = $this->safe_value($data, 'entities', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -434,7 +439,8 @@ class ice3x extends Exchange {
             'currency_id' => $currency['id'],
         );
         $response = $this->privatePostBalanceInfo (array_merge($request, $params));
-        $balance = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $balance = $this->safe_value($data, 'entity', array());
         $address = $this->safe_string($balance, 'address');
         $status = $address ? 'ok' : 'none';
         return array(

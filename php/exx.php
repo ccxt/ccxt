@@ -359,7 +359,6 @@ class exx extends Exchange {
             'type' => $side,
             'info' => $response,
         ), $market);
-        $this->orders[$id] = $order;
         return $order;
     }
 

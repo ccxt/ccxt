@@ -520,10 +520,7 @@ class lbank extends Exchange {
         $order['order_type'] = $type;
         $order['create_time'] = $this->milliseconds();
         $order['info'] = $response;
-        $order = $this->parse_order($order, $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
-        return $order;
+        return $this->parse_order($order, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -546,7 +543,8 @@ class lbank extends Exchange {
             'order_id' => $id,
         );
         $response = $this->privatePostOrdersInfo (array_merge($request, $params));
-        $orders = $this->parse_orders($response['orders'], $market);
+        $data = $this->safe_value($response, 'orders', array());
+        $orders = $this->parse_orders($data, $market);
         $numOrders = is_array($orders) ? count($orders) : 0;
         if ($numOrders === 1) {
             return $orders[0];
@@ -567,7 +565,8 @@ class lbank extends Exchange {
             'page_length' => $limit,
         );
         $response = $this->privatePostOrdersInfoHistory (array_merge($request, $params));
-        return $this->parse_orders($response['orders'], null, $since, $limit);
+        $data = $this->safe_value($response, 'orders', array());
+        return $this->parse_orders($data, null, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -593,7 +592,7 @@ class lbank extends Exchange {
         }
         $response = $this->privatePostWithdraw (array_merge($request, $params));
         return array(
-            'id' => $response['id'],
+            'id' => $this->safe_string($response, 'id'),
             'info' => $response,
         );
     }
