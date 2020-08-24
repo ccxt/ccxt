@@ -1422,10 +1422,10 @@ class Exchange {
         }
 
         $json_response = null;
+        $is_json_encoded_response = $this->is_json_encoded_object($result);
 
-        if ($this->is_json_encoded_object($result)) {
+        if ($is_json_encoded_response) {
             $json_response = $this->parse_json($result);
-
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
             }
@@ -1474,7 +1474,7 @@ class Exchange {
             throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
-        if (!$json_response) {
+        if ($is_json_encoded_response && !$json_response) {
             $details = '(possible reasons: ' . implode(', ', array(
                     'exchange is down or offline',
                     'on maintenance',
@@ -1483,9 +1483,10 @@ class Exchange {
                 )) . ')';
             $error_class = null;
             if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                print("fobaro\n");
+                exit();
                 $error_class = 'ExchangeNotAvailable';
             }
-
             if (preg_match('#cloudflare|incapsula#i', $result)) {
                 $error_class = 'DDosProtection';
             }
