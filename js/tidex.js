@@ -123,6 +123,7 @@ module.exports = class tidex extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 

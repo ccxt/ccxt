@@ -204,6 +204,7 @@ module.exports = class poloniex extends Exchange {
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 

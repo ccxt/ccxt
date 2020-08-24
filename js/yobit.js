@@ -190,6 +190,7 @@ module.exports = class yobit extends Exchange {
                     'Rate Limited': RateLimitExceeded,
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
