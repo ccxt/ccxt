@@ -509,8 +509,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         } else {
             this.handleOrder (client, data);
         }
-        if (this.ordersCache !== undefined) {
-            client.resolve (this.ordersCache, 'os');
+        if (this.orders !== undefined) {
+            client.resolve (this.orders, 'os');
         }
     }
 
@@ -582,12 +582,12 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'cost': undefined,
             'trades': undefined,
         };
-        if (this.ordersCache === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.ordersCache = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const orderCache = this.ordersCache;
-        orderCache.append (parsed);
+        const orders = this.orders;
+        orders.append (parsed);
         client.resolve (parsed, id);
         return parsed;
     }
