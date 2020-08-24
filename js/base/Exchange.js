@@ -261,12 +261,11 @@ module.exports = class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
-        this.orders       = {}
+        this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
         this.myTrades     = undefined
-        this.ordersCache  = undefined  // used in pro
 
         this.requiresWeb3 = false
         this.requiresEddsa = false

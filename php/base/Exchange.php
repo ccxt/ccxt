@@ -865,9 +865,8 @@ class Exchange {
         $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
-        $this->orders = array();
+        $this->orders = null;
         $this->myTrades = null;
-        $this->ordersCache = null;
         $this->trades = array();
         $this->transactions = array();
         $this->ohlcvs = array();
