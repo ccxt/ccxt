@@ -144,6 +144,7 @@ class tidex(Exchange):
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def fetch_currencies(self, params={}):

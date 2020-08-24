@@ -208,6 +208,7 @@ class yobit(Exchange):
                     'Rate Limited': RateLimitExceeded,
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_balance(self, params={}):
