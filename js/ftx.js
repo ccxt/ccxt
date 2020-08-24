@@ -57,15 +57,20 @@ module.exports = class ftx extends ccxt.ftx {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchPrivate (channel, params = {}) {
+    async watchPrivate (channel, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        let messageHash = channel;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash = messageHash + ':' + market['id'];
+        }
         this.authenticate ();
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'channel': channel,
         };
-        return await this.watch (url, channel, request, channel);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     authenticate () {
@@ -390,7 +395,8 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPrivate ('orders');
+        await this.loadMarkets ();
+        const future = this.watchPrivate ('orders', symbol);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
@@ -493,10 +499,13 @@ module.exports = class ftx extends ccxt.ftx {
         const ordersCache = this.ordersCache;
         ordersCache.append (parsed);
         client.resolve (ordersCache, messageHash);
+        const symbolMessageHash = messageHash + ':' + marketId;
+        client.resolve (ordersCache, symbolMessageHash);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPrivate ('fills');
+        await this.loadMarkets ();
+        const future = this.watchPrivate ('fills', symbol);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
@@ -588,5 +597,7 @@ module.exports = class ftx extends ccxt.ftx {
         const tradesCache = this.myTrades;
         tradesCache.append (parsed);
         client.resolve (tradesCache, messageHash);
+        const symbolMessageHash = messageHash + ':' + marketId;
+        client.resolve (tradesCache, symbolMessageHash);
     }
 };
