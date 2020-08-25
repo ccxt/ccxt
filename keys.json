@@ -47,6 +47,7 @@
     "dsx":           { "skip": true },
     "dx":            { "skip": true },
     "ethfinex":      { "skip": true },
+    "equos":         { "skip": true },
     "exmo":          { "skip": true },
     "exx":           { "skip": true },
     "fcoin":         { "skip": true },

@@ -112,6 +112,7 @@ from ccxt.async_support.currencycom import currencycom                    # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
+from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.eterbase import eterbase                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
@@ -236,6 +237,7 @@ exchanges = [
     'deribit',
     'digifinex',
     'dsx',
+    'equos',
     'eterbase',
     'exmo',
     'exx',
