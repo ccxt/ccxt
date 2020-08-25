@@ -1979,9 +1979,11 @@ class Exchange {
     }
 
     public function purge_cached_orders($before) {
-        $this->orders = static::index_by(array_filter($this->orders, function ($order) use ($before) {
-            return ('open' === $order['status']) || ($order['timestamp'] >= $before);
-        }), 'id');
+        if ($this->orders) {
+            $this->orders = static::index_by(array_filter($this->orders, function ($order) use ($before) {
+                return ('open' === $order['status']) || ($order['timestamp'] >= $before);
+            }), 'id');
+        }
         return $this->orders;
     }
 

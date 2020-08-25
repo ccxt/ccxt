@@ -1393,9 +1393,10 @@ class Exchange(object):
         return order['status']
 
     def purge_cached_orders(self, before):
-        orders = self.to_array(self.orders)
-        orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-        self.orders = self.index_by(orders, 'id')
+        if self.orders:
+            orders = self.to_array(self.orders)
+            orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
+            self.orders = self.index_by(orders, 'id')
         return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):

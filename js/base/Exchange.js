@@ -799,10 +799,12 @@ module.exports = class Exchange {
     }
 
     purgeCachedOrders (before) {
-        const orders = Object
-            .values (this.orders)
-            .filter ((order) => (order.status === 'open') || (order.timestamp >= before))
-        this.orders = indexBy (orders, 'id')
+        if (this.orders) {
+            const orders = Object
+                .values (this.orders)
+                .filter ((order) => (order.status === 'open') || (order.timestamp >= before))
+            this.orders = indexBy (orders, 'id')
+        }
         return this.orders
     }
 
