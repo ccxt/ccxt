@@ -240,7 +240,7 @@ module.exports = class bitmart extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeFloat (market, 'min_buy_amount'),
                     'max': undefined,
                 },
             };
