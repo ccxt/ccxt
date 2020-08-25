@@ -4,8 +4,6 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
-const string = require('./base/functions/string');
-const { safeFloat, safeInteger, safeString } = require('./base/functions/type');
 //  ---------------------------------------------------------------------------
 
 module.exports = class equos extends Exchange {
@@ -32,7 +30,7 @@ module.exports = class equos extends Exchange {
                 'fetchAccounts': false,
                 'createOrder': true,
                 'cancelOrder': true,
-                'editOrder': 'emulated',
+                'editOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchAllOrders': true,
@@ -136,7 +134,6 @@ module.exports = class equos extends Exchange {
         for (let i = 0; i < results.length; i++) {
             const currency = this.parseCurrency (results[i]);
             const code = currency['code'];
-
             currencies[code] = currency;
         }
         // we need this to parse Markets
@@ -159,27 +156,27 @@ module.exports = class equos extends Exchange {
         if (chart !== undefined) {
             const ticker = this.parseTicker (chart, market);
             return {
-                "symbol": ticker["symbol"],
-                "info": ticker["info"],
-                "timestamp": undefined,
-                "datetime": undefined,
-                "high": undefined,
-                "low": undefined,
-                "bid": undefined,
-                "bidVolume": undefined,
-                "ask": undefined,
-                "askVolume": undefined,
-                "vwap": undefined,
-                "open": undefined,
-                "close": undefined,
-                "last": ticker["last"],
-                "previousClose": undefined,
-                "change": undefined,
-                "percentage": undefined,
-                "average": undefined,
-                "baseVolume": undefined,
-                "quoteVolume": undefined,
-            }
+                'symbol': ticker['symbol'],
+                'info': ticker['info'],
+                'timestamp': undefined,
+                'datetime': undefined,
+                'high': undefined,
+                'low': undefined,
+                'bid': undefined,
+                'bidVolume': undefined,
+                'ask': undefined,
+                'askVolume': undefined,
+                'vwap': undefined,
+                'open': undefined,
+                'close': ticker['last'],
+                'last': ticker['last'],
+                'previousClose': undefined,
+                'change': undefined,
+                'percentage': undefined,
+                'average': undefined,
+                'baseVolume': undefined,
+                'quoteVolume': undefined,
+            };
         } else {
             return this.parseTicker (undefined, market);
         }
@@ -303,40 +300,27 @@ module.exports = class equos extends Exchange {
         }
         const request = this.createOrderRequest (market, type, side, amount, price, params);
         const order = await this.privatePostOrder (request);
-        const orderDetails = {
-            'info': order,
-            'id': this.safeInteger (order, 'id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': this.safeString (order, 'status'),
-            'fee': undefined,
-        };
-
-        // returns clOrderId but not orderId
         // HACK: to call twice, will not get merged by kroitor it seems
         // TODO: Remove before making a pull request
         for (let i = 0; i < 10; i++) {
             try {
-                const fetchedOrders = await this.fetchOrders(symbol);
-                const fetchedOrderDetails = fetchedOrders.find(o => o['info']['clOrdId'] === order['clOrdId']);
-
+                const fetchedOrders = await this.fetchOrders (symbol);
+                let fetchedOrderDetails = undefined;
+                // Have to do a find because we can't use JS methods
+                for (let j = 0; j < fetchedOrders.length; j++) {
+                    if (fetchedOrders[j]['info']['clOrdId'] === order['clOrdId']) {
+                        fetchedOrderDetails = fetchedOrders[j];
+                        break;
+                    }
+                }
                 if (fetchedOrderDetails !== undefined) {
                     return fetchedOrderDetails;
                 }
-            } catch (err) {}
+            } catch (err) {
+                throw new OrderNotFound ('Error found while trying to access details for order. ', order['clOrdId']);
+            }
         }
-
-        throw new OrderNotFound("clOrdId %o cannot be found.", order['clOrdId']);
+        throw new OrderNotFound ('clOrdId %o cannot be found.', order['clOrdId']);
     }
 
     createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
@@ -401,50 +385,27 @@ module.exports = class equos extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id, symbol, params = {}) {
-
-        // NOTE: We need to fetch order because we need to call the 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        // NOTE: We need to fetch order because we need to obtain the symbol id and clientOrderId
         const order = await this.fetchOrder (id, symbol, params);
         if (this.safeString (order, 'status') !== 'open') {
             throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
         }
-        console.log("[cancelOrder] order is: %o", order);
-
-        await this.loadMarkets();
-
+        await this.loadMarkets ();
         const clientOrderId = order['info']['orders'][0]['clOrdId'];
-
         // Equos' API requires the clOrdId and clOrdId
         const request = {};
         request['clOrdId'] = clientOrderId;
-        request['instrumentId'] = this.market(symbol)['id'];
-
+        request['instrumentId'] = this.market (symbol)['id'];
         // The API gives back the wrong response without proper id, price, etc.
         // Therefore, we just return the ID
         // It will throw an error if it is not cancellable
         await this.privatePostCancelOrder (this.extend (request, params));
         return id;
     }
-
-    // async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-
-    //     // We are throwing this out because when an order is replaced,
-    //     // It doesn't return the clientOrderId or similar.
-    //     // Thus we have no way of tracking the order
-
-    //     const order = await this.fetchOrder (id, symbol, params);
-    //     if (this.safeString (order, 'status') !== 'open') {
-    //         throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
-    //     }
-    //     const market = this.market (symbol);
-    //     if (type === undefined || side === undefined || amount === undefined) {
-    //         throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
-    //     }
-    //     const orgOrder = this.safeValue (order, 'info');
-    //     const newOrderRequest = this.createEditOrderRequest (orgOrder, market, type, side, amount, price, params);
-    //     const response = await this.privatePostCancelReplaceOrder (this.extend (newOrderRequest));
-    //     return this.extend ({ 'info': response });
-    // }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
@@ -454,15 +415,13 @@ module.exports = class equos extends Exchange {
             market = this.market (symbol);
         }
         request['orderId'] = id;
-        let orderHistoryResponse = await this.privatePostGetOrderHistory (this.extend (request, params));
-
+        const orderHistoryResponse = await this.privatePostGetOrderHistory (this.extend (request, params));
         const order = this.parseOrder (orderHistoryResponse, market);
         return order;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -500,70 +459,63 @@ module.exports = class equos extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
+        let market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request["instrumentId"] = market["id"];
+            request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
             request['timestamp'] = since;
         }
-
-        const response = this.privatePostUserTrades(this.extend(request, params));
+        const response = await this.privatePostUserTrades (this.extend (request, params));
         let result = [];
-
-        for (const trade in response["trades"]) {
-            const timestamp = this.safeInteger(trade, "time");
-
+        for (let i = 0; i < response['trades'].length; i++) {
+            const trade = response['trades'][i];
+            const timestamp = this.safeInteger (trade, 'time');
             // Deal with side
-            let side = this.safeString(trade, "side");
-            if (side === "BUY") {
-                side = "buy";
-            } else if (side === "SELL") {
-                side = "sell";
+            let side = this.safeString (trade, 'side');
+            if (side === 'BUY') {
+                side = 'buy';
+            } else if (side === 'SELL') {
+                side = 'sell';
             } else {
                 side = undefined;
             }
-
             let takerOrMaker = undefined;
-
-            if (aggressorIndicator === true) {
-                takerOrMaker = "taker";
-            } else if (maker === false) {
-                takerOrMaker = "maker";
+            if (trade['aggressorIndicator'] === true) {
+                takerOrMaker = 'taker';
+            } else if (!trade['aggressorIndicator']) {
+                takerOrMaker = 'maker';
             }
-
             // price and qty may have extraneous decimal places
-            const price = this.safeFloat(trade, "price");
-            const amount = this.safeFloat(trade, "qty");
-
-            const feeCost = this.safeFloat(trade, "commission");
-            const feeCurrency = this.safeFloat(trade, "commCurrency");
-
-            result.push({
-                "info": trade,
-                "id": this.safeString(trade, "execId"),
-                "timestamp": timestamp,
-                "datetime": this.iso8601(timestamp),
-                "symbol": this.safeString(market, "symbol"),
-                "order": this.safeString(trade, "orderId"),
-                "type": undefined,
-                "side": side,
-                "takerOrMaker": takerOrMaker,
-                "price": price,
-                "amount": amount,
-                "cost": amount * price,
-                "fee": {
-                    "cost": feeCost,
-                    "currency": feeCurrency,
-                    "rate": undefined,
+            const price = this.safeFloat (trade, 'price');
+            const amount = this.safeFloat (trade, 'qty');
+            const feeCost = this.safeFloat (trade, 'commission');
+            const feeCurrency = this.safeFloat (trade, 'commCurrency');
+            result.push ({
+                'info': trade,
+                'id': this.safeString (trade, 'execId'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': this.safeString (market, 'symbol'),
+                'order': this.safeString (trade, 'orderId'),
+                'type': undefined,
+                'side': side,
+                'takerOrMaker': takerOrMaker,
+                'price': price,
+                'amount': amount,
+                'cost': amount * price,
+                'fee': {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                    'rate': undefined,
                 },
-            })
+            });
         }
-
-        result = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -749,16 +701,13 @@ module.exports = class equos extends Exchange {
         }
         const timestamp = this.parse8601 (this.convertToISO8601Date (this.safeString (order, 'timeStamp')));
         const lastTradeTimestamp = timestamp;
-
         // Filled price is lastPx. Should use price instead of fillPrice
-        let price = this.convertFromScale (this.safeInteger (order, 'price', 0), this.safeInteger (order, 'price_scale', 0));
+        const price = this.convertFromScale (this.safeInteger (order, 'price', 0), this.safeInteger (order, 'price_scale', 0));
         const amount = this.convertFromScale (this.safeInteger (order, 'quantity', 0), this.safeInteger (order, 'quantity_scale', 0));
         const filled = this.convertFromScale (this.safeInteger (order, 'cumQty', 0), this.safeInteger (order, 'cumQty_scale', 0));
         const remaining = this.convertFromScale (this.safeInteger (order, 'leavesQty', 0), this.safeInteger (order, 'leavesQty_scale', 0));
         const average = this.convertFromScale (this.safeInteger (order, 'avgPx', 0), this.safeInteger (order, 'avgPx_scale', 0));
-
         const cost = price * filled;
-
         let currencyCode = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         if (currencyId !== undefined) {
@@ -781,8 +730,7 @@ module.exports = class equos extends Exchange {
         const type = this.parseOrderType (this.safeStringLower (order, 'ordType'));
         const side = this.parserOrderSide (this.safeStringLower (order, 'side'));
         const trades = this.parseTrades (this.safeValue (order, 'trades', []));
-
-        const orderResult =  {
+        const orderResult = {
             'id': id,
             'average': average,
             'clientOrderId': clientOrderId,
@@ -802,10 +750,8 @@ module.exports = class equos extends Exchange {
             'fee': fee,
             'info': order,
         };
-
-        const orderUpdateSeq = this.safeValue(order, 'orderUpdateSeq');
-        const execType = this.safeValue(order, 'execType');
-
+        const orderUpdateSeq = this.safeValue (order, 'orderUpdateSeq');
+        const execType = this.safeValue (order, 'execType');
         if (orderUpdateSeq === 0) {
             orderResult['lastTradeTimestamp'] = undefined;
         } else if (execType === 'F') {
@@ -816,14 +762,12 @@ module.exports = class equos extends Exchange {
             orderResult['timestamp'] = undefined;
             orderResult['lastTradeTimestamp'] = undefined;
         }
-
         if (symbol === undefined) {
-            const instrumentId = this.safeValue(order, 'instrumentId')
-            if (instrumentId in this.marketsById){
-                orderResult["symbol"] = this.markets_by_id[instrumentId]["symbol"]
+            const instrumentId = this.safeValue (order, 'instrumentId');
+            if (instrumentId in this.marketsById) {
+                orderResult['symbol'] = this.markets_by_id[instrumentId]['symbol'];
             }
         }
-        
         return orderResult;
     }
 
@@ -848,13 +792,11 @@ module.exports = class equos extends Exchange {
         if (market[6] === 1) {
             active = true;
         }
-
         const precision = {
             'amount': market[5], // quantity_scale
             'price': market[4], // price_scale
             'cost': undefined,
         };
-
         const limits = {
             'amount': {
                 'min': undefined,
@@ -869,7 +811,6 @@ module.exports = class equos extends Exchange {
                 'max': undefined,
             },
         };
-
         return {
             'id': id,
             'symbol': symbol,
@@ -893,18 +834,15 @@ module.exports = class equos extends Exchange {
         if (currency[4] === 1) {
             active = true;
         }
-
         // const fee = currency[5]; // withdraw_fee
         // HACK: Fee is 0 during promotional periods
         // However, it is currently a percentage and the absolute
         // amount has to be updated in the API side
         const fee = null;
-
         // HACK: Precision is 6, as shown on the exchange.
         // May need more updates if this changes
         // const precision = currency[2]; // price_scale
-        const precision = this.safeInteger(currency, 3);
-
+        const precision = this.safeInteger (currency, 3);
         const limits = {
             'amount': {
                 'min': undefined,
@@ -1251,23 +1189,25 @@ module.exports = class equos extends Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-
-        let result = Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params))
+        // For every time in orders, parse order, and extend.
+        let result = [];
+        for (let i = 0; i < orders.length (); i++) {
+            const order = this.extend (this.parseOrder (orders[i], market), params);
+            result.push (order);
+        }
+        // let result = Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params));
         // Use id to sort, timestamp is not guaranteed
         // HOWEVER. id is a string and not a number
         // So I need to convert back and forth
         for (let i = 0; i < result.length; i++) {
             result['id'] = this.safeInteger (result[i], 'id');
         }
-
-        result = this.sortBy (result, 'id')
-
+        result = this.sortBy (result, 'id');
         for (let i = 0; i < result.length; i++) {
-            result['id'] = this.safeString(result[i], 'id');
+            result['id'] = this.safeString (result[i], 'id');
         }
-
-        const symbol = (market !== undefined) ? market['symbol'] : undefined
-        const filterred = this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const filterred = this.filterBySymbolSinceLimit (result, symbol, since, limit);
         return filterred;
     }
 
