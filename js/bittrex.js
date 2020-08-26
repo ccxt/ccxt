@@ -134,12 +134,6 @@ module.exports = class bittrex extends Exchange {
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
-                'account': {
-                    'get': [
-                        'withdrawalhistory',
-                        'withdraw',
-                    ],
-                },
             },
             'fees': {
                 'trading': {
@@ -373,7 +367,6 @@ module.exports = class bittrex extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const precision = 8; // default precision, todo: fix "magic constants"
-            //const address = this.safeValue (currency, 'BaseAddress');
             const fee = this.safeFloat (currency, 'txFee'); // todo: redesign
 
             const isActive = this.safeString (currency, 'status');
@@ -411,7 +404,7 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) { //TODO need to compare with old version
+    parseTicker (ticker, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (ticker, 'updatedAt'));
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
@@ -425,8 +418,8 @@ module.exports = class bittrex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const previous = this.safeFloat (ticker, 'percentChange'); //TODO NEED CHECK
-        const last = this.safeFloat (ticker, 'lastTradeRate'); //TODO NEED CHECK
+        const previous = this.safeFloat (ticker, 'percentChange');
+        const last = this.safeFloat (ticker, 'lastTradeRate');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined) {
@@ -713,7 +706,7 @@ module.exports = class bittrex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currencySymbol'] = currency['id'];
         }
         const response = await this.v3GetDepositsClosed (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
@@ -729,42 +722,11 @@ module.exports = class bittrex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
+            request['currencySymbol'] = currency['id'];
         }
-        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
-        //
-        //     {
-        //         "success" : true,
-        //         "message" : "",
-        //         "result" : [{
-        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
-        //                 "Currency" : "BTC",
-        //                 "Amount" : 17.00000000,
-        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
-        //                 "Opened" : "2014-07-09T04:24:47.217",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00020000,
-        //                 "TxId" : null,
-        //                 "Canceled" : true,
-        //                 "InvalidAddress" : false
-        //             }, {
-        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //                 "Currency" : "XC",
-        //                 "Amount" : 7513.75121715,
-        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //                 "Opened" : "2014-07-08T23:13:31.83",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00002000,
-        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //                 "Canceled" : false,
-        //                 "InvalidAddress" : false
-        //             }
-        //         ]
-        //     }
-        //
-        return this.parseTransactions (response['result'], currency, since, limit);
+        const response = await this.v3GetWithdrawalsClosed (this.extend (request, params));
+
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -822,15 +784,15 @@ module.exports = class bittrex extends Exchange {
             //
             status = 'ok';
         } else {
-            const status = this.safeString(transaction, 'status');
+            const responseStatus = this.safeString(transaction, 'status');
 
-            if (status === 'ERROR_INVALID_ADDRESS') {
+            if (responseStatus === 'ERROR_INVALID_ADDRESS') {
                 status = 'failed';
-            } else if (status === 'CANCELLED') {
+            } else if (responseStatus === 'CANCELLED') {
                 status = 'canceled';
-            } else if (status === 'PENDING') {
+            } else if (responseStatus === 'PENDING') {
                 status = 'pending';
-            } else if (authorized && (txid !== undefined)) {
+            } else if (responseStatus === 'AUTHORIZED' && (txid !== undefined)) {
                 status = 'ok';
             }
         }
@@ -1120,36 +1082,26 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'currencySymbol': currency['id'],
             'quantity': amount,
-            'address': address,
+            'cryptoAddress': address,
         };
         if (tag !== undefined) {
-            request['paymentid'] = tag;
+            request['cryptoAddressTag'] = tag;
         }
-        const response = await this.accountGetWithdraw (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        const id = this.safeString (result, 'uuid');
+        const response = await this.v3PostWithdrawals (this.extend (request, params));
+        const id = this.safeString (response, 'id');
         return {
             'info': response,
             'id': id,
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v3' && api !== 'v3public') {
-            url += this.version + '/';
-        }
-        if (api === 'public') {
-            url += api + '/' + method.toLowerCase () + this.implodeParams (path, params);
-            params = this.omit (params, this.extractParams (path));
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else if (api === 'v3public') {
+        if (api === 'v3public') {
             url += this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (Object.keys (params).length) {
@@ -1191,9 +1143,6 @@ module.exports = class bittrex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders')) {
-                url += method.toLowerCase ();
-            }
             const request = {
                 'apikey': this.apiKey,
             };
@@ -1222,7 +1171,7 @@ module.exports = class bittrex extends Exchange {
                 const code = this.safeString (response, 'code');
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                    if (code !== undefined) {
+                    if (code !== undefined) { //todo: ???
                         this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
                     }
                 }
@@ -1231,7 +1180,7 @@ module.exports = class bittrex extends Exchange {
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
-                success = (success === 'true') ? true : false;
+                success = (success === 'true');
             }
             if (!success) {
                 const message = this.safeString (response, 'message');
@@ -1288,12 +1237,7 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        // a workaround for APIKEY_INVALID
-        if ((api === 'account') || (api === 'market')) {
-            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
-        return response;
+    async request (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return await this.fetch2 (path, api, method, params, headers, body);
     }
 };
