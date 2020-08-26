@@ -629,7 +629,7 @@ module.exports = class coinmate extends Exchange {
         let amount = this.safeFloat (order, 'originalAmount');
         const remaining = this.safeFloat (order, 'remainingAmount');
         if (remaining === undefined) {
-            amount = this.safeFloat (order, 'amount');
+            remaining = this.safeFloat (order, 'amount');
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
