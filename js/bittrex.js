@@ -239,9 +239,9 @@ module.exports = class bittrex extends Exchange {
                 },
                 'subaccountId': undefined,
                 // see the implementation of fetchClosedOrdersV3 below
-                //'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
+                // 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
                 'fetchClosedOrdersFilterBySince': true,
-                //'createOrderMethod': 'create_order_v1',
+                // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -349,18 +349,15 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-
         const request = {
             'marketSymbol': this.marketId (symbol),
         };
         const response = await this.v3publicGetMarketsMarketSymbolOrderbook (this.extend (request, params));
-
         return this.parseOrderBook (response, undefined, 'bid', 'ask', 'rate', 'quantity');
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.v3publicGetCurrencies (params);
-
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
@@ -368,13 +365,11 @@ module.exports = class bittrex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const precision = 8; // default precision, todo: fix "magic constants"
             const fee = this.safeFloat (currency, 'txFee'); // todo: redesign
-
             const isActive = this.safeString (currency, 'status');
-
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': undefined, //Deprecated
+                'address': undefined, // Deprecated
                 'info': currency,
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
@@ -472,7 +467,6 @@ module.exports = class bittrex extends Exchange {
             'marketSymbol': market['id'],
         };
         const response = await this.v3GetMarketsMarketSymbolSummary (this.extend (request, params));
-
         const ticker = response[0];
         return this.parseTicker (ticker, market);
     }
@@ -528,12 +522,10 @@ module.exports = class bittrex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-
         const request = {
             'marketSymbol': this.marketId (symbol),
         };
         const response = await this.v3publicGetMarketsMarketSymbolTrades (this.extend (request, params));
-
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -619,10 +611,8 @@ module.exports = class bittrex extends Exchange {
             market = this.market (symbol);
             request['marketSymbol'] = market['id'];
         }
-
         const response = await this.v3GetOrdersOpen (this.extend (request, params));
         const orders = this.parseOrders (response, market, since, limit);
-
         return this.filterBySymbol (orders, symbol);
     }
 
@@ -662,7 +652,6 @@ module.exports = class bittrex extends Exchange {
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
             }
         }
-
         const response = await this.v3PostOrders (this.extend (request, params));
         //
         //     {
@@ -686,12 +675,10 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-
         const request = {
             'orderId': id,
         };
         const response = await this.v3DeleteOrdersOrderId (this.extend (request, params));
-
         return this.extend (this.parseOrder (response), {
             'id': id,
             'info': response,
@@ -725,7 +712,6 @@ module.exports = class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         const response = await this.v3GetWithdrawalsClosed (this.extend (request, params));
-
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -784,8 +770,7 @@ module.exports = class bittrex extends Exchange {
             //
             status = 'ok';
         } else {
-            const responseStatus = this.safeString(transaction, 'status');
-
+            const responseStatus = this.safeString (transaction, 'status');
             if (responseStatus === 'ERROR_INVALID_ADDRESS') {
                 status = 'failed';
             } else if (responseStatus === 'CANCELLED') {
@@ -951,7 +936,6 @@ module.exports = class bittrex extends Exchange {
             }
             throw e;
         }
-
         return this.parseOrder (response);
     }
 
@@ -1051,13 +1035,11 @@ module.exports = class bittrex extends Exchange {
             'currencySymbol': currency['id'],
         };
         const response = await this.v3GetAddressesCurrencySymbol (this.extend (request, params));
-
         // {
         //     "status": "PROVISIONED",
         //     "currencySymbol": "BTC",
         //     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
         // }
-
         let address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
@@ -1110,7 +1092,6 @@ module.exports = class bittrex extends Exchange {
         } else if (api === 'v3') {
             url += this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
-
             let hashString = '';
             if (method === 'POST') {
                 body = this.json (params);
@@ -1171,7 +1152,7 @@ module.exports = class bittrex extends Exchange {
                 const code = this.safeString (response, 'code');
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                    if (code !== undefined) { //todo: ???
+                    if (code !== undefined) { // todo: ???
                         this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
                     }
                 }
