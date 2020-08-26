@@ -27,11 +27,7 @@ module.exports =
         ((object[0] === '{') || (object[0] === '['))
     )
 
-    , stringToBinary (str) {
-        const arr = new Uint8Array (str.length)
-        for (let i = 0; i < str.length; i++) { arr[i] = str.charCodeAt (i); }
-        return CryptoJS.lib.WordArray.create (arr)
-    }
+    , stringToBinary: string => CryptoJS.enc.Utf8.parse (string)
 
     , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
     , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)

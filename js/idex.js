@@ -22,6 +22,7 @@ module.exports = class idex extends Exchange {
                 'createOrder': false,
                 'fetchBalance': false,
                 'fetchMarkets': true,
+                'fetchCurrencies': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
@@ -384,10 +385,10 @@ module.exports = class idex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        // the order that gets destroyed or completely filled determines the side of the trade
-        // it seems that the fillId corresponds to the id of the order that was completely filled
-        // if we could get the side of the order with fillId we could also deduce the side of this trade
-        // once we have the side of the trade determining takerOrMaker is trivial
+        const makerSide = this.safeString (trade, 'makerSide');
+        const side = (makerSide === 'buy') ? 'sell' : 'buy';
+        // by definition all trades are takers
+        const takerOrMaker = 'taker';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -396,8 +397,8 @@ module.exports = class idex extends Exchange {
             'id': id,
             'order': undefined,
             'type': 'limit',
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -481,6 +482,46 @@ module.exports = class idex extends Exchange {
         return result;
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const nonce1 = this.uuidv1 ();
+        const request = {
+            'nonce': nonce1,
+            'wallet': this.walletAddress,
+        };
+        const response = await this.privateGetBalances (this.extend (request, params));
+        return response;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+        }
+    }
+
+    async associateWallet (walletAddress, params = {}) {
+        const nonce = '9d071a90-e7a5-11ea-9044-67de9ee3dda0';
+        const nonceNum = 1;
+        const noPrefix = Exchange.remove0xPrefix (walletAddress);
+        const byteArray = [
+            this.numberToBE (nonceNum, 16),
+            this.base16ToBinary (noPrefix),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = '0x' + this.hash (binary, 'keccak', 'hex');
+        const signed = this.signHash (hash, this.privateKey);
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': walletAddress,
+            },
+            'signature': '0x860e7c9c4a3302e7145282e3dbf9dd636dfb026f9937d132872f71ad2ce991cc46bc67b2d78bc0523e824a416cf6a76f3591282cc7b199a0886de7cca907ae0d1b',
+        };
+        const response = await this.privatePostWallets (this.extend (request, params));
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         const keys = Object.keys (params);
@@ -491,7 +532,7 @@ module.exports = class idex extends Exchange {
                 query = this.urlencode (params);
                 url = url + '?' + query;
             } else {
-                body = this.json (params);
+                body = this.json (this.json (params));
             }
         }
         headers = {};

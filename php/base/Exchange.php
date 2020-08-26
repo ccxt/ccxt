@@ -312,6 +312,17 @@ class Exchange {
         );
     }
 
+    public static function uuidv1() {
+        $biasSeconds = 12219292800;  // seconds from 15th Oct 1572 to Jan 1st 1970
+        $bias = $biasSeconds * 10000000;  // in hundreds of nanoseconds
+        $time = static::microseconds() * 10 + $bias;
+        $timeHex = dechex($time);
+        $arranged = substr($timeHex, 7, 8) . '-' . substr($timeHex, 3, 4) . '-1' . substr($timeHex, 0, 3);
+        $clockId = '9696';
+        $macAddress = 'ffffffffffff';
+        return $arranged . '-' . $clockId . '-' . $macAddress;
+    }
+
     public static function parse_timeframe($timeframe) {
         $amount = substr($timeframe, 0, -1);
         $unit = substr($timeframe, -1);
