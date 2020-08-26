@@ -405,7 +405,7 @@ module.exports = class coinfalcon extends Exchange {
             request['market'] = market['id'];
         }
         if (since !== undefined) {
-            request['since_time'] = this.iso8601 (this.milliseconds ());
+            request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
