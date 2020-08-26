@@ -599,8 +599,10 @@ class coinmate(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
         price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'originalAmount', 'amount')
-        remaining = self.safe_float(order, 'remainingAmount', amount)
+        amount = self.safe_float(order, 'originalAmount')
+        remaining = self.safe_float(order, 'remainingAmount')
+        if remaining is None:
+            remaining = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
         filled = None
