@@ -374,7 +374,7 @@ class coinfalcon(Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         if since is not None:
-            request['since_time'] = self.iso8601(self.milliseconds())
+            request['since_time'] = self.iso8601(since)
         # TODO: test status=all if it works for closed orders too
         response = self.privateGetUserOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
