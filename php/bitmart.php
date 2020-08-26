@@ -244,7 +244,7 @@ class bitmart extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->safe_float($market, 'min_buy_amount'),
                     'max' => null,
                 ),
             );

@@ -245,7 +245,7 @@ class bitmart(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': self.safe_float(market, 'min_buy_amount'),
                     'max': None,
                 },
             }
