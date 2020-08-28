@@ -45,7 +45,8 @@ foreach ($total as $currency_code => $value) {
 }
 
 echo "========================================================================\n";
-print_r($exchange->unique ($all_matching_symbols));
+$unique_symbols = $exchange->unique ($all_matching_symbols)
+print_r($unique_symbols);
 
 $all_trades_for_all_symbols = array();
 
@@ -91,7 +92,7 @@ function fetch_all_my_trades($exchange, $symbol) {
 
 // ----------------------------------------------------------------------------
 
-foreach ($all_matching_symbols as $symbol) {
+foreach ($unique_symbols as $symbol) {
 
     echo "=================================================================\n";
     echo "Fetching all ", $symbol, " trades\n";
