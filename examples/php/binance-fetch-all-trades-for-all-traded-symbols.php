@@ -45,7 +45,7 @@ foreach ($total as $currency_code => $value) {
 }
 
 echo "========================================================================\n";
-$unique_symbols = $exchange->unique ($all_matching_symbols)
+$unique_symbols = $exchange->unique ($all_matching_symbols);
 print_r($unique_symbols);
 
 $all_trades_for_all_symbols = array();
