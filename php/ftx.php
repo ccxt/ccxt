@@ -848,6 +848,7 @@ class ftx extends Exchange {
             'new' => 'open',
             'open' => 'open',
             'closed' => 'closed', // filled or canceled
+            'triggered' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }

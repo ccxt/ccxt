@@ -817,6 +817,7 @@ class ftx(Exchange):
             'new': 'open',
             'open': 'open',
             'closed': 'closed',  # filled or canceled
+            'triggered': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
