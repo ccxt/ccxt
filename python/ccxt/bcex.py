@@ -18,7 +18,7 @@ class bcex(Exchange):
         return self.deep_extend(super(bcex, self).describe(), {
             'id': 'bcex',
             'name': 'BCEX',
-            'countries': ['CN', 'CA'],
+            'countries': ['CN', 'HK'],
             'version': '1',
             'has': {
                 'cancelOrder': True,

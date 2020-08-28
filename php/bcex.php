@@ -16,7 +16,7 @@ class bcex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bcex',
             'name' => 'BCEX',
-            'countries' => array( 'CN', 'CA' ),
+            'countries' => array( 'CN', 'HK' ),
             'version' => '1',
             'has' => array(
                 'cancelOrder' => true,
