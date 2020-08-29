@@ -299,13 +299,18 @@ module.exports = class Exchange {
             const [property, value] = configEntries[i]
             this[property] = deepExtend (this[property], value)
         }
+        
+        const agentOptions = {
+            // commented out temporarily until we fix keep-alive and reuse the connections
+            // 'keepAlive': true,
+        }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
-            this.httpAgent = new defaultFetch.http.Agent ({ 'keepAlive': true })
+            this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
 
         if (!this.httpsAgent && defaultFetch.https && isNode) {
-            this.httpsAgent = new defaultFetch.https.Agent ({ 'keepAlive': true })
+            this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
 
         // generate old metainfo interface
@@ -391,7 +396,8 @@ module.exports = class Exchange {
             const params = { method, headers, body, timeout: this.timeout }
 
             if (this.agent) {
-                this.agent.keepAlive = true
+                // commented out temporarily until we fix keep-alive and reuse the connections
+                // this.agent.keepAlive = true
                 params['agent'] = this.agent
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
                 params['agent'] = this.httpAgent
