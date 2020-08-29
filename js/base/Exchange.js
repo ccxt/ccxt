@@ -300,10 +300,9 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-        
+
         const agentOptions = {
-            // commented out temporarily until we fix keep-alive and reuse the connections
-            // 'keepAlive': true,
+            'keepAlive': true,
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
@@ -397,8 +396,6 @@ module.exports = class Exchange {
             const params = { method, headers, body, timeout: this.timeout }
 
             if (this.agent) {
-                // commented out temporarily until we fix keep-alive and reuse the connections
-                // this.agent.keepAlive = true
                 params['agent'] = this.agent
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
                 params['agent'] = this.httpAgent
