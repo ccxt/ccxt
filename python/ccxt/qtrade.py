@@ -552,6 +552,7 @@ class qtrade(Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
+            'desc': True,  # Returns newest trades first when True
             # 'older_than': 123,  # returns trades with id < older_than
             # 'newer_than': 123,  # returns trades with id > newer_than
         }
