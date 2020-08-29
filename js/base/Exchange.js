@@ -289,12 +289,13 @@ module.exports = class Exchange {
             }
         }
         unCamelCaseProperties ()
+
         // merge to this
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
-            if (this[property]) {
-                this[property] = Object.assign (this[property], value)
+            if (value && Object.getPrototypeOf (value) === Object.prototype) {
+                this[property] = deepExtend (this[property], value)
             } else {
                 this[property] = value
             }
