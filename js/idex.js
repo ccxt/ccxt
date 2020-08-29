@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { PAD_WITH_ZERO } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -23,9 +23,11 @@ module.exports = class idex extends Exchange {
                 'fetchBalance': false,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -87,23 +89,18 @@ module.exports = class idex extends Exchange {
                     'delete': [
                         'orders',
                     ],
-
                 },
             },
-            'options': {
-                'contractAddress': undefined,  // 0x2a0c0DBEcC7E4D658f48E01e3fA353F44050c208
-                'orderNonce': undefined,
-            },
-            'exceptions': {
-            },
+            'options': {},
+            'exceptions': {},
             'requiredCredentials': {
-                'walletAddress': false,
-                'privateKey': false,
+                'walletAddress': true,
+                'privateKey': true,
                 'apiKey': true,
                 'secret': true,
             },
-            'commonCurrencies': {
-            },
+            'paddingMode': PAD_WITH_ZERO,
+            'commonCurrencies': {},
         });
     }
 
@@ -495,30 +492,128 @@ module.exports = class idex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {
+            'nonce': this.uuidv1 (),
+            'wallet': this.walletAddress,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
         }
+        // TODO: make some trades on the testnet
+        const response = await this.privateGetFills (this.extend (request, params));
+        return response;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'closed': false,
+        };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'closed': true,
+        };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'nonce': this.uuidv1 (),
+            'wallet': this.walletAddress,
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = this.privateGetOrders (this.extend (request, params));
+        return response;
     }
 
     async associateWallet (walletAddress, params = {}) {
-        const nonce = '9d071a90-e7a5-11ea-9044-67de9ee3dda0';
-        const nonceNum = 1;
+        const nonce = this.uuidv1 ();
         const noPrefix = Exchange.remove0xPrefix (walletAddress);
         const byteArray = [
-            this.numberToBE (nonceNum, 16),
+            this.base16ToBinary (nonce.replace (/-/g, '')),
             this.base16ToBinary (noPrefix),
         ];
         const binary = this.binaryConcatArray (byteArray);
-        const hash = '0x' + this.hash (binary, 'keccak', 'hex');
-        const signed = this.signHash (hash, this.privateKey);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        // {
+        //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
+        //   totalPortfolioValueUsd: '0.00',
+        //   time: 1598468353626
+        // }
         const request = {
             'parameters': {
                 'nonce': nonce,
                 'wallet': walletAddress,
             },
-            'signature': '0x860e7c9c4a3302e7145282e3dbf9dd636dfb026f9937d132872f71ad2ce991cc46bc67b2d78bc0523e824a416cf6a76f3591282cc7b199a0886de7cca907ae0d1b',
+            'signature': signature,
         };
-        const response = await this.privatePostWallets (this.extend (request, params));
+        return await this.privatePostWallets (request);
+    }
+
+
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const nonce = this.uuidv1 ();
+        let typeEnum = undefined;
+        if (type === 'limit') {
+            typeEnum = 1;
+        } else if (type === 'market') {
+            typeEnum = 0;
+        }
+        const sideEnum = (side === 'buy') ? 0 : 1;
+        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const orderVersion = 1;
+        const priceString = this.priceToPrecision (symbol, price);
+        const amountString = this.amountToPrecision (symbol, amount);
+        console.log (priceString)
+        const timeInForce = 0;  // goodTillCanceled
+        const orderSelfTradePrevention = 2;  // cancel newest
+        const byteArray = [
+            this.numberToBE (orderVersion, 1),
+            this.base16ToBinary (nonce.replace (/-/g, '')),
+            this.base16ToBinary (walletBytes),
+            this.stringToBinary (this.encode (market['id'])),  // TODO: remove stringToBinary
+            this.numberToBE (typeEnum, 1),
+            this.numberToBE (sideEnum, 1),
+            this.stringToBinary (this.encode (amountString)),
+            this.stringToBinary (''),  // quote quantity for market orders
+            this.stringToBinary (this.encode (priceString)),
+            this.stringToBinary (''),  // stop price
+            this.stringToBinary (''),  // clientOrderId
+            this.numberToBE (timeInForce, 1),
+            this.numberToBE (orderSelfTradePrevention, 1),
+            this.numberToBE (0, 8), // unused
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'market': market['id'],
+                'side': side,
+                'type': type,
+                'quantity': amountString,
+                'price': priceString,
+                'wallet': this.walletAddress,
+            },
+            'signature': signature,
+        };
+        const response = await this.privatePostOrders (this.extend (request, params));
         return response;
     }
 
@@ -532,10 +627,12 @@ module.exports = class idex extends Exchange {
                 query = this.urlencode (params);
                 url = url + '?' + query;
             } else {
-                body = this.json (this.json (params));
+                body = this.json (params);
             }
         }
-        headers = {};
+        headers = {
+            'Content-Type': 'application/json',
+        };
         if (this.apiKey !== undefined) {
             headers['IDEX-API-Key'] = this.apiKey;
         }

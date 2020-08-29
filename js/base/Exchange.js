@@ -41,7 +41,7 @@ const { // eslint-disable-line object-curly-newline
     , ExchangeNotAvailable
     , RateLimitExceeded } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 
@@ -200,6 +200,7 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'paddingMode': NO_PADDING,
             'limits': {
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
@@ -1270,23 +1271,23 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
+        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1460,6 +1461,13 @@ module.exports = class Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    signMessageString (message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage (message, privateKey)
+        return signature['r'] + Exchange.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']));
     }
 
     oath () {
