@@ -293,7 +293,11 @@ module.exports = class Exchange {
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
-            this[property] = value
+            if (this[property]) {
+                this[property] = Object.assign (this[property], value)
+            } else {
+                this[property] = value
+            }
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
