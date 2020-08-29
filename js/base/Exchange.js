@@ -289,15 +289,11 @@ module.exports = class Exchange {
             }
         }
         unCamelCaseProperties ()
-
-        // merge configs
-        const config = deepExtend (this.describe (), userConfig)
-
         // merge to this
-        const configEntries = Object.entries (config)
+        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
-            this[property] = deepExtend (this[property], value)
+            this[property] = value
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
