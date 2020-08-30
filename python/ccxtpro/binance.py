@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import ExchangeError
 
 
@@ -742,26 +742,12 @@ class binance(Exchange, ccxt.binance):
             'fee': fee,
             'trades': trades,
         }
-        defaultKey = self.safe_value(self.orders, symbol, {})
-        defaultKey[orderId] = parsed
-        self.orders[symbol] = defaultKey
-        result = []
-        values = list(self.orders.values())
-        for i in range(0, len(values)):
-            orders = list(values[i].values())
-            result = self.array_concat(result, orders)
-        # del older orders from our structure to prevent memory leaks
-        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        result = self.sort_by(result, 'timestamp')
-        resultLength = len(result)
-        if resultLength > limit:
-            toDelete = resultLength - limit
-            for i in range(0, toDelete):
-                id = result[i]['id']
-                symbol = result[i]['symbol']
-                del self.orders[symbol][id]
-            result = result[toDelete:resultLength]
-        client.resolve(result, messageHash)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(parsed)
+        client.resolve(self.orders, messageHash)
 
     def handle_message(self, client, message):
         methods = {

@@ -138,7 +138,7 @@ class bitfinex extends \ccxt\bitfinex {
         //     // channel $id, update type, $seq, $trade $id, time, $price, $amount
         //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
         //
-        if (!gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) !== 'array' || count(array_filter(array_keys($trade), 'is_string')) != 0) {
             return parent::parse_trade($trade, $market);
         }
         $tradeLength = is_array($trade) ? count($trade) : 0;
