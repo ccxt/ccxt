@@ -10,6 +10,7 @@ cache:
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
+- nvm ls
 - nvm install 14.9.0 -v
 - nvm use 14.9.0
 - rm -rf node_modules
