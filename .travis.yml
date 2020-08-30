@@ -10,11 +10,13 @@ cache:
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
-- nvm install 10.15.3
-- nvm use 10.15.3
+- nvm ls
+# - nvm install 14.9.0 -v
+# - nvm use 14.9.0
+- nvm use stable
 - rm -rf node_modules
 - npm install
-- npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi --no-save
+- npm install web3 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
 - sudo apt-get install python3-pip
 - python3 --version

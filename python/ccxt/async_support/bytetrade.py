@@ -234,11 +234,13 @@ class bytetrade(Exchange):
             id = self.safe_string(market, 'symbol')
             base = self.safe_string(market, 'baseName')
             quote = self.safe_string(market, 'quoteName')
-            normalBase = base.split('@')[0]
-            normalQuote = quote.split('@')[0]
-            normalSymbol = normalBase + '/' + normalQuote
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
+            normalBase = base.split('@')[0]
+            normalQuote = quote.split('@')[0]
+            if quoteId == '126':
+                normalQuote = 'ZAR'  # The id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
+            normalSymbol = normalBase + '/' + normalQuote
             if baseId in self.commonCurrencies:
                 base = self.commonCurrencies[baseId]
             if quoteId in self.commonCurrencies:

@@ -220,6 +220,7 @@ class poloniex(Exchange):
                     'is either completed or does not exist': InvalidOrder,  # {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

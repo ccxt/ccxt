@@ -972,9 +972,6 @@ class dsx extends Exchange {
             'orderId' => $id,
         );
         $response = $this->privatePostOrderCancel (array_merge($request, $params));
-        if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-            $this->orders[$id]['status'] = 'canceled';
-        }
         return $response;
     }
 

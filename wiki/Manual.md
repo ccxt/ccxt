@@ -565,6 +565,80 @@ A later retry is usually enough to handle that. More on that here:
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 
+### Notes On Rate Limiter
+
+The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
+
+```JavaScript
+// DO NOT DO THIS!
+
+const binance1 = new ccxt.binance ({ enableRateLimit: true })
+const binance2 = new ccxt.binance ({ enableRateLimit: true })
+const binance3 = new ccxt.binance ({ enableRateLimit: true })
+
+while (true) {
+    const result = await Promise.all ([
+        binance1.fetchOrderBook ('BTC/USDT'),
+        binance2.fetchOrderBook ('ETH/USDT'),
+        binance3.fetchOrderBook ('ETH/BTC'),
+    ])
+    console.log (result)
+}
+```
+
+Reuse the exchange instance as much as possible as shown below:
+
+```JavaScript
+// DO THIS INSTEAD:
+
+const binance = new ccxt.binance ({ enableRateLimit: true })
+
+while (true) {
+    const result = await Promise.all ([
+        binance.fetchOrderBook ('BTC/USDT'),
+        binance.fetchOrderBook ('ETH/USDT'),
+        binance.fetchOrderBook ('ETH/BTC'),
+    ])
+    console.log (result)
+}
+```
+
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits.
+
+```JavaScript
+// DO NOT DO THIS!
+
+function tick () {
+    const exchange = new ccxt.binance ({ enableRateLimit: true })
+    const response = await exchange.fetchOrderBook ('BTC/USDT')
+    // ... some processing here ...
+    return response
+}
+
+while (true) {
+    const result = await tick ()
+    console.log (result)
+}
+```
+
+Do not break this rule unless you really understand the inner workings of the rate-limiter and you are 100% sure you know what you're doing. In order to stay safe always reuse the exchange instance throughout your functions and methods callchain like shown below:
+
+```JavaScript
+// DO THIS INSTEAD:
+
+async function tick (exchange) {
+    const response = await exchange.fetchOrderBook ('BTC/USDT')
+    // ... some processing here ...
+    return response
+}
+
+const exchange = new ccxt.binance ({ enableRateLimit: true })
+while (true) {
+    const result = await tick (exchange)
+    console.log (result)
+}
+```
+
 ### DDoS Protection By Cloudflare / Incapsula
 
 Some exchanges are [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack)-protected by [Cloudflare](https://www.cloudflare.com) or [Incapsula](https://www.incapsula.com). Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.

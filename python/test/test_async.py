@@ -22,6 +22,8 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
+from test_ohlcv import test_ohlcv  # noqa: E402
+from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -137,7 +139,7 @@ async def test_order_book(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-async def test_ohlcv(exchange, symbol):
+async def test_ohlcvs(exchange, symbol):
     ignored_exchanges = [
         'cex',  # CEX can return historical candles for a certain date only
         'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
@@ -154,6 +156,8 @@ async def test_ohlcv(exchange, symbol):
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000
         ohlcvs = await exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+        for ohlcv in ohlcvs:
+            test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
@@ -307,6 +311,20 @@ async def test_open_orders(exchange, symbol):
     else:
         dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
 
+# ------------------------------------------------------------------------------
+
+
+async def test_transactions(exchange, symbol):
+    if exchange.has['fetchTransactions']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+
+        transactions = await exchange.fetch_transactions(symbol)
+        for transaction in transactions:
+            test_transaction(exchange, transaction, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(transactions)), 'transactions')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_transactions() not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -325,9 +343,10 @@ async def test_symbol(exchange, symbol):
             await test_orders(exchange, symbol)
             await test_open_orders(exchange, symbol)
             await test_closed_orders(exchange, symbol)
+            await test_transactions(exchange, symbol)
 
     await test_tickers(exchange, symbol)
-    await test_ohlcv(exchange, symbol)
+    await test_ohlcvs(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 

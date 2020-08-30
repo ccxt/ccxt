@@ -148,7 +148,6 @@ class Transpiler {
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
-            [ /\.bind\s*\(this\)([,;])$/mg, '$1' ],
             [ /\.call\s*\(this, /g, '(' ]
         ]
     }
@@ -251,7 +250,7 @@ class Transpiler {
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
             [ /(^|\s)\/\//g, '$1#' ],
             [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
             [ /\.indexOf/g, '.find'],
@@ -288,6 +287,7 @@ class Transpiler {
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -762,10 +762,12 @@ class Transpiler {
 
     //-----------------------------------------------------------------------------
 
-    transpilePythonAsyncToSync (oldName, newName) {
+    transpilePythonAsyncToSync () {
 
-        log.magenta ('Transpiling ' + oldName.yellow + ' → ' + newName.yellow)
-        const fileContents = fs.readFileSync (oldName, 'utf8')
+        const async = './python/test/test_async.py'
+        const sync = './python/test/test.py'
+        log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
+        const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
 
         lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
@@ -795,8 +797,8 @@ class Transpiler {
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
 
-        fs.truncateSync (newName)
-        fs.writeFileSync (newName, newContents)
+        fs.truncateSync (sync)
+        fs.writeFileSync (sync, newContents)
     }
 
     // ------------------------------------------------------------------------
@@ -1333,6 +1335,16 @@ class Transpiler {
                 'pyFile': './python/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
             },
+            {
+                'jsFile': './js/test/Exchange/test.transaction.js',
+                'pyFile': './python/test/test_transaction.py',
+                'phpFile': './php/test/test_transaction.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.ohlcv.js',
+                'pyFile': './python/test/test_ohlcv.py',
+                'phpFile': './php/test/test_ohlv.php',
+            },
         ]
         for (const test of tests) {
             this.transpileTest (test)
@@ -1366,6 +1378,8 @@ class Transpiler {
         const python = this.getPythonPreamble () + pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
+        log.magenta ('→', test.pyFile.yellow)
+        log.magenta ('→', test.phpFile.yellow)
 
         overwriteFile (test.pyFile, python)
         overwriteFile (test.phpFile, php)
@@ -1407,9 +1421,9 @@ class Transpiler {
         this.transpileDateTimeTests ()
         this.transpileCryptoTests ()
 
-        this.transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+        this.transpileExchangeTests ()
 
-        this.transpileExchangeTests ();
+        this.transpilePythonAsyncToSync ()
 
         log.bright.green ('Transpiled successfully.')
     }

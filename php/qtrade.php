@@ -566,6 +566,7 @@ class qtrade extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
+            'desc' => true, // Returns newest $trades first when true
             // 'older_than' => 123, // returns $trades with id < older_than
             // 'newer_than' => 123, // returns $trades with id > newer_than
         );

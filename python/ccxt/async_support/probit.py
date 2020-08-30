@@ -19,6 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class probit(Exchange):
@@ -144,6 +145,7 @@ class probit(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'timeInForce': {
@@ -195,11 +197,12 @@ class probit(Exchange):
             symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
             active = not closed
-            priceIncrement = self.safe_string(market, 'price_increment')
+            amountPrecision = self.safe_integer(market, 'quantity_precision')
+            costPrecision = self.safe_integer(market, 'cost_precision')
             precision = {
-                'amount': self.safe_integer(market, 'quantity_precision'),
-                'price': self.precision_from_string(priceIncrement),
-                'cost': self.safe_integer(market, 'cost_precision'),
+                'amount': 1 / math.pow(10, amountPrecision),
+                'price': self.safe_float(market, 'price_increment'),
+                'cost': 1 / math.pow(10, costPrecision),
             }
             takerFeeRate = self.safe_float(market, 'taker_fee_rate')
             makerFeeRate = self.safe_float(market, 'maker_fee_rate')

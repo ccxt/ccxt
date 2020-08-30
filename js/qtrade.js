@@ -563,6 +563,7 @@ module.exports = class qtrade extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
+            'desc': true, // Returns newest trades first when true
             // 'older_than': 123, // returns trades with id < older_than
             // 'newer_than': 123, // returns trades with id > newer_than
         };

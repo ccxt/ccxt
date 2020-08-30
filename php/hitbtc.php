@@ -179,6 +179,7 @@ class hitbtc extends Exchange {
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 

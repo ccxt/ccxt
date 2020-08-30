@@ -18,6 +18,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
@@ -524,7 +525,10 @@ class bitfinex(Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
+                # https://docs.bitfinex.com/docs/introduction#amount-precision
+                # The amount field allows up to 8 decimals.
+                # Anything exceeding self will be rounded to the 8th decimal.
+                'amount': 8,
             }
             limits = {
                 'amount': {
@@ -555,7 +559,18 @@ class bitfinex(Exchange):
         return result
 
     def amount_to_precision(self, symbol, amount):
+        # https://docs.bitfinex.com/docs/introduction#amount-precision
+        # The amount field allows up to 8 decimals.
+        # Anything exceeding self will be rounded to the 8th decimal.
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+
+    def price_to_precision(self, symbol, price):
+        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        # https://docs.bitfinex.com/docs/introduction#price-precision
+        # The precision level of all trading prices is based on significant figures.
+        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        # Prices submit with a precision larger than 5 will be cut by the API.
+        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

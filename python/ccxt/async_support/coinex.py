@@ -524,10 +524,8 @@ class coinex(Exchange):
         if (type == 'limit') or (type == 'ioc'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(request, params))
-        order = self.parse_order(response['data'], market)
-        id = order['id']
-        self.orders[id] = order
-        return order
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -537,7 +535,8 @@ class coinex(Exchange):
             'market': market['id'],
         }
         response = await self.privateDeleteOrderPending(self.extend(request, params))
-        return self.parse_order(response['data'], market)
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -575,7 +574,8 @@ class coinex(Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parse_order(response['data'], market)
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -591,7 +591,9 @@ class coinex(Exchange):
             request['market'] = market['id']
         method = 'privateGetOrder' + self.capitalize(status)
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['data']['data'], market, since, limit)
+        data = self.safe_value(response, 'data')
+        orders = self.safe_value(data, 'data', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_status('pending', symbol, since, limit, params)
@@ -612,7 +614,9 @@ class coinex(Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.privateGetOrderUserDeals(self.extend(request, params))
-        return self.parse_trades(response['data']['data'], market, since, limit)
+        data = self.safe_value(response, 'data')
+        trades = self.safe_value(data, 'data', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -795,7 +799,8 @@ class coinex(Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -835,7 +840,8 @@ class coinex(Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parse_transactions(response['data'], currency, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()

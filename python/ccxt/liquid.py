@@ -69,6 +69,7 @@ class liquid(Exchange):
                 },
                 'private': {
                     'get': [
+                        'accounts',  # undocumented https://github.com/ccxt/ccxt/pull/7493
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
@@ -199,6 +200,7 @@ class liquid(Exchange):
             'commonCurrencies': {
                 'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
             'options': {
                 'cancelOrderException': True,
@@ -425,21 +427,59 @@ class liquid(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccountsBalance(params)
+        response = self.privateGetAccounts(params)
         #
-        #     [
-        #         {"currency":"USD","balance":"0.0"},
-        #         {"currency":"BTC","balance":"0.0"},
-        #         {"currency":"ETH","balance":"0.1651354"}
-        #     ]
+        #     {
+        #         crypto_accounts: [
+        #             {
+        #                 id: 2221179,
+        #                 currency: 'USDT',
+        #                 balance: '0.0',
+        #                 reserved_balance: '0.0',
+        #                 pusher_channel: 'user_xxxxx_account_usdt',
+        #                 lowest_offer_interest_rate: null,
+        #                 highest_offer_interest_rate: null,
+        #                 address: '0',
+        #                 currency_symbol: 'USDT',
+        #                 minimum_withdraw: null,
+        #                 currency_type: 'crypto'
+        #             },
+        #         ],
+        #         fiat_accounts: [
+        #             {
+        #                 id: 1112734,
+        #                 currency: 'USD',
+        #                 balance: '0.0',
+        #                 reserved_balance: '0.0',
+        #                 pusher_channel: 'user_xxxxx_account_usd',
+        #                 lowest_offer_interest_rate: null,
+        #                 highest_offer_interest_rate: null,
+        #                 currency_symbol: '$',
+        #                 send_to_btc_address: null,
+        #                 exchange_rate: '1.0',
+        #                 currency_type: 'fiat'
+        #             }
+        #         ]
+        #     }
         #
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
+        crypto = self.safe_value(response, 'crypto_accounts', [])
+        fiat = self.safe_value(response, 'fiat_accounts', [])
+        for i in range(0, len(crypto)):
+            balance = crypto[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'reserved_balance')
+            result[code] = account
+        for i in range(0, len(fiat)):
+            balance = fiat[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'reserved_balance')
             result[code] = account
         return self.parse_balance(result)
 

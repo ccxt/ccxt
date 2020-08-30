@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -89,8 +89,15 @@ module.exports = class bit2c extends Exchange {
                 'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
             },
             'exceptions': {
-                // { "error" : "Please provide valid APIkey" }
-                // { "error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
+                'exact': {
+                    'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
+                },
+                'broad': {
+                    // { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+                    // { "error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
+                    'Please provide valid nonce': InvalidNonce,
+                    'please approve new terms of use on site': PermissionDenied, // { "error" : "please approve new terms of use on site." }
+                },
             },
         });
     }
@@ -421,6 +428,23 @@ module.exports = class bit2c extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     { "error" : "please approve new terms of use on site." }
+        //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+        //
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
 

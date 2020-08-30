@@ -1223,7 +1223,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', $response);
         $timestamp = null;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) !== 'array' || count(array_filter(array_keys($response), 'is_string')) != 0) {
             $timestamp = $this->safe_integer($response, 'ts');
         }
         $result = array();
@@ -1578,7 +1578,7 @@ class bitget extends Exchange {
         //     ]
         //
         $candles = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) !== 'array' || count(array_filter(array_keys($response), 'is_string')) != 0) {
             $candles = $this->safe_value($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
@@ -2345,7 +2345,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) !== 'array' || count(array_filter(array_keys($response), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_orders($data, $market, null, $limit);
@@ -2437,7 +2437,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) !== 'array' || count(array_filter(array_keys($response), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_orders($data, $market, null, $limit);
@@ -2727,7 +2727,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) !== 'array' || count(array_filter(array_keys($data), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_trades($data, $market, $since, $limit);

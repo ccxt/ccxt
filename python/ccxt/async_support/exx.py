@@ -342,7 +342,6 @@ class exx(Exchange):
             'type': side,
             'info': response,
         }, market)
-        self.orders[id] = order
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):

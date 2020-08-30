@@ -917,8 +917,6 @@ class dsx(Exchange):
             'orderId': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
         return response
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

@@ -1236,6 +1236,8 @@ class kucoin(Exchange):
                 'rate': self.safe_float(trade, 'feeRate'),
             }
         type = self.safe_string(trade, 'type')
+        if type == 'match':
+            type = None
         cost = self.safe_float_2(trade, 'funds', 'dealValue')
         if cost is None:
             if amount is not None:

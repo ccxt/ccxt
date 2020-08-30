@@ -535,7 +535,7 @@ class coinex extends Exchange {
         if (($type === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
                     $price = floatval ($price);
                     $request['amount'] = $this->cost_to_precision($symbol, $amount * $price);
@@ -550,10 +550,8 @@ class coinex extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge($request, $params));
-        $order = $this->parse_order($response['data'], $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
-        return $order;
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -564,7 +562,8 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->privateDeleteOrderPending (array_merge($request, $params));
-        return $this->parse_order($response['data'], $market);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -581,7 +580,7 @@ class coinex extends Exchange {
         //
         //     {
         //         "code" => 0,
-        //         "data" => array(
+        //         "$data" => array(
         //             "amount" => "0.1",
         //             "asset_fee" => "0.22736197736197736197",
         //             "avg_price" => "196.85000000000000000000",
@@ -604,7 +603,8 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parse_order($response['data'], $market);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -623,7 +623,9 @@ class coinex extends Exchange {
         }
         $method = 'privateGetOrder' . $this->capitalize($status);
         $response = $this->$method (array_merge($request, $params));
-        return $this->parse_orders($response['data']['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data');
+        $orders = $this->safe_value($data, 'data', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -649,7 +651,9 @@ class coinex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->privateGetOrderUserDeals (array_merge($request, $params));
-        return $this->parse_trades($response['data']['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data');
+        $trades = $this->safe_value($data, 'data', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -803,7 +807,7 @@ class coinex extends Exchange {
         //
         //     {
         //         "$code" => 0,
-        //         "data" => array(
+        //         "$data" => array(
         //             array(
         //                 "actual_amount" => "1.00000000",
         //                 "amount" => "1.00000000",
@@ -844,7 +848,8 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -862,7 +867,7 @@ class coinex extends Exchange {
         $response = $this->privateGetBalanceCoinDeposit (array_merge($request, $params));
         //     {
         //         "$code" => 0,
-        //         "data" => array(
+        //         "$data" => array(
         //             {
         //                 "actual_amount" => "4.65397682",
         //                 "actual_amount_display" => "4.65397682",
@@ -887,7 +892,8 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function nonce() {

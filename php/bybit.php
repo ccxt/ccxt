@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class bybit extends Exchange {
 
@@ -147,9 +146,11 @@ class bybit extends Exchange {
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
                         'position/set-leverage',
@@ -1032,6 +1033,41 @@ class bybit extends Exchange {
         //         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         //     }
         //
+        // conditional $order
+        //
+        //     {
+        //         "user_id":##,
+        //         "$symbol":"BTCUSD",
+        //         "$side":"Buy",
+        //         "order_type":"Market",
+        //         "$price":0,
+        //         "qty":10,
+        //         "time_in_force":"GoodTillCancel",
+        //         "stop_order_type":"Stop",
+        //         "trigger_by":"LastPrice",
+        //         "base_price":11833,
+        //         "order_status":"Untriggered",
+        //         "ext_fields":array(
+        //             "stop_order_type":"Stop",
+        //             "trigger_by":"LastPrice",
+        //             "base_price":11833,
+        //             "expected_direction":"Rising",
+        //             "trigger_price":12400,
+        //             "close_on_trigger":true,
+        //             "op_from":"api",
+        //             "remark":"145.53.159.48",
+        //             "o_req_num":0
+        //         ),
+        //         "leaves_qty":10,
+        //         "leaves_value":0.00080645,
+        //         "reject_reason":null,
+        //         "cross_seq":-1,
+        //         "created_at":"2020-08-21T09:18:48.000Z",
+        //         "updated_at":"2020-08-21T09:18:48.000Z",
+        //         "stop_px":12400,
+        //         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = null;
         $base = null;
@@ -1039,7 +1075,7 @@ class bybit extends Exchange {
             $market = $this->markets_by_id[$marketId];
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $id = $this->safe_string($order, 'order_id');
+        $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'average_price');
         $amount = $this->safe_float($order, 'qty');
@@ -1350,9 +1386,6 @@ class bybit extends Exchange {
         }
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
-        if ($marketType === 'linear') {
-            throw new NotSupported($this->id . ' does not support editOrder for ' . $marketType . ' ' . $symbol . ' $market type');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1365,10 +1398,10 @@ class bybit extends Exchange {
             // 'stop_order_id' => $id, // only for conditional orders
             // 'p_r_trigger_price' => 123.45, // new trigger $price also known as stop_px
         );
+        $method = ($marketType === 'linear') ? 'privateLinearPostOrderReplace' : 'openapiPostOrderReplace';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
-        $method = 'openapiPostOrderReplace';
         if ($stopOrderId !== null) {
-            $method = 'openapiPostStopOrderReplace';
+            $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderReplace' : 'openapiPostStopOrderReplace';
             $request['stop_order_id'] = $stopOrderId;
             $params = $this->omit($params, array( 'stop_order_id' ));
         } else {

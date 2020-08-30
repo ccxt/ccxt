@@ -119,11 +119,13 @@ class livecoin(Exchange):
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
                 'ORE': 'Orectic',
                 'PLN': 'Plutaneum',  # conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'UNUS': 'LEO',  # https://github.com/ccxt/ccxt/issues/7496
                 'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',

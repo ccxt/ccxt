@@ -517,7 +517,10 @@ class bitfinex extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
-                'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
+                // https://docs.bitfinex.com/docs/introduction#amount-$precision
+                // The amount field allows up to 8 decimals.
+                // Anything exceeding this will be rounded to the 8th decimal.
+                'amount' => 8,
             );
             $limits = array(
                 'amount' => array(
@@ -550,7 +553,19 @@ class bitfinex extends Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
+        // https://docs.bitfinex.com/docs/introduction#$amount-precision
+        // The $amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    public function price_to_precision($symbol, $price) {
+        $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#$price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {

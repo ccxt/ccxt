@@ -136,6 +136,7 @@ class probit extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'timeInForce' => array(
@@ -188,11 +189,12 @@ class probit extends Exchange {
             $symbol = $base . '/' . $quote;
             $closed = $this->safe_value($market, 'closed', false);
             $active = !$closed;
-            $priceIncrement = $this->safe_string($market, 'price_increment');
+            $amountPrecision = $this->safe_integer($market, 'quantity_precision');
+            $costPrecision = $this->safe_integer($market, 'cost_precision');
             $precision = array(
-                'amount' => $this->safe_integer($market, 'quantity_precision'),
-                'price' => $this->precision_from_string($priceIncrement),
-                'cost' => $this->safe_integer($market, 'cost_precision'),
+                'amount' => 1 / pow(10, $amountPrecision),
+                'price' => $this->safe_float($market, 'price_increment'),
+                'cost' => 1 / pow(10, $costPrecision),
             );
             $takerFeeRate = $this->safe_float($market, 'taker_fee_rate');
             $makerFeeRate = $this->safe_float($market, 'maker_fee_rate');

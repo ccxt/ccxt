@@ -493,7 +493,7 @@ class oceanex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $ids = $id;
-        if (!gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
+        if (gettype($id) !== 'array' || count(array_filter(array_keys($id), 'is_string')) != 0) {
             $ids = array( $id );
         }
         $this->load_markets();

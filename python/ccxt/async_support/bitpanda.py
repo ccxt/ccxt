@@ -247,6 +247,9 @@ class bitpanda(Exchange):
                 'broad': {
                 },
             },
+            'commonCurrencies': {
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+            },
         })
 
     async def fetch_time(self, params={}):

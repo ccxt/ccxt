@@ -236,6 +236,9 @@ module.exports = class bitpanda extends Exchange {
                 'broad': {
                 },
             },
+            'commonCurrencies': {
+                'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            },
         });
     }
 
