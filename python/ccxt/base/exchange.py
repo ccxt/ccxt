@@ -1397,12 +1397,6 @@ class Exchange(object):
         order = self.fetch_order(id, symbol, params)
         return order['status']
 
-    def purge_cached_orders(self, before):
-        orders = self.to_array(self.orders)
-        orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-        self.orders = self.index_by(orders, 'id')
-        return self.orders
-
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
 
@@ -1424,16 +1418,16 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order_trades() is not supported yet')
 
-    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
