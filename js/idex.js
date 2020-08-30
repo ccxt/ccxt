@@ -563,8 +563,6 @@ module.exports = class idex extends Exchange {
         return await this.privatePostWallets (request);
     }
 
-
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // https://docs.idex.io/#create-order
         this.checkRequiredCredentials ();
