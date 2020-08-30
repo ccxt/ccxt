@@ -20,17 +20,15 @@ class FastClient(AiohttpClient):
 
     def receive_loop(self):
         def handler():
-            if self.stack:
-                message = self.stack.popleft()
-                self.handle_message(message)
-                self.asyncio_loop.call_soon(handler)
+            if not self.stack:
+                return
+            message = self.stack.popleft()
+            self.handle_message(message)
+            self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
             if not self.stack:
                 self.asyncio_loop.call_soon(handler)
-            if len(self.stack) > self.max_size:
-                while self.stack:
-                    self.handle_message(self.stack.popleft())
             self.stack.append(message)
 
         def feed_eof():
@@ -38,9 +36,9 @@ class FastClient(AiohttpClient):
 
         def wrapper(func):
             def parse_frame(buf):
-                frames = func(buf)
-                self.max_size = max(self.max_size, len(frames))
-                return frames
+                while self.stack:
+                    self.handle_message(self.stack.popleft())
+                return func(buf)
             return parse_frame
 
         connection = self.connection._conn
