@@ -227,6 +227,9 @@ module.exports = class bitbay extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
+            'commonCurrencies': {
+                'GGC': 'Global Game Coin',
+            },
         });
     }
 
