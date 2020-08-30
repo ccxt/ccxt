@@ -8,9 +8,6 @@ from ccxtpro.base.aiohttp_client import AiohttpClient
 
 class FastClient(AiohttpClient):
     transport = None
-    max_size = 1
-    # equal to the maximum number of frames in a single call to data_received
-    # this is done to avoid lag as much as possible
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
         super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
@@ -36,7 +33,7 @@ class FastClient(AiohttpClient):
 
         def wrapper(func):
             def parse_frame(buf):
-                while self.stack:
+                while len(self.stack) > 1:
                     self.handle_message(self.stack.popleft())
                 return func(buf)
             return parse_frame
@@ -59,3 +56,7 @@ class FastClient(AiohttpClient):
         self.stack.clear()
         if self.transport:
             self.transport.abort()
+
+    def resolve(self, result, message_hash=None):
+        super(FastClient, self).resolve(result, message_hash)
+        print('resolved', message_hash)
