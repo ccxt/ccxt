@@ -10,12 +10,8 @@ cache:
 before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
-- set -v
-# - set -x
-- nvm install 14.9.0 -v
-- nvm use 14.9.0
-# - set +x
-- set +v
+# - nvm install 14.9.0 -v
+- nvm use 12.18.1
 - rm -rf node_modules
 - npm install
 - npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi --no-save
