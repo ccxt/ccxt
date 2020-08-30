@@ -384,7 +384,7 @@ module.exports = class bitmart extends Exchange {
         //                         "max_vol":"300000",
         //                         "liquidation_warn_ratio":"0.85",
         //                         "fast_liquidation_ratio":"0.8",
-        //                         "settle_type":1,
+        //                         "settgle_type":1,
         //                         "open_type":3,
         //                         "compensate_type":1,
         //                         "status":3,
@@ -932,59 +932,110 @@ module.exports = class bitmart extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
+        // spot
+        //
         //     {
-        //         "timestamp":1525761000000,
-        //         "open_price":"0.010130",
-        //         "highest_price":"0.010130",
-        //         "lowest_price":"0.010130",
-        //         "current_price":"0.010130",
-        //         "volume":"0.000000"
+        //         "last_price":"0.034987",
+        //         "timestamp":1598787420,
+        //         "volume":"1.0198",
+        //         "open":"0.035007",
+        //         "close":"0.034987",
+        //         "high":"0.035007",
+        //         "low":"0.034986"
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open_price'),
-            this.safeFloat (ohlcv, 'highest_price'),
-            this.safeFloat (ohlcv, 'lowest_price'),
-            this.safeFloat (ohlcv, 'current_price'),
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
             this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a `since` argument or a `limit` argument (or both)');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const periodInSeconds = this.parseTimeframe (timeframe);
-        const duration = periodInSeconds * limit * 1000;
-        let to = this.milliseconds ();
-        if (since === undefined) {
-            since = to - duration;
-        } else {
-            to = this.sum (since, duration);
+        const type = market['type'];
+        let method = undefined;
+        const request = {};
+        const duration = this.parseTimeframe (timeframe);
+        if (type === 'spot') {
+            method = 'publicSpotGetSymbolsKline';
+            request['symbol'] = market['id'];
+            request['step'] = this.timeframes[timeframe];
+            // the exchange will return an empty array if more than 500 candles is requested
+            const maxLimit = 500;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min (maxLimit, limit);
+            if (since === undefined) {
+                const end = parseInt (this.milliseconds () / 1000);
+                const start = end - limit * duration;
+                request['from'] = start;
+                request['to'] = end;
+            } else {
+                const start = parseInt (since / 1000);
+                const end = this.sum (start, limit * duration);
+                request['from'] = start;
+                request['to'] = end;
+            }
+        } else if ((type === 'swap') || (type === 'future')) {
+            method = 'publicContractGetQuote';
+            request['contractID'] = market['id'];
         }
-        const request = {
-            'symbol': market['id'],
-            'from': since, // start time of k-line data (in milliseconds, required)
-            'to': to, // end time of k-line data (in milliseconds, required)
-            'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
-        };
-        const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
+
+        // {"message":"OK","code":1000,"trace":"ee19f177-c40a-40c2-8f0c-0bcd8e29662f","data":{"steps":[1,5,15,30,60,120,240,1440,1440,10080,10080,43200,43200]}}
+
+        //     symbol string Yes Trading pair symbol
+        //     from long Yes Start timestamp (in seconds, UTC+0 TimeZome)
+        //     to long Yes End timestamp (in seconds, UTC+0 TimeZome)
+        //     step long No k-line step Steps (in minutes, default 1 minute)
+        //     curl https://api-cloud.bitmart.com/spot/v1/symbols/kline?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
+
+        //     contractID long Yes Contract ID
+        //     startTime long Yes Start time
+        //     endTime long Yes End time
+        //     unit int Yes Frequency
+        //     resolution string Yes Frequency unit, M: minute, H: hour, D: day
+        //     curl https://api-cloud.bitmart.com/contract/v1/ifcontract/quote?contractID=1&startTime=1584343602&endTime=1585343602&unit=5&resolution=M
+
+        // const periodInSeconds = this.parseTimeframe (timeframe);
+        // const duration = periodInSeconds * limit * 1000;
+        // let to = this.milliseconds ();
+        // if (since === undefined) {
+        //     since = to - duration;
+        // } else {
+        //     to = this.sum (since, duration);
+        // }
+        // const request = {
+        //     'symbol': market['id'],
+        //     'from': since, // start time of k-line data (in milliseconds, required)
+        //     'to': to, // end time of k-line data (in milliseconds, required)
+        //     'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
+        // };
+        const response = await this[method] (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "timestamp":1525761000000,
-        //             "open_price":"0.010130",
-        //             "highest_price":"0.010130",
-        //             "lowest_price":"0.010130",
-        //             "current_price":"0.010130",
-        //             "volume":"0.000000"
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"80d86378-ab4e-4c70-819e-b42146cf87ad",
+        //         "data":{
+        //             "klines":[
+        //                 {"last_price":"0.034987","timestamp":1598787420,"volume":"1.0198","open":"0.035007","close":"0.034987","high":"0.035007","low":"0.034986"},
+        //                 {"last_price":"0.034986","timestamp":1598787480,"volume":"0.3959","open":"0.034982","close":"0.034986","high":"0.034986","low":"0.034980"},
+        //                 {"last_price":"0.034978","timestamp":1598787540,"volume":"0.3259","open":"0.034987","close":"0.034978","high":"0.034987","low":"0.034977"},
+        //             ]
         //         }
-        //     ]
+        //     }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', {});
+        const klines = this.safeValue (data, 'klines', []);
+        return this.parseOHLCVs (klines, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1258,14 +1309,13 @@ module.exports = class bitmart extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
         let url = baseUrl + '/' + type + '/' + this.version;
         if (type === 'contract') {
             url += '/' + 'ifcontract';
         }
         url += '/' + this.implodeParams (path, params);
-        // api = this.safeString (api, 0);
-        const access = this.safeString (api, 0);
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
