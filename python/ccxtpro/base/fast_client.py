@@ -56,7 +56,3 @@ class FastClient(AiohttpClient):
         self.stack.clear()
         if self.transport:
             self.transport.abort()
-
-    def resolve(self, result, message_hash=None):
-        super(FastClient, self).resolve(result, message_hash)
-        print('resolved', message_hash)
