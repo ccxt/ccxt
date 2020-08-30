@@ -80,11 +80,13 @@ module.exports = class idex extends Exchange {
                         'orders',
                         'fills',
                         'deposits',
+                        'withdrawals',
                     ],
                     'post': [
                         'wallets',
                         'orders',
                         'orders/test',
+                        'withdrawals',
                     ],
                     'delete': [
                         'orders',
@@ -455,14 +457,14 @@ module.exports = class idex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const name = this.safeString (entry, 'name');
-            const id = this.safeString ('id');
+            const currencyId = this.safeString (entry, 'symbol');
             const precision = this.safeInteger (entry, 'exchangeDecimals');
-            const code = this.safeCurrencyCode (id);
+            const code = this.safeCurrencyCode (currencyId);
             const lot = Math.pow (-10, precision);
             result[code] = {
-                'id': id,
+                'id': currencyId,
                 'code': code,
-                'info': id,
+                'info': entry,
                 'type': undefined,
                 'name': name,
                 'active': undefined,
@@ -564,41 +566,47 @@ module.exports = class idex extends Exchange {
 
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // https://docs.idex.io/#create-order
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.uuidv1 ();
         let typeEnum = undefined;
+        let priceString = undefined;
         if (type === 'limit') {
             typeEnum = 1;
+            priceString = this.priceToPrecision (symbol, price);
         } else if (type === 'market') {
             typeEnum = 0;
         }
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
         const orderVersion = 1;
-        const priceString = this.priceToPrecision (symbol, price);
         const amountString = this.amountToPrecision (symbol, amount);
-        console.log (priceString)
-        const timeInForce = 0;  // goodTillCanceled
-        const orderSelfTradePrevention = 2;  // cancel newest
+        const timeInForceEnum = 0;  // Good-til-canceled
+        const timeInForce = 'gtc';
+        const selfTradePrevention = 'cn';
+        const selfTradePreventionEnum = 2;  // Cancel newest
         const byteArray = [
             this.numberToBE (orderVersion, 1),
             this.base16ToBinary (nonce.replace (/-/g, '')),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (this.encode (market['id'])),  // TODO: remove stringToBinary
+            this.stringToBinary (this.encode (market['id'])),  // TODO: refactor to remove either encode or stringToBinary
             this.numberToBE (typeEnum, 1),
             this.numberToBE (sideEnum, 1),
             this.stringToBinary (this.encode (amountString)),
-            this.stringToBinary (''),  // quote quantity for market orders
-            this.stringToBinary (this.encode (priceString)),
-            this.stringToBinary (''),  // stop price
-            this.stringToBinary (''),  // clientOrderId
-            this.numberToBE (timeInForce, 1),
-            this.numberToBE (orderSelfTradePrevention, 1),
+        ];
+        if (type === 'limit') {
+            const encodedPrice = this.stringToBinary (this.encode (priceString));
+            byteArray.push (encodedPrice);
+        }
+        const after = [
+            this.numberToBE (timeInForceEnum, 1),
+            this.numberToBE (selfTradePreventionEnum, 1),
             this.numberToBE (0, 8), // unused
         ];
-        const binary = this.binaryConcatArray (byteArray);
+        const allBytes = this.arrayConcat (byteArray, after);
+        const binary = this.binaryConcatArray (allBytes);
         const hash = this.hash (binary, 'keccak', 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         const request = {
@@ -608,12 +616,69 @@ module.exports = class idex extends Exchange {
                 'side': side,
                 'type': type,
                 'quantity': amountString,
-                'price': priceString,
                 'wallet': this.walletAddress,
+                'timeInForce': timeInForce,
+                'selfTradePrevention': selfTradePrevention,
             },
             'signature': signature,
         };
-        const response = await this.privatePostOrders (this.extend (request, params));
+        if (type === 'limit') {
+            request['parameters']['price'] = priceString;
+        }
+        const response = await this.privatePostOrdersTest (this.extend (request, params));
+        return response;
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const amountString = this.currencyToPrecision (code, amount);
+        const currency = this.currency (code);
+        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const byteArray = [
+            this.base16ToBinary (nonce.replace (/-/g, ''), ''),
+            this.base16ToBinary (walletBytes),
+            this.stringToBinary (currency['id']),
+            this.stringToBinary (amountString),
+            this.numberToBE (1, 1), // bool set to true
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': this.walletAddress,
+                'asset': currency['id'],
+                'quantity': amountString,
+            },
+            'signature': signature,
+        };
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        return response;
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const nonce = this.uuidv1 ();
+        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const byteArray = [
+            this.base16ToBinary (nonce.replace (/-/g, '')),
+            this.base16ToBinary (walletBytes),
+            this.stringToBinary (id),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': this.walletAddress,
+                'orderId': id,
+            },
+            'signature': signature,
+        };
+        const response = await this.privateDeleteOrders (this.extend (request, params));
         return response;
     }
 

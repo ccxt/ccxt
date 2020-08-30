@@ -1003,6 +1003,7 @@ class Exchange {
         );
 
         $this->precisionMode = DECIMAL_PLACES;
+        $this->paddingMode = NO_PADDING;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -2364,7 +2365,7 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        return self::decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function costToPrecision($symbol, $cost) {
@@ -2372,7 +2373,7 @@ class Exchange {
     }
 
     public function price_to_precision($symbol, $price) {
-        return self::decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        return self::decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function priceToPrecision($symbol, $price) {
@@ -2380,7 +2381,7 @@ class Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
+        return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function amountToPrecision($symbol, $amount) {
@@ -2388,7 +2389,7 @@ class Exchange {
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return self::decimalToPrecision($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        return self::decimalToPrecision($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function feeToPrecision($symbol, $fee) {
@@ -2396,7 +2397,7 @@ class Exchange {
     }
 
     public function currency_to_precision($currency, $fee) {
-        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode);
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currencyToPrecision($symbol, $fee) {

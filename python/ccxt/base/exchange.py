@@ -23,7 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
@@ -298,6 +298,7 @@ class Exchange(object):
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
+    paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
@@ -338,6 +339,7 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
+        self.orders = dict() if self.orders is None else self.orders
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
@@ -421,36 +423,33 @@ class Exchange(object):
             del self.urls['api_backup']
 
     @classmethod
-    def define_rest_api(cls, api, method_name, paths=[]):
+    def define_rest_api(cls, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for key, value in api.items():
-            if isinstance(value, list):
-                uppercase_method = key.upper()
-                lowercase_method = key.lower()
-                camelcase_method = lowercase_method.capitalize()
-                for path in value:
-                    path = path.strip()
-                    split_path = delimiters.split(path)
-                    lowercase_path = [x.strip().lower() for x in split_path]
+        for api_type, methods in api.items():
+            for http_method, urls in methods.items():
+                for url in urls:
+                    url = url.strip()
+                    split_path = delimiters.split(url)
+
+                    uppercase_method = http_method.upper()
+                    lowercase_method = http_method.lower()
+                    camelcase_method = lowercase_method.capitalize()
                     camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
-                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-                    camelcase_prefix = ''
-                    underscore_prefix = ''
-                    if len(paths):
-                        camelcase_prefix = paths[0]
-                        underscore_prefix = paths[0]
-                        if len(paths) > 1:
-                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
-                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
-                            api_argument = paths
-                        else:
-                            api_argument = paths[0]
-                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+                    lowercase_path = [x.strip().lower() for x in split_path]
+                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
+
+                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
+
+                    if 'suffixes' in options:
+                        if 'camelcase' in options['suffixes']:
+                            camelcase += options['suffixes']['camelcase']
+                        if 'underscore' in options['suffixes']:
+                            underscore += options['suffixes']['underscore']
 
                     def partialer():
-                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
+                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
 
                         @functools.wraps(entry)
                         def inner(_self, params=None):
@@ -467,8 +466,6 @@ class Exchange(object):
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
-            else:
-                cls.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -777,10 +774,6 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
-    def uuidv1():
-        return str(uuid.uuid1())
-
-    @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
@@ -1071,7 +1064,7 @@ class Exchange(object):
         if digest == 'hex':
             return h.hexdigest()
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
+            return Exchange.binary_to_base64(h.digest())
         return h.digest()
 
     @staticmethod
@@ -1080,7 +1073,7 @@ class Exchange(object):
         if digest == 'hex':
             return h.hexdigest()
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
+            return Exchange.binary_to_base64(h.digest())
         return h.digest()
 
     @staticmethod
@@ -1104,6 +1097,14 @@ class Exchange(object):
     @staticmethod
     def binary_to_base64(s):
         return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
+    def base64_to_binary(s):
+        return base64.standard_b64decode(s)
+
+    @staticmethod
+    def string_to_base64(s):
+        return Exchange.binary_to_base64(Exchange.encode(s))
 
     @staticmethod
     def jwt(request, secret, alg='HS256'):
@@ -1202,11 +1203,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode()
+        return string.encode('utf8')
 
     @staticmethod
     def decode(string):
-        return string.decode()
+        return string.decode('utf8')
 
     @staticmethod
     def to_array(value):
@@ -1259,19 +1260,19 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1397,10 +1398,9 @@ class Exchange(object):
         return order['status']
 
     def purge_cached_orders(self, before):
-        if self.orders:
-            orders = self.to_array(self.orders)
-            orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-            self.orders = self.index_by(orders, 'id')
+        orders = self.to_array(self.orders)
+        orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
+        self.orders = self.index_by(orders, 'id')
         return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -1424,16 +1424,16 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order_trades() is not supported yet')
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -2000,6 +2000,10 @@ class Exchange(object):
             'v': 27 + signature['v'],
         }
 
+    def signMessageString(self, message, privateKey):
+        signature = self.signMessage(message, privateKey)
+        return signature['r'] + Exchange.remove_0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v']))
+
     def signMessage(self, message, privateKey):
         #
         # The following comment is related to MetaMask, we use the upper type of signature prefix:
@@ -2078,6 +2082,10 @@ class Exchange(object):
     @staticmethod
     def base16_to_binary(s):
         return base64.b16decode(s, True)
+
+    @staticmethod
+    def binary_to_base16(s):
+        return Exchange.decode(base64.b16encode(s))
 
     # python supports arbitrarily big integers
     @staticmethod
