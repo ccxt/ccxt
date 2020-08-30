@@ -229,6 +229,9 @@ class bitbay extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
                 'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
             ),
+            'commonCurrencies' => array(
+                'GGC' => 'Global Game Coin',
+            ),
         ));
     }
 
