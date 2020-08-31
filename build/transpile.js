@@ -977,38 +977,47 @@ class Transpiler {
             ids = require ('../exchanges.json').ids;
         } catch (e) {
         }
+
+        const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
         const classNames = fs.readdirSync (jsFolder)
-            .filter (file => file.includes (pattern) && (!ids || ids.includes (basename (file, pattern))))
+            .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
             .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options))
 
-        if (classNames.length === 0)
-            return null
+        const classes = {}
 
-        let classes = {}
+        if (classNames.length === 0) {
+            return null
+        }
+
         classNames.forEach (({ className, baseClass }) => {
             classes[className] = baseClass
         })
 
-        function deleteOldTranspiledFiles (folder, pattern) {
-            fs.readdirSync (folder)
-                .filter (file =>
-                    !fs.lstatSync (folder + file).isDirectory () &&
-                    file.match (pattern) &&
-                    !(file.replace (/\.[a-z]+$/, '') in classes) &&
-                    !file.match (/^Exchange|errors|__init__|\\./))
-                .map (file => folder + file)
-                .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
-        }
+        if (classNames.length > 1) {
 
-        [
-            [ python2Folder, /\.pyc?$/ ],
-            [ python3Folder, /\.pyc?$/ ],
-            [ phpFolder, /\.php$/ ],
-        ].forEach (([ folder, pattern ]) => {
-            if (folder) {
-                deleteOldTranspiledFiles (folder, pattern)
+            function deleteOldTranspiledFiles (folder, pattern) {
+                fs.readdirSync (folder)
+                    .filter (file =>
+                        !fs.lstatSync (folder + file).isDirectory () &&
+                        file.match (regex) &&
+                        !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                        !file.match (/^Exchange|errors|__init__|\\./))
+                    .map (file => folder + file)
+                    .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
-        })
+
+            [
+                [ python2Folder, /\.pyc?$/ ],
+                [ python3Folder, /\.pyc?$/ ],
+                [ phpFolder, /\.php$/ ],
+            ].forEach (([ folder, pattern ]) => {
+                if (folder) {
+                    deleteOldTranspiledFiles (folder, pattern)
+                }
+            })
+
+        }
 
         return classes
     }
