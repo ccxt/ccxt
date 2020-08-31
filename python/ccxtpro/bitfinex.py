@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -471,24 +471,8 @@ class bitfinex(Exchange, ccxt.bitfinex):
                 self.handle_order(client, value)
         else:
             self.handle_order(client, data)
-        # TODO: move to the abstract caching class
-        result = []
-        values = list(self.orders.values())
-        for i in range(0, len(values)):
-            orders = list(values[i].values())
-            result = self.array_concat(result, orders)
-        # del older orders from our structure to prevent memory leaks
-        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        result = self.sort_by(result, 'timestamp')
-        resultLength = len(result)
-        if resultLength > limit:
-            toDelete = resultLength - limit
-            for i in range(0, toDelete):
-                id = result[i]['id']
-                symbol = result[i]['symbol']
-                del self.orders[symbol][id]
-            result = result[toDelete:resultLength]
-        client.resolve(result, 'os')
+        if self.orders is not None:
+            client.resolve(self.orders, 'os')
 
     def parse_ws_order_status(self, status):
         statuses = {
@@ -554,9 +538,11 @@ class bitfinex(Exchange, ccxt.bitfinex):
             'cost': None,
             'trades': None,
         }
-        if not (symbol in self.orders):
-            self.orders[symbol] = {}
-        self.orders[symbol][id] = parsed
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(parsed)
         client.resolve(parsed, id)
         return parsed
 

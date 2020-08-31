@@ -138,7 +138,7 @@ class bitfinex extends \ccxt\bitfinex {
         //     // channel $id, update type, $seq, $trade $id, time, $price, $amount
         //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
         //
-        if (!gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) !== 'array' || count(array_filter(array_keys($trade), 'is_string')) != 0) {
             return parent::parse_trade($trade, $market);
         }
         $tradeLength = is_array($trade) ? count($trade) : 0;
@@ -513,27 +513,9 @@ class bitfinex extends \ccxt\bitfinex {
         } else {
             $this->handle_order($client, $data);
         }
-        // TODO => move to the abstract caching class
-        $result = array();
-        $values = is_array($this->orders) ? array_values($this->orders) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
-            $result = $this->array_concat($result, $orders);
+        if ($this->orders !== null) {
+            $client->resolve ($this->orders, 'os');
         }
-        // delete older $orders from our structure to prevent memory leaks
-        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-        $result = $this->sort_by($result, 'timestamp');
-        $resultLength = is_array($result) ? count($result) : 0;
-        if ($resultLength > $limit) {
-            $toDelete = $resultLength - $limit;
-            for ($i = 0; $i < $toDelete; $i++) {
-                $id = $result[$i]['id'];
-                $symbol = $result[$i]['symbol'];
-                unset($this->orders[$symbol][$id]);
-            }
-            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
-        }
-        $client->resolve ($result, 'os');
     }
 
     public function parse_ws_order_status($status) {
@@ -604,10 +586,12 @@ class bitfinex extends \ccxt\bitfinex {
             'cost' => null,
             'trades' => null,
         );
-        if (!(is_array($this->orders) && array_key_exists($symbol, $this->orders))) {
-            $this->orders[$symbol] = array();
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        $this->orders[$symbol][$id] = $parsed;
+        $orders = $this->orders;
+        $orders->append ($parsed);
         $client->resolve ($parsed, $id);
         return $parsed;
     }

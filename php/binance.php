@@ -735,7 +735,7 @@ class binance extends \ccxt\binance {
         //         "x" => "NEW",                    // Current execution $type
         //         "X" => "NEW",                    // Current order $status
         //         "r" => "NONE",                   // Order reject reason; will be an error code.
-        //         "$i" => 4293153,                  // Order ID
+        //         "i" => 4293153,                  // Order ID
         //         "l" => "0.00000000",             // Last executed quantity
         //         "z" => "0.00000000",             // Cumulative $filled quantity
         //         "L" => "0.00000000",             // Last executed $price
@@ -749,7 +749,7 @@ class binance extends \ccxt\binance {
         //         "M" => false,                    // Ignore
         //         "O" => 1499405658657,            // Order creation time
         //         "Z" => "0.00000000",             // Cumulative quote asset transacted quantity
-        //         "Y" => "0.00000000"              // Last quote asset transacted quantity ($i->e. lastPrice * lastQty),
+        //         "Y" => "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
         //         "Q" => "0.00000000"              // Quote Order Qty
         //     }
         //
@@ -813,29 +813,13 @@ class binance extends \ccxt\binance {
             'fee' => $fee,
             'trades' => $trades,
         );
-        $defaultKey = $this->safe_value($this->orders, $symbol, array());
-        $defaultKey[$orderId] = $parsed;
-        $this->orders[$symbol] = $defaultKey;
-        $result = array();
-        $values = is_array($this->orders) ? array_values($this->orders) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
-            $result = $this->array_concat($result, $orders);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        // delete older $orders from our structure to prevent memory leaks
-        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-        $result = $this->sort_by($result, 'timestamp');
-        $resultLength = is_array($result) ? count($result) : 0;
-        if ($resultLength > $limit) {
-            $toDelete = $resultLength - $limit;
-            for ($i = 0; $i < $toDelete; $i++) {
-                $id = $result[$i]['id'];
-                $symbol = $result[$i]['symbol'];
-                unset($this->orders[$symbol][$id]);
-            }
-            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
-        }
-        $client->resolve ($result, $messageHash);
+        $orders = $this->orders;
+        $orders->append ($parsed);
+        $client->resolve ($this->orders, $messageHash);
     }
 
     public function handle_message($client, $message) {
