@@ -521,7 +521,7 @@ module.exports = class bybit extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'turnover_24h');
         const quoteVolume = this.safeFloat (ticker, 'volume_24h');
         let vwap = undefined;
-        if (quoteVolume !== undefined && baseVolume !== undefined) {
+        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
             vwap = quoteVolume / baseVolume;
         }
         return {
