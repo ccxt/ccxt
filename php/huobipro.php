@@ -427,7 +427,7 @@ class huobipro extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
         $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
+        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
             $vwap = $quoteVolume / $baseVolume;
         }
         return array(

@@ -449,12 +449,8 @@ class hitbtc extends Exchange {
             }
         }
         $vwap = null;
-        if ($quoteVolume !== null) {
-            if ($baseVolume !== null) {
-                if ($baseVolume > 0) {
-                    $vwap = $quoteVolume / $baseVolume;
-                }
-            }
+        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
+            $vwap = $quoteVolume / $baseVolume;
         }
         return array(
             'symbol' => $symbol,

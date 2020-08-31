@@ -517,6 +517,11 @@ class kucoin(Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
+        baseVolume = self.safe_float(ticker, 'vol')
+        quoteVolume = self.safe_float(ticker, 'volValue')
+        vwap = None
+        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
+            vwap = quoteVolume / baseVolume
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
@@ -528,7 +533,7 @@ class kucoin(Exchange):
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
-            'vwap': None,
+            'vwap': vwap,
             'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
@@ -536,8 +541,8 @@ class kucoin(Exchange):
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
             'average': self.safe_float(ticker, 'averagePrice'),
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'volValue'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
