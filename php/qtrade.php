@@ -436,10 +436,7 @@ class qtrade extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'day_volume_market');
         $quoteVolume = $this->safe_float($ticker, 'day_volume_base');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

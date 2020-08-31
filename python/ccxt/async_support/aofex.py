@@ -421,9 +421,9 @@ class aofex(Exchange):
         percentage = change / open * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = float(self.price_to_precision(symbol, quoteVolume / baseVolume))
+        vwap = self.vwap(baseVolume, quoteVolume)
+        if vwap is not None:
+            vwap = float(self.price_to_precision(symbol, vwap))
         return {
             'symbol': symbol,
             'timestamp': timestamp,

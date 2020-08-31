@@ -363,10 +363,7 @@ class eterbase extends Exchange {
         $last = $this->safe_float($ticker, 'price');
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
         $quoteVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $percentage = $this->safe_float($ticker, 'change');
         $result = array(
             'symbol' => $symbol,

@@ -245,9 +245,7 @@ class bithumb(Exchange):
             average = self.sum(open, close) / 2
         baseVolume = self.safe_float(ticker, 'units_traded_24H')
         quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

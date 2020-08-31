@@ -498,10 +498,7 @@ class probit extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'base_volume');
         $quoteVolume = $this->safe_float($ticker, 'quote_volume');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $baseVolume / $quoteVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

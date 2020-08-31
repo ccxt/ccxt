@@ -490,9 +490,7 @@ class gemini(Exchange):
                 average = self.sum(last, open) / 2
         baseVolume = self.safe_float(volume, baseId)
         quoteVolume = self.safe_float(volume, quoteId)
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

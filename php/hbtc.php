@@ -1691,10 +1691,7 @@ class hbtc extends Exchange {
         }
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

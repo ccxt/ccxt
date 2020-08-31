@@ -426,9 +426,9 @@ class aofex extends Exchange {
         $percentage = $change / $open * 100;
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = floatval ($this->price_to_precision($symbol, $quoteVolume / $baseVolume));
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        if ($vwap !== null) {
+            $vwap = floatval ($this->price_to_precision($symbol, $vwap));
         }
         return array(
             'symbol' => $symbol,

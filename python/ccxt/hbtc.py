@@ -1599,9 +1599,7 @@ class hbtc(Exchange):
                 percentage = (change / open) * 100
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         baseVolume = self.safe_float(ticker, 'volume')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

@@ -519,9 +519,7 @@ class kucoin(Exchange):
                 symbol = market['symbol']
         baseVolume = self.safe_float(ticker, 'vol')
         quoteVolume = self.safe_float(ticker, 'volValue')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,

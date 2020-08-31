@@ -1085,9 +1085,7 @@ class bitget(Exchange):
             ask = self.safe_float(ask, 0)
         baseVolume = self.safe_float_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_float(ticker, 'vol')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         change = None
         percentage = None
         average = None

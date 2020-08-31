@@ -436,9 +436,7 @@ class hitbtc(Exchange):
             average = self.sum(last, open) / 2
             if open > 0:
                 percentage = change / open * 100
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

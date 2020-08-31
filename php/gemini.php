@@ -501,10 +501,7 @@ class gemini extends Exchange {
         }
         $baseVolume = $this->safe_float($volume, $baseId);
         $quoteVolume = $this->safe_float($volume, $quoteId);
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,

@@ -516,9 +516,7 @@ class bybit(Exchange):
             average = self.sum(open, last) / 2
         baseVolume = self.safe_float(ticker, 'turnover_24h')
         quoteVolume = self.safe_float(ticker, 'volume_24h')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

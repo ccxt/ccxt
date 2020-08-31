@@ -1090,10 +1090,7 @@ class bitget extends Exchange {
         }
         $baseVolume = $this->safe_float_2($ticker, 'amount', 'volume_24h');
         $quoteVolume = $this->safe_float($ticker, 'vol');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = null;
         $percentage = null;
         $average = null;

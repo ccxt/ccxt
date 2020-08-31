@@ -525,10 +525,7 @@ class kucoin extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'vol');
         $quoteVolume = $this->safe_float($ticker, 'volValue');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return array(
             'symbol' => $symbol,
