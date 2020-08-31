@@ -2672,6 +2672,10 @@ class Exchange {
         return $s;
     }
 
+    public function vwap($baseVolume, $quoteVolume) {
+        return (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) ? ($quoteVolume / $baseVolume) : null;
+    }
+
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
