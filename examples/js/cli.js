@@ -111,13 +111,14 @@ const timeout = 30000
 let exchange = undefined
 const enableRateLimit = true
 
+const { Agent } = require ('https')
+
+const httpsAgent = new Agent ({
+    ecdhCurve: 'auto',
+    keepAlive: true,
+})
+
 try {
-
-    const { Agent } = require ('https')
-
-    const httpsAgent = new Agent ({
-        ecdhCurve: 'auto',
-    })
 
     exchange = new (ccxt)[exchangeId] ({
         timeout,
@@ -311,6 +312,12 @@ async function main () {
 
                     }
 
+                    if (debug) {
+                        const keys = Object.keys (httpsAgent.freeSockets)
+                        const firstKey = keys[0]
+                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                    }
+
                     if (!poll)
                         break;
                 }
@@ -329,6 +336,7 @@ async function main () {
             console.log (exchange)
         }
     }
+
 }
 
 //-----------------------------------------------------------------------------
