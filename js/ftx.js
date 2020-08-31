@@ -74,11 +74,11 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     authenticate () {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
         const authenticate = 'authenticate';
         if (!(authenticate in client.subscriptions)) {
             this.checkRequiredCredentials ();
-            const url = this.urls['api']['ws'];
-            const client = this.client (url);
             client.subscriptions[authenticate] = true;
             const method = 'login';
             const time = this.milliseconds ();
