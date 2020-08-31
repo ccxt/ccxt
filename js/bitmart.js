@@ -18,31 +18,31 @@ module.exports = class bitmart extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchCurrencies': true,
-                'fetchOrderBook': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'createMarketOrder': false,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'fetchOrders': false,
-                'fetchOrderTrades': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchOrder': true,
             },
-            'hostname': 'bitmart.com', // bitmart.com, bitmart.info for HK
+            'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
-                'api': 'https://api-cloud.{hostname}', // bitmart.com, bitmart.info for HK
+                'api': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
@@ -944,6 +944,23 @@ module.exports = class bitmart extends Exchange {
         //         "low":"0.034986"
         //     }
         //
+        // contract
+        //
+        //     {
+        //         "low":"404.4",
+        //         "high":"404.4",
+        //         "open":"404.4",
+        //         "close":"404.4",
+        //         "last_price":"404.4",
+        //         "avg_price":"404.4",
+        //         "volume":"7670",
+        //         "timestamp":1598758441,
+        //         "rise_fall_rate":"0",
+        //         "rise_fall_value":"0",
+        //         "base_coin_volume":"76.7",
+        //         "quote_coin_volume":"31017.48"
+        //     }
+        //
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'open'),
@@ -985,37 +1002,24 @@ module.exports = class bitmart extends Exchange {
         } else if ((type === 'swap') || (type === 'future')) {
             method = 'publicContractGetQuote';
             request['contractID'] = market['id'];
+            const defaultLimit = 500;
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
+            if (since === undefined) {
+                const end = parseInt (this.milliseconds () / 1000);
+                const start = end - limit * duration;
+                request['startTime'] = start;
+                request['endTime'] = end;
+            } else {
+                const start = parseInt (since / 1000);
+                const end = this.sum (start, limit * duration);
+                request['startTime'] = start;
+                request['endTime'] = end;
+            }
+            request['unit'] = this.timeframes[timeframe];
+            request['resolution'] = 'M';
         }
-
-        // {"message":"OK","code":1000,"trace":"ee19f177-c40a-40c2-8f0c-0bcd8e29662f","data":{"steps":[1,5,15,30,60,120,240,1440,1440,10080,10080,43200,43200]}}
-
-        //     symbol string Yes Trading pair symbol
-        //     from long Yes Start timestamp (in seconds, UTC+0 TimeZome)
-        //     to long Yes End timestamp (in seconds, UTC+0 TimeZome)
-        //     step long No k-line step Steps (in minutes, default 1 minute)
-        //     curl https://api-cloud.bitmart.com/spot/v1/symbols/kline?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-
-        //     contractID long Yes Contract ID
-        //     startTime long Yes Start time
-        //     endTime long Yes End time
-        //     unit int Yes Frequency
-        //     resolution string Yes Frequency unit, M: minute, H: hour, D: day
-        //     curl https://api-cloud.bitmart.com/contract/v1/ifcontract/quote?contractID=1&startTime=1584343602&endTime=1585343602&unit=5&resolution=M
-
-        // const periodInSeconds = this.parseTimeframe (timeframe);
-        // const duration = periodInSeconds * limit * 1000;
-        // let to = this.milliseconds ();
-        // if (since === undefined) {
-        //     since = to - duration;
-        // } else {
-        //     to = this.sum (since, duration);
-        // }
-        // const request = {
-        //     'symbol': market['id'],
-        //     'from': since, // start time of k-line data (in milliseconds, required)
-        //     'to': to, // end time of k-line data (in milliseconds, required)
-        //     'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
-        // };
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1033,9 +1037,27 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
+        // swap
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"32965074-5804-4655-b693-e953e36026a0",
+        //         "data":[
+        //             {"low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"},
+        //             {"low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"},
+        //             {"low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"},
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        const klines = this.safeValue (data, 'klines', []);
-        return this.parseOHLCVs (klines, market, timeframe, since, limit);
+        if (Array.isArray (data)) {
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
+        } else {
+            const klines = this.safeValue (data, 'klines', []);
+            return this.parseOHLCVs (klines, market, timeframe, since, limit);
+        }
     }
 
     async fetchBalance (params = {}) {
@@ -1365,16 +1387,15 @@ module.exports = class bitmart extends Exchange {
             return;
         }
         //
-        //     {"message":"Maximum price is 0.112695"}
-        //     {"message":"Required Integer parameter 'status' is not present"}
-        //     {"message":"Required String parameter 'symbol' is not present"}
-        //     {"message":"Required Integer parameter 'offset' is not present"}
-        //     {"message":"Required Integer parameter 'limit' is not present"}
-        //     {"message":"Required Long parameter 'from' is not present"}
-        //     {"message":"Required Long parameter 'to' is not present"}
-        //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
-        //     {"message":"Not found"}
-        //     {"message":"Place order error"}
+        // spot
+        //
+        //     {"message":"Bad Request [to is empty]","code":50000,"trace":"f9d46e1b-4edb-4d07-a06e-4895fb2fc8fc","data":{}}
+        //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
+        //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
+        //
+        // contract
+        //
+        //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         const feedback = this.id + ' ' + body;
         const message = this.safeString2 (response, 'message', 'msg');
