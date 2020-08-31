@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
+const { InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -27,14 +28,16 @@ module.exports = class idex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': false,
-                'withdraw': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -94,7 +97,9 @@ module.exports = class idex extends Exchange {
                 },
             },
             'options': {},
-            'exceptions': {},
+            'exceptions': {
+                'INVALID_ORDER_QUANTITY': InvalidOrder,
+            },
             'requiredCredentials': {
                 'walletAddress': true,
                 'privateKey': true,
@@ -366,6 +371,7 @@ module.exports = class idex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // public trades
         // {
         //   fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
         //   price: '0.09771286',
@@ -374,6 +380,25 @@ module.exports = class idex extends Exchange {
         //   time: 1598345638994,
         //   makerSide: 'buy',
         //   sequence: 3853
+        // }
+        // private trades
+        // {
+        //   fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
+        //   price: '0.09905990',
+        //   quantity: '0.40000000',
+        //   quoteQuantity: '0.03962396',
+        //   time: 1598873478762,
+        //   makerSide: 'sell',
+        //   sequence: 5053,
+        //   market: 'DIL-ETH',
+        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
+        //   side: 'buy',
+        //   fee: '0.00080000',
+        //   feeAsset: 'DIL',
+        //   gas: '0.00857497',
+        //   liquidity: 'taker',
+        //   txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
+        //   txStatus: 'mined'
         // }
         const id = this.safeString (trade, 'fillId');
         const price = this.safeFloat (trade, 'price');
@@ -384,24 +409,30 @@ module.exports = class idex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        // this code handles the duality of public vs private trades
         const makerSide = this.safeString (trade, 'makerSide');
-        const side = (makerSide === 'buy') ? 'sell' : 'buy';
-        // by definition all trades are takers
-        const takerOrMaker = 'taker';
+        const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
+        const side = this.safeString (trade, 'side', oppositeSide);
+        const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
+        const fee = {
+            'cost': this.safeFloat (trade, 'fee'),
+            'currency': this.safeString (trade, 'feeAsset'),
+        };
+        const orderId = this.safeString (trade, 'orderId');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -528,39 +559,202 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        // TODO: make some trades on the testnet
-        const response = await this.privateGetFills (this.extend (request, params));
-        return response;
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'closed': false,
-        };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'closed': true,
-        };
-        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'nonce': this.uuidv1 (),
-            'wallet': this.walletAddress,
-        };
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = this.privateGetOrders (this.extend (request, params));
-        return response;
+        // [
+        //   {
+        //     fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
+        //     price: '0.09905990',
+        //     quantity: '0.40000000',
+        //     quoteQuantity: '0.03962396',
+        //     time: 1598873478762,
+        //     makerSide: 'sell',
+        //     sequence: 5053,
+        //     market: 'DIL-ETH',
+        //     orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
+        //     side: 'buy',
+        //     fee: '0.00080000',
+        //     feeAsset: 'DIL',
+        //     gas: '0.00857497',
+        //     liquidity: 'taker',
+        //     txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
+        //     txStatus: 'mined'
+        //   }
+        // ]
+        const response = await this.privateGetFills (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'closed': false,
+        };
+        return this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'closed': true,
+        };
+        return this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrdersHelper (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'nonce': this.uuidv1 (),
+            'wallet': this.walletAddress,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        // [
+        //   {
+        //     "market": "DIL-ETH",
+        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //     "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //     "time": 1598873478650,
+        //     "status": "filled",
+        //     "type": "limit",
+        //     "side": "buy",
+        //     "originalQuantity": "0.40000000",
+        //     "executedQuantity": "0.40000000",
+        //     "cumulativeQuoteQuantity": "0.03962396",
+        //     "avgExecutionPrice": "0.09905990",
+        //     "price": "1.00000000",
+        //     "fills": [
+        //       {
+        //         "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //         "price": "0.09905990",
+        //         "quantity": "0.40000000",
+        //         "quoteQuantity": "0.03962396",
+        //         "time": 1598873478650,
+        //         "makerSide": "sell",
+        //         "sequence": 5053,
+        //         "fee": "0.00080000",
+        //         "feeAsset": "DIL",
+        //         "gas": "0.00857497",
+        //         "liquidity": "taker",
+        //         "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //         "txStatus": "mined"
+        //       }
+        //     ]
+        //   }
+        // ]
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'filled': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        // {
+        //   "market": "DIL-ETH",
+        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time": 1598873478650,
+        //   "status": "filled",
+        //   "type": "limit",
+        //   "side": "buy",
+        //   "originalQuantity": "0.40000000",
+        //   "executedQuantity": "0.40000000",
+        //   "cumulativeQuoteQuantity": "0.03962396",
+        //   "avgExecutionPrice": "0.09905990",
+        //   "price": "1.00000000",
+        //   "fills": [
+        //     {
+        //       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //       "price": "0.09905990",
+        //       "quantity": "0.40000000",
+        //       "quoteQuantity": "0.03962396",
+        //       "time": 1598873478650,
+        //       "makerSide": "sell",
+        //       "sequence": 5053,
+        //       "fee": "0.00080000",
+        //       "feeAsset": "DIL",
+        //       "gas": "0.00857497",
+        //       "liquidity": "taker",
+        //       "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //       "txStatus": "mined"
+        //     }
+        //   ]
+        // }
+        const timestamp = this.safeInteger (order, 'time');
+        const fills = this.safeValue (order, 'fills');
+        const trades = this.parseTrades (fills, market);
+        const id = this.safeString (order, 'orderId');
+        const marketId = this.safeString (order, 'market');
+        let symbol = undefined;
+        let feeCurrency = undefined;
+        const side = this.safeString (order, 'side');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            if (side !== undefined) {
+                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            }
+        }
+        const type = this.safeString (order, 'type');
+        const amount = this.safeFloat (order, 'originalQuantity');
+        const filled = this.safeFloat (order, 'executedQuantity');
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
+        const cost = this.safeFloat (order, 'cumulativeQuoteQuantity');
+        const average = this.safeFloat (order, 'avgExecutionPrice');
+        const price = this.safeFloat (order, 'price', average);  // for market orders
+        const rawStatus = this.safeString (order, 'status');
+        const status = this.parseOrderStatus (rawStatus);
+        const fee = {
+            'currency': feeCurrency,
+            'cost': 0,
+        };
+        let lastTrade = undefined;
+        for (let i = 0; i < trades.length; i++) {
+            lastTrade = trades[i];
+            fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
+        }
+        const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
     }
 
     async associateWallet (walletAddress, params = {}) {
@@ -648,8 +842,38 @@ module.exports = class idex extends Exchange {
         if (type === 'limit') {
             request['parameters']['price'] = priceString;
         }
-        const response = await this.privatePostOrdersTest (this.extend (request, params));
-        return response;
+        // {
+        //   market: 'DIL-ETH',
+        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
+        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
+        //   time: 1598873478650,
+        //   status: 'filled',
+        //   type: 'limit',
+        //   side: 'buy',
+        //   originalQuantity: '0.40000000',
+        //   executedQuantity: '0.40000000',
+        //   cumulativeQuoteQuantity: '0.03962396',
+        //   price: '1.00000000',
+        //   fills: [
+        //     {
+        //       fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
+        //       price: '0.09905990',
+        //       quantity: '0.40000000',
+        //       quoteQuantity: '0.03962396',
+        //       time: 1598873478650,
+        //       makerSide: 'sell',
+        //       sequence: 5053,
+        //       fee: '0.00080000',
+        //       feeAsset: 'DIL',
+        //       gas: '0.00857497',
+        //       liquidity: 'taker',
+        //       txStatus: 'pending'
+        //     }
+        //   ],
+        //   avgExecutionPrice: '0.09905990'
+        // }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -703,6 +927,111 @@ module.exports = class idex extends Exchange {
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
         return response;
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (errorCode in this.exceptions) {
+            const Exception = this.exceptions[errorCode];
+            throw new Exception (message);
+        }
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        params = this.extend ({
+            'method': 'privateGetDeposits',
+        }, params);
+        return this.fetchTransactionsHelper (code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        params = this.extend ({
+            'method': 'privateGetWithdrawals',
+        }, params);
+        return this.fetchTransactionsHelper (code, since, limit, params);
+    }
+
+    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        // [
+        //   {
+        //     depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
+        //     asset: 'ETH',
+        //     quantity: '1.00000000',
+        //     txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
+        //     txTime: 1598865853000,
+        //     confirmationTime: 1598865930231
+        //   }
+        // ]
+        const method = params['method'];
+        params = this.omit (params, 'method');
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // fetchDeposits
+        // {
+        //   depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
+        //   asset: 'ETH',
+        //   quantity: '1.00000000',
+        //   txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
+        //   txTime: 1598865853000,
+        //   confirmationTime: 1598865930231
+        // }
+        // fetchWithdrwalas
+        // ...
+        let type = undefined;
+        if ('depositId' in transaction) {
+            type = 'deposit';
+        } else if ('withdrawalId' in transaction) {
+            type = 'withdrawal';
+        }
+        const id = this.safeString2 (transaction, 'depositId', 'withdrawId');
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
+        const amount = this.safeFloat (transaction, 'quantity');
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger (transaction, 'txTime');
+        let fee = undefined;
+        if ('fee' in transaction) {
+            fee = {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'currency': 'ETH',
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
