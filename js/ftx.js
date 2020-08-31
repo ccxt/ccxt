@@ -37,8 +37,10 @@ module.exports = class ftx extends ccxt.ftx {
                 'keepAlive': 15000,
             },
             'exceptions': {
-                'Invalid login credentials': AuthenticationError,
-                'Not logged in': AuthenticationError,
+                'exact': {
+                    'Invalid login credentials': AuthenticationError,
+                    'Not logged in': AuthenticationError,
+                },
             },
         });
     }
@@ -338,7 +340,6 @@ module.exports = class ftx extends ccxt.ftx {
         // {'type': 'subscribed', 'channel': 'trades', 'market': 'BTC-PERP'}
         const channel = this.safeString (message, 'channel');
         if ((channel === 'orders') || (channel === 'fills')) {
-            // the authentication was s̶u̶c̶c̶e̶s̶s̶f̶u̶l̶ beautiful
             client.resolve (true, 'login');
         }
         return message;
@@ -359,8 +360,11 @@ module.exports = class ftx extends ccxt.ftx {
 
     handleError (client, message) {
         const errorMessage = this.safeString (message, 'msg');
-        if (errorMessage in this.exceptions) {
-            const Exception = this.exceptions[errorMessage];
+        const Exception = this.safeValue (this.exceptions['exact'], errorMessage);
+        if (Exception === undefined) {
+            const error = new ExchangeError (errorMessage);
+            client.reject (error);
+        } else {
             if (Exception instanceof AuthenticationError) {
                 const method = 'authenticate';
                 if (method in client.subscriptions) {
@@ -372,9 +376,6 @@ module.exports = class ftx extends ccxt.ftx {
             client.reject (error, 'fills');
             client.reject (error, 'orders');
             client.reject (error, 'login');
-        } else {
-            const error = new ExchangeError (errorMessage);
-            client.reject (error);
         }
         return message;
     }
@@ -399,54 +400,58 @@ module.exports = class ftx extends ccxt.ftx {
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
-    parseWsOrderStatus (status) {
-        const statuses = {
-            'new': 'open',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     handleOrder (client, message) {
+        //
         // futures
-        // { channel: 'orders',
-        //   type: 'update',
-        //   data:
-        //    { id: 8047498974,
-        //      clientId: null,
-        //      market: 'ETH-PERP',
-        //      type: 'limit',
-        //      side: 'buy',
-        //      price: 300,
-        //      size: 0.1,
-        //      status: 'closed',
-        //      filledSize: 0,
-        //      remainingSize: 0,
-        //      reduceOnly: false,
-        //      liquidation: false,
-        //      avgFillPrice: null,
-        //      postOnly: false,
-        //      ioc: false,
-        //      createdAt: '2020-08-22T14:35:07.861545+00:00' } }
+        //
+        //     {
+        //         channel: 'orders',
+        //         type: 'update',
+        //         data: {
+        //             id: 8047498974,
+        //             clientId: null,
+        //             market: 'ETH-PERP',
+        //             type: 'limit',
+        //             side: 'buy',
+        //             price: 300,
+        //             size: 0.1,
+        //             status: 'closed',
+        //             filledSize: 0,
+        //             remainingSize: 0,
+        //             reduceOnly: false,
+        //             liquidation: false,
+        //             avgFillPrice: null,
+        //             postOnly: false,
+        //             ioc: false,
+        //             createdAt: '2020-08-22T14:35:07.861545+00:00'
+        //         }
+        //     }
+        //
         // spot
-        // { channel: 'orders',
-        //   type: 'update',
-        //   data:
-        //    { id: 8048834542,
-        //      clientId: null,
-        //      market: 'ETH/USD',
-        //      type: 'limit',
-        //      side: 'buy',
-        //      price: 300,
-        //      size: 0.1,
-        //      status: 'new',
-        //      filledSize: 0,
-        //      remainingSize: 0.1,
-        //      reduceOnly: false,
-        //      liquidation: false,
-        //      avgFillPrice: null,
-        //      postOnly: false,
-        //      ioc: false,
-        //      createdAt: '2020-08-22T15:17:32.184123+00:00' } }
+        //
+        //     {
+        //         channel: 'orders',
+        //         type: 'update',
+        //         data: {
+        //             id: 8048834542,
+        //             clientId: null,
+        //             market: 'ETH/USD',
+        //             type: 'limit',
+        //             side: 'buy',
+        //             price: 300,
+        //             size: 0.1,
+        //             status: 'new',
+        //             filledSize: 0,
+        //             remainingSize: 0.1,
+        //             reduceOnly: false,
+        //             liquidation: false,
+        //             avgFillPrice: null,
+        //             postOnly: false,
+        //             ioc: false,
+        //             createdAt: '2020-08-22T15:17:32.184123+00:00'
+        //         }
+        //     }
+        //
         const messageHash = this.safeString (message, 'channel');
         const data = this.safeValue (message, 'data');
         const price = this.safeFloat (data, 'price');
@@ -470,7 +475,7 @@ module.exports = class ftx extends ccxt.ftx {
         }
         const id = this.safeString (data, 'id');
         const rawStatus = this.safeString (data, 'status');
-        const status = this.parseWsOrderStatus (rawStatus);
+        const status = this.parseOrderStatus (rawStatus);
         const parsed = {
             'info': message,
             'id': id,
@@ -491,15 +496,15 @@ module.exports = class ftx extends ccxt.ftx {
             'fee': undefined,
             'trades': undefined,
         };
-        if (this.ordersCache === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.ordersCache = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const ordersCache = this.ordersCache;
-        ordersCache.append (parsed);
-        client.resolve (ordersCache, messageHash);
+        const orders = this.orders;
+        orders.append (parsed);
+        client.resolve (orders, messageHash);
         const symbolMessageHash = messageHash + ':' + marketId;
-        client.resolve (ordersCache, symbolMessageHash);
+        client.resolve (orders, symbolMessageHash);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -509,46 +514,54 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     handleMyTrade (client, message) {
+        //
         // future
-        // {
-        //   "channel": "fills",
-        //   "data": {
-        //     "fee": 78.05799225,
-        //     "feeRate": 0.0014,
-        //     "future": "BTC-PERP",
-        //     "id": 7828307,
-        //     "liquidity": "taker",
-        //     "market": "BTC-PERP",
-        //     "orderId": 38065410,
-        //     "tradeId": 19129310,
-        //     "price": 3723.75,
-        //     "side": "buy",
-        //     "size": 14.973,
-        //     "time": "2019-05-07T16:40:58.358438+00:00",
-        //     "type": "order"
-        //   },
-        //   "type": "update"
-        // }
+        //
+        //     {
+        //         "channel": "fills",
+        //         "data": {
+        //             "fee": 78.05799225,
+        //             "feeRate": 0.0014,
+        //             "future": "BTC-PERP",
+        //             "id": 7828307,
+        //             "liquidity": "taker",
+        //             "market": "BTC-PERP",
+        //             "orderId": 38065410,
+        //             "tradeId": 19129310,
+        //             "price": 3723.75,
+        //             "side": "buy",
+        //             "size": 14.973,
+        //             "time": "2019-05-07T16:40:58.358438+00:00",
+        //             "type": "order"
+        //         },
+        //         "type": "update"
+        //     }
+        //
         // spot
-        // { channel: 'fills',
-        //   type: 'update',
-        //   data:
-        //    { id: 182349460,
-        //      market: 'ETH/USD',
-        //      future: null,
-        //      baseCurrency: 'ETH',
-        //      quoteCurrency: 'USD',
-        //      type: 'order',
-        //      side: 'sell',
-        //      price: 391.64,
-        //      size: 0.009,
-        //      orderId: 8049570214,
-        //      time: '2020-08-22T15:42:42.646980+00:00',
-        //      tradeId: 90614141,
-        //      feeRate: 0.000665,
-        //      fee: 0.0023439654,
-        //      feeCurrency: 'USD',
-        //      liquidity: 'taker' } }
+        //
+        //     {
+        //         channel: 'fills',
+        //         type: 'update',
+        //         data: {
+        //             id: 182349460,
+        //             market: 'ETH/USD',
+        //             future: null,
+        //             baseCurrency: 'ETH',
+        //             quoteCurrency: 'USD',
+        //             type: 'order',
+        //             side: 'sell',
+        //             price: 391.64,
+        //             size: 0.009,
+        //             orderId: 8049570214,
+        //             time: '2020-08-22T15:42:42.646980+00:00',
+        //             tradeId: 90614141,
+        //             feeRate: 0.000665,
+        //             fee: 0.0023439654,
+        //             feeCurrency: 'USD',
+        //             liquidity: 'taker'
+        //         }
+        //     }
+        //
         const messageHash = this.safeString (message, 'channel');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'market');
