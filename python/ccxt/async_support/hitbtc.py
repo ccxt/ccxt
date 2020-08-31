@@ -437,10 +437,8 @@ class hitbtc(Exchange):
             if open > 0:
                 percentage = change / open * 100
         vwap = None
-        if quoteVolume is not None:
-            if baseVolume is not None:
-                if baseVolume > 0:
-                    vwap = quoteVolume / baseVolume
+        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
+            vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,

@@ -421,7 +421,7 @@ class huobipro(Exchange):
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
         vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
+        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
             vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
