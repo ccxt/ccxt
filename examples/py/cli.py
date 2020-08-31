@@ -40,6 +40,7 @@ argv = Argv()
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--table', action='store_true', help='output as table')
+parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
@@ -111,6 +112,10 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+if argv.cors:
+    exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
+    exchange.origin = exchange.uuid ()
 
 # pprint(dir(exchange))
 
