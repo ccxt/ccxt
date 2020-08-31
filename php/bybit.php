@@ -2121,9 +2121,6 @@ class bybit extends Exchange {
                 'timestamp' => $timestamp,
             ));
             $auth = $this->rawencode($this->keysort($query));
-            // fix https://github.com/ccxt/ccxt/issues/7377
-            // bybit encodes whole floats as integers without .0
-            $auth = str_replace('.0&', '&', $auth);
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'POST') {
                 $body = $this->json(array_merge($query, array(
