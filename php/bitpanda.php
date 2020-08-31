@@ -526,7 +526,7 @@ class bitpanda extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'base_volume');
         $quoteVolume = $this->safe_float($ticker, 'quote_volume');
         $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
+        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
             $vwap = $quoteVolume / $baseVolume;
         }
         return array(
