@@ -358,7 +358,7 @@ class eterbase(Exchange):
         baseVolume = self.safe_float(ticker, 'volumeBase')
         quoteVolume = self.safe_float(ticker, 'volume')
         vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and baseVolume:
+        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
             vwap = quoteVolume / baseVolume
         percentage = self.safe_float(ticker, 'change')
         result = {

@@ -491,7 +491,7 @@ class gemini(Exchange):
         baseVolume = self.safe_float(volume, baseId)
         quoteVolume = self.safe_float(volume, quoteId)
         vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
+        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
             vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
