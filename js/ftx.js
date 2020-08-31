@@ -18,8 +18,8 @@ module.exports = class ftx extends ccxt.ftx {
                 'watchTrades': true,
                 'watchOHLCV': false, // missing on the exchange side
                 'watchBalance': false, // missing on the exchange side
-                'watchOrders': true, // not implemented yet
-                'watchMyTrades': true, // not implemented yet
+                'watchOrders': true,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -74,28 +74,29 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     authenticate () {
-        this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
-        const client = this.client (url);
         const authenticate = 'authenticate';
-        if (authenticate in client.subscriptions) {
-            return;
+        if (!(authenticate in client.subscriptions)) {
+            this.checkRequiredCredentials ();
+            const url = this.urls['api']['ws'];
+            const client = this.client (url);
+                return;
+            }
+            client.subscriptions[authenticate] = true;
+            const method = 'login';
+            const time = this.milliseconds ();
+            const payload = time.toString () + 'websocket_login';
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+            const message = {
+                'args': {
+                    'key': this.apiKey,
+                    'time': time,
+                    'sign': signature,
+                },
+                'op': method,
+            };
+            // ftx does not reply to this message
+            this.spawn (this.watch, url, method, message);
         }
-        client.subscriptions[authenticate] = true;
-        const method = 'login';
-        const time = this.milliseconds ();
-        const payload = time.toString () + 'websocket_login';
-        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
-        const message = {
-            'args': {
-                'key': this.apiKey,
-                'time': time,
-                'sign': signature,
-            },
-            'op': method,
-        };
-        // ftx does not reply to this message
-        this.spawn (this.watch, url, method, message);
     }
 
     async watchTicker (symbol, params = {}) {
