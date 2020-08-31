@@ -224,7 +224,6 @@ class Transpiler {
             [ /\s\&\&\s/g, ' and ' ],
             [ /\!([^\='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(\/([^/]+)\/g,\s*([^)]+)\)/g, '$1.replace(\'$2\', $3)' ],
             [ /^(\s*}\s*$)+/gm, '' ],
             [ /\;(\s+?\/\/.+?)/g, '$1' ],
             [ /\;$/gm, '' ],
@@ -377,7 +376,6 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(\/([^/]+)\/g,\s*([^)]+)\)/g, 'str_replace(\'$2\', $3, $1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
@@ -525,7 +523,6 @@ class Transpiler {
     createPythonClass (className, baseClass, body, methods, async = false) {
 
         const pythonStandardLibraries = {
-            'base64': 'base64',
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',

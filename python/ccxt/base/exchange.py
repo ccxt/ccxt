@@ -108,7 +108,6 @@ try:
     from web3 import Web3, HTTPProvider
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-
 # -----------------------------------------------------------------------------
 
 

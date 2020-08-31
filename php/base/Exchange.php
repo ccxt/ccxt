@@ -142,6 +142,7 @@ class Exchange {
         'huobiru',
         'ice3x',
         'idex',
+        'idex2',
         'independentreserve',
         'indodax',
         'itbit',
@@ -317,10 +318,10 @@ class Exchange {
         $bias = $biasSeconds * 10000000;  // in hundreds of nanoseconds
         $time = static::microseconds() * 10 + $bias;
         $timeHex = dechex($time);
-        $arranged = substr($timeHex, 7, 8) . '-' . substr($timeHex, 3, 4) . '-1' . substr($timeHex, 0, 3);
+        $arranged = substr($timeHex, 7, 8) . substr($timeHex, 3, 4) . '1' . substr($timeHex, 0, 3);
         $clockId = '9696';
         $macAddress = 'ffffffffffff';
-        return $arranged . '-' . $clockId . '-' . $macAddress;
+        return $arranged . $clockId . $macAddress;
     }
 
     public static function parse_timeframe($timeframe) {

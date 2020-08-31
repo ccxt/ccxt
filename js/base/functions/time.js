@@ -11,11 +11,11 @@ const uuidv1 = () => {
     const bias = biasSeconds * 10000000  // in hundreds of nanoseconds
     const time = microseconds () * 10 + bias
     const timeHex = time.toString (16)
-    const arranged = timeHex.slice (7, 15) + '-' + timeHex.slice (3, 7) + '-1' + timeHex.slice (0, 3)
+    const arranged = timeHex.slice (7, 15) + timeHex.slice (3, 7) + '1' + timeHex.slice (0, 3)
     // these should be random, but we're not making more than 10 requests per microsecond so who cares
     const clockId = '9696' // a 14 bit number
     const macAddress = 'ff'.repeat (6)
-    return arranged + '-' + clockId + '-' + macAddress
+    return arranged + clockId + macAddress
 }
 
 /*  ------------------------------------------------------------------------ */

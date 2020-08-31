@@ -20,7 +20,7 @@ module.exports = class idex extends Exchange {
             'has': {
                 'cancelOrder': false,
                 'createOrder': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchMyTrades': true,
@@ -488,8 +488,33 @@ module.exports = class idex extends Exchange {
             'nonce': nonce1,
             'wallet': this.walletAddress,
         };
+        // [
+        //   {
+        //     asset: 'DIL',
+        //     quantity: '0.00000000',
+        //     availableForTrade: '0.00000000',
+        //     locked: '0.00000000',
+        //     usdValue: null
+        //   }, ...
+        // ]
         const response = await this.privateGetBalances (this.extend (request, params));
-        return response;
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const total = this.safeFloat (entry, 'quantity');
+            const free = this.safeFloat (entry, 'availableForTrade');
+            const used = this.safeFloat (entry, 'locked');
+            result[code] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+        }
+        return this.parseBalance (result);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -542,7 +567,7 @@ module.exports = class idex extends Exchange {
         const nonce = this.uuidv1 ();
         const noPrefix = Exchange.remove0xPrefix (walletAddress);
         const byteArray = [
-            this.base16ToBinary (nonce.replace (/-/g, '')),
+            this.base16ToBinary (nonce),
             this.base16ToBinary (noPrefix),
         ];
         const binary = this.binaryConcatArray (byteArray);
@@ -587,7 +612,7 @@ module.exports = class idex extends Exchange {
         const selfTradePreventionEnum = 2;  // Cancel newest
         const byteArray = [
             this.numberToBE (orderVersion, 1),
-            this.base16ToBinary (nonce.replace (/-/g, '')),
+            this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
             this.stringToBinary (this.encode (market['id'])),  // TODO: refactor to remove either encode or stringToBinary
             this.numberToBE (typeEnum, 1),
@@ -635,10 +660,10 @@ module.exports = class idex extends Exchange {
         const currency = this.currency (code);
         const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
         const byteArray = [
-            this.base16ToBinary (nonce.replace (/-/g, ''), ''),
+            this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (currency['id']),
-            this.stringToBinary (amountString),
+            this.stringToBinary (this.encode (currency['id'])),
+            this.stringToBinary (this.encode (amountString)),
             this.numberToBE (1, 1), // bool set to true
         ];
         const binary = this.binaryConcatArray (byteArray);
@@ -661,9 +686,9 @@ module.exports = class idex extends Exchange {
         const nonce = this.uuidv1 ();
         const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
         const byteArray = [
-            this.base16ToBinary (nonce.replace (/-/g, '')),
+            this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
-            this.stringToBinary (id),
+            this.stringToBinary (this.encode (id)),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hash = this.hash (binary, 'keccak', 'hex');
