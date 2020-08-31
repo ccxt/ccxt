@@ -246,7 +246,7 @@ class bithumb(Exchange):
         baseVolume = self.safe_float(ticker, 'units_traded_24H')
         quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
         vwap = None
-        if quoteVolume is not None and baseVolume is not None:
+        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
             vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,

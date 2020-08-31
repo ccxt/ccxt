@@ -1600,7 +1600,7 @@ class hbtc(Exchange):
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
+        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
             vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
