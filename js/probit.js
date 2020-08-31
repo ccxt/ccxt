@@ -493,7 +493,7 @@ module.exports = class probit extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'base_volume');
         const quoteVolume = this.safeFloat (ticker, 'quote_volume');
         let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) {
             vwap = baseVolume / quoteVolume;
         }
         return {
