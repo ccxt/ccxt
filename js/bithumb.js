@@ -247,10 +247,7 @@ module.exports = class bithumb extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'units_traded_24H');
         const quoteVolume = this.safeFloat (ticker, 'acc_trade_value_24H');
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

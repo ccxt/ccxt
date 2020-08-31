@@ -954,9 +954,7 @@ module.exports = class phemex extends Exchange {
         const baseVolume = this.fromEv (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
         let vwap = undefined;
         if ((market !== undefined) && (market['spot'])) {
-            if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-                vwap = quoteVolume / baseVolume;
-            }
+            vwap = this.vwap (baseVolume, quoteVolume);
         }
         let change = undefined;
         let percentage = undefined;

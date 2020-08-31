@@ -444,10 +444,7 @@ module.exports = class hitbtc extends Exchange {
                 percentage = change / open * 100;
             }
         }
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

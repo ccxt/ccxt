@@ -433,10 +433,7 @@ module.exports = class qtrade extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'day_volume_market');
         const quoteVolume = this.safeFloat (ticker, 'day_volume_base');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

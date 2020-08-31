@@ -521,10 +521,7 @@ module.exports = class kucoin extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'vol');
         const quoteVolume = this.safeFloat (ticker, 'volValue');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return {
             'symbol': symbol,

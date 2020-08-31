@@ -360,10 +360,7 @@ module.exports = class eterbase extends Exchange {
         const last = this.safeFloat (ticker, 'price');
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
         const quoteVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const percentage = this.safeFloat (ticker, 'change');
         const result = {
             'symbol': symbol,
