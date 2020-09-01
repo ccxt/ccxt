@@ -915,13 +915,39 @@ class ftx extends Exchange {
         //         "reduceOnly" => false
         //     }
         //
+        // canceled $order with a closed $status
+        //
+        //     {
+        //         "avgFillPrice":null,
+        //         "clientId":null,
+        //         "createdAt":"2020-09-01T13:45:57.119695+00:00",
+        //         "filledSize":0.0,
+        //         "future":null,
+        //         "$id":8553541288,
+        //         "ioc":false,
+        //         "liquidation":false,
+        //         "$market":"XRP/USDT",
+        //         "postOnly":false,
+        //         "$price":0.5,
+        //         "reduceOnly":false,
+        //         "remainingSize":0.0,
+        //         "$side":"sell",
+        //         "size":46.0,
+        //         "$status":"closed",
+        //         "$type":"limit"
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filledSize');
         $remaining = $this->safe_float($order, 'remainingSize');
         if (($remaining === 0.0) && ($amount !== null) && ($filled !== null)) {
             $remaining = max ($amount - $filled, 0);
+            if ($remaining > 0) {
+                $status = 'canceled';
+            }
         }
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
@@ -938,7 +964,6 @@ class ftx extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         $average = $this->safe_float($order, 'avgFillPrice');
