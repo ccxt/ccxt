@@ -814,7 +814,7 @@ class binance extends Exchange {
             }
         } else {
             $balances = $response;
-            if (gettype($response) !== 'array' || count(array_filter(array_keys($response), 'is_string')) != 0) {
+            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
                 $balances = $this->safe_value($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
