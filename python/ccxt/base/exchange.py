@@ -394,7 +394,7 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if self.requiresWeb3 and Web3 and not self.web3:
-            self.web3 = Web3(HTTPProvider())
+            cls.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -777,6 +777,10 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
+    def uuidv1():
+        return str(uuid.uuid1()).replace('-', '')
+
+    @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
@@ -1061,14 +1065,18 @@ class Exchange(object):
         except (TypeError, OverflowError, OSError, ValueError):
             return None
 
-    @staticmethod
-    def hash(request, algorithm='md5', digest='hex'):
-        h = hashlib.new(algorithm, request)
-        if digest == 'hex':
-            return h.hexdigest()
-        elif digest == 'base64':
-            return Exchange.binary_to_base64(h.digest())
-        return h.digest()
+    @classmethod
+    def hash(cls, request, algorithm='md5', digest='hex'):
+        if algorithm == 'keccak':
+            binary = bytes(cls.web3.sha3(request))
+        else:
+            h = hashlib.new(algorithm, request)
+            binary = h.digest()
+        if digest == 'base64':
+            return Exchange.binary_to_base64(binary)
+        elif digest == 'hex':
+            return Exchange.binary_to_base16(binary)
+        return digest
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
@@ -1997,9 +2005,9 @@ class Exchange(object):
             'v': 27 + signature['v'],
         }
 
-    def signMessageString(self, message, privateKey):
+    def sign_message_string(self, message, privateKey):
         signature = self.signMessage(message, privateKey)
-        return signature['r'] + Exchange.remove_0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v']))
+        return signature['r'] + Exchange.remove_0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
 
     def signMessage(self, message, privateKey):
         #
@@ -2134,3 +2142,7 @@ class Exchange(object):
             string.append(Exchange.base58_encoder[next_character])
         string.reverse()
         return ''.join(string)
+
+    @staticmethod
+    def remove0xPrefix(string):
+        return Exchange.remove_0x_prefix(string)

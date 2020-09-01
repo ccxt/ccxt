@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
-const { InvalidOrder } = require ('./base/errors');
+const { InvalidOrder, InsufficientFunds, ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -19,8 +19,8 @@ module.exports = class idex extends Exchange {
             'certified': true,
             'requiresWeb3': true,
             'has': {
-                'cancelOrder': false,
-                'createOrder': false,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
@@ -29,7 +29,7 @@ module.exports = class idex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -99,6 +99,7 @@ module.exports = class idex extends Exchange {
             'options': {},
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -589,18 +590,25 @@ module.exports = class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'closed': false,
         };
-        return this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'closed': true,
         };
-        return this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrdersHelper (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -621,6 +629,7 @@ module.exports = class idex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetOrders (this.extend (request, params));
+        // fetchClosedOrders / fetchOpenOrders
         // [
         //   {
         //     "market": "DIL-ETH",
@@ -654,7 +663,38 @@ module.exports = class idex extends Exchange {
         //     ]
         //   }
         // ]
-        return this.parseOrders (response, market, since, limit);
+        // fetchOrder
+        // { market: 'DIL-ETH',
+        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
+        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
+        //   time: 1598873478650,
+        //   status: 'filled',
+        //   type: 'limit',
+        //   side: 'buy',
+        //   originalQuantity: '0.40000000',
+        //   executedQuantity: '0.40000000',
+        //   cumulativeQuoteQuantity: '0.03962396',
+        //   avgExecutionPrice: '0.09905990',
+        //   price: '1.00000000',
+        //   fills:
+        //    [ { fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
+        //        price: '0.09905990',
+        //        quantity: '0.40000000',
+        //        quoteQuantity: '0.03962396',
+        //        time: 1598873478650,
+        //        makerSide: 'sell',
+        //        sequence: 5053,
+        //        fee: '0.00080000',
+        //        feeAsset: 'DIL',
+        //        gas: '0.00857497',
+        //        liquidity: 'taker',
+        //        txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
+        //        txStatus: 'mined' } ] }
+        if (Array.isArray (response)) {
+            return this.parseOrders (response, market, since, limit);
+        } else {
+            return this.parseOrder (response, market);
+        }
     }
 
     parseOrderStatus (status) {
@@ -720,9 +760,12 @@ module.exports = class idex extends Exchange {
         if ((amount !== undefined) && (filled !== undefined)) {
             remaining = amount - filled;
         }
-        const cost = this.safeFloat (order, 'cumulativeQuoteQuantity');
         const average = this.safeFloat (order, 'avgExecutionPrice');
         const price = this.safeFloat (order, 'price', average);  // for market orders
+        let cost = undefined;
+        if ((amount !== undefined) && (price !== undefined)) {
+            cost = amount * price;
+        }
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -759,7 +802,7 @@ module.exports = class idex extends Exchange {
 
     async associateWallet (walletAddress, params = {}) {
         const nonce = this.uuidv1 ();
-        const noPrefix = Exchange.remove0xPrefix (walletAddress);
+        const noPrefix = this.remove0xPrefix (walletAddress);
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (noPrefix),
@@ -797,7 +840,7 @@ module.exports = class idex extends Exchange {
             typeEnum = 0;
         }
         const sideEnum = (side === 'buy') ? 0 : 1;
-        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const orderVersion = 1;
         const amountString = this.amountToPrecision (symbol, amount);
         const timeInForceEnum = 0;  // Good-til-canceled
@@ -882,7 +925,7 @@ module.exports = class idex extends Exchange {
         const nonce = this.uuidv1 ();
         const amountString = this.currencyToPrecision (code, amount);
         const currency = this.currency (code);
-        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
@@ -902,13 +945,27 @@ module.exports = class idex extends Exchange {
             },
             'signature': signature,
         };
+        // {
+        //   withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
+        //   asset: 'ETH',
+        //   assetContractAddress: '0x0000000000000000000000000000000000000000',
+        //   quantity: '0.20000000',
+        //   time: 1598962883190,
+        //   fee: '0.00024000',
+        //   txStatus: 'pending',
+        //   txId: null
+        // }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
-        return response;
+        const id = this.safeString (response, 'withdrawalId');
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const nonce = this.uuidv1 ();
-        const walletBytes = Exchange.remove0xPrefix (this.walletAddress);
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
             this.base16ToBinary (nonce),
             this.base16ToBinary (walletBytes),
@@ -934,7 +991,10 @@ module.exports = class idex extends Exchange {
         const message = this.safeString (response, 'message');
         if (errorCode in this.exceptions) {
             const Exception = this.exceptions[errorCode];
-            throw new Exception (message);
+            throw new Exception (this.id + ' ' + message);
+        }
+        if (errorCode !== undefined) {
+            throw new ExchangeError (this.id + ' ' + message);
         }
     }
 
@@ -964,7 +1024,6 @@ module.exports = class idex extends Exchange {
             currency = this.currency (code);
             request['asset'] = currency['id'];
         }
-
         if (since !== undefined) {
             request['start'] = since;
         }
@@ -987,6 +1046,13 @@ module.exports = class idex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'mined': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         // fetchDeposits
         // {
@@ -998,7 +1064,16 @@ module.exports = class idex extends Exchange {
         //   confirmationTime: 1598865930231
         // }
         // fetchWithdrwalas
-        // ...
+        // {
+        //   withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
+        //   asset: 'ETH',
+        //   assetContractAddress: '0x0000000000000000000000000000000000000000',
+        //   quantity: '0.20000000',
+        //   time: 1598962883288,
+        //   fee: '0.00024000',
+        //   txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
+        //   txStatus: 'mined'
+        //  }
         let type = undefined;
         if ('depositId' in transaction) {
             type = 'deposit';
@@ -1017,6 +1092,9 @@ module.exports = class idex extends Exchange {
                 'currency': 'ETH',
             };
         }
+        const rawStatus = this.safeString (transaction, 'txStatus');
+        const status = this.parseTransactionStatus (rawStatus);
+        const updated = this.safeInteger (transaction, 'confirmationTime');
         return {
             'info': transaction,
             'id': id,
@@ -1028,8 +1106,8 @@ module.exports = class idex extends Exchange {
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': undefined,
-            'updated': undefined,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         };
     }

@@ -7,14 +7,14 @@ const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds
 
 // ---------------------------------------------------------------------------
 
-module.exports = class idex extends Exchange {
+module.exports = class idex2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'idex',
+            'id': 'idex2',
             'name': 'IDEX',
             'countries': [ 'US' ],
             'rateLimit': 1500,
-            'certified': true,
+            'certified': false,
             'requiresWeb3': true,
             'has': {
                 'cancelOrder': true,

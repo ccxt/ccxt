@@ -1121,7 +1121,12 @@ class Exchange {
     public static function hash($request, $type = 'md5', $digest = 'hex') {
         $base64 = ('base64' === $digest);
         $binary = ('binary' === $digest);
-        $hash = \hash($type, $request, ($binary || $base64) ? true : false);
+        $raw_output = ($binary || $base64) ? true : false;
+        if ($type === 'keccak') {
+            $hash = Keccak::hash($request, 256, $raw_output);
+        } else {
+            $hash = \hash($type, $request, $raw_output);
+        }
         if ($base64) {
             $hash = \base64_encode($hash);
         }
@@ -2784,6 +2789,11 @@ class Exchange {
         return static::signHash(static::hashMessage($message), $privateKey);
     }
 
+    public function sign_message_string($message, $privateKey) {
+        $signature = static::signMessage($message, $privateKey);
+        return $signature['r'] . $this->remove0xPrefix($signature['s']) . dechex($signature['v']);
+    }
+
     public function oath() {
         if ($this->twofa) {
             return $this->totp($this->twofa);
@@ -2891,5 +2901,9 @@ class Exchange {
             $string[] = self::$base58_encoder[$next_character];
         }
         return implode('', array_reverse($string));
+    }
+
+    public function remove0xPrefix($string) {
+        return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 }
