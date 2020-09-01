@@ -89,10 +89,8 @@ def table(values):
 
 
 exchange = ccxt.binance({
-    # 'apiKey': 'YOUR_API_KEY',
-    # 'secret': 'YOUR_SECRET',
-    "apiKey": "U3r8Mzrv3xydvnq5sz9NTfJKqP6qdN8Xaii57rjjVQWCDAkDnPSuxljxrxfN1tnz",
-    "secret": "RdAghMW5ijpzEFPLhaTYIWghxCm34Q0BaIm5oQEjzjmIxV7HqmYT0Sbi31jwtOnf",
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
     'enableRateLimit': True, # required https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'options': {
         'defaultType': 'future',
