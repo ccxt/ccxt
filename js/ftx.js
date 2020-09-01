@@ -479,6 +479,7 @@ module.exports = class ftx extends ccxt.ftx {
         //
         //     {
         //         "channel": "fills",
+        //         "type": "update"
         //         "data": {
         //             "fee": 78.05799225,
         //             "feeRate": 0.0014,
@@ -487,14 +488,13 @@ module.exports = class ftx extends ccxt.ftx {
         //             "liquidity": "taker",
         //             "market": "BTC-PERP",
         //             "orderId": 38065410,
-        //             "tradeId": 19129310,
         //             "price": 3723.75,
         //             "side": "buy",
         //             "size": 14.973,
         //             "time": "2019-05-07T16:40:58.358438+00:00",
+        //             "tradeId": 19129310,
         //             "type": "order"
         //         },
-        //         "type": "update"
         //     }
         //
         // spot
@@ -503,73 +503,37 @@ module.exports = class ftx extends ccxt.ftx {
         //         channel: 'fills',
         //         type: 'update',
         //         data: {
-        //             id: 182349460,
-        //             market: 'ETH/USD',
-        //             future: null,
         //             baseCurrency: 'ETH',
         //             quoteCurrency: 'USD',
-        //             type: 'order',
-        //             side: 'sell',
-        //             price: 391.64,
-        //             size: 0.009,
+        //             feeCurrency: 'USD',
+        //             fee: 0.0023439654,
+        //             feeRate: 0.000665,
+        //             future: null,
+        //             id: 182349460,
+        //             liquidity: 'taker'
+        //             market: 'ETH/USD',
         //             orderId: 8049570214,
+        //             price: 391.64,
+        //             side: 'sell',
+        //             size: 0.009,
         //             time: '2020-08-22T15:42:42.646980+00:00',
         //             tradeId: 90614141,
-        //             feeRate: 0.000665,
-        //             fee: 0.0023439654,
-        //             feeCurrency: 'USD',
-        //             liquidity: 'taker'
+        //             type: 'order',
         //         }
         //     }
         //
         const messageHash = this.safeString (message, 'channel');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        const price = this.safeFloat (data, 'price');
-        const amount = this.safeFloat (data, 'size');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const id = this.safeString (data, 'tradeId');
-        const fee = {
-            'cost': this.safeFloat (data, 'fee'),
-            'currency': this.safeCurrencyCode (this.safeString (data, 'feeCurrency')),
-            'rate': this.safeFloat (data, 'feeRate'),
-        };
-        const time = this.safeString (data, 'time');
-        const timestamp = this.parse8601 (time);
-        const takerOrMaker = this.safeString (data, 'liquidity');
-        const orderId = this.safeString (data, 'orderId');
-        const side = this.safeString (data, 'side');
-        const parsed = {
-            'info': message,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
-        };
+        const data = this.safeValue (message, 'data', {});
+        const trade = this.parseTrade (data);
+        const market = this.market (trade['symbol']);
         if (this.myTrades === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const tradesCache = this.myTrades;
-        tradesCache.append (parsed);
+        tradesCache.append (trade);
         client.resolve (tradesCache, messageHash);
-        const symbolMessageHash = messageHash + ':' + marketId;
+        const symbolMessageHash = messageHash + ':' + market['id'];
         client.resolve (tradesCache, symbolMessageHash);
     }
 };
