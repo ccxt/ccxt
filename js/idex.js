@@ -1056,7 +1056,7 @@ module.exports = class idex extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         // fetchDeposits
         // {
-        //   depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
+        //   depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
         //   asset: 'ETH',
         //   quantity: '1.00000000',
         //   txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
