@@ -454,56 +454,16 @@ module.exports = class ftx extends ccxt.ftx {
         //
         const messageHash = this.safeString (message, 'channel');
         const data = this.safeValue (message, 'data');
-        const price = this.safeFloat (data, 'price');
-        const amount = this.safeFloat (data, 'size');
-        const createdAt = this.safeString (data, 'createdAt');
-        const timestamp = this.parse8601 (createdAt);
-        const filled = this.safeFloat (data, 'filledSize');
-        const remaining = this.safeFloat (data, 'remainingSize');
-        const type = this.safeString (data, 'type');
-        const average = this.safeFloat (data, 'avgFillPrice');
-        const side = this.safeString (data, 'side');
-        const marketId = this.safeString (data, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const id = this.safeString (data, 'id');
-        const rawStatus = this.safeString (data, 'status');
-        const status = this.parseOrderStatus (rawStatus);
-        const parsed = {
-            'info': message,
-            'id': id,
-            'clientOrderId': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
-            'trades': undefined,
-        };
+        const order = this.parseOrder (data);
+        const market = this.market (order['symbol']);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        orders.append (parsed);
+        orders.append (order);
         client.resolve (orders, messageHash);
-        const symbolMessageHash = messageHash + ':' + marketId;
+        const symbolMessageHash = messageHash + ':' + market['id'];
         client.resolve (orders, symbolMessageHash);
     }
 
