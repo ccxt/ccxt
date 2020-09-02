@@ -321,7 +321,7 @@ module.exports = class bibox extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': -feeCost,
                 'currency': feeCurrency,
                 'rate': feeRate,
             };

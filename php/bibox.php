@@ -326,7 +326,7 @@ class bibox extends Exchange {
         }
         if ($feeCost !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
