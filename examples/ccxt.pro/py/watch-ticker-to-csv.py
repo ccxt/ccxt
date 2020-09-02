@@ -15,7 +15,7 @@ async def watch_ticker_continuously(exchange, symbol):
     while True:
         try:
             ticker = await exchange.watch_ticker(symbol)
-            values = [str(index), exchange.id] + [str(ticker[key]) for key in keys[1:]]
+            values = [str(index), exchange.id] + [str(ticker[key]) for key in keys[2:]]
             print(*values)
             with open(filename, 'a') as file:
                 file.write(','.join(values) + "\n")
