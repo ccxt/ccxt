@@ -236,11 +236,16 @@ function test_symbol($exchange, $symbol, $code) {
         test_order_book($exchange, $symbol);
         test_trades($exchange, $symbol);
         test_ohlcvs($exchange, $symbol);
-        if ($exchange->apiKey) {
+        if ($exchange->check_required_credentials(false)) {
+            if ($exchange->has['signIn']) {
+                $exchange->sign_in();
+            }
             test_orders($exchange, $symbol);
             test_closed_orders($exchange, $symbol);
             test_open_orders($exchange, $symbol);
             test_transactions($exchange, $code);
+            $balance = $exchange->fetch_balance();
+            var_dump($balance);
         }
     }
 }
@@ -252,7 +257,9 @@ function load_exchange($exchange) {
 }
 
 function try_all_proxies($exchange, $proxies) {
-    $current_proxy = 0;
+
+    $index = array_search($exchange->proxy, $proxies);
+    $current_proxy = ($index >= 0) ? $index : 0;
     $max_retries = count($proxies);
 
     for ($i = 0; $i < $max_retries; $i++) {
@@ -356,24 +363,6 @@ function test_exchange($exchange) {
         dump(green('CODE:'), green($code));
         test_symbol($exchange, $symbol, $code);
     }
-
-    // usleep ($delay);
-    // $trades = $exchange->fetch_trades (array_keys ($markets)[0]);
-    // var_dump ($trades);
-
-    if ((!$exchange->apiKey) or (strlen($exchange->apiKey) < 1)) {
-        return;
-    }
-
-    usleep($delay);
-
-    $balance = $exchange->fetch_balance();
-    var_dump($balance);
-
-    // $exchange->verbose = true;
-    // $order = $exchange->create_market_buy_order ('LTC/BTC', 0.1);
-    // var_dump ($order);
-    // print_r ($order);
 }
 
 $proxies = array(
