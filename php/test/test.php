@@ -179,19 +179,19 @@ function test_open_orders($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_transactions($exchange, $symbol) {
+function test_transactions($exchange, $code) {
     if ($exchange->has['fetchTransactions']) {
         $delay = $exchange->rateLimit * 1000;
         usleep($delay);
 
-        dump(green($symbol), 'fetching transactions...');
-        $transactions = $exchange->fetch_transactions($symbol);
+        dump(green($code), 'fetching transactions...');
+        $transactions = $exchange->fetch_transactions($code);
         foreach ($transactions as $transaction) {
-            test_transaction($exchange, $transaction, $symbol, time() * 1000);
+            test_transaction($exchange, $transaction, $code, time() * 1000);
         }
-        dump(green($symbol), 'fetched', green(count($transactions)), 'transactions');
+        dump(green($code), 'fetched', green(count($transactions)), 'transactions');
     } else {
-        dump(green($symbol), 'fetchTransactions() not supported');
+        dump(green($code), 'fetchTransactions() not supported');
     }
 }
 
@@ -228,7 +228,7 @@ function test_ohlcvs($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_symbol($exchange, $symbol) {
+function test_symbol($exchange, $symbol, $code) {
     test_ticker($exchange, $symbol);
     if ($exchange->id === 'coinmarketcap') {
         dump(var_export($exchange->fetchGlobal()));
@@ -240,7 +240,7 @@ function test_symbol($exchange, $symbol) {
             test_orders($exchange, $symbol);
             test_closed_orders($exchange, $symbol);
             test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $symbol);
+            test_transactions($exchange, $code);
         }
     }
 }
@@ -311,10 +311,50 @@ function test_exchange($exchange) {
         }
     }
 
+    $codes = array(
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
+    );
+
+    $code = $codes[0];
+    for ($i = 0; $i < count($codes); $i++) {
+        if (array_key_exists($codes[$i], $exchange->currencies)) {
+            $code = $codes[$i];
+        }
+    }
+
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
-
-        test_symbol($exchange, $symbol);
+        dump(green('CODE:'), green($code));
+        test_symbol($exchange, $symbol, $code);
     }
 
     // usleep ($delay);
