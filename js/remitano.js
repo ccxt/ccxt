@@ -38,14 +38,12 @@ module.exports = class remitano extends Exchange {
                     'get': [
                         'altcoins',
                         'rates/ads',
-                        'rates/exchange',
                         'markets/{symbol}/order_book',
                     ],
                 },
                 'private': {
                     'get': [
                         'users/coin_accounts',
-                        'coin_accounts/me',
                     ],
                     'post': [
                         'offers',
