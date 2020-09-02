@@ -1248,7 +1248,7 @@ module.exports = class probit extends Exchange {
                 this.checkRequiredCredentials ();
                 const expires = this.safeInteger (this.options, 'expires');
                 if ((expires === undefined) || (expires < now)) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
+                    throw new AuthenticationError (this.id + ' access token expired, call signIn() method');
                 }
                 const accessToken = this.safeString (this.options, 'accessToken');
                 headers = {
