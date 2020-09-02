@@ -868,7 +868,6 @@ module.exports = class idex2 extends Exchange {
         ];
         const allBytes = this.arrayConcat (byteArray, after);
         const binary = this.binaryConcatArray (allBytes);
-        console.log (this.binaryToBase16 (binary))
         const hash = this.hash (binary, 'keccak', 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         const request = {
