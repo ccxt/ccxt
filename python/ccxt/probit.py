@@ -702,8 +702,7 @@ class probit(Exchange):
             return self.iso8601(previousSunday * 1000)
         else:
             timestamp = int(timestamp / 1000)
-            difference = self.integer_modulo(timestamp, duration)
-            timestamp -= difference
+            timestamp = duration * int(timestamp / duration)
             if after:
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)

@@ -733,8 +733,7 @@ class probit extends Exchange {
             return $this->iso8601($previousSunday * 1000);
         } else {
             $timestamp = intval ($timestamp / 1000);
-            $difference = $this->integer_modulo($timestamp, $duration);
-            $timestamp -= $difference;
+            $timestamp = $duration * intval ($timestamp / $duration);
             if ($after) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
