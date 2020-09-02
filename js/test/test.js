@@ -339,7 +339,8 @@ async function testExchange (exchange) {
 
 async function tryAllProxies (exchange, proxies) {
 
-    let currentProxy = 0
+    const index = proxies.indexOf (exchange.proxy)
+    let currentProxy = (index >= 0) ? index : 0
     const maxRetries = proxies.length
 
     if (settings && ('proxy' in settings)) {
