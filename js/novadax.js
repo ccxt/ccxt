@@ -86,8 +86,8 @@ module.exports = class novadax extends Exchange {
                         'orders/fill',
                         'account/getBalance',
                         'account/subs',
-                        'account/subs/balance?subId=xxx',
-                        'account/subs/transfer/record?subId=xxx',
+                        'account/subs/balance',
+                        'account/subs/transfer/record',
                     ],
                     'post': [
                         'orders/create',
@@ -121,14 +121,15 @@ module.exports = class novadax extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTimestamp (params);
+        const response = await this.publicGetCommonTimestamp (params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "code":"A10000",
+        //         "data":1599090512080,
+        //         "message":"Success"
         //     }
         //
-        return this.safeInteger (response, 'epoch_millis');
+        return this.safeInteger (response, 'data');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
