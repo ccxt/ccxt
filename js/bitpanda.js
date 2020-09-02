@@ -114,7 +114,7 @@ module.exports = class bitpanda extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'tierBased': true,
                     'percentage': true,
                     'taker': 0.15 / 100,
                     'maker': 0.10 / 100,
