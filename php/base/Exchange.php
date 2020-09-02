@@ -2791,7 +2791,7 @@ class Exchange {
 
     public function sign_message_string($message, $privateKey) {
         $signature = static::signMessage($message, $privateKey);
-        return $signature['r'] . $this->remove0xPrefix($signature['s']) . dechex($signature['v']);
+        return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
     }
 
     public function oath() {
@@ -2903,7 +2903,7 @@ class Exchange {
         return implode('', array_reverse($string));
     }
 
-    public function remove0xPrefix($string) {
+    public function remove0x_prefix($string) {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 }
