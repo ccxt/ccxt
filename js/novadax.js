@@ -20,29 +20,8 @@ module.exports = class novadax extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
-                'cancelAllOrders': true,
-                'cancelOrder': true,
-                'cancelOrders': true,
-                'createDepositAddress': true,
-                'createOrder': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': true,
-                'fetchCurrencies': true,
-                'fetchDeposits': true,
-                'fetchDepositAddress': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchOrderTrades': true,
                 'fetchTime': true,
-                'fetchTrades': true,
-                'fetchTradingFees': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -130,6 +109,74 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetCommonSymbols (params);
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data":[
+        //             {
+        //                 "amountPrecision":8,
+        //                 "baseCurrency":"BTC",
+        //                 "minOrderAmount":"0.001",
+        //                 "minOrderValue":"25",
+        //                 "pricePrecision":2,
+        //                 "quoteCurrency":"BRL",
+        //                 "status":"ONLINE",
+        //                 "symbol":"BTC_BRL",
+        //                 "valuePrecision":2
+        //             },
+        //         ],
+        //         "message":"Success"
+        //     }
+        //
+        const result = [];
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const id = this.safeString (market, 'symbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'amount': this.safeInteger (market, 'amountPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'cost': this.safeInteger (market, 'valuePrecision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'minOrderAmount'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeFloat (market, 'minOrderValue'),
+                    'max': undefined,
+                },
+            };
+            const status = this.safeString (market, 'status');
+            const active = (status === 'ONLINE');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+                'active': active,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
