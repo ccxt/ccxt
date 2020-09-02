@@ -698,8 +698,7 @@ class bitpanda(Exchange):
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
-        modulo = self.integer_modulo(timestamp, duration)
-        alignedTimestamp = timestamp - modulo
+        alignedTimestamp = duration * int(timestamp / duration)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
