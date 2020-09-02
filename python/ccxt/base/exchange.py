@@ -1919,7 +1919,7 @@ class Exchange(object):
         return self.web3.soliditySha3(types, unpacked).hex()
 
     @staticmethod
-    def remove_0x_prefix(value):
+    def remove0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
@@ -1936,8 +1936,8 @@ class Exchange(object):
             if not isinstance(value, str):
                 raise TypeError("Value must be an instance of str")
             if len(value) % 2:
-                value = "0x0" + self.remove_0x_prefix(value)
-            return base64.b16decode(self.remove_0x_prefix(value), casefold=True)
+                value = "0x0" + self.remove0x_prefix(value)
+            return base64.b16decode(self.remove0x_prefix(value), casefold=True)
 
         domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
         order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
@@ -1992,7 +1992,7 @@ class Exchange(object):
         )
 
     def hashMessage(self, message):
-        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove_0x_prefix(message)), True)
+        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
         hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
@@ -2007,7 +2007,7 @@ class Exchange(object):
 
     def sign_message_string(self, message, privateKey):
         signature = self.signMessage(message, privateKey)
-        return signature['r'] + Exchange.remove_0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
+        return signature['r'] + Exchange.remove0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
 
     def signMessage(self, message, privateKey):
         #
@@ -2142,7 +2142,3 @@ class Exchange(object):
             string.append(Exchange.base58_encoder[next_character])
         string.reverse()
         return ''.join(string)
-
-    @staticmethod
-    def remove0xPrefix(string):
-        return Exchange.remove_0x_prefix(string)
