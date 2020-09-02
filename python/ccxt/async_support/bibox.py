@@ -322,7 +322,7 @@ class bibox(Exchange):
             cost = price * amount
         if feeCost is not None:
             fee = {
-                'cost': feeCost,
+                'cost': -feeCost,
                 'currency': feeCurrency,
                 'rate': feeRate,
             }
