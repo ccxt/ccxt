@@ -167,7 +167,7 @@ module.exports = class bitbns extends Exchange {
             trades[i]['id'] = this.safeString (trades[i], 'id');
             const keys = Object.keys (trades[i]);
             for (let k = 0; k < keys.length; k++) {
-                if (!this.safeString (trades[i], keys[k])) {
+                if (this.safeString (trades[i], keys[k]).length === 0) {
                     trades[i][keys[k]] = undefined;
                 }
             }
@@ -312,7 +312,6 @@ module.exports = class bitbns extends Exchange {
             } else if (status === 2) {
                 orderObj['status'] = 'closed';
             }
-            // TODO: fix
             orderObj['side'] = this.safeString (orders[i], 'type') === 1 ? 'sell' : 'buy';
             orderObj['amount'] = orderObj['price'] * orderObj['remaining'];
             openOrders.push (orderObj);
@@ -358,47 +357,54 @@ module.exports = class bitbns extends Exchange {
         return this.parseBalance (balances);
     }
 
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const date = this.safeString (trade, 'date');
+        const price = this.safeFloat (trade, 'rate');
+        const crypto = this.safeFloat (trade, 'crypto');
+        const factor = this.safeFloat (trade, 'factor');
+        const fee = this.safeFloat (trade, 'fee');
+        const amount = crypto / factor;
+        const cost = this.sum ((amount * price), fee);
+        const tradeObj = {
+            'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'timestamp': this.parse8601 (date),
+            'datetime': date,
+            'symbol': symbol,
+            'order': undefined,
+            'type': 'limit',
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': price, // float price in quote currency (like INR for BTC/INR)
+            'amount': amount, // amount of base currency (like BTC for BTC/INR)
+            'cost': cost,
+            'fee': {
+                'cost': fee,
+                'currency': '',
+                'rate': '0.0025',
+            },
+        };
+        return tradeObj;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradingSymbol = market['id'];
-        if (limit === undefined) {
-            limit = 0;
-        }
-        if (since !== undefined) {
-            since = this.iso8601 (since);
-        }
         const request = {
             'symbol': tradingSymbol,
             'page': 0,
         };
         if (since !== undefined) {
+            since = this.iso8601 (since);
             request['since'] = since;
         }
         const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
         const trades = this.safeValue (resp, 'data');
-        const result = [];
-        let numOfTrades = trades.length;
-        if (limit && trades.length > limit) {
-            numOfTrades = limit;
-        }
-        for (let i = 0; i < numOfTrades; i++) {
-            const tradeObj = {
-                'info': trades[i],
-                'id': trades[i]['id'],
-                'timestamp': trades[i]['date'],
-                'datetime': this.parse8601 (trades[i]['date']),
-                'symbol': symbol,
-                'order': undefined,
-                'type': 'limit',
-                'side': undefined,
-                'takerOrMaker': undefined,
-                'price': trades[i]['rate'],
-                'amount': trades[i]['amount'],
-                'fee': trades[i]['fee'],
-            };
-            result.push (tradeObj);
-        }
-        return result;
+        return this.parseTrades (trades, market, since, limit);
     }
 };
