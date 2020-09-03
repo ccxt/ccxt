@@ -1061,7 +1061,7 @@ class bybit(Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-        status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
         fee = None
