@@ -181,6 +181,76 @@ module.exports = class novadax extends Exchange {
         return result;
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "ask":"61946.1",
+        //         "baseVolume24h":"164.41930186",
+        //         "bid":"61815",
+        //         "high24h":"64930.72",
+        //         "lastPrice":"61928.41",
+        //         "low24h":"61156.32",
+        //         "open24h":"64512.46",
+        //         "quoteVolume24h":"10308157.95",
+        //         "symbol":"BTC_BRL",
+        //         "timestamp":1599091115090
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const open = this.safeFloat (ticker, 'open24h');
+        const last = this.safeFloat (ticker, 'lastPrice');
+        let percentage = undefined;
+        let change = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            change = last - open;
+            percentage = change / open * 100;
+            average = this.sum (last, open) / 2;
+        }
+        const baseVolume = this.safeFloat (ticker, 'baseVolume24h');
+        const quoteVolume = this.safeFloat (ticker, 'quoteVolume24h');
+        const vwap = this.vwap (baseVolume, quoteVolume);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low24h'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
