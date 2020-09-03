@@ -525,7 +525,7 @@ class bitz extends Exchange {
                 ));
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_time($params = array ()) {

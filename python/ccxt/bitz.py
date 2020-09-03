@@ -516,7 +516,7 @@ class bitz(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 })
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         response = self.marketGetGetServerTime(params)
