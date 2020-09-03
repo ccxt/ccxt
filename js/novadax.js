@@ -179,6 +179,35 @@ module.exports = class novadax extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data":{
+        //             "ask":"61946.1",
+        //             "baseVolume24h":"164.41930186",
+        //             "bid":"61815",
+        //             "high24h":"64930.72",
+        //             "lastPrice":"61928.41",
+        //             "low24h":"61156.32",
+        //             "open24h":"64512.46",
+        //             "quoteVolume24h":"10308157.95",
+        //             "symbol":"BTC_BRL",
+        //             "timestamp":1599091115090
+        //         },
+        //         "message":"Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTicker (data, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
