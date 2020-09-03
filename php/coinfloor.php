@@ -19,11 +19,18 @@ class coinfloor extends Exchange {
             'rateLimit' => 1000,
             'countries' => array( 'UK' ),
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
                 'api' => 'https://webapi.coinfloor.co.uk/bist',
                 'www' => 'https://www.coinfloor.co.uk',
                 'doc' => array(
@@ -403,7 +410,27 @@ class coinfloor extends Exchange {
             $request['price'] = $price;
             $request['amount'] = $amount;
         }
-        return $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "$type":1,
+        //         "$price":"9100",
+        //         "$amount":"0.0026"
+        //     }
+        //
+        $response = $this->$method (array_merge($request, $params));
+        $timestamp = $this->parse8601($this->safe_string($response, 'datetime'));
+        return array(
+            'id' => $this->safe_string($response, 'id'),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp,
+            'type' => $type,
+            'price' => $this->safe_float($response, 'price'),
+            'remaining' => $this->safe_float($response, 'amount'),
+            'info' => $response,
+        );
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -458,9 +485,9 @@ class coinfloor extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'price' => $price,
-            'amount' => $amount,
+            'amount' => null,
             'filled' => null,
-            'remaining' => null,
+            'remaining' => $amount,
             'cost' => $cost,
             'fee' => null,
             'average' => null,

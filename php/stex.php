@@ -21,25 +21,30 @@ class stex extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false, // limit orders only
-                'fetchCurrencies' => true,
-                'fetchMarkets' => true,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
-                'fetchOrderBook' => true,
-                'fetchOHLCV' => true,
+                'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchFundingFees' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'fetchDeposits' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
-                'fetchFundingFees' => true,
             ),
             'version' => 'v3',
             'urls' => array(
@@ -415,6 +420,26 @@ class stex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "success" => true,
+        //         "$data" => {
+        //             "server_datetime" => array(
+        //                 "date" => "2019-01-22 15:13:34.233796",
+        //                 "timezone_type" => 3,
+        //                 "timezone" => "UTC"
+        //             ),
+        //             "server_timestamp" => 1548170014
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $serverDatetime = $this->safe_value($data, 'server_datetime', array());
+        return $this->parse8601($this->safe_string($serverDatetime, 'date'));
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -600,7 +625,7 @@ class stex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time" => 1566086400000,
@@ -643,14 +668,14 @@ class stex extends Exchange {
             $request['timeEnd'] = $this->seconds();
             $request['timeStart'] = $request['timeEnd'] - $timerange;
         } else {
-            $request['timeStart'] = intval ($since / 1000);
+            $request['timeStart'] = intval($since / 1000);
             $request['timeEnd'] = $this->sum($request['timeStart'], $timerange);
         }
         $response = $this->publicGetChartCurrencyPairIdCandlesType (array_merge($request, $params));
         //
         //     {
         //         "success" => true,
-        //         "data" => array(
+        //         "$data" => array(
         //             array(
         //                 "time" => 1566086400000,
         //                 "close" => 0.01895,
@@ -662,8 +687,8 @@ class stex extends Exchange {
         //         )
         //     }
         //
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -736,7 +761,7 @@ class stex extends Exchange {
         }
         if ($since !== null) {
             $request['sort'] = 'ASC'; // needed to make the from param work
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         $response = $this->publicGetTradesCurrencyPairId (array_merge($request, $params));
         //
@@ -896,7 +921,7 @@ class stex extends Exchange {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
                 }
                 $remaining = max ($remaining, 0.0);
             }
@@ -975,8 +1000,8 @@ class stex extends Exchange {
         $request = array(
             'currencyPairId' => $market['id'],
             'type' => strtoupper($type), // 'BUY', 'SELL', 'STOP_LIMIT_BUY', 'STOP_LIMIT_SELL'
-            'amount' => floatval ($this->amount_to_precision($symbol, $amount)), // required
-            'price' => floatval ($this->price_to_precision($symbol, $price)), // required
+            'amount' => floatval($this->amount_to_precision($symbol, $amount)), // required
+            'price' => floatval($this->price_to_precision($symbol, $price)), // required
             // 'trigger_price' => 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         );
         $response = $this->tradingPostOrdersCurrencyPairId (array_merge($request, $params));
@@ -1679,7 +1704,7 @@ class stex extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency_id' => $currency['id'],
-            'amount' => floatval ($this->currency_to_precision($code, $amount)),
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
             'address' => $address,
             // 'protocol_id' => 10, // optional, to be used with multicurrency wallets like USDT
             // 'additional_address_parameter' => $tag, // optional

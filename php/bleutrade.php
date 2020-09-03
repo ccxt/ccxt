@@ -19,23 +19,29 @@ class bleutrade extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'cancelOrder' => false, // todo
-                'createLimitOrder' => false, // todo
-                'createMarketOrder' => false, // todo
-                'createOrder' => false, // todo
-                'editOrder' => false, // todo
-                'withdraw' => false, // todo
-                'fetchTrades' => false,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchOrders' => false,
+                'createLimitOrder' => false,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'editOrder' => false,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchWithdrawals' => true,
-                'fetchOrderTrades' => false,
-                'fetchLedger' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => false,
             ),
             'timeframes' => array(
                 '1h' => '1h',
@@ -51,7 +57,7 @@ class bleutrade extends Exchange {
                     'v3Private' => 'https://{hostname}/api/v3/private',
                     'v3Public' => 'https://{hostname}/api/v3/public',
                 ),
-                'www' => ['https://bleutrade.com'],
+                'www' => 'https://bleutrade.com',
                 'doc' => array(
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ),
@@ -337,16 +343,15 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601($ohlcv['TimeStamp'] . '+00:00');
-        return array(
-            $timestamp,
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return [
+            $this->parse8601($ohlcv['TimeStamp'] . '+00:00'),
             $this->safe_float($ohlcv, 'Open'),
             $this->safe_float($ohlcv, 'High'),
             $this->safe_float($ohlcv, 'Low'),
             $this->safe_float($ohlcv, 'Close'),
             $this->safe_float($ohlcv, 'Volume'),
-        );
+        ];
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
@@ -358,7 +363,8 @@ class bleutrade extends Exchange {
             'count' => $limit,
         );
         $response = $this->v3PublicGetGetcandles (array_merge($request, $params));
-        return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -552,7 +558,7 @@ class bleutrade extends Exchange {
             $part = $parts[$i];
             if (mb_strpos($part, 'fee') === 0) {
                 $part = str_replace('fee ', '', $part);
-                $feeCost = floatval ($part);
+                $feeCost = floatval($part);
                 if ($feeCost < 0) {
                     $feeCost = -$feeCost;
                 }
@@ -751,9 +757,9 @@ class bleutrade extends Exchange {
         $feeCost = null;
         $labelParts = explode(';', $label);
         if (strlen($labelParts) === 3) {
-            $amount = floatval ($labelParts[0]);
+            $amount = floatval($labelParts[0]);
             $address = $labelParts[1];
-            $feeCost = floatval ($labelParts[2]);
+            $feeCost = floatval($labelParts[2]);
         } else {
             $address = $label;
         }

@@ -470,8 +470,8 @@ class coinbase extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse8601($this->safe_value($trade, 'created_at'));
         if ($market === null) {
-            $baseId = $this->safe_string($totalObject, 'currency');
-            $quoteId = $this->safe_string($amountObject, 'currency');
+            $baseId = $this->safe_string($amountObject, 'currency');
+            $quoteId = $this->safe_string($totalObject, 'currency');
             if (($baseId !== null) && ($quoteId !== null)) {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
@@ -485,7 +485,7 @@ class coinbase extends Exchange {
         $amount = $this->safe_float($amountObject, 'amount');
         $price = null;
         if ($cost !== null) {
-            if ($amount !== null) {
+            if (($amount !== null) && ($amount > 0)) {
                 $price = $cost / $amount;
             }
         }
@@ -733,13 +733,17 @@ class coinbase extends Exchange {
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $query = $this->omit($params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after
         $response = $this->privateGetAccountsAccountIdTransactions (array_merge($request, $query));
-        return $this->parse_ledger($response['data'], null, $since, $limit);
+        return $this->parse_ledger($response['data'], $currency, $since, $limit);
     }
 
     public function parse_ledger_entry_status($status) {

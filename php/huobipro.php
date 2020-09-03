@@ -25,20 +25,27 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
-                'fetchDepositAddress' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchTradingLimits' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -79,6 +86,7 @@ class huobipro extends Exchange {
                 ),
                 'v2Private' => array(
                     'get' => array(
+                        'account/ledger',
                         'account/withdraw/quota',
                         'account/deposit/address',
                         'reference/transact-fee-rate',
@@ -111,7 +119,7 @@ class huobipro extends Exchange {
                     'get' => array(
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
-                        'account/accounts/array(sub-uid)',
+                        'account/accounts/{sub-uid}',
                         'account/history',
                         'cross-margin/loan-info',
                         'fee/fee-rate/get',
@@ -124,6 +132,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'query/deposit-withdraw',
+                        'margin/loan-info',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
                         'points/actions',
@@ -188,6 +197,7 @@ class huobipro extends Exchange {
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
                     'invalid-parameter' => '\\ccxt\\BadRequest', // array("ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now")
                     'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
+                    'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                 ),
             ),
             'options' => array(
@@ -206,6 +216,11 @@ class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://coinmarketcap.com/currencies/penta/markets/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT' => 'Penta',
             ),
         ));
     }
@@ -411,10 +426,7 @@ class huobipro extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
-        $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -551,6 +563,24 @@ class huobipro extends Exchange {
         //
         // fetchMyTrades (private)
         //
+        //     array(
+        //          'symbol' => 'swftcbtc',
+        //          'fee-currency' => 'swftc',
+        //          'filled-fees' => '0',
+        //          'source' => 'spot-api',
+        //          'id' => 83789509854000,
+        //          'type' => 'buy-limit',
+        //          'order-id' => 83711103204909,
+        //          'filled-points' => '0.005826843283532154',
+        //          'fee-deduct-currency' => 'ht',
+        //          'filled-amount' => '45941.53',
+        //          'price' => '0.0000001401',
+        //          'created-at' => 1597933260729,
+        //          'match-id' => 100087455560,
+        //          'role' => 'maker',
+        //          'trade-id' => 100050305348
+        //     ),
+        //
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'symbol');
@@ -583,7 +613,7 @@ class huobipro extends Exchange {
         $feeCost = $this->safe_float($trade, 'filled-fees');
         $feeCurrency = null;
         if ($market !== null) {
-            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+            $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         }
         $filledPoints = $this->safe_float($trade, 'filled-points');
         if ($filledPoints !== null) {
@@ -683,7 +713,19 @@ class huobipro extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "amount":1.2082,
+        //         "open":0.025096,
+        //         "close":0.025095,
+        //         "high":0.025096,
+        //         "id":1591515300,
+        //         "count":6,
+        //         "low":0.025095,
+        //         "vol":0.0303205097
+        //     }
+        //
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
@@ -705,7 +747,20 @@ class huobipro extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->marketGetHistoryKline (array_merge($request, $params));
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "status":"ok",
+        //         "ch":"$market->ethbtc.kline.1min",
+        //         "ts":1591515374371,
+        //         "$data":array(
+        //             array("amount":0.0,"open":0.025095,"close":0.025095,"high":0.025095,"id":1591515360,"count":0,"low":0.025095,"vol":0.0),
+        //             array("amount":1.2082,"open":0.025096,"close":0.025095,"high":0.025096,"id":1591515300,"count":6,"low":0.025095,"vol":0.0303205097),
+        //             array("amount":0.0648,"open":0.025096,"close":0.025096,"high":0.025096,"id":1591515240,"count":2,"low":0.025096,"vol":0.0016262208),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_accounts($params = array ()) {
@@ -1075,7 +1130,7 @@ class huobipro extends Exchange {
                     // more about it here => https://github.com/ccxt/ccxt/pull/4395
                     // we use priceToPrecision instead of amountToPrecision here
                     // because in this case the $amount is in the quote currency
-                    $request['amount'] = $this->cost_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    $request['amount'] = $this->cost_to_precision($symbol, floatval($amount) * floatval($price));
                 }
             } else {
                 $request['amount'] = $this->cost_to_precision($symbol, $amount);
@@ -1144,7 +1199,7 @@ class huobipro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
+            'cost' => floatval($this->currency_to_precision($market[$key], $cost)),
         );
     }
 

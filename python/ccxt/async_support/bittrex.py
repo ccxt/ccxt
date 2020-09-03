@@ -16,6 +16,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
@@ -41,36 +42,42 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDeposits': True,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOpenOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
-                '1m': 'oneMin',
-                '5m': 'fiveMin',
-                '30m': 'thirtyMin',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': 'MINUTE_1',
+                '5m': 'MINUTE_5',
+                '1h': 'HOUR_1',
+                '1d': 'DAY_1',
             },
             'hostname': 'bittrex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
-                    'v2': 'https://{hostname}/api/v2.0/pub',
                     'v3': 'https://api.bittrex.com/v3',
                     'v3public': 'https://api.bittrex.com/v3',
                 },
@@ -90,6 +97,7 @@ class bittrex(Exchange):
                 'v3': {
                     'get': [
                         'account',
+                        'account/volume',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -103,6 +111,7 @@ class bittrex(Exchange):
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
+                        'orders/{orderId}/executions',
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
@@ -110,16 +119,26 @@ class bittrex(Exchange):
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
+                        'withdrawals/whitelistAddresses',
+                        'conditional-orders/{conditionalOrderId}',
+                        'conditional-orders/closed',
+                        'conditional-orders/open',
+                        'transfers/sent',
+                        'transfers/received',
+                        'transfers/{transferId}',
                     ],
                     'post': [
                         'addresses',
                         'orders',
                         'subaccounts',
                         'withdrawals',
+                        'conditional-orders',
+                        'transfers',
                     ],
                     'delete': [
                         'orders/{orderId}',
                         'withdrawals/{withdrawalId}',
+                        'conditional-orders/{conditionalOrderId}',
                     ],
                 },
                 'v3public': {
@@ -131,18 +150,10 @@ class bittrex(Exchange):
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
-                    ],
-                },
-                'v2': {
-                    'get': [
-                        'currencies/GetBTCPrice',
-                        'currencies/GetWalletHealth',
-                        'general/GetLatestAlert',
-                        'market/GetTicks',
-                        'market/GetLatestTick',
-                        'Markets/GetMarketSummaries',
-                        'market/GetLatestTick',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ],
                 },
                 'public': {
@@ -230,6 +241,8 @@ class bittrex(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'BAD_REQUEST': BadRequest,  # {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
+                    'STARTDATE_OUT_OF_RANGE': BadRequest,  # {"code":"STARTDATE_OUT_OF_RANGE"}
                     # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                     # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                     'APISIGN_NOT_PROVIDED': AuthenticationError,
@@ -328,9 +341,9 @@ class bittrex(Exchange):
             market = response[i]
             baseId = self.safe_string(market, 'baseCurrencySymbol')
             quoteId = self.safe_string(market, 'quoteCurrencySymbol')
-            # bittrex v2 uses inverted pairs, v3 uses regular pairs
-            # we use v3 for fetchMarkets and v2 throughout the rest of self implementation
-            # therefore we swap the base ←→ quote here to be v2-compatible
+            # bittrex v1 uses inverted pairs, v3 uses regular pairs
+            # we use v3 for fetchMarkets and v1 throughout the rest of self implementation
+            # therefore we swap the base ←→ quote here to be v1-compatible
             # https://github.com/ccxt/ccxt/issues/5634
             # id = self.safe_string(market, 'symbol')
             id = quoteId + self.options['symbolSeparator'] + baseId
@@ -603,6 +616,15 @@ class bittrex(Exchange):
             'fee': None,
         }
 
+    async def fetch_time(self, params={}):
+        response = await self.v3GetPing(params)
+        #
+        #     {
+        #         "serverTime": 1594596023162
+        #     }
+        #
+        return self.safe_integer(response, 'serverTime')
+
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -615,28 +637,72 @@ class bittrex(Exchange):
                 return self.parse_trades(response['result'], market, since, limit)
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'] + '+00:00')
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "startsAt":"2020-06-12T02:35:00Z",
+        #         "open":"0.02493753",
+        #         "high":"0.02493753",
+        #         "low":"0.02493753",
+        #         "close":"0.02493753",
+        #         "volume":"0.09590123",
+        #         "quoteVolume":"0.00239153"
+        #     }
+        #
         return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            self.parse8601(self.safe_string(ohlcv, 'startsAt')),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        reverseId = market['baseId'] + '-' + market['quoteId']
         request = {
-            'tickInterval': self.timeframes[timeframe],
-            'marketName': market['id'],
+            'candleInterval': self.timeframes[timeframe],
+            'marketSymbol': reverseId,
         }
-        response = await self.v2GetMarketGetTicks(self.extend(request, params))
-        if 'result' in response:
-            if response['result']:
-                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'
+        if since is not None:
+            now = self.milliseconds()
+            difference = abs(now - since)
+            sinceDate = self.ymd(since)
+            parts = sinceDate.split('-')
+            sinceYear = self.safe_integer(parts, 0)
+            sinceMonth = self.safe_integer(parts, 1)
+            sinceDay = self.safe_integer(parts, 2)
+            if timeframe == '1d':
+                # if the since argument is beyond one year into the past
+                if difference > 31622400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear'
+                    request['year'] = sinceYear
+                # request['year'] = year
+            elif timeframe == '1h':
+                # if the since argument is beyond 31 days into the past
+                if difference > 2678400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth'
+                    request['year'] = sinceYear
+                    request['month'] = sinceMonth
+            else:
+                # if the since argument is beyond 1 day into the past
+                if difference > 86400000:
+                    method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay'
+                    request['year'] = sinceYear
+                    request['month'] = sinceMonth
+                    request['day'] = sinceDay
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         {"startsAt":"2020-06-12T02:35:00Z","open":"0.02493753","high":"0.02493753","low":"0.02493753","close":"0.02493753","volume":"0.09590123","quoteVolume":"0.00239153"},
+        #         {"startsAt":"2020-06-12T02:40:00Z","open":"0.02491874","high":"0.02491874","low":"0.02490970","close":"0.02490970","volume":"0.04515695","quoteVolume":"0.00112505"},
+        #         {"startsAt":"2020-06-12T02:45:00Z","open":"0.02490753","high":"0.02493143","low":"0.02490753","close":"0.02493143","volume":"0.17769640","quoteVolume":"0.00442663"}
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -786,8 +852,9 @@ class bittrex(Exchange):
         #
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
-        # return self.parse_transactions(response['result'], currency, since, limit)
-        return self.parse_transactions(response['result'], currency, None, limit)
+        result = self.safe_value(response, 'result', [])
+        # return self.parse_transactions(result, currency, since, limit)
+        return self.parse_transactions(result, currency, None, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -902,7 +969,7 @@ class bittrex(Exchange):
         if feeCost is None:
             if type == 'deposit':
                 # according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0  # FIXME: remove hardcoded value that may change any time
+                feeCost = 0
         return {
             'info': transaction,
             'id': id,
@@ -1049,8 +1116,11 @@ class bittrex(Exchange):
         #     }
         #
         side = self.safe_string_2(order, 'OrderType', 'Type')
-        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
-        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY') or (side == 'MARKET_BUY')
+        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL') or (side == 'MARKET_SELL')
+        type = 'limit'
+        if (side == 'MARKET_BUY') or (side == 'MARKET_SELL'):
+            type = 'market'
         if isBuyOrder:
             side = 'buy'
         if isSellOrder:
@@ -1131,7 +1201,7 @@ class bittrex(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,
@@ -1188,9 +1258,51 @@ class bittrex(Exchange):
             result.append(self.order_to_trade(orders[i]))
         return result
 
+    async def fetch_my_trades_v2(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = await self.accountGetOrderhistory(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        orders = self.parse_orders(result, market)
+        trades = self.orders_to_trades(orders)
+        if symbol is not None:
+            return self.filter_by_since_limit(trades, since, limit)
+        else:
+            return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
+    async def fetch_my_trades_v3(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startDate'] = self.ymdhms(since, 'T') + 'Z'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            # because of self line we will have to rethink the entire v3
+            # in other words, markets define all the rest of the API
+            # and v3 market ids are reversed in comparison to v1
+            # v3 has to be a completely separate implementation
+            # otherwise we will have to shuffle symbols and currencies everywhere
+            # which is prone to errors, as was shown here
+            # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote']
+        response = await self.v3GetOrdersClosed(self.extend(request, params))
+        orders = self.parse_orders(response, market)
+        trades = self.orders_to_trades(orders)
+        if symbol is not None:
+            return self.filter_by_since_limit(trades, since, limit)
+        else:
+            return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_closed_orders(symbol, since, limit, params)
-        return self.orders_to_trades(orders)
+        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'fetch_my_trades_v3')
+        return await getattr(self, method)(symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         method = self.safe_string(self.options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3')
@@ -1222,7 +1334,7 @@ class bittrex(Exchange):
             market = self.market(symbol)
             # because of self line we will have to rethink the entire v3
             # in other words, markets define all the rest of the API
-            # and v3 market ids are reversed in comparison to v2
+            # and v3 market ids are reversed in comparison to v1
             # v3 has to be a completely separate implementation
             # otherwise we will have to shuffle symbols and currencies everywhere
             # which is prone to errors, as was shown here
@@ -1288,18 +1400,16 @@ class bittrex(Exchange):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         }) + '/'
-        if api != 'v2' and api != 'v3' and api != 'v3public':
+        if api != 'v3' and api != 'v3public':
             url += self.version + '/'
         if api == 'public':
-            url += api + '/' + method.lower() + path
+            url += api + '/' + method.lower() + self.implode_params(path, params)
+            params = self.omit(params, self.extract_params(path))
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v3public':
-            url += path
-            if params:
-                url += '?' + self.urlencode(params)
-        elif api == 'v2':
-            url += path
+            url += self.implode_params(path, params)
+            params = self.omit(params, self.extract_params(path))
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v3':

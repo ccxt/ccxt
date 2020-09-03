@@ -34,17 +34,24 @@ class tidex(Exchange):
             'version': '3',
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
-                'fetchOrderBooks': True,
-                'fetchOrder': True,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
-                'fetchTickers': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
                 'fetchCurrencies': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': 'emulated',
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
@@ -137,6 +144,7 @@ class tidex(Exchange):
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_currencies(self, params={}):
@@ -386,7 +394,7 @@ class tidex(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         tickers = await self.fetch_tickers([symbol], params)
@@ -562,6 +570,7 @@ class tidex(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -575,7 +584,6 @@ class tidex(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
-            'clientOrderId': None,
             'average': None,
             'trades': None,
         }

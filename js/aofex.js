@@ -227,7 +227,7 @@ module.exports = class aofex extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         id:  1584950100,
@@ -297,7 +297,7 @@ module.exports = class aofex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOHLCVs (data, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -422,13 +422,9 @@ module.exports = class aofex extends Exchange {
         const percentage = change / open * 100;
         const baseVolume = this.safeFloat (ticker, 'amount');
         const quoteVolume = this.safeFloat (ticker, 'vol');
-        let vwap = undefined;
-        if (quoteVolume !== undefined) {
-            if (baseVolume !== undefined) {
-                if (baseVolume > 0) {
-                    vwap = parseFloat (this.priceToPrecision (symbol, quoteVolume / baseVolume));
-                }
-            }
+        let vwap = this.vwap (baseVolume, quoteVolume);
+        if (vwap !== undefined) {
+            vwap = parseFloat (this.priceToPrecision (symbol, vwap));
         }
         return {
             'symbol': symbol,

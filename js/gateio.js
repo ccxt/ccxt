@@ -17,22 +17,30 @@ module.exports = class gateio extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': true,
                 'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
-                'fetchMyTrades': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -67,6 +75,7 @@ module.exports = class gateio extends Exchange {
                     'get': [
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -162,6 +171,86 @@ module.exports = class gateio extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCoininfo (params);
+        //
+        //     {
+        //         "result":"true",
+        //         "coins":[
+        //             {
+        //                 "CNYX":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":0
+        //                 }
+        //             },
+        //             {
+        //                 "USDT_ETH":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":1
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const coins = this.safeValue (response, 'coins');
+        if (!coins) {
+            throw new ExchangeError (this.id + ' fetchCurrencies got an unrecognized response');
+        }
+        const result = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const ids = Object.keys (coin);
+            for (let j = 0; j < ids.length; j++) {
+                const id = ids[j];
+                const currency = coin[id];
+                const code = this.safeCurrencyCode (id);
+                const delisted = this.safeValue (currency, 'delisted', 0);
+                const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', 0);
+                const depositDisabled = this.safeValue (currency, 'deposit_disabled', 0);
+                const tradeDisabled = this.safeValue (currency, 'trade_disabled', 0);
+                const listed = (delisted === 0);
+                const withdrawEnabled = (withdrawDisabled === 0);
+                const depositEnabled = (depositDisabled === 0);
+                const tradeEnabled = (tradeDisabled === 0);
+                const active = listed && withdrawEnabled && depositEnabled && tradeEnabled;
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'active': active,
+                    'info': currency,
+                    'name': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarketinfo (params);
         //
@@ -209,7 +298,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': 8,
+                'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': this.safeInteger (details, 'decimal_places'),
             };
             const amountLimits = {
@@ -284,15 +373,15 @@ module.exports = class gateio extends Exchange {
         return this.parseOrderBook (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
-            parseInt (ohlcv[0]),   // t
-            parseFloat (ohlcv[5]), // o
-            parseFloat (ohlcv[3]), // h
-            parseFloat (ohlcv[4]), // l
-            parseFloat (ohlcv[2]), // c
-            parseFloat (ohlcv[1]), // v
+            this.safeInteger (ohlcv, 0), // t
+            this.safeFloat (ohlcv, 5), // o
+            this.safeFloat (ohlcv, 3), // h
+            this.safeFloat (ohlcv, 4), // l
+            this.safeFloat (ohlcv, 2), // c
+            this.safeFloat (ohlcv, 1), // v
         ];
     }
 
@@ -391,7 +480,7 @@ module.exports = class gateio extends Exchange {
             }
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

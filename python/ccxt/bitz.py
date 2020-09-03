@@ -29,16 +29,25 @@ class bitz(Exchange):
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'cancelOrders': True,
+                'createOrder': True,
+                'createMarketOrder': False,
+                'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'createMarketOrder': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -54,7 +63,7 @@ class bitz(Exchange):
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -74,6 +83,7 @@ class bitz(Exchange):
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -506,7 +516,21 @@ class bitz(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 })
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        response = self.marketGetGetServerTime(params)
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":[],
+        #         "time":1555490875,
+        #         "microtime":"0.35994200 1555490875",
+        #         "source":"api"
+        #     }
+        #
+        return self.safe_timestamp(response, 'time')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -604,15 +628,17 @@ class bitz(Exchange):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
-        #      {    time: "1535973420000",
-        #            open: "0.03975084",
-        #            high: "0.03975084",
-        #             low: "0.03967700",
-        #           close: "0.03967700",
-        #          volume: "12.4733",
-        #        datetime: "2018-09-03 19:17:00"}
+        #     {
+        #         time: "1535973420000",
+        #         open: "0.03975084",
+        #         high: "0.03975084",
+        #         low: "0.03967700",
+        #         close: "0.03967700",
+        #         volume: "12.4733",
+        #         datetime: "2018-09-03 19:17:00"
+        #     }
         #
         return [
             self.safe_integer(ohlcv, 'time'),
@@ -640,34 +666,27 @@ class bitz(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = self.marketGetKline(self.extend(request, params))
         #
-        #     {   status:    200,
-        #             msg:   "",
-        #            data: {      bars: [{    time: "1535973420000",
-        #                                        open: "0.03975084",
-        #                                        high: "0.03975084",
-        #                                         low: "0.03967700",
-        #                                       close: "0.03967700",
-        #                                      volume: "12.4733",
-        #                                    datetime: "2018-09-03 19:17:00"},
-        #                                  {    time: "1535955480000",
-        #                                        open: "0.04009900",
-        #                                        high: "0.04016745",
-        #                                         low: "0.04009900",
-        #                                       close: "0.04012074",
-        #                                      volume: "74.4803",
-        #                                    datetime: "2018-09-03 14:18:00"}  ],
-        #                    resolution:   "1min",
-        #                        symbol:   "eth_btc",
-        #                          from:   "1535973420000",
-        #                            to:   "1535955480000",
-        #                          size:    300                                    },
-        #            time:    1535973435,
-        #       microtime:   "0.56462100 1535973435",
-        #          source:   "api"                                                    }
+        #     {
+        #         status: 200,
+        #         msg: "",
+        #         data: {
+        #             bars: [
+        #                 {time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00"},
+        #                 {time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00"},
+        #             ],
+        #             resolution: "1min",
+        #             symbol: "eth_btc",
+        #             from: "1535973420000",
+        #             to: "1535955480000",
+        #             size: 300
+        #         },
+        #         time: 1535973435,
+        #         microtime: "0.56462100 1535973435",
+        #         source: "api"
+        #     }
         #
-        bars = self.safe_value(response['data'], 'bars', None)
-        if bars is None:
-            return []
+        data = self.safe_value(response, 'data', {})
+        bars = self.safe_value(data, 'bars', [])
         return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
     def parse_order_status(self, status):

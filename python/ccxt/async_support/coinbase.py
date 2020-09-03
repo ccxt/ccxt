@@ -454,8 +454,8 @@ class coinbase(Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
         if market is None:
-            baseId = self.safe_string(totalObject, 'currency')
-            quoteId = self.safe_string(amountObject, 'currency')
+            baseId = self.safe_string(amountObject, 'currency')
+            quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -467,7 +467,7 @@ class coinbase(Exchange):
         amount = self.safe_float(amountObject, 'amount')
         price = None
         if cost is not None:
-            if amount is not None:
+            if (amount is not None) and (amount > 0):
                 price = cost / amount
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -699,13 +699,16 @@ class coinbase(Exchange):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         request = await self.prepare_account_request_with_currency_code(code, limit, params)
         query = self.omit(params, ['account_id', 'accountId'])
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
         response = await self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(response['data'], None, since, limit)
+        return self.parse_ledger(response['data'], currency, since, limit)
 
     def parse_ledger_entry_status(self, status):
         types = {

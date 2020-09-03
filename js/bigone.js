@@ -17,16 +17,23 @@ module.exports = class bigone extends Exchange {
             'rateLimit': 1200, // 500 request per 10 minutes
             'has': {
                 'cancelAllOrders': true,
-                'createMarketOrder': false,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -363,7 +370,21 @@ module.exports = class bigone extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "data": {
+        //             "timestamp": 1527665262168391000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return parseInt (timestamp / 1000000);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -584,7 +605,7 @@ module.exports = class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         close: '0.021562',
@@ -645,8 +666,8 @@ module.exports = class bigone extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -758,12 +779,34 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         side = (side === 'buy') ? 'BID' : 'ASK';
+        const uppercaseType = type.toUpperCase ();
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': side, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            'price': this.priceToPrecision (symbol, price), // order price, string, required
+            // 'price': this.priceToPrecision (symbol, price), // order price, string, required
+            'type': uppercaseType,
+            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
+            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
         };
+        if (uppercaseType === 'LIMIT') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const isStopLimit = (uppercaseType === 'STOP_LIMIT');
+            const isStopMarket = (uppercaseType === 'STOP_MARKET');
+            if (isStopLimit || isStopMarket) {
+                const stopPrice = this.safeFloat (params, 'stop_price');
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                }
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                params = this.omit (params, 'stop_price');
+            }
+            if (isStopLimit) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1071,6 +1114,24 @@ module.exports = class bigone extends Exchange {
         //         "txid": "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":1077391,
+        //         "customer_id":1082679,
+        //         "amount":"21.9000000000000000",
+        //         "txid":"",
+        //         "is_internal":false,
+        //         "kind":"on_chain",
+        //         "state":"PENDING",
+        //         "inserted_at":"2020-06-03T00:50:57+00:00",
+        //         "updated_at":"2020-06-03T00:50:57+00:00",
+        //         "memo":"",
+        //         "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //         "fee":"0.1000000000000000",
+        //         "asset_symbol":"XRP"
+        //     }
+        //
         const currencyId = this.safeString (transaction, 'asset_symbol');
         const code = this.safeCurrencyCode (currencyId);
         const id = this.safeInteger (transaction, 'id');
@@ -1204,35 +1265,25 @@ module.exports = class bigone extends Exchange {
         //     {
         //         "code":0,
         //         "message":"",
-        //         "data":[
-        //             {
-        //                 "id":1,
-        //                 "customer_id":7,
-        //                 "asset_uuid":"50293b12-5be8-4f5b-b31d-d43cdd5ccc29",
-        //                 "amount":"100",
-        //                 "recipient":null,
-        //                 "state":"PENDING",
-        //                 "is_internal":true,
-        //                 "note":"asdsadsad",
-        //                 "kind":"on_chain",
-        //                 "txid":"asdasdasdsadsadsad",
-        //                 "confirms":5,
-        //                 "inserted_at":null,
-        //                 "updated_at":null,
-        //                 "completed_at":null,
-        //                 "commision":null,
-        //                 "explain":""
-        //             }
-        //         ]
+        //         "data":{
+        //             "id":1077391,
+        //             "customer_id":1082679,
+        //             "amount":"21.9000000000000000",
+        //             "txid":"",
+        //             "is_internal":false,
+        //             "kind":"on_chain",
+        //             "state":"PENDING",
+        //             "inserted_at":"2020-06-03T00:50:57+00:00",
+        //             "updated_at":"2020-06-03T00:50:57+00:00",
+        //             "memo":"",
+        //             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //             "fee":"0.1000000000000000",
+        //             "asset_symbol":"XRP"
+        //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const dataLength = data.length;
-        if (dataLength < 1) {
-            throw new ExchangeError (this.id + ' withdraw() returned an empty response');
-        }
-        const transaction = data[0];
-        return this.parseTransaction (transaction, currency);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

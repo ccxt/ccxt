@@ -136,12 +136,17 @@ class probit extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'timeInForce' => array(
                     'limit' => 'gtc',
                     'market' => 'ioc',
                 ),
+            ),
+            'commonCurrencies' => array(
+                'BTCBEAR' => 'BEAR',
+                'BTCBULL' => 'BULL',
             ),
         ));
     }
@@ -184,11 +189,12 @@ class probit extends Exchange {
             $symbol = $base . '/' . $quote;
             $closed = $this->safe_value($market, 'closed', false);
             $active = !$closed;
-            $priceIncrement = $this->safe_string($market, 'price_increment');
+            $amountPrecision = $this->safe_integer($market, 'quantity_precision');
+            $costPrecision = $this->safe_integer($market, 'cost_precision');
             $precision = array(
-                'amount' => $this->safe_integer($market, 'quantity_precision'),
-                'price' => $this->precision_from_string($priceIncrement),
-                'cost' => $this->safe_integer($market, 'cost_precision'),
+                'amount' => 1 / pow(10, $amountPrecision),
+                'price' => $this->safe_float($market, 'price_increment'),
+                'cost' => 1 / pow(10, $costPrecision),
             );
             $takerFeeRate = $this->safe_float($market, 'taker_fee_rate');
             $makerFeeRate = $this->safe_float($market, 'maker_fee_rate');
@@ -492,10 +498,7 @@ class probit extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'base_volume');
         $quoteVolume = $this->safe_float($ticker, 'quote_volume');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null)) {
-            $vwap = $baseVolume / $quoteVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -719,7 +722,7 @@ class probit extends Exchange {
             }
             return $year . '-' . $month . '-01T00:00:00.000Z';
         } else if ($timeframe === '1w') {
-            $timestamp = intval ($timestamp / 1000);
+            $timestamp = intval($timestamp / 1000);
             $firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             $difference = $timestamp - $firstSunday;
             $numWeeks = $this->integer_divide($difference, $duration);
@@ -729,9 +732,8 @@ class probit extends Exchange {
             }
             return $this->iso8601($previousSunday * 1000);
         } else {
-            $timestamp = intval ($timestamp / 1000);
-            $difference = $this->integer_modulo($timestamp, $duration);
-            $timestamp -= $difference;
+            $timestamp = intval($timestamp / 1000);
+            $timestamp = $duration * intval($timestamp / $duration);
             if ($after) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
@@ -791,11 +793,24 @@ class probit extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'start_time')),
             $this->safe_float($ohlcv, 'open'),
@@ -1040,7 +1055,7 @@ class probit extends Exchange {
         // returned by the exchange on $market buys
         if (($type === 'market') && ($side === 'buy')) {
             $order['amount'] = null;
-            $order['cost'] = floatval ($costToPrecision);
+            $order['cost'] = floatval($costToPrecision);
             $order['remaining'] = null;
         }
         return $order;
@@ -1239,7 +1254,7 @@ class probit extends Exchange {
                 $this->check_required_credentials();
                 $expires = $this->safe_integer($this->options, 'expires');
                 if (($expires === null) || ($expires < $now)) {
-                    throw new AuthenticationError($this->id . ' $accessToken expired, call signIn() method');
+                    throw new AuthenticationError($this->id . ' access token expired, call signIn() method');
                 }
                 $accessToken = $this->safe_string($this->options, 'accessToken');
                 $headers = array(

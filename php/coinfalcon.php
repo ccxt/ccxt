@@ -18,9 +18,17 @@ class coinfalcon extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -120,7 +128,7 @@ class coinfalcon extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->milliseconds();
-        $last = floatval ($ticker['last_price']);
+        $last = floatval($ticker['last_price']);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -161,7 +169,7 @@ class coinfalcon extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -171,7 +179,8 @@ class coinfalcon extends Exchange {
             'level' => '3',
         );
         $response = $this->publicGetMarketsMarketOrders (array_merge($request, $params));
-        return $this->parse_order_book($response['data'], null, 'bids', 'asks', 'price', 'size');
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order_book($data, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -182,7 +191,7 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $tradeId = $this->safe_string($trade, 'id');
@@ -230,7 +239,8 @@ class coinfalcon extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetUserTrades (array_merge($request, $params));
-        return $this->parse_trades($response['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -243,7 +253,8 @@ class coinfalcon extends Exchange {
             $request['since'] = $this->iso8601($since);
         }
         $response = $this->publicGetMarketsMarketTrades (array_merge($request, $params));
-        return $this->parse_trades($response['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -312,10 +323,10 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+                $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
             }
             if ($price !== null) {
-                $cost = floatval ($this->price_to_precision($symbol, $filled * $price));
+                $cost = floatval($this->price_to_precision($symbol, $filled * $price));
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -362,10 +373,8 @@ class coinfalcon extends Exchange {
         }
         $request['operation_type'] = $type . '_order';
         $response = $this->privatePostUserOrders (array_merge($request, $params));
-        $order = $this->parse_order($response['data'], $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
-        return $order;
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -375,7 +384,8 @@ class coinfalcon extends Exchange {
         );
         $response = $this->privateDeleteUserOrdersId (array_merge($request, $params));
         $market = $this->market($symbol);
-        return $this->parse_order($response['data'], $market);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -384,21 +394,25 @@ class coinfalcon extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetUserOrdersId (array_merge($request, $params));
-        return $this->parse_order($response['data']);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
+        $market = null;
         if ($symbol !== null) {
-            $request['market'] = $this->market_id($symbol);
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
         }
         if ($since !== null) {
-            $request['since_time'] = $this->iso8601($this->milliseconds());
+            $request['since_time'] = $this->iso8601($since);
         }
         // TODO => test status=all if it works for closed orders too
         $response = $this->privateGetUserOrders (array_merge($request, $params));
-        return $this->parse_orders($response['data']);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function nonce() {

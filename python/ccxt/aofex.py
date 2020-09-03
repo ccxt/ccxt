@@ -235,7 +235,7 @@ class aofex(Exchange):
             })
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         id:  1584950100,
@@ -303,7 +303,7 @@ class aofex(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        return self.parse_ohlcvs(data, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -421,11 +421,9 @@ class aofex(Exchange):
         percentage = change / open * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
-        vwap = None
-        if quoteVolume is not None:
-            if baseVolume is not None:
-                if baseVolume > 0:
-                    vwap = float(self.price_to_precision(symbol, quoteVolume / baseVolume))
+        vwap = self.vwap(baseVolume, quoteVolume)
+        if vwap is not None:
+            vwap = float(self.price_to_precision(symbol, vwap))
         return {
             'symbol': symbol,
             'timestamp': timestamp,

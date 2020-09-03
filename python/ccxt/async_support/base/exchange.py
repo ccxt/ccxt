@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.27.88'
+__version__ = '1.33.94'
 
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
+            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -263,6 +263,12 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        raise NotSupported('create_order() not supported yet')
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        raise NotSupported('cancel_order() not supported yet')
+
     async def fetch_trading_fees(self, params={}):
         raise NotSupported('fetch_trading_fees() not supported yet')
 
@@ -294,6 +300,18 @@ class Exchange(BaseExchange):
 
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_transactions() is not supported yet')
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposits() is not supported yet')
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_withdrawals() is not supported yet')
+
+    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)

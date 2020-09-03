@@ -18,21 +18,28 @@ module.exports = class crex24 extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
                 'fetchTransactions': true,
@@ -148,6 +155,7 @@ module.exports = class crex24 extends Exchange {
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'Mandatory parameter': BadRequest, // {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
         });
@@ -576,17 +584,19 @@ module.exports = class crex24 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // { timestamp: '2019-09-21T10:36:00Z',
-        //     open: 0.02152,
-        //     high: 0.02156,
-        //     low: 0.02152,
-        //     close: 0.02156,
-        //     volume: 0.01741259 }
-        const date = this.safeString (ohlcv, 'timestamp');
-        const timestamp = this.parse8601 (date);
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         timestamp: '2019-09-21T10:36:00Z',
+        //         open: 0.02152,
+        //         high: 0.02156,
+        //         low: 0.02152,
+        //         close: 0.02156,
+        //         volume: 0.01741259
+        //     }
+        //
         return [
-            timestamp,
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -606,6 +616,18 @@ module.exports = class crex24 extends Exchange {
             request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
         const response = await this.publicGetOhlcv (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp": "2020-06-06T17:36:00Z",
+        //             "open": 0.025,
+        //             "high": 0.025,
+        //             "low": 0.02499,
+        //             "close": 0.02499,
+        //             "volume": 0.00643127
+        //         }
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -1233,6 +1255,7 @@ module.exports = class crex24 extends Exchange {
             // true - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address
             // false - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee]
             // 'includeFee': false, // the default value is false
+            'feeCurrency': currency['id'], // https://github.com/ccxt/ccxt/issues/7544
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;

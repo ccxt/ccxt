@@ -24,8 +24,15 @@ class coingi(Exchange):
             'rateLimit': 1000,
             'countries': ['PA', 'BG', 'CN', 'US'],  # Panama, Bulgaria, China, US
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'referral': 'https://www.coingi.com/?r=XTPPMC',
@@ -224,7 +231,7 @@ class coingi(Exchange):
             if symbol in self.markets:
                 market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

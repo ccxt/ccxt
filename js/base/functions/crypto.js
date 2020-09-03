@@ -6,8 +6,10 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
-const { numberToLE } = require ('./encode')
-const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
+const { binaryToBase58, byteArrayToWordArray } = require ('./encode')
+const elliptic = require ('./../../static_dependencies/elliptic/lib/elliptic')
+const EC = elliptic.ec
+const EDDSA = elliptic.eddsa
 const { ArgumentsRequired } = require ('./../errors')
 const BN = require ('../../static_dependencies/BN/bn.js')
 
@@ -96,6 +98,14 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, f
     }
 }
 
+
+function eddsa (request, secret, algorithm = 'ed25519') {
+    // used for waves.exchange (that's why the output is base58)
+    const curve = new EDDSA (algorithm)
+    const signature = curve.signModified (request, secret)
+    return binaryToBase58 (byteArrayToWordArray (signature.toBytes ()))
+}
+
 /*  ------------------------------------------------------------------------ */
 
 const totp = (secret) => {
@@ -142,6 +152,7 @@ module.exports = {
     totp,
     rsa,
     ecdsa,
+    eddsa,
 }
 
 /*  ------------------------------------------------------------------------ */

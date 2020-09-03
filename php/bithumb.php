@@ -19,13 +19,18 @@ class bithumb extends Exchange {
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array(
-                'CORS' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'CORS' => true,
                 'createMarketOrder' => true,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -74,6 +79,7 @@ class bithumb extends Exchange {
                     'taker' => 0.25 / 100,
                 ),
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'exceptions' => array(
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
@@ -92,19 +98,23 @@ class bithumb extends Exchange {
         ));
     }
 
+    public function amount_to_precision($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetTickerAll ($params);
         $data = $this->safe_value($response, 'data');
         $currencyIds = is_array($data) ? array_keys($data) : array();
         $result = array();
+        $quote = $this->safe_currency_code('KRW');
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             if ($currencyId === 'date') {
                 continue;
             }
             $market = $data[$currencyId];
-            $base = $currencyId;
-            $quote = 'KRW';
+            $base = $this->safe_currency_code($currencyId);
             $symbol = $currencyId . '/' . $quote;
             $active = true;
             if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
@@ -121,8 +131,8 @@ class bithumb extends Exchange {
                 'info' => $market,
                 'active' => $active,
                 'precision' => array(
-                    'amount' => null,
-                    'price' => null,
+                    'amount' => 4,
+                    'price' => 4,
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -134,8 +144,8 @@ class bithumb extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => 500,
+                        'max' => 5000000000,
                     ),
                 ),
                 'baseId' => null,
@@ -240,10 +250,7 @@ class bithumb extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
         $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
-        $vwap = null;
-        if ($quoteVolume !== null && $baseVolume !== null) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -312,7 +319,7 @@ class bithumb extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -386,7 +393,7 @@ class bithumb extends Exchange {
             }
         }
         if ($timestamp !== null) {
-            $timestamp -= 9 * 3600000; // they report UTC . 9 hours, server in Korean timezone
+            $timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         $type = null;
         $side = $this->safe_string($trade, 'type');
@@ -628,6 +635,7 @@ class bithumb extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

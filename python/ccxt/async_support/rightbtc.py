@@ -22,14 +22,21 @@ class rightbtc(Exchange):
             'name': 'RightBTC',
             'countries': ['AE'],
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
                 'privateAPI': False,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
-                'fetchOrder': 'emulated',
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -41,7 +48,7 @@ class rightbtc(Exchange):
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
@@ -249,7 +256,7 @@ class rightbtc(Exchange):
             market = self.marketsById[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -337,9 +344,9 @@ class rightbtc(Exchange):
         response = await self.publicGetTradesTradingPair(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
-            int(ohlcv[0]),
+            self.safe_integer(ohlcv, 0),
             float(ohlcv[2]) / 1e8,
             float(ohlcv[3]) / 1e8,
             float(ohlcv[4]) / 1e8,
@@ -355,7 +362,8 @@ class rightbtc(Exchange):
             'timeSymbol': self.timeframes[timeframe],
         }
         response = await self.publicGetCandlestickTimeSymbolTradingPair(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

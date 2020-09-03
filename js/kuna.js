@@ -26,7 +26,7 @@ module.exports = class kuna extends acx {
             'timeframes': undefined,
             'urls': {
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
-                'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
@@ -60,7 +60,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' ];
+        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' ];
         const pricePrecisions = {
             'UAH': 0,
         };
@@ -146,7 +146,7 @@ module.exports = class kuna extends acx {
                 'ask': 'sell',
                 'bid': 'buy',
             };
-            side = this.safeString (sideMap, side);
+            side = this.safeString (sideMap, side, side);
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');

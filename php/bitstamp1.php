@@ -20,7 +20,15 @@ class bitstamp1 extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMyTrades' => true,
+                'fetchOrder' => false,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',

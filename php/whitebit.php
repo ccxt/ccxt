@@ -37,6 +37,7 @@ class whitebit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'privateAPI' => false,
                 'publicAPI' => true,
             ),
@@ -65,7 +66,7 @@ class whitebit extends Exchange {
                     'publicV1' => 'https://whitebit.com/api/v1/public',
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
@@ -523,7 +524,7 @@ class whitebit extends Exchange {
         if (gettype($timestamp) === 'string') {
             $timestamp = $this->parse8601($timestamp);
         } else {
-            $timestamp = intval ($timestamp * 1000);
+            $timestamp = intval($timestamp * 1000);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'amount', 'volume');
@@ -566,25 +567,47 @@ class whitebit extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default == max == 500
         }
         $response = $this->publicV1GetKline (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "$result":[
+        //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        //         ]
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000, // timestamp
-            floatval ($ohlcv[1]), // open
-            floatval ($ohlcv[3]), // high
-            floatval ($ohlcv[4]), // low
-            floatval ($ohlcv[2]), // close
-            floatval ($ohlcv[5]), // volume
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1591488000,
+        //         "0.025025",
+        //         "0.025025",
+        //         "0.025029",
+        //         "0.025023",
+        //         "6.181",
+        //         "0.154686629"
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0), // timestamp
+            $this->safe_float($ohlcv, 1), // open
+            $this->safe_float($ohlcv, 3), // high
+            $this->safe_float($ohlcv, 4), // low
+            $this->safe_float($ohlcv, 2), // close
+            $this->safe_float($ohlcv, 5), // volume
+        );
     }
 
     public function fetch_status($params = array ()) {

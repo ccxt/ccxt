@@ -20,21 +20,27 @@ class bibox extends Exchange {
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'publicAPI' => false,
+                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchWithdrawals' => true,
+                'publicAPI' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -110,6 +116,7 @@ class bibox extends Exchange {
                 '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
                 '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
+                '3016' => '\\ccxt\\BadSymbol', // Trading pair error
                 '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions
                 '3025' => '\\ccxt\\AuthenticationError', // signature failed
                 '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
@@ -222,7 +229,7 @@ class bibox extends Exchange {
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = floatval ($percentage);
+            $percentage = floatval($percentage);
         }
         return array(
             'symbol' => $symbol,
@@ -276,7 +283,8 @@ class bibox extends Exchange {
         );
         $response = $this->publicGetMdata (array_merge($request, $params));
         $tickers = $this->parse_tickers($response['result'], $symbols);
-        return $this->index_by($tickers, 'symbol');
+        $result = $this->index_by($tickers, 'symbol');
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -319,7 +327,7 @@ class bibox extends Exchange {
         }
         if ($feeCost !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
@@ -370,15 +378,25 @@ class bibox extends Exchange {
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['time'],
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "time":1591448220000,
+        //         "open":"0.02507029",
+        //         "high":"0.02507029",
+        //         "low":"0.02506349",
+        //         "close":"0.02506349",
+        //         "vol":"5.92000000"
+        //     }
+        //
+        return array(
+            $this->safe_integer($ohlcv, 'time'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
             $this->safe_float($ohlcv, 'vol'),
-        ];
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
@@ -391,7 +409,19 @@ class bibox extends Exchange {
             'size' => $limit,
         );
         $response = $this->publicGetMdata (array_merge($request, $params));
-        return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "$result":array(
+        //             array("time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"),
+        //             array("time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"),
+        //             array("time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"),
+        //         ),
+        //         "cmd":"kline",
+        //         "ver":"1.1"
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -403,6 +433,52 @@ class bibox extends Exchange {
             'body' => array(),
         );
         $response = $this->privatePostTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "$result":[
+        //             {
+        //                 "$result":[
+        //                     array(
+        //                         "totalBalance":"14.57582269",
+        //                         "balance":"14.57582269",
+        //                         "freeze":"0.00000000",
+        //                         "$id":60,
+        //                         "symbol":"USDT",
+        //                         "icon_url":"/appimg/USDT_icon.png",
+        //                         "describe_url":"[array(\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"),array(\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\")]",
+        //                         "$name":"USDT",
+        //                         "enable_withdraw":1,
+        //                         "enable_deposit":1,
+        //                         "enable_transfer":1,
+        //                         "confirm_count":2,
+        //                         "is_erc20":1,
+        //                         "forbid_info":null,
+        //                         "describe_summary":"[array(\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"),array(\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\")]",
+        //                         "total_amount":4776930644,
+        //                         "supply_amount":4642367414,
+        //                         "price":"--",
+        //                         "contract_father":"OMNI",
+        //                         "supply_time":"--",
+        //                         "comment":null,
+        //                         "contract":"31",
+        //                         "original_decimals":8,
+        //                         "deposit_type":0,
+        //                         "hasCobo":0,
+        //                         "BTCValue":"0.00126358",
+        //                         "CNYValue":"100.93381445",
+        //                         "USDValue":"14.57524654",
+        //                         "children":array(
+        //                             array("type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2),
+        //                             array("type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20),
+        //                             array("type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25)
+        //                         )
+        //                     ),
+        //                 ],
+        //                 "cmd":"transfer/coinList"
+        //             }
+        //         ]
+        //     }
+        //
         $currencies = $this->safe_value($response, 'result');
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -477,7 +553,7 @@ class bibox extends Exchange {
             $account = $this->account();
             $balance = $indexed[$id];
             if (gettype($balance) === 'string') {
-                $balance = floatval ($balance);
+                $balance = floatval($balance);
                 $account['free'] = $balance;
                 $account['used'] = 0.0;
                 $account['total'] = $balance;
@@ -714,7 +790,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : (floatval ($price) * $filled);
+        $cost = $cost ? $cost : (floatval($price) * $filled);
         return array(
             'info' => $order,
             'id' => $id,

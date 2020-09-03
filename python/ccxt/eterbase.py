@@ -9,8 +9,10 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class eterbase(Exchange):
@@ -19,7 +21,7 @@ class eterbase(Exchange):
         return self.deep_extend(super(eterbase, self).describe(), {
             'id': 'eterbase',
             'name': 'Eterbase',
-            'countries': ['SK'],
+            'countries': ['SK'],  # Slovakia
             'rateLimit': 500,
             'version': 'v1',
             'certified': True,
@@ -46,7 +48,7 @@ class eterbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -59,11 +61,11 @@ class eterbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/82067900-faeb0f80-96d9-11ea-9f22-0071cfcb9871.jpg',
-                'base': 'https://api.eterbase.exchange',
                 'api': 'https://api.eterbase.exchange',
                 'www': 'https://www.eterbase.com',
                 'doc': 'https://developers.eterbase.exchange',
                 'fees': 'https://www.eterbase.com/exchange/fees',
+                'referral': 'https://eterbase.exchange/invite/1wjjh4Pe',
             },
             'api': {
                 'markets': {
@@ -109,8 +111,8 @@ class eterbase(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.09,
-                    'maker': 0.09,
+                    'taker': 0.35 / 100,
+                    'maker': 0.35 / 100,
                 },
             },
             'requiredCredentials': {
@@ -118,6 +120,7 @@ class eterbase(Exchange):
                 'secret': True,
                 'uid': True,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
@@ -125,6 +128,7 @@ class eterbase(Exchange):
                 'exact': {
                     'Invalid cost': InvalidOrder,  # {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
                     'Invalid order ID': InvalidOrder,  # {"message":"Invalid order ID","_links":{"self":{"href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false}}}
+                    'Invalid market !': BadSymbol,  # {"message":"Invalid market !","_links":{"self":{"href":"/markets/300/order-book","templated":false}}}
                 },
                 'broad': {
                     'Failed to convert argument': BadRequest,
@@ -170,11 +174,6 @@ class eterbase(Exchange):
             market = self.parse_market(response[i])
             result.append(market)
         return result
-
-    def find_market(self, id):
-        # need to pass identifier as string
-        idString = str(id)
-        return super(eterbase, self).findMarket(idString)
 
     def parse_market(self, market):
         #
@@ -348,7 +347,7 @@ class eterbase(Exchange):
         #         "high":0.0,
         #     }
         #
-        marketId = self.safe_integer(ticker, 'marketId')
+        marketId = self.safe_string(ticker, 'marketId')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         symbol = None
@@ -358,9 +357,7 @@ class eterbase(Exchange):
         last = self.safe_float(ticker, 'price')
         baseVolume = self.safe_float(ticker, 'volumeBase')
         quoteVolume = self.safe_float(ticker, 'volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         percentage = self.safe_float(ticker, 'change')
         result = {
             'symbol': symbol,
@@ -562,7 +559,7 @@ class eterbase(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "time":1588807500000,
@@ -780,7 +777,6 @@ class eterbase(Exchange):
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
         cost = self.safe_float(order, 'cost')
-        # int(round(price * filled, market.precision.cost))
         if type == 'market':
             if price == 0.0:
                 if (cost is not None) and (filled is not None):
@@ -789,10 +785,11 @@ class eterbase(Exchange):
         average = None
         if cost is not None:
             if filled:
-                average = int(round(cost / filled, market.precision.qty))
+                average = cost / filled
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1052,25 +1049,23 @@ class eterbase(Exchange):
             hasBody = (method == 'POST') or (method == 'PUT') or (method == 'PATCH')
             # date = 'Mon, 30 Sep 2019 13:57:23 GMT'
             date = self.rfc2616(self.milliseconds())
-            urlBaselength = len(self.urls['base']) - 0
-            urlPath = url[urlBaselength:]
             headersCSV = 'date' + ' ' + 'request-line'
-            message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + urlPath + ' HTTP/1.1'  # eslint-disable-line quotes
+            message = 'date' + ':' + ' ' + date + "\n" + method + ' ' + request + ' HTTP/1.1'  # eslint-disable-line quotes
             digest = ''
             if hasBody:
                 digest = 'SHA-256=' + self.hash(payload, 'sha256', 'base64')
-                message = message + "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
-                headersCSV = headersCSV + ' ' + 'digest'
+                message += "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
+                headersCSV += ' ' + 'digest'
             signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             signature = self.decode(signature64)
-            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",signature="' + signature + '"'
+            authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"'
             httpHeaders = {
                 'Date': date,
                 'Authorization': authorizationHeader,
                 'Content-Type': 'application/json',
             }
             if hasBody:
-                httpHeaders = self.extend(httpHeaders, {'Digest': digest})
+                httpHeaders['Digest'] = digest
         return {'url': url, 'method': method, 'body': body, 'headers': httpHeaders}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

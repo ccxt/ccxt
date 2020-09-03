@@ -20,16 +20,23 @@ class bigone extends Exchange {
             'rateLimit' => 1200, // 500 request per 10 minutes
             'has' => array(
                 'cancelAllOrders' => true,
-                'createMarketOrder' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -366,7 +373,21 @@ class bigone extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "$data" => {
+        //             "$timestamp" => 1527665262168391000
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        return intval($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -504,7 +525,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -587,7 +608,7 @@ class bigone extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         close => '0.021562',
@@ -620,7 +641,7 @@ class bigone extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval ($since / 1000);
+            // $start = intval($since / 1000);
             $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
             $request['time'] = $this->iso8601($end);
         }
@@ -628,7 +649,7 @@ class bigone extends Exchange {
         //
         //     {
         //         code => 0,
-        //         data => array(
+        //         $data => array(
         //             array(
         //                 close => '0.021656',
         //                 high => '0.021658',
@@ -648,8 +669,8 @@ class bigone extends Exchange {
         //         )
         //     }
         //
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -761,12 +782,34 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $uppercaseType = strtoupper($type);
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $side, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-            'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            'type' => $uppercaseType,
+            // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
+            // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
+        if ($uppercaseType === 'LIMIT') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
+            if ($isStopLimit || $isStopMarket) {
+                $stopPrice = $this->safe_float($params, 'stop_price');
+                if ($stopPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price parameter');
+                }
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                $params = $this->omit($params, 'stop_price');
+            }
+            if ($isStopLimit) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {
@@ -1074,6 +1117,24 @@ class bigone extends Exchange {
         //         "$txid" => "0x4643bb6b393ac20a6175c713175734a72517c63d6f73a3ca90a15356f2e967da0",
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "$id":1077391,
+        //         "customer_id":1082679,
+        //         "$amount":"21.9000000000000000",
+        //         "$txid":"",
+        //         "is_internal":false,
+        //         "kind":"on_chain",
+        //         "state":"PENDING",
+        //         "inserted_at":"2020-06-03T00:50:57+00:00",
+        //         "updated_at":"2020-06-03T00:50:57+00:00",
+        //         "memo":"",
+        //         "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //         "fee":"0.1000000000000000",
+        //         "asset_symbol":"XRP"
+        //     }
+        //
         $currencyId = $this->safe_string($transaction, 'asset_symbol');
         $code = $this->safe_currency_code($currencyId);
         $id = $this->safe_integer($transaction, 'id');
@@ -1207,35 +1268,25 @@ class bigone extends Exchange {
         //     {
         //         "$code":0,
         //         "message":"",
-        //         "$data":array(
-        //             {
-        //                 "id":1,
-        //                 "customer_id":7,
-        //                 "asset_uuid":"50293b12-5be8-4f5b-b31d-d43cdd5ccc29",
-        //                 "$amount":"100",
-        //                 "recipient":null,
-        //                 "state":"PENDING",
-        //                 "is_internal":true,
-        //                 "note":"asdsadsad",
-        //                 "kind":"on_chain",
-        //                 "txid":"asdasdasdsadsadsad",
-        //                 "confirms":5,
-        //                 "inserted_at":null,
-        //                 "updated_at":null,
-        //                 "completed_at":null,
-        //                 "commision":null,
-        //                 "explain":""
-        //             }
-        //         )
+        //         "$data":{
+        //             "id":1077391,
+        //             "customer_id":1082679,
+        //             "$amount":"21.9000000000000000",
+        //             "txid":"",
+        //             "is_internal":false,
+        //             "kind":"on_chain",
+        //             "state":"PENDING",
+        //             "inserted_at":"2020-06-03T00:50:57+00:00",
+        //             "updated_at":"2020-06-03T00:50:57+00:00",
+        //             "memo":"",
+        //             "target_address":"rDYtYT3dBeuw376rvHqoZBKW3UmvguoBAf",
+        //             "fee":"0.1000000000000000",
+        //             "asset_symbol":"XRP"
+        //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = is_array($data) ? count($data) : 0;
-        if ($dataLength < 1) {
-            throw new ExchangeError($this->id . ' withdraw() returned an empty response');
-        }
-        $transaction = $data[0];
-        return $this->parse_transaction($transaction, $currency);
+        return $this->parse_transaction($data, $currency);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

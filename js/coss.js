@@ -17,7 +17,7 @@ module.exports = class coss extends Exchange {
             'version': 'v1',
             'certified': false,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -331,14 +331,24 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1545138960000,
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.00000000"
+        //     ]
+        //
         return [
-            parseInt (ohlcv[0]),   // timestamp
-            parseFloat (ohlcv[1]), // Open
-            parseFloat (ohlcv[2]), // High
-            parseFloat (ohlcv[3]), // Low
-            parseFloat (ohlcv[4]), // Close
-            parseFloat (ohlcv[5]), // base Volume
+            this.safeInteger (ohlcv, 0),   // timestamp
+            this.safeFloat (ohlcv, 1), // Open
+            this.safeFloat (ohlcv, 2), // High
+            this.safeFloat (ohlcv, 3), // Low
+            this.safeFloat (ohlcv, 4), // Close
+            this.safeFloat (ohlcv, 5), // base Volume
         ];
     }
 
@@ -351,25 +361,25 @@ module.exports = class coss extends Exchange {
         };
         const response = await this.engineGetCs (this.extend (request, params));
         //
-        //     {       tt:   "1m",
-        //         symbol:   "ETH_BTC",
-        //       nextTime:    1545138960000,
-        //         series: [ [  1545138960000,
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.00000000"    ],
-        //                   ...
-        //                   [  1545168900000,
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.00000000"    ]  ],
-        //          limit:    500                    }
+        //     {
+        //         tt: "1m",
+        //         symbol: "ETH_BTC",
+        //         nextTime: 1545138960000,
+        //         series: [
+        //             [
+        //                 1545138960000,
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.00000000"
+        //             ],
+        //         ],
+        //         limit: 500
+        //     }
         //
-        return this.parseOHLCVs (response['series'], market, timeframe, since, limit);
+        const series = this.safeValue (response, 'series', []);
+        return this.parseOHLCVs (series, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -511,7 +521,7 @@ module.exports = class coss extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

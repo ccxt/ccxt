@@ -18,18 +18,22 @@ class coinmate extends Exchange {
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
             'rateLimit' => 1000,
             'has' => array(
-                'CORS' => true,
-                'fetchBalance' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => true,
-                'fetchMyTrades' => true,
-                'fetchTransactions' => true,
-                'fetchOpenOrders' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'CORS' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'fees' => 'https://coinmate.io/fees',
@@ -625,8 +629,11 @@ class coinmate extends Exchange {
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_lower($order, 'type');
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float_2($order, 'originalAmount', 'amount');
-        $remaining = $this->safe_float($order, 'remainingAmount', $amount);
+        $amount = $this->safe_float($order, 'originalAmount');
+        $remaining = $this->safe_float($order, 'remainingAmount');
+        if ($remaining === null) {
+            $remaining = $this->safe_float($order, 'amount');
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
         $filled = null;

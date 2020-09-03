@@ -19,19 +19,27 @@ class bitflyer extends Exchange {
             'countries' => array( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
+            'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'withdraw' => true,
-                'fetchMyTrades' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => 'emulated',
-                'fetchOpenOrders' => 'emulated',
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => 'emulated',
+                'fetchOrder' => 'emulated',
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api' => 'https://api.bitflyer.jp',
-                'www' => 'https://bitflyer.jp',
+                'api' => 'https://api.{hostname}',
+                'www' => 'https://bitflyer.com',
                 'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
             'api' => array(
@@ -471,7 +479,8 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $url = $this->urls['api'] . $request;
+        $baseUrl = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

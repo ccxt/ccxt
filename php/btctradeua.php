@@ -18,9 +18,15 @@ class btctradeua extends Exchange {
             'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'signIn' => true,
             ),
             'urls' => array(
@@ -231,7 +237,7 @@ class btctradeua extends Exchange {
         $timestamp = $this->parse8601($ymdhms);
         // server reports local time, adjust to UTC
         $md = implode('', array($month, $day));
-        $md = intval ($md);
+        $md = intval($md);
         // a special case for DST
         // subtract 2 hours during winter
         if ($md < 325 || $md > 1028) {

@@ -20,10 +20,17 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => false,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'referral' => 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -240,7 +247,7 @@ class xbtce extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -265,19 +272,19 @@ class xbtce extends Exchange {
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['Timestamp'],
-            $ohlcv['Open'],
-            $ohlcv['High'],
-            $ohlcv['Low'],
-            $ohlcv['Close'],
-            $ohlcv['Volume'],
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 'Timestamp'),
+            $this->safe_float($ohlcv, 'Open'),
+            $this->safe_float($ohlcv, 'High'),
+            $this->safe_float($ohlcv, 'Low'),
+            $this->safe_float($ohlcv, 'Close'),
+            $this->safe_float($ohlcv, 'Volume'),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        //     $minutes = intval ($timeframe / 60); // 1 minute by default
+        //     $minutes = intval($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
         //     $market = $this->market($symbol);

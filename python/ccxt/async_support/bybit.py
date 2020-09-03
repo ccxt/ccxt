@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -29,27 +28,29 @@ class bybit(Exchange):
             'userAgent': None,
             'rateLimit': 100,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchMarkets': True,
-                'fetchBalance': True,
-                'fetchOHLCV': True,
+                'cancelAllOrders': True,
+                'createOrder': True,
                 'editOrder': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchOrderTrades': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
                 'fetchTime': True,
-                'fetchWithdrawals': True,
-                'fetchDeposits': False,
+                'fetchTrades': True,
                 'fetchTransactions': False,
-                'fetchLedger': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -71,7 +72,7 @@ class bybit(Exchange):
                 'test': 'https://api-testnet.bybit.com',
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
                 'api': 'https://api.bybit.com',
-                'www': 'https://www.bybit.com/',
+                'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
@@ -143,11 +144,6 @@ class bybit(Exchange):
                         'stop-order/list',
                         'stop-order/search',
                         'position/list',
-                        'position/set-auto-add-margin',
-                        'position/set-leverage',
-                        'position/switch-isolated',
-                        'position/trading-stop',
-                        'position/add-margin',
                         'trade/execution/list',
                         'trade/closed-pnl/list',
                         'risk-limit',
@@ -158,9 +154,16 @@ class bybit(Exchange):
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
+                        'position/switch-isolated',
+                        'position/set-auto-add-margin',
+                        'position/set-leverage',
+                        'position/trading-stop',
+                        'position/add-margin',
                     ],
                 },
                 'position': {
@@ -307,8 +310,8 @@ class bybit(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def load_time_difference(self):
-        serverTime = await self.fetch_time()
+    async def load_time_difference(self, params={}):
+        serverTime = await self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -367,6 +370,9 @@ class bybit(Exchange):
             linear = (quote in linearQuoteCurrencies)
             inverse = not linear
             symbol = base + '/' + quote
+            baseQuote = base + quote
+            if baseQuote != id:
+                symbol = id
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -510,9 +516,7 @@ class bybit(Exchange):
             average = self.sum(open, last) / 2
         baseVolume = self.safe_float(ticker, 'turnover_24h')
         quoteVolume = self.safe_float(ticker, 'volume_24h')
-        vwap = None
-        if quoteVolume is not None and baseVolume is not None:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -634,7 +638,9 @@ class bybit(Exchange):
             tickers[symbol] = ticker
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        # inverse perpetual BTC/USD
         #
         #     {
         #         symbol: 'BTCUSD',
@@ -646,7 +652,9 @@ class bybit(Exchange):
         #         close: '7763.5',
         #         volume: '1259766',
         #         turnover: '162.32773718999994'
-        #     },
+        #     }
+        #
+        # linear perpetual BTC/USDT
         #
         #     {
         #         "id":143536,
@@ -798,11 +806,6 @@ class bybit(Exchange):
             if symbol is None:
                 symbol = market['symbol']
                 base = market['base']
-            # if private trade
-            if 'exec_fee' in trade:
-                if market['inverse']:
-                    amount = self.safe_float(trade, 'exec_value')
-                    cost = self.safe_float(trade, 'exec_qty')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -927,11 +930,11 @@ class bybit(Exchange):
             'Rejected': 'rejected',  # order is triggered but failed upon being placed
             'New': 'open',
             'PartiallyFilled': 'open',
-            'Filled': 'filled',
+            'Filled': 'closed',
             'Cancelled': 'canceled',
             'PendingCancel': 'canceling',  # the engine has received the cancellation but there is no guarantee that it will be successful
             # conditional orders
-            'Active': 'closed',  # order is triggered and placed successfully
+            'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
             'Triggered': 'closed',  # order is triggered
             # 'Cancelled': 'canceled',  # order is cancelled
@@ -996,32 +999,57 @@ class bybit(Exchange):
         #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         #     }
         #
+        # conditional order
+        #
+        #     {
+        #         "user_id":##,
+        #         "symbol":"BTCUSD",
+        #         "side":"Buy",
+        #         "order_type":"Market",
+        #         "price":0,
+        #         "qty":10,
+        #         "time_in_force":"GoodTillCancel",
+        #         "stop_order_type":"Stop",
+        #         "trigger_by":"LastPrice",
+        #         "base_price":11833,
+        #         "order_status":"Untriggered",
+        #         "ext_fields":{
+        #             "stop_order_type":"Stop",
+        #             "trigger_by":"LastPrice",
+        #             "base_price":11833,
+        #             "expected_direction":"Rising",
+        #             "trigger_price":12400,
+        #             "close_on_trigger":true,
+        #             "op_from":"api",
+        #             "remark":"145.53.159.48",
+        #             "o_req_num":0
+        #         },
+        #         "leaves_qty":10,
+        #         "leaves_value":0.00080645,
+        #         "reject_reason":null,
+        #         "cross_seq":-1,
+        #         "created_at":"2020-08-21T09:18:48.000Z",
+        #         "updated_at":"2020-08-21T09:18:48.000Z",
+        #         "stop_px":12400,
+        #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         symbol = None
         base = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        id = self.safe_string(order, 'order_id')
+        id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
-        amount = None
-        cost = None
-        filled = None
-        remaining = None
+        amount = self.safe_float(order, 'qty')
+        cost = self.safe_float(order, 'cum_exec_value')
+        filled = self.safe_float(order, 'cum_exec_qty')
+        remaining = self.safe_float(order, 'leaves_qty')
         if market is not None:
             symbol = market['symbol']
             base = market['base']
-            if market['inverse']:
-                cost = self.safe_float(order, 'cum_exec_qty')
-                filled = self.safe_float(order, 'cum_exec_value')
-                remaining = self.safe_float(order, 'leaves_value')
-                amount = self.sum(filled, remaining)
-            else:
-                amount = self.safe_float(order, 'qty')
-                cost = self.safe_float(order, 'cum_exec_value')
-                filled = self.safe_float(order, 'cum_exec_qty')
-                remaining = self.safe_float(order, 'leaves_qty')
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
@@ -1033,7 +1061,7 @@ class bybit(Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-        status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
         fee = None
@@ -1163,13 +1191,18 @@ class bybit(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        qty = self.amount_to_precision(symbol, amount)
+        if market['inverse']:
+            qty = int(qty)
+        else:
+            qty = float(qty)
         request = {
             # orders ---------------------------------------------------------
             'side': self.capitalize(side),
             'symbol': market['id'],
             'order_type': self.capitalize(type),
-            'qty': self.amount_to_precision(symbol, amount),  # order quantity in USD, integer only
-            # 'price': self.price_to_precision(symbol, price),  # required for limit orders
+            'qty': qty,  # order quantity in USD, integer only
+            # 'price': float(self.price_to_precision(symbol, price)),  # required for limit orders
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stop_loss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -1192,7 +1225,7 @@ class bybit(Exchange):
             priceIsRequired = True
         if priceIsRequired:
             if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
+                request['price'] = float(self.price_to_precision(symbol, price))
             else:
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
         stopPx = self.safe_value(params, 'stop_px')
@@ -1205,8 +1238,8 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
                 method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'openapiPostStopOrderCreate'
-                request['stop_px'] = self.price_to_precision(symbol, stopPx)
-                request['base_price'] = self.price_to_precision(symbol, basePrice)
+                request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
+                request['base_price'] = float(self.price_to_precision(symbol, basePrice))
                 params = self.omit(params, ['stop_px', 'base_price'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
@@ -1296,8 +1329,6 @@ class bybit(Exchange):
             raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
-        if marketType == 'linear':
-            raise NotSupported(self.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1310,18 +1341,18 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
+        method = 'privateLinearPostOrderReplace' if (marketType == 'linear') else 'openapiPostOrderReplace'
         stopOrderId = self.safe_string(params, 'stop_order_id')
-        method = 'openapiPostOrderReplace'
         if stopOrderId is not None:
-            method = 'openapiPostStopOrderReplace'
+            method = 'privateLinearPostStopOrderReplace' if (marketType == 'linear') else 'openapiPostStopOrderReplace'
             request['stop_order_id'] = stopOrderId
             params = self.omit(params, ['stop_order_id'])
         else:
             request['order_id'] = id
         if amount is not None:
-            request['p_r_qty'] = self.amount_to_precision(symbol, amount)
+            request['p_r_qty'] = int(self.amount_to_precision(symbol, amount))
         if price is not None:
-            request['p_r_price'] = self.price_to_precision(symbol, price)
+            request['p_r_price'] = float(self.price_to_precision(symbol, price))
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1359,7 +1390,7 @@ class bybit(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1606,6 +1637,8 @@ class bybit(Exchange):
         method = 'privateLinearGetTradeExecutionList' if (marketType == 'linear') else 'privateGetExecutionList'
         response = await getattr(self, method)(self.extend(request, params))
         #
+        # inverse
+        #
         #     {
         #         "ret_code": 0,
         #         "ret_msg": "OK",
@@ -1645,8 +1678,48 @@ class bybit(Exchange):
         #         "rate_limit": 120
         #     }
         #
+        # linear
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":{
+        #             "current_page":1,
+        #             "data":[
+        #                 {
+        #                     "order_id":"b59418ec-14d4-4ef9-b9f4-721d5d576974",
+        #                     "order_link_id":"",
+        #                     "side":"Sell",
+        #                     "symbol":"BTCUSDT",
+        #                     "exec_id":"0327284d-faec-5191-bd89-acc5b4fafda9",
+        #                     "price":0.5,
+        #                     "order_price":0.5,
+        #                     "order_qty":0.01,
+        #                     "order_type":"Market",
+        #                     "fee_rate":0.00075,
+        #                     "exec_price":9709.5,
+        #                     "exec_type":"Trade",
+        #                     "exec_qty":0.01,
+        #                     "exec_fee":0.07282125,
+        #                     "exec_value":97.095,
+        #                     "leaves_qty":0,
+        #                     "closed_size":0.01,
+        #                     "last_liquidity_ind":"RemovedLiquidity",
+        #                     "trade_time":1591648052,
+        #                     "trade_time_ms":1591648052861
+        #                 }
+        #             ]
+        #         },
+        #         "time_now":"1591736501.979264",
+        #         "rate_limit_status":119,
+        #         "rate_limit_reset_ms":1591736501974,
+        #         "rate_limit":120
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'trade_list', [])
+        trades = self.safe_value_2(result, 'trade_list', 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):

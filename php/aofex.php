@@ -231,7 +231,7 @@ class aofex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         id =>  1584950100,
@@ -301,7 +301,7 @@ class aofex extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -418,7 +418,7 @@ class aofex extends Exchange {
         $last = $this->safe_float($ticker, 'close');
         $change = null;
         if ($symbol !== null) {
-            $change = floatval ($this->price_to_precision($symbol, $last - $open));
+            $change = floatval($this->price_to_precision($symbol, $last - $open));
         } else {
             $change = $last - $open;
         }
@@ -426,13 +426,9 @@ class aofex extends Exchange {
         $percentage = $change / $open * 100;
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
-        $vwap = null;
-        if ($quoteVolume !== null) {
-            if ($baseVolume !== null) {
-                if ($baseVolume > 0) {
-                    $vwap = floatval ($this->price_to_precision($symbol, $quoteVolume / $baseVolume));
-                }
-            }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        if ($vwap !== null) {
+            $vwap = floatval($this->price_to_precision($symbol, $vwap));
         }
         return array(
             'symbol' => $symbol,

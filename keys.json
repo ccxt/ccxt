@@ -1,6 +1,7 @@
 {
     "adara":         { "skip": true },
     "allcoin":       { "skip": true },
+    "anxpro":        { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "skip": true },
     "bigone":        { "skip": true },

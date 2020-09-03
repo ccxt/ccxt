@@ -18,9 +18,15 @@ class bit2c extends Exchange {
             'countries' => array( 'IL' ), // Israel
             'rateLimit' => 3000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -86,8 +92,15 @@ class bit2c extends Exchange {
                 'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
             ),
             'exceptions' => array(
-                // array( "error" : "Please provide valid APIkey" )
-                // array( "error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" )
+                'exact' => array(
+                    'Please provide valid APIkey' => '\\ccxt\\AuthenticationError', // array( "error" : "Please provide valid APIkey" )
+                ),
+                'broad' => array(
+                    // array( "error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+                    // array( "error" => "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" )
+                    'Please provide valid nonce' => '\\ccxt\\InvalidNonce',
+                    'please approve new terms of use on site' => '\\ccxt\\PermissionDenied', // array( "error" : "please approve new terms of use on site." )
+                ),
             ),
         ));
     }
@@ -418,5 +431,22 @@ class bit2c extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        //
+        //     array( "$error" : "please approve new terms of use on site." )
+        //     array( "$error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+        //
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown message
+        }
     }
 }

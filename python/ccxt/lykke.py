@@ -19,11 +19,19 @@ class lykke(Exchange):
             'has': {
                 'CORS': False,
                 'fetchOHLCV': False,
-                'fetchTrades': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchTrades': True,
+                'fetchMyTrades': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'cancelAllOrders': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
             },
             'timeframes': {
                 '1m': 'Minute',
@@ -100,11 +108,20 @@ class lykke(Exchange):
                         'Orders',
                         'Orders/{id}',
                         'Wallets',
+                        'History/trades',
                     ],
                     'post': [
                         'Orders/limit',
                         'Orders/market',
                         'Orders/{id}/Cancel',
+                        'Orders/v2/market',
+                        'Orders/v2/limit',
+                        'Orders/stoplimit',
+                        'Orders/bulk',
+                    ],
+                    'delete': [
+                        'Orders',
+                        'Orders/{id}',
                     ],
                 },
             },
@@ -145,18 +162,47 @@ class lykke(Exchange):
         #     "action": "Buy"
         #   }
         #
+        #  private fetchMyTrades
+        #     {
+        #         Id: '3500b83c-9963-4349-b3ee-b3e503073cea',
+        #         OrderId: '83b50feb-8615-4dc6-b606-8a4168ecd708',
+        #         DateTime: '2020-05-19T11:17:39.31+00:00',
+        #         Timestamp: '2020-05-19T11:17:39.31+00:00',
+        #         State: null,
+        #         Amount: -0.004,
+        #         BaseVolume: -0.004,
+        #         QuotingVolume: 39.3898,
+        #         Asset: 'BTC',
+        #         BaseAssetId: 'BTC',
+        #         QuotingAssetId: 'USD',
+        #         AssetPair: 'BTCUSD',
+        #         AssetPairId: 'BTCUSD',
+        #         Price: 9847.427,
+        #         Fee: {Amount: null, Type: 'Unknown', FeeAssetId: null}
+        #     },
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'AssetPairId')
             market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
-        id = self.safe_string(trade, 'id')
-        timestamp = self.parse8601(self.safe_string(trade, 'dateTime'))
+        id = self.safe_string_2(trade, 'id', 'Id')
+        orderId = self.safe_string(trade, 'OrderId')
+        timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
+        price = self.safe_float_2(trade, 'price', 'Price')
+        amount = self.safe_float_2(trade, 'volume', 'Amount')
         side = self.safe_string_lower(trade, 'action')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
+        if side is None:
+            if amount < 0:
+                side = 'sell'
+            else:
+                side = 'buy'
+        amount = abs(amount)
         cost = price * amount
+        fee = {
+            'cost': 0,  # There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
+            'currency': market['quote'],
+        }
         return {
             'id': id,
             'info': trade,
@@ -164,13 +210,13 @@ class lykke(Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'order': None,
+            'order': orderId,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -184,6 +230,18 @@ class lykke(Exchange):
             'take': limit,
         }
         response = self.mobileGetTradesAssetPairId(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if limit is not None:
+            request['take'] = limit  # How many maximum items have to be returned, max 1000 default 100.
+        if symbol is not None:
+            market = self.market(symbol)
+            request['assetPairId'] = market['id']
+        response = self.privateGetHistoryTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
@@ -201,7 +259,17 @@ class lykke(Exchange):
         return self.parse_balance(result)
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostOrdersIdCancel({'id': id})
+        request = {'id': id}
+        return self.privateDeleteOrdersId(self.extend(request, params))
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['assetPairId'] = market['id']
+        return self.privateDeleteOrders(self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -210,16 +278,46 @@ class lykke(Exchange):
             'AssetPairId': market['id'],
             'OrderAction': self.capitalize(side),
             'Volume': amount,
+            'Asset': market['baseId'],
         }
-        if type == 'market':
-            query['Asset'] = market['base'] if (side == 'buy') else market['quote']
-        elif type == 'limit':
+        if type == 'limit':
             query['Price'] = price
-        method = 'privatePostOrders' + self.capitalize(type)
+        method = 'privatePostOrdersV2' + self.capitalize(type)
         result = getattr(self, method)(self.extend(query, params))
+        #
+        # market
+        #
+        #     {
+        #         "Price": 0
+        #     }
+        #
+        # limit
+        #
+        #     {
+        #         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        #     }
+        #
+        id = self.safe_string(result, 'Id')
+        price = self.safe_float(result, 'Price')
         return {
-            'id': None,
+            'id': id,
             'info': result,
+            'clientOrderId': None,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
         }
 
     def fetch_markets(self, params={}):
@@ -330,6 +428,7 @@ class lykke(Exchange):
             'Cancelled': 'canceled',
             'Rejected': 'rejected',
             'Replaced': 'canceled',
+            'Placed': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -365,8 +464,14 @@ class lykke(Exchange):
         elif ('CreatedAt' in order) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
+        side = None
         amount = self.safe_float(order, 'Volume')
-        remaining = self.safe_float(order, 'RemainingVolume')
+        if amount < 0:
+            side = 'sell'
+            amount = abs(amount)
+        else:
+            side = 'buy'
+        remaining = abs(self.safe_float(order, 'RemainingVolume'))
         filled = amount - remaining
         cost = filled * price
         id = self.safe_string(order, 'Id')
@@ -379,7 +484,7 @@ class lykke(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
-            'side': None,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': None,
@@ -402,23 +507,22 @@ class lykke(Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privateGetOrders(params)
-        return self.parse_orders(response, None, since, limit)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'InOrderBook',
         }
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, None, since, limit)
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'Matched',
         }
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, None, since, limit)
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -458,7 +562,7 @@ class lykke(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 if query:
                     url += '?' + self.urlencode(query)
             self.check_required_credentials()

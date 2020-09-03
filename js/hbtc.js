@@ -17,27 +17,32 @@ module.exports = class hbtc extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTime': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidAsk': true,
                 'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchDepositAddress': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTradingLimits': true,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchCurrencies': false,
-                'fetchDeposits': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
-                'fetchAccounts': true,
-                'fetchLedger': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -751,7 +756,7 @@ module.exports = class hbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1587906000000, // open time
@@ -1682,10 +1687,7 @@ module.exports = class hbtc extends Exchange {
         }
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const baseVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

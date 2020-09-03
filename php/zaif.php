@@ -18,10 +18,17 @@ class zaif extends Exchange {
             'rateLimit' => 2000,
             'version' => '1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchOpenOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -375,7 +382,7 @@ class zaif extends Exchange {
             'remaining' => null,
             'trades' => null,
             'fee' => null,
-            'info' => null,
+            'info' => $order,
             'average' => null,
         );
     }
@@ -457,7 +464,7 @@ class zaif extends Exchange {
     }
 
     public function nonce() {
-        $nonce = floatval ($this->milliseconds() / 1000);
+        $nonce = floatval($this->milliseconds() / 1000);
         return sprintf('%.8f', $nonce);
     }
 

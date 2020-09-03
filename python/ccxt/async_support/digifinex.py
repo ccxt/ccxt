@@ -29,14 +29,23 @@ class digifinex(Exchange):
             'version': 'v3',
             'rateLimit': 900,  # 300 for posts
             'has': {
+                'cancelOrder': True,
                 'cancelOrders': True,
-                'fetchOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchStatus': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
+                'fetchTime': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -50,14 +59,14 @@ class digifinex(Exchange):
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
-                'api': 'https://openapi.digifinex.vip',
-                'www': 'https://www.digifinex.vip',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
+                'api': 'https://openapi.digifinex.com',
+                'www': 'https://www.digifinex.com',
                 'doc': [
-                    'https://docs.digifinex.vip',
+                    'https://docs.digifinex.com',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
                 'v2': {
@@ -77,6 +86,7 @@ class digifinex(Exchange):
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ],
                 },
                 'private': {
@@ -162,30 +172,34 @@ class digifinex(Exchange):
             },
         })
 
-    async def fetch_markets_by_type(self, type, params={}):
-        method = 'publicGet' + self.capitalize(type) + 'Symbols'
-        response = await getattr(self, method)(params)
+    async def fetch_markets(self, params={}):
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        method = self.safe_string(options, 'method', 'fetch_markets_v2')
+        return await getattr(self, method)(params)
+
+    async def fetch_markets_v2(self, params={}):
+        response = await self.publicGetTradesSymbols(params)
         #
         #     {
-        #         "symbol_list": [
+        #         "symbol_list":[
         #             {
         #                 "order_types":["LIMIT","MARKET"],
         #                 "quote_asset":"USDT",
         #                 "minimum_value":2,
         #                 "amount_precision":4,
         #                 "status":"TRADING",
-        #                 "minimum_amount":0.001,
-        #                 "symbol":"LTC_USDT",
-        #                 "margin_rate":0.3,
+        #                 "minimum_amount":0.0001,
+        #                 "symbol":"BTC_USDT",
+        #                 "is_allow":1,
         #                 "zone":"MAIN",
-        #                 "base_asset":"LTC",
+        #                 "base_asset":"BTC",
         #                 "price_precision":2
-        #             },
+        #             }
         #         ],
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'symbols_list', [])
+        markets = self.safe_value(response, 'symbol_list', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -223,7 +237,9 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            active = None
+            isAllowed = self.safe_value(market, 'is_allow', 1)
+            active = True if isAllowed else False
+            type = 'spot'
             spot = (type == 'spot')
             margin = (type == 'margin')
             result.append({
@@ -243,7 +259,7 @@ class digifinex(Exchange):
             })
         return result
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets_v1(self, params={}):
         response = await self.publicGetMarkets(params)
         #
         #     {
@@ -408,7 +424,7 @@ class digifinex(Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         apiKey = self.safe_value(params, 'apiKey', self.apiKey)
@@ -533,7 +549,7 @@ class digifinex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id[market]
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
@@ -569,6 +585,30 @@ class digifinex(Exchange):
             'fee': fee,
         }
 
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        #
+        #     {
+        #         "server_time": 1589873762,
+        #         "code": 0
+        #     }
+        #
+        return self.safe_timestamp(response, 'server_time')
+
+    async def fetch_status(self, params={}):
+        await self.publicGetPing(params)
+        #
+        #     {
+        #         "msg": "pong",
+        #         "code": 0
+        #     }
+        #
+        self.status = self.extend(self.status, {
+            'status': 'ok',
+            'updated': self.milliseconds(),
+        })
+        return self.status
+
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -603,14 +643,24 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1556712900,
+        #         2205.899,
+        #         0.029967,
+        #         0.02997,
+        #         0.029871,
+        #         0.029927
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,  # timestamp
-            ohlcv[5],  # open
-            ohlcv[3],  # high
-            ohlcv[4],  # low
-            ohlcv[2],  # close
-            ohlcv[1],  # volume
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 5),  # open
+            self.safe_float(ohlcv, 3),  # high
+            self.safe_float(ohlcv, 4),  # low
+            self.safe_float(ohlcv, 2),  # close
+            self.safe_float(ohlcv, 1),  # volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

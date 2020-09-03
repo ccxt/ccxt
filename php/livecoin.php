@@ -22,18 +22,25 @@ class livecoin extends Exchange {
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
+                'cancelOrder' => true,
+                'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'CORS' => false,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchCurrencies' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -105,11 +112,13 @@ class livecoin extends Exchange {
                 'FirstBlood' => '1ST',
                 'FORTYTWO' => '42',
                 'LEO' => 'LeoCoin',
+                'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
                 'ORE' => 'Orectic',
                 'PLN' => 'Plutaneum', // conflict with Polish Zloty
                 'RUR' => 'RUB',
                 'SCT' => 'SpaceCoin',
                 'TPI' => 'ThaneCoin',
+                'UNUS' => 'LEO', // https://github.com/ccxt/ccxt/issues/7496
                 'WAX' => 'WAXP',
                 'wETT' => 'WETT',
                 'XBT' => 'Bricktox',
@@ -386,7 +395,7 @@ class livecoin extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -656,7 +665,7 @@ class livecoin extends Exchange {
             $request['currencyPair'] = $market['id'];
         }
         if ($since !== null) {
-            $request['issuedFrom'] = intval ($since);
+            $request['issuedFrom'] = intval($since);
         }
         if ($limit !== null) {
             $request['endRow'] = $limit - 1;
@@ -829,7 +838,7 @@ class livecoin extends Exchange {
         $request = array(
             'types' => 'DEPOSIT',
             'end' => $now,
-            'start' => ($since !== null) ? intval ($since) : $now - $endtime,
+            'start' => ($since !== null) ? intval($since) : $now - $endtime,
         );
         $currency = null;
         if ($code !== null) {
@@ -849,7 +858,7 @@ class livecoin extends Exchange {
         $request = array(
             'types' => 'WITHDRAWAL',
             'end' => $now,
-            'start' => ($since !== null) ? intval ($since) : $now - $endtime,
+            'start' => ($since !== null) ? intval($since) : $now - $endtime,
         );
         $currency = null;
         if ($code !== null) {

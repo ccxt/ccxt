@@ -19,7 +19,7 @@ class coss extends Exchange {
             'version' => 'v1',
             'certified' => false,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api' => array(
                     'trade' => 'https://trade.coss.io/c/api/v1',
                     'engine' => 'https://engine.coss.io/api/v1',
@@ -333,15 +333,25 @@ class coss extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            intval ($ohlcv[0]),   // timestamp
-            floatval ($ohlcv[1]), // Open
-            floatval ($ohlcv[2]), // High
-            floatval ($ohlcv[3]), // Low
-            floatval ($ohlcv[4]), // Close
-            floatval ($ohlcv[5]), // base Volume
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1545138960000,
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.00000000"
+        //     )
+        //
+        return array(
+            $this->safe_integer($ohlcv, 0),   // timestamp
+            $this->safe_float($ohlcv, 1), // Open
+            $this->safe_float($ohlcv, 2), // High
+            $this->safe_float($ohlcv, 3), // Low
+            $this->safe_float($ohlcv, 4), // Close
+            $this->safe_float($ohlcv, 5), // base Volume
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -353,25 +363,25 @@ class coss extends Exchange {
         );
         $response = $this->engineGetCs (array_merge($request, $params));
         //
-        //     {       tt =>   "1m",
-        //         $symbol =>   "ETH_BTC",
-        //       nextTime =>    1545138960000,
-        //         series => array( array(  1545138960000,
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.00000000"    ),
-        //                   ...
-        //                   array(  1545168900000,
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.00000000"    )  ),
-        //          $limit =>    500                    }
+        //     {
+        //         tt => "1m",
+        //         $symbol => "ETH_BTC",
+        //         nextTime => 1545138960000,
+        //         $series => array(
+        //             array(
+        //                 1545138960000,
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.00000000"
+        //             ),
+        //         ),
+        //         $limit => 500
+        //     }
         //
-        return $this->parse_ohlcvs($response['series'], $market, $timeframe, $since, $limit);
+        $series = $this->safe_value($response, 'series', array());
+        return $this->parse_ohlcvs($series, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -513,7 +523,7 @@ class coss extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

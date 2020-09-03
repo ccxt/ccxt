@@ -18,9 +18,15 @@ class paymium(Exchange):
             'version': 'v1',
             'has': {
                 'CORS': True,
+                'fetchBalance': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchOrderBook': True,
+                'createOrder': True,
+                'cancelOrder': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
                 'fees': 'https://www.paymium.com/page/help/fees',
@@ -34,31 +40,34 @@ class paymium(Exchange):
                 'public': {
                     'get': [
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ],
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
                         'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ],
                     'post': [
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ],
                     'delete': [
+                        'user/orders/{uuid}',
                         'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
@@ -95,16 +104,17 @@ class paymium(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'currency': self.market_id(symbol),
         }
-        response = self.publicGetDataIdDepth(self.extend(request, params))
+        response = self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'currency': self.market_id(symbol),
         }
-        ticker = self.publicGetDataIdTicker(self.extend(request, params))
+        ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'at')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -169,9 +179,9 @@ class paymium(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': market['id'],
+            'currency': market['id'],
         }
-        response = self.publicGetDataIdTrades(self.extend(request, params))
+        response = self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

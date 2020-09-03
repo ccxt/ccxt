@@ -37,22 +37,29 @@ class gemini(Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddress': False,
-                'createDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchBidsAsks': False,
-                'fetchTickers': False,
-                'fetchMyTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchBidsAsks': False,
+                'fetchClosedOrders': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': False,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
-                'fetchDeposits': False,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -86,6 +93,7 @@ class gemini(Exchange):
                 'public': {
                     'get': [
                         'v1/symbols',
+                        'v1/pricefeed',
                         'v1/pubticker/{symbol}',
                         'v1/book/{symbol}',
                         'v1/trades/{symbol}',
@@ -179,6 +187,7 @@ class gemini(Exchange):
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
             },
         })
 
@@ -186,7 +195,7 @@ class gemini(Exchange):
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
         return await getattr(self, method)(params)
 
-    async def fetch_markets_from_web(self, symbols=None, params={}):
+    async def fetch_markets_from_web(self, params={}):
         response = await self.webGetRestApi(params)
         sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         numSections = len(sections)
@@ -245,10 +254,10 @@ class gemini(Exchange):
                 symbol = base + '/' + quote
                 if not (symbol in indexedSymbols):
                     continue
-                id = baseId + quoteId
+                marketId = baseId + quoteId
                 active = None
                 result.append({
-                    'id': id,
+                    'id': marketId,
                     'info': row,
                     'symbol': symbol,
                     'base': base,
@@ -283,8 +292,15 @@ class gemini(Exchange):
         for i in range(0, len(response)):
             id = response[i]
             market = id
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            idLength = len(id) - 0
+            baseId = None
+            quoteId = None
+            if idLength == 7:
+                baseId = id[0:4]
+                quoteId = id[4:7]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -330,39 +346,198 @@ class gemini(Exchange):
         response = await self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker_v1(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        ticker = await self.publicGetV1PubtickerSymbol(self.extend(request, params))
-        timestamp = self.safe_integer(ticker['volume'], 'timestamp')
-        baseCurrency = market['base']  # unified structures are guaranteed to have unified fields
-        quoteCurrency = market['quote']  # so we don't need safe-methods for unified structures
-        last = self.safe_float(ticker, 'last')
+        response = await self.publicGetV1PubtickerSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "bid":"9117.95",
+        #         "ask":"9117.96",
+        #         "volume":{
+        #             "BTC":"1615.46861748",
+        #             "USD":"14727307.57545006088",
+        #             "timestamp":1594982700000
+        #         },
+        #         "last":"9115.23"
+        #     }
+        #
+        return self.parse_ticker(response, market)
+
+    async def fetch_ticker_v2(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetV2TickerSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "symbol":"BTCUSD",
+        #         "open":"9080.58",
+        #         "high":"9184.53",
+        #         "low":"9063.56",
+        #         "close":"9116.08",
+        #         # Hourly prices descending for past 24 hours
+        #         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        #         "bid":"9115.86",
+        #         "ask":"9115.87"
+        #     }
+        #
+        return self.parse_ticker(response, market)
+
+    async def fetch_ticker_v1_and_v2(self, symbol, params={}):
+        tickerA = await self.fetch_ticker_v1(symbol, params)
+        tickerB = await self.fetch_ticker_v2(symbol, params)
+        return self.deep_extend(tickerA, {
+            'open': tickerB['open'],
+            'high': tickerB['high'],
+            'low': tickerB['low'],
+            'change': tickerB['change'],
+            'percentage': tickerB['percentage'],
+            'average': tickerB['average'],
+            'info': tickerB['info'],
+        })
+
+    async def fetch_ticker(self, symbol, params={}):
+        method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
+        return await getattr(self, method)(symbol, params)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTickers
+        #
+        #     {
+        #         "pair": "BATUSD",
+        #         "price": "0.20687",
+        #         "percentChange24h": "0.0146"
+        #     }
+        #
+        # fetchTickerV1
+        #
+        #     {
+        #         "bid":"9117.95",
+        #         "ask":"9117.96",
+        #         "volume":{
+        #             "BTC":"1615.46861748",
+        #             "USD":"14727307.57545006088",
+        #             "timestamp":1594982700000
+        #         },
+        #         "last":"9115.23"
+        #     }
+        #
+        # fetchTickerV2
+        #
+        #     {
+        #         "symbol":"BTCUSD",
+        #         "open":"9080.58",
+        #         "high":"9184.53",
+        #         "low":"9063.56",
+        #         "close":"9116.08",
+        #         # Hourly prices descending for past 24 hours
+        #         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        #         "bid":"9115.86",
+        #         "ask":"9115.87"
+        #     }
+        #
+        volume = self.safe_value(ticker, 'volume', {})
+        timestamp = self.safe_integer(volume, 'timestamp')
+        symbol = None
+        marketId = self.safe_string(ticker, 'pair')
+        baseId = None
+        quoteId = None
+        base = None
+        quote = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                idLength = len(marketId) - 0
+                if idLength == 7:
+                    baseId = marketId[0:4]
+                    quoteId = marketId[4:7]
+                else:
+                    baseId = marketId[0:3]
+                    quoteId = marketId[3:6]
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+            baseId = market['baseId'].upper()
+            quoteId = market['quoteId'].upper()
+            base = market['base']
+            quote = market['quote']
+        price = self.safe_float(ticker, 'price')
+        last = self.safe_float_2(ticker, 'last', 'close', price)
+        percentage = self.safe_float(ticker, 'percentChange24h')
+        change = None
+        open = self.safe_float(ticker, 'open')
+        average = None
+        if last is not None:
+            if open is not None:
+                change = last - open
+                if open != 0:
+                    percentage = change / open * 100
+                average = self.sum(last, open) / 2
+            elif percentage is not None:
+                change = last * percentage
+                if open is None:
+                    open = last - change
+                average = self.sum(last, open) / 2
+        baseVolume = self.safe_float(volume, baseId)
+        quoteVolume = self.safe_float(volume, quoteId)
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': None,
-            'low': None,
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
-            'vwap': None,
-            'open': None,
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], baseCurrency),
-            'quoteVolume': self.safe_float(ticker['volume'], quoteCurrency),
+            'previousClose': None,  # previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
+
+    def parse_tickers(self, tickers, symbols=None):
+        result = []
+        for i in range(0, len(tickers)):
+            result.append(self.parse_ticker(tickers[i]))
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetV1Pricefeed(params)
+        #
+        #     [
+        #         {
+        #             "pair": "BATUSD",
+        #             "price": "0.20687",
+        #             "percentChange24h": "0.0146"
+        #         },
+        #         {
+        #             "pair": "LINKETH",
+        #             "price": "0.018",
+        #             "percentChange24h": "0.0000"
+        #         },
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestampms')
@@ -670,4 +845,11 @@ class gemini(Exchange):
             'symbol': market['id'],
         }
         response = await self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))
+        #
+        #     [
+        #         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        #         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        #         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

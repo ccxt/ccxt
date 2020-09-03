@@ -28,22 +28,29 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
-                'fetchDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': False,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -610,7 +617,7 @@ class upbit(Exchange):
             ticker = self.parse_ticker(response[t])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)
@@ -690,7 +697,7 @@ class upbit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
@@ -733,19 +740,21 @@ class upbit(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
+        #     {
+        #         market: "BTC-ETH",
+        #         candle_date_time_utc: "2018-11-22T13:47:00",
+        #         candle_date_time_kst: "2018-11-22T22:47:00",
+        #         opening_price: 0.02915963,
+        #         high_price: 0.02915963,
+        #         low_price: 0.02915448,
+        #         trade_price: 0.02915448,
+        #         timestamp: 1542894473674,
+        #         candle_acc_trade_price: 0.0981629437535248,
+        #         candle_acc_trade_volume: 3.36693173,
+        #         unit: 1
+        #     }
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
@@ -778,28 +787,34 @@ class upbit(Exchange):
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
         response = getattr(self, method)(self.extend(request, params))
         #
-        #     [{                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T13:47:00",
-        #            candle_date_time_kst: "2018-11-22T22:47:00",
-        #                   opening_price:  0.02915963,
-        #                      high_price:  0.02915963,
-        #                       low_price:  0.02915448,
-        #                     trade_price:  0.02915448,
-        #                       timestamp:  1542894473674,
-        #          candle_acc_trade_price:  0.0981629437535248,
-        #         candle_acc_trade_volume:  3.36693173,
-        #                            unit:  1                     },
-        #       {                 market: "BTC-ETH",
-        #            candle_date_time_utc: "2018-11-22T10:06:00",
-        #            candle_date_time_kst: "2018-11-22T19:06:00",
-        #                   opening_price:  0.0294,
-        #                      high_price:  0.02940882,
-        #                       low_price:  0.02934283,
-        #                     trade_price:  0.02937354,
-        #                       timestamp:  1542881219276,
-        #          candle_acc_trade_price:  0.0762597110943884,
-        #         candle_acc_trade_volume:  2.5949617,
-        #                            unit:  1                     }  ]
+        #     [
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T13:47:00",
+        #             candle_date_time_kst: "2018-11-22T22:47:00",
+        #             opening_price: 0.02915963,
+        #             high_price: 0.02915963,
+        #             low_price: 0.02915448,
+        #             trade_price: 0.02915448,
+        #             timestamp: 1542894473674,
+        #             candle_acc_trade_price: 0.0981629437535248,
+        #             candle_acc_trade_volume: 3.36693173,
+        #             unit: 1
+        #         },
+        #         {
+        #             market: "BTC-ETH",
+        #             candle_date_time_utc: "2018-11-22T10:06:00",
+        #             candle_date_time_kst: "2018-11-22T19:06:00",
+        #             opening_price: 0.0294,
+        #             high_price: 0.02940882,
+        #             low_price: 0.02934283,
+        #             trade_price: 0.02937354,
+        #             timestamp: 1542881219276,
+        #             candle_acc_trade_price: 0.0762597110943884,
+        #             candle_acc_trade_volume: 2.5949617,
+        #             unit: 1
+        #         }
+        #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -1115,7 +1130,10 @@ class upbit(Exchange):
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
-        trades = self.parse_trades(trades, market, None, None, {'order': id})
+        trades = self.parse_trades(trades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         numTrades = len(trades)
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing
@@ -1422,7 +1440,7 @@ class upbit(Exchange):
         if response is None:
             return  # fallback to default error handler
         #
-        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name':  400}},
+        #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name': 400}},
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
         #   {'error': {'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required"}},
         #   {'error': {'message': "권한이 부족합니다.", 'name': "out_of_scope"}},

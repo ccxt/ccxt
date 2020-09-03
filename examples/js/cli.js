@@ -4,7 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
-    , debug = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--debug')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
@@ -15,6 +15,11 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , testnet =
+        process.argv.includes ('--test') ||
+        process.argv.includes ('--testnet') ||
+        process.argv.includes ('--sandbox')
+    , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
 
 //-----------------------------------------------------------------------------
 
@@ -40,6 +45,11 @@ const ccxt         = require ('../../ccxt.js')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
     , { ExchangeError, NetworkError } = ccxt
+
+//-----------------------------------------------------------------------------
+
+console.log ('Node.js:', process.version)
+console.log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
@@ -101,20 +111,25 @@ const timeout = 30000
 let exchange = undefined
 const enableRateLimit = true
 
+const { Agent } = require ('https')
+
+const httpsAgent = new Agent ({
+    ecdhCurve: 'auto',
+    keepAlive: true,
+})
+
 try {
-
-    const { Agent } = require ('https')
-
-    const agent = new Agent ({
-        ecdhCurve: 'auto',
-    })
 
     exchange = new (ccxt)[exchangeId] ({
         timeout,
         enableRateLimit,
-        agent,
+        httpsAgent,
         ... settings,
     })
+
+    if (testnet) {
+        exchange.setSandboxMode (true)
+    }
 
 } catch (e) {
 
@@ -152,6 +167,7 @@ function printSupportedExchanges () {
     log ('--table           Print the fetch response as a table')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
     log ('--cors            use CORS proxy for debugging')
+    log ('--sign-in         Call signIn() if any')
 }
 
 //-----------------------------------------------------------------------------
@@ -228,7 +244,7 @@ async function main () {
             exchange.headers = cfscrapeCookies (www)
 
         if (cors) {
-            exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
+            exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
             exchange.origin = exchange.uuid ()
         }
 
@@ -240,6 +256,10 @@ async function main () {
 
         if (!no_load_markets) {
             await exchange.loadMarkets ()
+        }
+
+        if (signIn && exchange.has.signIn) {
+            await exchange.signIn ()
         }
 
         exchange.verbose = verbose
@@ -292,6 +312,12 @@ async function main () {
 
                     }
 
+                    if (debug) {
+                        const keys = Object.keys (httpsAgent.freeSockets)
+                        const firstKey = keys[0]
+                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                    }
+
                     if (!poll)
                         break;
                 }
@@ -310,6 +336,7 @@ async function main () {
             console.log (exchange)
         }
     }
+
 }
 
 //-----------------------------------------------------------------------------
