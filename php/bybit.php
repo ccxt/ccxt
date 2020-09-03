@@ -1100,7 +1100,7 @@ class bybit extends Exchange {
                 }
             }
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
+        $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->safe_float($order, 'cum_exec_fee');
         $fee = null;
