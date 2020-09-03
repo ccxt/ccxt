@@ -415,7 +415,7 @@ module.exports = class bitmart extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {
