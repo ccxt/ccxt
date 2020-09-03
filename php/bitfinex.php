@@ -583,7 +583,7 @@ class bitfinex extends Exchange {
         if ($currency !== null) {
             $precision = $this->safe_integer($currency, 'precision');
             if ($precision !== null) {
-                $cost = floatval ($this->currency_to_precision($code, $cost));
+                $cost = floatval($this->currency_to_precision($code, $cost));
             }
         }
         return array(
@@ -661,7 +661,7 @@ class bitfinex extends Exchange {
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
-        $timestamp = intval ($timestamp);
+        $timestamp = intval($timestamp);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -709,7 +709,7 @@ class bitfinex extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $timestamp = $this->safe_float($trade, 'timestamp');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp) * 1000;
+            $timestamp = intval($timestamp) * 1000;
         }
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
@@ -757,7 +757,7 @@ class bitfinex extends Exchange {
             'limit_trades' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->publicGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -776,7 +776,7 @@ class bitfinex extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->privatePostMytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -805,7 +805,7 @@ class bitfinex extends Exchange {
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $order = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         if ($price !== null) {
             $order['price'] = $this->price_to_precision($symbol, $price);
@@ -829,7 +829,7 @@ class bitfinex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         return $this->privatePostOrderCancel (array_merge($request, $params));
     }
@@ -870,7 +870,7 @@ class bitfinex extends Exchange {
         }
         $timestamp = $this->safe_float($order, 'timestamp');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp) * 1000;
+            $timestamp = intval($timestamp) * 1000;
         }
         $id = $this->safe_string($order, 'id');
         return array(
@@ -928,7 +928,7 @@ class bitfinex extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         return $this->parse_order($response);
@@ -1039,7 +1039,7 @@ class bitfinex extends Exchange {
         }
         $query['currency'] = $currencyId;
         if ($since !== null) {
-            $query['since'] = intval ($since / 1000);
+            $query['since'] = intval($since / 1000);
         }
         $response = $this->privatePostHistoryMovements (array_merge($query, $params));
         //
@@ -1101,11 +1101,11 @@ class bitfinex extends Exchange {
         //
         $timestamp = $this->safe_float($transaction, 'timestamp_created');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp * 1000);
+            $timestamp = intval($timestamp * 1000);
         }
         $updated = $this->safe_float($transaction, 'timestamp');
         if ($updated !== null) {
-            $updated = intval ($updated * 1000);
+            $updated = intval($updated * 1000);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);

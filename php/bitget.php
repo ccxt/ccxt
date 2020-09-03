@@ -804,7 +804,7 @@ class bitget extends Exchange {
         }
         $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
         $tick_size = $this->safe_float($market, 'tick_size');
-        $newtick_size = floatval ('1e-' . $this->number_to_string($tick_size));
+        $newtick_size = floatval('1e-' . $this->number_to_string($tick_size));
         $precision = array(
             'amount' => $this->safe_float($market, 'size_increment', $lotSize),
             'price' => $newtick_size,

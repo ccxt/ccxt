@@ -229,7 +229,7 @@ class bibox extends Exchange {
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = floatval ($percentage);
+            $percentage = floatval($percentage);
         }
         return array(
             'symbol' => $symbol,
@@ -552,7 +552,7 @@ class bibox extends Exchange {
             $account = $this->account();
             $balance = $indexed[$id];
             if (gettype($balance) === 'string') {
-                $balance = floatval ($balance);
+                $balance = floatval($balance);
                 $account['free'] = $balance;
                 $account['used'] = 0.0;
                 $account['total'] = $balance;
@@ -789,7 +789,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : (floatval ($price) * $filled);
+        $cost = $cost ? $cost : (floatval($price) * $filled);
         return array(
             'info' => $order,
             'id' => $id,

@@ -702,7 +702,7 @@ class crex24 extends Exchange {
             if ($amount !== null) {
                 $filled = $amount - $remaining;
                 if ($this->options['parseOrderToPrecision']) {
-                    $filled = floatval ($this->amount_to_precision($symbol, $filled));
+                    $filled = floatval($this->amount_to_precision($symbol, $filled));
                 }
                 $filled = max ($filled, 0.0);
                 if ($price !== null) {
@@ -730,7 +730,7 @@ class crex24 extends Exchange {
                 $average = $cost / $filled;
             }
             if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
         return array(
@@ -1032,7 +1032,7 @@ class crex24 extends Exchange {
         $this->load_markets();
         $request = array(
             'ids' => array(
-                intval ($id),
+                intval($id),
             ),
         );
         $response = $this->tradingPostCancelOrdersById (array_merge($request, $params));
@@ -1259,7 +1259,7 @@ class crex24 extends Exchange {
         $request = array(
             'currency' => $currency['id'],
             'address' => $address,
-            'amount' => floatval ($this->currency_to_precision($code, $amount)),
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
             // sets whether the specified $amount includes fee, can have either of the two values
             // true - balance will be decreased by $amount, whereas [$amount - fee] will be transferred to the specified $address
             // false - $amount will be deposited to the specified $address, whereas the balance will be decreased by [$amount . fee]

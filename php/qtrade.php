@@ -971,7 +971,7 @@ class qtrade extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => intval ($id),
+            'id' => intval($id),
         );
         // successful cancellation returns 200 with no payload
         return $this->privatePostCancelOrder (array_merge($request, $params));

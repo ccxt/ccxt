@@ -644,7 +644,7 @@ class liquid extends Exchange {
         }
         if ($since !== null) {
             // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->publicGetExecutions (array_merge($request, $params));
         $result = ($since !== null) ? $response : $response['models'];
