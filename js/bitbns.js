@@ -77,7 +77,7 @@ module.exports = class bitbns extends Exchange {
                     'taker': 0.0025,
                 },
             },
-            'verbose': true,
+            'verbose': false,
             // 'proxy': '',
             'apiKey': '',
             'secret': '',
@@ -312,7 +312,8 @@ module.exports = class bitbns extends Exchange {
             } else if (status === 2) {
                 orderObj['status'] = 'closed';
             }
-            orderObj['side'] = orders[i].type === 1 ? 'sell' : 'buy';
+            // TODO: fix
+            orderObj['side'] = this.safeString (orders[i], 'type') === 1 ? 'sell' : 'buy';
             orderObj['amount'] = orderObj['price'] * orderObj['remaining'];
             openOrders.push (orderObj);
         }
