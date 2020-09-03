@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -200,6 +201,7 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}

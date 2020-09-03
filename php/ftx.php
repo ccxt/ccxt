@@ -196,6 +196,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)

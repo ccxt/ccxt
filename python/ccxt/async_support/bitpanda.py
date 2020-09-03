@@ -125,7 +125,7 @@ class bitpanda(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
                     'taker': 0.15 / 100,
                     'maker': 0.10 / 100,
@@ -568,7 +568,7 @@ class bitpanda(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetMarketTicker(params)
+        response = await self.publicGetMarketTicker(params)
         #
         #     [
         #         {
@@ -590,11 +590,11 @@ class bitpanda(Exchange):
         #     ]
         #
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
