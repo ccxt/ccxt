@@ -167,7 +167,8 @@ module.exports = class bitbns extends Exchange {
             trades[i]['id'] = this.safeString (trades[i], 'id');
             const keys = Object.keys (trades[i]);
             for (let k = 0; k < keys.length; k++) {
-                if (this.safeString (trades[i], keys[k]).length === 0) {
+                const keyVal = this.safeString (trades[i], keys[k]);
+                if (keyVal.length === 0) {
                     trades[i][keys[k]] = undefined;
                 }
             }
@@ -226,32 +227,51 @@ module.exports = class bitbns extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const orderData = this.safeValue (order, 'data')[0];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        // Determine status (string)
+        const orderStatus = this.safeInteger (order, 'status');
+        let status = undefined;
+        if (orderStatus === 0) {
+            status = 'open';
+        } else if (orderStatus === -1) {
+            status = 'canceled';
+        } else if (orderStatus === 2) {
+            status = 'closed';
+        }
+        // Determine fee
+        const orderFee = this.safeFloat (order, 'fee');
+        let fee = undefined;
+        if (orderFee !== undefined) {
+            fee = {
+                'currency': '',
+                'cost': orderFee,
+                'rate': 0.0025,
+            };
+        }
+        const datetime = this.safeString (order, 'time');
+        const id = this.safeString (order, 'entry_id');
         const orderObj = {
-            'id': this.safeString (orderData, 'entry_id'), // string
-            'datetime': this.safeString (orderData, 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
-            'timestamp': this.parse8601 (this.safeString (orderData, 'time')),
+            'id': id, // string
+            'clientOrderId': undefined,
+            'datetime': datetime, // ISO8601 datetime of 'timestamp' with milliseconds
+            'timestamp': this.parse8601 (datetime),
             'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
-            'symbol': this.safeString (market, 'symbol'),      // symbol
+            'status': status,
+            'symbol': symbol,      // symbol
             'type': 'limit',        // 'market', 'limit'
-            'side': this.safeString (orderData, 'side'),          // 'buy', 'sell'
-            'price': this.safeFloat (orderData, 'rate'),    // float price in quote currency
-            'amount': this.safeFloat (orderData, 'amount'),           // ordered amount of base currency
-            'filled': this.safeFloat (orderData, 'filled'),           // filled amount of base currency
-            'remaining': this.safeFloat (orderData, 'remaining'), // remaining amount to fill
-            'cost': this.safeFloat (orderData, 'filled') * this.safeFloat (orderData, 'avg_cost'),   // 'filled' * 'price' (filling price used where available)
+            'side': this.safeString (order, 'side'),          // 'buy', 'sell'
+            'price': this.safeFloat (order, 'rate'),    // float price in quote currency
+            'amount': this.safeFloat (order, 'amount'),           // ordered amount of base currency
+            'filled': this.safeFloat (order, 'filled'),           // filled amount of base currency
+            'remaining': this.safeFloat (order, 'remaining'), // remaining amount to fill
+            'cost': this.safeFloat (order, 'filled') * this.safeFloat (order, 'avg_cost'),   // 'filled' * 'price' (filling price used where available)
             'trades': undefined,         // a list of order trades/executions
-            'fee': this.safeFloat (orderData, 'fee'),
+            'fee': fee,
             'info': order,              // the original unparsed order structure as is
         };
-        const status = this.safeInteger (orderData, 'status');
-        if (status === 0) {
-            orderObj['status'] = 'open';
-        } else if (status === -1) {
-            orderObj['status'] = 'canceled';
-        } else if (status === 2) {
-            orderObj['status'] = 'closed';
-        }
         return orderObj;
     }
 
@@ -264,7 +284,8 @@ module.exports = class bitbns extends Exchange {
             'entry_id': id,
         };
         const resp = await this.private1PostOrderStatus (this.extend (request, params));
-        return this.parseOrder (resp, market);
+        const order = this.safeValue (resp, 'data')[0];
+        return this.parseOrder (order, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -285,38 +306,39 @@ module.exports = class bitbns extends Exchange {
         }
         const resp = await this.privatePostGetordersnew (this.extend (request, params));
         const orders = this.safeValue (resp, 'data');
-        const openOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            const orderObj = {
-                'id': this.safeString (orders[i], 'entry_id'), // string
-                'datetime': this.safeString (orders[i], 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
-                'timestamp': this.parse8601 (this.safeString (orders[i], 'time')),
-                'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
-                'symbol': symbol,      // symbol
-                'type': 'limit',        // 'market', 'limit'
-                'side': undefined,          // 'buy', 'sell'
-                'price': this.safeValue (orders[i], 'rate'),    // float price in quote currency
-                'amount': undefined,           // ordered amount of base currency
-                'filled': undefined,           // filled amount of base currency
-                'remaining': this.safeValue (orders[i], 'btc'), // remaining amount to fill
-                'cost': undefined,   // 'filled' * 'price' (filling price used where available)
-                'trades': undefined,         // a list of order trades/executions
-                'fee': undefined,
-                'info': resp,              // the original unparsed order structure as is
-            };
-            const status = this.safeInteger (orders[i], 'status');
-            if (status === 0) {
-                orderObj['status'] = 'open';
-            } else if (status === -1) {
-                orderObj['status'] = 'canceled';
-            } else if (status === 2) {
-                orderObj['status'] = 'closed';
-            }
-            orderObj['side'] = this.safeString (orders[i], 'type') === 1 ? 'sell' : 'buy';
-            orderObj['amount'] = orderObj['price'] * orderObj['remaining'];
-            openOrders.push (orderObj);
-        }
-        return openOrders;
+        return this.parseOrders (orders, market, since, limit);
+        // const openOrders = [];
+        // for (let i = 0; i < orders.length; i++) {
+        //     const orderObj = {
+        //         // 'id': this.safeString (orders[i], 'entry_id'), // string
+        //         // 'datetime': this.safeString (orders[i], 'time'), // ISO8601 datetime of 'timestamp' with milliseconds
+        //         // 'timestamp': this.parse8601 (this.safeString (orders[i], 'time')),
+        //         // 'lastTradeTimestamp': undefined, // Unix timestamp of the most recent trade on this order
+        //         // 'symbol': symbol,      // symbol
+        //         // 'type': 'limit',        // 'market', 'limit'
+        //         'side': undefined,          // 'buy', 'sell'
+        //         'price': this.safeValue (orders[i], 'rate'),    // float price in quote currency
+        //         'amount': undefined,           // ordered amount of base currency
+        //         'filled': undefined,           // filled amount of base currency
+        //         'remaining': this.safeValue (orders[i], 'btc'), // remaining amount to fill
+        //         'cost': undefined,   // 'filled' * 'price' (filling price used where available)
+        //         // 'trades': undefined,         // a list of order trades/executions
+        //         // 'fee': undefined,
+        //         // 'info': resp,              // the original unparsed order structure as is
+        //     };
+        //     const status = this.safeInteger (orders[i], 'status');
+        //     if (status === 0) {
+        //         orderObj['status'] = 'open';
+        //     } else if (status === -1) {
+        //         orderObj['status'] = 'canceled';
+        //     } else if (status === 2) {
+        //         orderObj['status'] = 'closed';
+        //     }
+        //     orderObj['side'] = this.safeString (orders[i], 'type') === 1 ? 'sell' : 'buy';
+        //     orderObj['amount'] = orderObj['price'] * orderObj['remaining'];
+        //     openOrders.push (orderObj);
+        // }
+        // return openOrders;
     }
 
     async fetchBalance (params = {}) {
