@@ -196,7 +196,7 @@ class kraken extends \ccxt\kraken {
             $timestamp = $this->safe_float($candle, 1);
             $timestamp -= $duration;
             $result = array(
-                intval ($timestamp * 1000),
+                intval($timestamp * 1000),
                 $this->safe_float($candle, 2),
                 $this->safe_float($candle, 3),
                 $this->safe_float($candle, 4),
@@ -434,9 +434,9 @@ class kraken extends \ccxt\kraken {
     public function handle_deltas($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
-            $price = floatval ($delta[0]);
-            $amount = floatval ($delta[1]);
-            $timestamp = max ($timestamp || 0, intval (floatval ($delta[2]) * 1000));
+            $price = floatval($delta[0]);
+            $amount = floatval($delta[1]);
+            $timestamp = max ($timestamp || 0, intval(floatval($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;

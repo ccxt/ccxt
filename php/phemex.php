@@ -414,7 +414,7 @@ class phemex extends \ccxt\phemex {
 
     public function from_en($en, $scale, $precision, $precisionMode = null) {
         $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
-        return floatval ($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
+        return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
     }
 
     public function from_ep($ep, $market = null) {

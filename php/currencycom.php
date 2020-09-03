@@ -404,7 +404,7 @@ class currencycom extends \ccxt\currencycom {
         for ($i = 0; $i < count($prices); $i++) {
             $price = $prices[$i];
             $amount = $deltas[$price];
-            $bookside->store (floatval ($price), floatval ($amount));
+            $bookside->store (floatval($price), floatval($amount));
         }
     }
 

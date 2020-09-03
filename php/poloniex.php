@@ -323,7 +323,7 @@ class poloniex extends \ccxt\poloniex {
                     for ($k = 0; $k < count($prices); $k++) {
                         $price = $prices[$k];
                         $amount = $orders[$price];
-                        $bookside->store (floatval ($price), floatval ($amount));
+                        $bookside->store (floatval($price), floatval($amount));
                     }
                 }
                 $orderbook['nonce'] = $nonce;
@@ -332,8 +332,8 @@ class poloniex extends \ccxt\poloniex {
                 $orderbook = $this->orderbooks[$symbol];
                 $side = $delta[1] ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
-                $price = floatval ($delta[2]);
-                $amount = floatval ($delta[3]);
+                $price = floatval($delta[2]);
+                $amount = floatval($delta[3]);
                 $bookside->store ($price, $amount);
                 $orderbookUpdatesCount = $this->sum($orderbookUpdatesCount, 1);
                 $orderbook['nonce'] = $nonce;

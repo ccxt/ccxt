@@ -55,7 +55,7 @@ class gateio extends \ccxt\gateio {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 1, 5, 10, 20, or 30');
         }
         $interval = $this->safe_string($params, 'interval', '0.00000001');
-        $floatInterval = floatval ($interval);
+        $floatInterval = floatval($interval);
         $precision = -1 * log10 ($floatInterval);
         if (($precision < 0) || ($precision > 8) || (fmod($precision, 1) !== 0.0)) {
             throw new ExchangeError($this->id . ' invalid interval');
