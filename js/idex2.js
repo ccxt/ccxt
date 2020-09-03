@@ -965,6 +965,11 @@ module.exports = class idex2 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const nonce = this.uuidv1 ();
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const byteArray = [
@@ -983,8 +988,10 @@ module.exports = class idex2 extends Exchange {
             },
             'signature': signature,
         };
+        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        return response;
+        const canceledOrder = this.safeValue (response, 0);
+        return this.parseOrder (canceledOrder, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
