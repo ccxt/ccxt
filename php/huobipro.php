@@ -1130,7 +1130,7 @@ class huobipro extends Exchange {
                     // more about it here => https://github.com/ccxt/ccxt/pull/4395
                     // we use priceToPrecision instead of amountToPrecision here
                     // because in this case the $amount is in the quote currency
-                    $request['amount'] = $this->cost_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    $request['amount'] = $this->cost_to_precision($symbol, floatval($amount) * floatval($price));
                 }
             } else {
                 $request['amount'] = $this->cost_to_precision($symbol, $amount);
@@ -1199,7 +1199,7 @@ class huobipro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
+            'cost' => floatval($this->currency_to_precision($market[$key], $cost)),
         );
     }
 

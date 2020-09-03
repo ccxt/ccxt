@@ -454,7 +454,7 @@ class braziliex extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
         $info = $order;
         if (is_array($info) && array_key_exists('info', $info)) {
             $info = $order['info'];

@@ -217,7 +217,7 @@ class poloniex extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         if ($side === 'sell') {
             $cost *= $price;
         } else {
@@ -227,7 +227,7 @@ class poloniex extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
         );
     }
 
@@ -269,7 +269,7 @@ class poloniex extends Exchange {
                 $request['start'] = $request['end'] - $limit * $this->parse_timeframe($timeframe);
             }
         } else {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
             if ($limit !== null) {
                 $end = $this->sum($request['start'], $limit * $this->parse_timeframe($timeframe));
                 $request['end'] = $end;
@@ -587,7 +587,7 @@ class poloniex extends Exchange {
                     $feeRate = str_replace('(', '', $feeRate);
                     $feeRateParts = explode('%', $feeRate);
                     $feeRate = $this->safe_string($feeRateParts, 0);
-                    $feeRate = floatval ($feeRate) / 100;
+                    $feeRate = floatval($feeRate) / 100;
                 }
                 $fee = array(
                     'cost' => $feeCost,
@@ -625,7 +625,7 @@ class poloniex extends Exchange {
             'currencyPair' => $market['id'],
         );
         if ($since !== null) {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
             $request['end'] = $this->seconds(); // last 50000 $trades by default
         }
         $trades = $this->publicGetReturnTradeHistory (array_merge($request, $params));
@@ -641,12 +641,12 @@ class poloniex extends Exchange {
         $pair = $market ? $market['id'] : 'all';
         $request = array( 'currencyPair' => $pair );
         if ($since !== null) {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
             $request['end'] = $this->sum($this->seconds(), 1); // adding 1 is a fix for #3411
         }
         // $limit is disabled (does not really work as expected)
         if ($limit !== null) {
-            $request['limit'] = intval ($limit);
+            $request['limit'] = intval($limit);
         }
         $response = $this->privatePostReturnTradeHistory (array_merge($request, $params));
         //
@@ -1081,7 +1081,7 @@ class poloniex extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $price = floatval ($price);
+        $price = floatval($price);
         $request = array(
             'orderNumber' => $id,
             'rate' => $this->price_to_precision($symbol, $price),
@@ -1327,7 +1327,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
         $now = $this->seconds();
-        $start = ($since !== null) ? intval ($since / 1000) : $now - 10 * $year;
+        $start = ($since !== null) ? intval($since / 1000) : $now - 10 * $year;
         $request = array(
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required

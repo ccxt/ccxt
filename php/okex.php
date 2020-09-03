@@ -2619,7 +2619,7 @@ class okex extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/5748
                     $lowercaseCurrencyId = strtolower($currencyId);
                     $feeWithoutCurrencyId = str_replace($lowercaseCurrencyId, '', $feeWithCurrencyId);
-                    $feeCost = floatval ($feeWithoutCurrencyId);
+                    $feeCost = floatval($feeWithoutCurrencyId);
                 }
             }
         }

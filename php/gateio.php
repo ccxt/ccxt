@@ -399,7 +399,7 @@ class gateio extends Exchange {
         // max $limit = 1001
         if ($limit !== null) {
             $periodDurationInSeconds = $this->parse_timeframe($timeframe);
-            $hours = intval (($periodDurationInSeconds * $limit) / 3600);
+            $hours = intval(($periodDurationInSeconds * $limit) / 3600);
             $request['range_hour'] = max (0, $hours - 1);
         }
         $response = $this->publicGetCandlestick2Id (array_merge($request, $params));

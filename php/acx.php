@@ -315,7 +315,7 @@ class acx extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->publicGetK (array_merge($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -368,7 +368,7 @@ class acx extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => intval ($id),
+            'id' => intval($id),
         );
         $response = $this->privateGetOrder (array_merge($request, $params));
         return $this->parse_order($response);

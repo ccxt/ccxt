@@ -284,7 +284,7 @@ class xbtce extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        //     $minutes = intval ($timeframe / 60); // 1 minute by default
+        //     $minutes = intval($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
         //     $market = $this->market($symbol);

@@ -424,7 +424,7 @@ class ice3x extends Exchange {
             $request['items_per_page'] = $limit;
         }
         if ($since !== null) {
-            $request['date_from'] = intval ($since / 1000);
+            $request['date_from'] = intval($since / 1000);
         }
         $response = $this->privatePostTradeList (array_merge($request, $params));
         $data = $this->safe_value($response, 'response', array());

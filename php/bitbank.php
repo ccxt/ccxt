@@ -200,7 +200,7 @@ class bitbank extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string_2($trade, 'transaction_id', 'trade_id');
@@ -433,7 +433,7 @@ class bitbank extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privateGetUserSpotActiveOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -455,7 +455,7 @@ class bitbank extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privateGetUserSpotTradeHistory (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());

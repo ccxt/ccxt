@@ -938,13 +938,13 @@ class timex extends Exchange {
             if ($dotIndex > 0) {
                 $whole = mb_substr($feeString, 0, $dotIndex - 0);
                 $fraction = mb_substr($feeString, -$dotIndex);
-                $fee = floatval ($whole . '.' . $fraction);
+                $fee = floatval($whole . '.' . $fraction);
             } else {
                 $fraction = '.';
                 for ($i = 0; $i < -$dotIndex; $i++) {
                     $fraction .= '0';
                 }
-                $fee = floatval ($fraction . $feeString);
+                $fee = floatval($fraction . $feeString);
             }
         }
         return array(
@@ -1190,7 +1190,7 @@ class timex extends Exchange {
                 $status = 'open';
             }
         }
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $filled));
+        $cost = floatval($this->cost_to_precision($symbol, $price * $filled));
         $fee = null;
         $lastTradeTimestamp = null;
         $trades = null;

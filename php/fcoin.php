@@ -334,7 +334,7 @@ class fcoin extends Exchange {
     public function parse_bids_asks($orders, $priceKey = 0, $amountKey = 1) {
         $result = array();
         $length = is_array($orders) ? count($orders) : 0;
-        $halfLength = intval ($length / 2);
+        $halfLength = intval($length / 2);
         // += 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
@@ -473,7 +473,7 @@ class fcoin extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->marketGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
@@ -681,7 +681,7 @@ class fcoin extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $sinceInSeconds = intval ($since / 1000);
+            $sinceInSeconds = intval($since / 1000);
             $timerange = $limit * $this->parse_timeframe($timeframe);
             $request['before'] = $this->sum($sinceInSeconds, $timerange) - 1;
         }

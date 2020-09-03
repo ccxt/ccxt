@@ -114,8 +114,8 @@ class exx extends Exchange {
             $symbol = $base . '/' . $quote;
             $active = $market['isOpen'] === true;
             $precision = array(
-                'amount' => intval ($market['amountScale']),
-                'price' => intval ($market['priceScale']),
+                'amount' => intval($market['amountScale']),
+                'price' => intval($market['priceScale']),
             );
             $result[] = array(
                 'id' => $id,
@@ -297,12 +297,12 @@ class exx extends Exchange {
         //     }
         //
         $symbol = $market['symbol'];
-        $timestamp = intval ($order['trade_date']);
+        $timestamp = intval($order['trade_date']);
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'trade_money');
         $amount = $this->safe_float($order, 'total_amount');
         $filled = $this->safe_float($order, 'trade_amount', 0.0);
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';

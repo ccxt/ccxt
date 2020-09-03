@@ -714,7 +714,7 @@ class bitpanda extends Exchange {
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
-        $alignedTimestamp = $duration * intval ($timestamp / $duration);
+        $alignedTimestamp = $duration * intval($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(
