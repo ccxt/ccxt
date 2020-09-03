@@ -21,6 +21,8 @@ module.exports = class novadax extends Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'fetchMarkets': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
             },
             'timeframes': {
@@ -206,6 +208,39 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketTickers (params);
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data":[
+        //             {
+        //                 "ask":"61879.36",
+        //                 "baseVolume24h":"164.40955092",
+        //                 "bid":"61815",
+        //                 "high24h":"64930.72",
+        //                 "lastPrice":"61820.04",
+        //                 "low24h":"61156.32",
+        //                 "open24h":"64624.19",
+        //                 "quoteVolume24h":"10307493.92",
+        //                 "symbol":"BTC_BRL",
+        //                 "timestamp":1599091291083
+        //             },
+        //         ],
+        //         "message":"Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
