@@ -3,6 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound, BadRequest, NotSupported, ExchangeNotAvailable, BadSymbol, OnMaintenance } = require ('./base/errors');
+// const { ExchangeNotAvailable } = require('ccxt');
 
 //  ---------------------------------------------------------------------------
 
@@ -420,5 +422,47 @@ module.exports = class bitbns extends Exchange {
         const resp = await this.private1PostListExecutedOrders (this.extend (request, params));
         const trades = this.safeValue (resp, 'data');
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // console.log ('HANDLEERROR');
+        // console.log ({ code, reason, url, method, body, response, requestBody });
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        const errorCode = this.safeValue (response, 'code');
+        let errorText = this.safeString (response, 'error');
+        if (errorText === undefined) {
+            errorText = '';
+        }
+        if (errorCode !== undefined) {
+            if (errorCode === 400) {
+                throw new BadRequest (errorText);
+            } else if (errorCode === 401) {
+                throw new AuthenticationError (errorText);
+            } else if (errorCode === 403) {
+                throw new NotSupported ('Request is forbidden:' + errorText);
+            } else if (errorCode === 404) {
+                throw new ExchangeNotAvailable (errorText);
+            } else if (errorCode === 406) {
+                throw new BadSymbol ('Coin name not supplied or not yet supported: ');
+            } else if (errorCode === 409) {
+                throw new BadRequest ('Parameters entered is incorrect: ' + errorText);
+            } else if (errorCode === 412) {
+                throw new BadRequest ('Cancellation Failed');
+            } else if (errorCode === 413) {
+                throw new InvalidOrder ('Volume asked not acceptable: ' + errorText);
+            } else if (errorCode === 416) {
+                throw new InsufficientFunds ('Not sufficient balance to purchase currency: ' + errorText);
+            } else if (errorCode === 417) {
+                throw new OrderNotFound ("Order doesn't exist any more: " + errorText);
+            } else if (errorCode === 428) {
+                throw new BadRequest ('Price seems Irregular from current market price. -- Entered price is more than current price');
+            } else if (errorCode === 500) {
+                throw new ExchangeError (errorText);
+            } else if (errorCode === 503) {
+                throw new OnMaintenance ('Down for Maintainance: ' + errorText);
+            }
+        }
     }
 };
