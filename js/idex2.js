@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
+const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ module.exports = class idex2 extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 1500,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'requiresWeb3': true,
             'has': {
                 'cancelOrder': true,
@@ -101,6 +101,8 @@ module.exports = class idex2 extends Exchange {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
                 'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                'EXCEEDED_RATE_LIMIT': DDoSProtection,
+                'INVALID_PARAMETER': BadRequest,
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -1002,6 +1004,7 @@ module.exports = class idex2 extends Exchange {
             throw new Exception (this.id + ' ' + message);
         }
         if (errorCode !== undefined) {
+            console.log (response)
             throw new ExchangeError (this.id + ' ' + message);
         }
     }
