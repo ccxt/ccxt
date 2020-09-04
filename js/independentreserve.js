@@ -18,8 +18,10 @@ module.exports = class independentreserve extends Exchange {
                 'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -186,6 +188,8 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //console.log ('order:', order)
+        //console.log ('market:', market)
         //
         //     {
         //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
@@ -203,7 +207,7 @@ module.exports = class independentreserve extends Exchange {
         //
         let symbol = undefined;
         const baseId = this.safeString (order, 'PrimaryCurrencyCode');
-        const quoteId = this.safeString (order, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
         let base = undefined;
         let quote = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
@@ -215,7 +219,11 @@ module.exports = class independentreserve extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let orderType = this.safeValue (order, 'Type');
+        let orderType = undefined
+        orderType = this.safeValue (order, 'Type');
+        if (orderType === undefined) {
+            orderType = this.safeValue (order, 'OrderType');
+        }
         if (orderType.indexOf ('Market') >= 0) {
             orderType = 'market';
         } else if (orderType.indexOf ('Limit') >= 0) {
@@ -299,6 +307,28 @@ module.exports = class independentreserve extends Exchange {
             market = this.market (symbol);
         }
         return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 50;
+        }
+        const request = this.ordered ({
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+            'pageIndex': pageIndex,
+            'pageSize': limit,
+        });
+
+        //console.log ('Request:', request)
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
+
+        //console.log ('Response:', response)
+
+        return this.parseOrders (response['Data'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
