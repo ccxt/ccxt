@@ -25,6 +25,7 @@ module.exports = class novadax extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -345,6 +346,87 @@ module.exports = class novadax extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, timestamp, 'bids', 'asks');
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "amount":"0.0632",
+        //         "price":"0.037288",
+        //         "side":"BUY",
+        //         "timestamp":1599279694576
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const side = this.safeStringLower (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'volume');
+        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
+            cost = amount * price;
+        }
+        // const marketId = this.safeString (trade, 'instrument_code');
+        let symbol = undefined;
+        // if (marketId !== undefined) {
+        //     if (marketId in this.markets_by_id) {
+        //         market = this.markets_by_id[marketId];
+        //         symbol = market['symbol'];
+        //     } else {
+        //         const [ baseId, quoteId ] = marketId.split ('_');
+        //         const base = this.safeCurrencyCode (baseId);
+        //         const quote = this.safeCurrencyCode (quoteId);
+        //         symbol = base + '/' + quote;
+        //     }
+        // }
+        if ((market !== undefined) && (symbol === undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': undefined,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        const response = await this.publicGetMarketTrades (this.extend (request, params));
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data":[
+        //             {"amount":"0.0632","price":"0.037288","side":"BUY","timestamp":1599279694576},
+        //             {"amount":"0.0052","price":"0.03715","side":"SELL","timestamp":1599276606852},
+        //             {"amount":"0.0058","price":"0.037188","side":"SELL","timestamp":1599275187812},
+        //         ],
+        //         "message":"Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
