@@ -23,8 +23,9 @@ module.exports = class novadax extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders':true,
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -640,6 +641,13 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
