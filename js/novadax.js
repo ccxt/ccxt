@@ -23,6 +23,7 @@ module.exports = class novadax extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -551,6 +552,37 @@ module.exports = class novadax extends Exchange {
         //         "code": "A10000",
         //         "data": {
         //             "result": true
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetOrdersGet (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": {
+        //             "id": "608695623247466496",
+        //             "symbol": "BTC_BRL",
+        //             "type": "MARKET",
+        //             "side": "SELL",
+        //             "price": null,
+        //             "averagePrice": "0",
+        //             "amount": "0.123",
+        //             "filledAmount": "0",
+        //             "value": null,
+        //             "filledValue": "0",
+        //             "filledFee": "0",
+        //             "status": "REJECTED",
+        //             "timestamp": 1565165945588
         //         },
         //         "message": "Success"
         //     }
