@@ -716,6 +716,47 @@ module.exports = class novadax extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'SUBMITTED': 'open',
+            'PROCESSING': 'open',
+            'PARTIAL_FILLED': 'open',
+            'CANCELING': 'canceled',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder, fetchOrders, fetchOrder
+        //
+        //     {
+        //         "amount": "0.001",
+        //         "averagePrice": null,
+        //         "filledAmount": "0",
+        //         "filledFee": "0",
+        //         "filledValue": "0",
+        //         "id": "633679992971251712",
+        //         "price": "35000",
+        //         "side": "BUY",
+        //         "status": "PROCESSING",
+        //         "symbol": "BTC_BRL",
+        //         "timestamp": 1571122683535,
+        //         "type": "LIMIT",
+        //         "value": "35"
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "result": true
+        //     }
+
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
