@@ -1757,9 +1757,9 @@ class bitpanda extends Exchange {
         //     array("error":"MISSING_TO_PARAM")
         //     array("error":"CANDLESTICKS_TIME_RANGE_TOO_BIG")
         //
-        $feedback = $this->id . ' ' . $body;
         $message = $this->safe_string($response, 'error');
         if ($message !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message

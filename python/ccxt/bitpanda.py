@@ -1660,9 +1660,9 @@ class bitpanda(Exchange):
         #     {"error":"MISSING_TO_PARAM"}
         #     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         #
-        feedback = self.id + ' ' + body
         message = self.safe_string(response, 'error')
         if message is not None:
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
