@@ -70,23 +70,23 @@ class ftx extends \ccxt\ftx {
             $market = $this->market($symbol);
             $messageHash = $messageHash . ':' . $market['id'];
         }
-        $this->authenticate();
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
             'channel' => $channel,
         );
-        return $this->watch($url, $messageHash, $request, $channel);
+        $future = $this->authenticate();
+        return $this->after_dropped($future, array($this, 'watch'), $url, $messageHash, $request, $channel);
     }
 
     public function authenticate() {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $authenticate = 'authenticate';
+        $method = 'login';
         if (!(is_array($client->subscriptions) && array_key_exists($authenticate, $client->subscriptions))) {
             $this->check_required_credentials();
             $client->subscriptions[$authenticate] = true;
-            $method = 'login';
             $time = $this->milliseconds();
             $payload = (string) $time . 'websocket_login';
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
@@ -99,8 +99,10 @@ class ftx extends \ccxt\ftx {
                 'op' => $method,
             );
             // ftx does not reply to this $message
-            $this->spawn(array($this, 'watch'), $url, $method, $message);
+            $future = $this->watch($url, $method, $message);
+            $future->resolve (true);
         }
+        return $client->future ($method);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -342,10 +344,6 @@ class ftx extends \ccxt\ftx {
     public function handle_subscription_status($client, $message) {
         // todo => handle unsubscription status
         // array('type' => 'subscribed', 'channel' => 'trades', 'market' => 'BTC-PERP')
-        $channel = $this->safe_string($message, 'channel');
-        if (($channel === 'orders') || ($channel === 'fills')) {
-            $client->resolve (true, 'login');
-        }
         return $message;
     }
 
@@ -379,7 +377,6 @@ class ftx extends \ccxt\ftx {
             // just reject the private api futures
             $client->reject ($error, 'fills');
             $client->reject ($error, 'orders');
-            $client->reject ($error, 'login');
         }
         return $message;
     }
