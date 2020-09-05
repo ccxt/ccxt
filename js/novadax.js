@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,8 +19,7 @@ module.exports = class novadax extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -480,38 +480,63 @@ module.exports = class novadax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
+        const uppercaseSide = side.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'type': uppercaseType, // LIMIT, MARKET
-            'side': side.toUpperCase (), // or SELL
+            'side': uppercaseSide, // or SELL
             // 'accountId': '...', // subaccount id, optional
             // 'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
         };
-        let priceIsRequired = false;
         if (uppercaseType === 'LIMIT') {
-            priceIsRequired = true;
-        }
-        if (priceIsRequired) {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        } else if (uppercaseType === 'MARKET') {
+            if (uppercaseSide === 'SELL') {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            } else if (uppercaseSide === 'BUY') {
+                let value = this.safeFloat (params, 'value');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (value === undefined) {
+                            value = amount * price;
+                        }
+                    } else if (value === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'value' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    value = (value === undefined) ? amount : value;
+                }
+                const precision = market['precision']['price'];
+                request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
+            }
         }
-        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostOrderCreate (this.extend (request, params));
         //
         //     {
-        //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
-        //         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
-        //         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
-        //         "instrument_code": "BTC_EUR",
-        //         "time": "2019-08-01T08:00:44.026Z",
-        //         "side": "BUY",
-        //         "price": "5000",
-        //         "amount": "1",
-        //         "filled_amount": "0.5",
-        //         "type": "LIMIT",
-        //         "time_in_force": "GOOD_TILL_CANCELLED"
+        //         "code": "A10000",
+        //         "data": {
+        //             "amount": "0.001",
+        //             "averagePrice": null,
+        //             "filledAmount": "0",
+        //             "filledFee": "0",
+        //             "filledValue": "0",
+        //             "id": "633679992971251712",
+        //             "price": "35000",
+        //             "side": "BUY",
+        //             "status": "PROCESSING",
+        //             "symbol": "BTC_BRL",
+        //             "timestamp": 1571122683535,
+        //             "type": "LIMIT",
+        //             "value": "35"
+        //         },
+        //         "message": "Success"
         //     }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
