@@ -22,10 +22,12 @@ module.exports = class novadax extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -378,10 +380,22 @@ module.exports = class novadax extends Exchange {
         //         "timestamp":1599279694576
         //     }
         //
-        // private fetchMyTrades
+        // private fetchOrderTrades
         //
-        //     ...
+        //     {
+        //         "id": "608717046691139584",
+        //         "orderId": "608716957545402368",
+        //         "symbol": "BTC_BRL",
+        //         "side": "BUY",
+        //         "amount": "0.0988",
+        //         "price": "45514.76",
+        //         "fee": "0.0000988 BTC",
+        //         "role": "MAKER",
+        //         "timestamp": 1565171053345
+        //     }
         //
+        const id = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeStringLower (trade, 'side');
         const price = this.safeFloat (trade, 'price');
@@ -390,25 +404,37 @@ module.exports = class novadax extends Exchange {
         if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
         }
-        // const marketId = this.safeString (trade, 'instrument_code');
+        const marketId = this.safeString (trade, 'symbol');
         let symbol = undefined;
-        // if (marketId !== undefined) {
-        //     if (marketId in this.markets_by_id) {
-        //         market = this.markets_by_id[marketId];
-        //         symbol = market['symbol'];
-        //     } else {
-        //         const [ baseId, quoteId ] = marketId.split ('_');
-        //         const base = this.safeCurrencyCode (baseId);
-        //         const quote = this.safeCurrencyCode (quoteId);
-        //         symbol = base + '/' + quote;
-        //     }
-        // }
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         if ((market !== undefined) && (symbol === undefined)) {
             symbol = market['symbol'];
         }
+        const takerOrMaker = this.safeStringLower (trade, 'role');
+        const feeString = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeString !== undefined) {
+            const parts = feeString.split (' ');
+            const feeCurrencyId = this.safeString (parts, 1);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': this.safeFloat (parts, 0),
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
-            'id': undefined,
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -417,8 +443,8 @@ module.exports = class novadax extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': undefined,
-            'fee': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
             'info': trade,
         };
     }
@@ -648,6 +674,46 @@ module.exports = class novadax extends Exchange {
             'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'CANCELING,FILLED,CANCELED,REJECTED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetOrdersFill (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const data = this.safeValue (response, 'data', []);
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "id": "608717046691139584",
+        //                 "orderId": "608716957545402368",
+        //                 "symbol": "BTC_BRL",
+        //                 "side": "BUY",
+        //                 "amount": "0.0988",
+        //                 "price": "45514.76",
+        //                 "fee": "0.0000988 BTC",
+        //                 "role": "MAKER",
+        //                 "timestamp": 1565171053345
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        return this.parseTrades (data, market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
