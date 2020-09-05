@@ -19,24 +19,14 @@ module.exports = class novadax extends Exchange {
             'has': {
                 'CORS': false,
                 'publicAPI': true,
-                'privateAPI': false,
+                'privateAPI': true,
+                'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-            },
-            'timeframes': {
-                '1m': '1/MINUTES',
-                '5m': '5/MINUTES',
-                '15m': '15/MINUTES',
-                '30m': '30/MINUTES',
-                '1h': '1/HOURS',
-                '4h': '4/HOURS',
-                '1d': '1/DAYS',
-                '1w': '1/WEEKS',
-                '1M': '1/MONTHS',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
@@ -94,6 +84,30 @@ module.exports = class novadax extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // A99999 500 Failed Internal error
+                    // A10000 200 Success Successful request
+                    // A10001 400 Params error Parameter is invalid
+                    // A10002 404 Api not found API used is irrelevant
+                    // A10003 403 Authentication failed Authentication is failed
+                    // A10004 429 Too many requests Too many requests are made
+                    // A10005 403 Kyc required Need to complete KYC firstly
+                    // A10006 403 Customer canceled Account is canceled
+                    // A10007 400 Account not exist Sub account does not exist
+                    // A10011 400 Symbol not exist Trading symbol does not exist
+                    // A10012 400 Symbol not trading Trading symbol is temporarily not available
+                    // A10013 503 Symbol maintain Trading symbol is in maintain
+                    // A30001 400 Order not found Queried order is not found
+                    // A30002 400 Order amount is too small Order amount is too small
+                    // A30003 400 Order amount is invalid Order amount is invalid
+                    // A30004 400 Order value is too small Order value is too small
+                    // A30005 400 Order value is invalid Order value is invalid
+                    // A30006 400 Order price is invalid Order price is invalid
+                    // A30007 400 Insufficient balance The balance is insufficient
+                    // A30008 400 Order was closed The order has been executed
+                    // A30009 400 Order canceled The order has been cancelled
+                    // A30010 400 Order cancelling The order is being cancelled
+                    // A30011 400 Order price too high The order price is too high
+                    // A30012 400 Order price too low The order price is too low
                 },
                 'broad': {
                 },
@@ -427,6 +441,38 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountGetBalance (params);
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "available": "1.23",
+        //                 "balance": "0.23",
+        //                 "currency": "BTC",
+        //                 "hold": "1"
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = { 'info': response };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'available');
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'hold');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
