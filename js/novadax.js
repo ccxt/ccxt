@@ -498,6 +498,42 @@ module.exports = class novadax extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data": "DR123",
+        //         "message":"Success"
+        //     }
+        //
+        const id = this.safeString (transaction, 'data');
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'status': status,
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
