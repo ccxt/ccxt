@@ -93,28 +93,28 @@ module.exports = class novadax extends Exchange {
                 'exact': {
                     'A99999': ExchangeError, // 500 Failed Internal error
                     // 'A10000': ExchangeError, // 200 Success Successful request
-                    'A10001': BadRequest, //  400 Params error Parameter is invalid
-                    'A10002': ExchangeError, //  404 Api not found API used is irrelevant
-                    'A10003': AuthenticationError, //  403 Authentication failed Authentication is failed
-                    'A10004': RateLimitExceeded, //  429 Too many requests Too many requests are made
-                    'A10005': PermissionDenied, //  403 Kyc required Need to complete KYC firstly
-                    'A10006': AccountSuspended, //  403 Customer canceled Account is canceled
-                    'A10007': BadRequest, //  400 Account not exist Sub account does not exist
-                    'A10011': BadSymbol, //  400 Symbol not exist Trading symbol does not exist
-                    'A10012': BadSymbol, //  400 Symbol not trading Trading symbol is temporarily not available
-                    'A10013': OnMaintenance, //  503 Symbol maintain Trading symbol is in maintain
-                    'A30001': OrderNotFound, //  400 Order not found Queried order is not found
-                    'A30002': InvalidOrder, //  400 Order amount is too small Order amount is too small
-                    'A30003': InvalidOrder, //  400 Order amount is invalid Order amount is invalid
-                    'A30004': InvalidOrder, //  400 Order value is too small Order value is too small
-                    'A30005': InvalidOrder, //  400 Order value is invalid Order value is invalid
-                    'A30006': InvalidOrder, //  400 Order price is invalid Order price is invalid
-                    'A30007': InsufficientFunds, //  400 Insufficient balance The balance is insufficient
-                    'A30008': InvalidOrder, //  400 Order was closed The order has been executed
-                    'A30009': InvalidOrder, //  400 Order canceled The order has been cancelled
-                    'A30010': CancelPending, //  400 Order cancelling The order is being cancelled
-                    'A30011': InvalidOrder, //  400 Order price too high The order price is too high
-                    'A30012': InvalidOrder, //  400 Order price too low The order price is too low
+                    'A10001': BadRequest, // 400 Params error Parameter is invalid
+                    'A10002': ExchangeError, // 404 Api not found API used is irrelevant
+                    'A10003': AuthenticationError, // 403 Authentication failed Authentication is failed
+                    'A10004': RateLimitExceeded, // 429 Too many requests Too many requests are made
+                    'A10005': PermissionDenied, // 403 Kyc required Need to complete KYC firstly
+                    'A10006': AccountSuspended, // 403 Customer canceled Account is canceled
+                    'A10007': BadRequest, // 400 Account not exist Sub account does not exist
+                    'A10011': BadSymbol, // 400 Symbol not exist Trading symbol does not exist
+                    'A10012': BadSymbol, // 400 Symbol not trading Trading symbol is temporarily not available
+                    'A10013': OnMaintenance, // 503 Symbol maintain Trading symbol is in maintain
+                    'A30001': OrderNotFound, // 400 Order not found Queried order is not found
+                    'A30002': InvalidOrder, // 400 Order amount is too small Order amount is too small
+                    'A30003': InvalidOrder, // 400 Order amount is invalid Order amount is invalid
+                    'A30004': InvalidOrder, // 400 Order value is too small Order value is too small
+                    'A30005': InvalidOrder, // 400 Order value is invalid Order value is invalid
+                    'A30006': InvalidOrder, // 400 Order price is invalid Order price is invalid
+                    'A30007': InsufficientFunds, // 400 Insufficient balance The balance is insufficient
+                    'A30008': InvalidOrder, // 400 Order was closed The order has been executed
+                    'A30009': InvalidOrder, // 400 Order canceled The order has been cancelled
+                    'A30010': CancelPending, // 400 Order cancelling The order is being cancelled
+                    'A30011': InvalidOrder, // 400 Order price too high The order price is too high
+                    'A30012': InvalidOrder, // 400 Order price too low The order price is too low
                 },
                 'broad': {
                 },
