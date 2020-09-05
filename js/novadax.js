@@ -19,8 +19,9 @@ module.exports = class novadax extends Exchange {
             'has': {
                 'CORS': false,
                 'publicAPI': true,
-                'privateAPI': true,
+                'privateAPI': false,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -311,6 +312,39 @@ module.exports = class novadax extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 20
+        }
+        const response = await this.publicGetMarketDepth (this.extend (request, params));
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data":{
+        //             "asks":[
+        //                 ["0.037159","0.3741"],
+        //                 ["0.037215","0.2706"],
+        //                 ["0.037222","1.8459"],
+        //             ],
+        //             "bids":[
+        //                 ["0.037053","0.3857"],
+        //                 ["0.036969","0.8101"],
+        //                 ["0.036953","1.5226"],
+        //             ],
+        //             "timestamp":1599280414448
+        //         },
+        //         "message":"Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
