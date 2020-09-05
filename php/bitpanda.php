@@ -778,7 +778,7 @@ class bitpanda extends Exchange {
         //         "sequence":603047
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
+        // fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         //
         //     {
         //         "$fee" => array(
@@ -1349,7 +1349,7 @@ class bitpanda extends Exchange {
         $uppercaseType = strtoupper($type);
         $request = array(
             'instrument_code' => $market['id'],
-            'type' => strtoupper($type), // LIMIT, MARKET, STOP
+            'type' => $uppercaseType, // LIMIT, MARKET, STOP
             'side' => strtoupper($side), // or SELL
             'amount' => $this->amount_to_precision($symbol, $amount),
             // "$price" => "1234.5678", // required for LIMIT and STOP orders

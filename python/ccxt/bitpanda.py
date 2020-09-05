@@ -758,7 +758,7 @@ class bitpanda(Exchange):
         #         "sequence":603047
         #     }
         #
-        # fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
         #
         #     {
         #         "fee": {
@@ -1284,7 +1284,7 @@ class bitpanda(Exchange):
         uppercaseType = type.upper()
         request = {
             'instrument_code': market['id'],
-            'type': type.upper(),  # LIMIT, MARKET, STOP
+            'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
