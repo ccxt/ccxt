@@ -754,7 +754,64 @@ module.exports = class novadax extends Exchange {
         //     {
         //         "result": true
         //     }
-
+        //
+        const id = this.safeString (order, 'id');
+        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'filledValue');
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const average = this.safeFloat (order, 'averagePrice');
+        const filled = this.safeFloat (order, 'filledAmount');
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (0, amount - filled);
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'filledFee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'marketId');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': id,
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
