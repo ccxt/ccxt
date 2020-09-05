@@ -476,6 +476,44 @@ module.exports = class novadax extends Exchange {
         return this.parseBalance (result);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const request = {
+            'symbol': market['id'],
+            'type': uppercaseType, // LIMIT, MARKET
+            'side': side.toUpperCase (), // or SELL
+            // 'accountId': '...', // subaccount id, optional
+            // 'amount': this.amountToPrecision (symbol, amount),
+            // "price": "1234.5678", // required for LIMIT and STOP orders
+        };
+        let priceIsRequired = false;
+        if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+        }
+        if (priceIsRequired) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
+        //         "client_id": "d75fb03b-b599-49e9-b926-3f0b6d103206",
+        //         "account_id": "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
+        //         "instrument_code": "BTC_EUR",
+        //         "time": "2019-08-01T08:00:44.026Z",
+        //         "side": "BUY",
+        //         "price": "5000",
+        //         "amount": "1",
+        //         "filled_amount": "0.5",
+        //         "type": "LIMIT",
+        //         "time_in_force": "GOOD_TILL_CANCELLED"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -524,7 +562,7 @@ module.exports = class novadax extends Exchange {
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
-            'status': status,
+            'status': undefined,
             'type': undefined,
             'updated': undefined,
             'txid': undefined,
