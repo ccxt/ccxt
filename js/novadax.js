@@ -19,6 +19,7 @@ module.exports = class novadax extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
@@ -513,7 +514,7 @@ module.exports = class novadax extends Exchange {
                 request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
             }
         }
-        const response = await this.privatePostOrderCreate (this.extend (request, params));
+        const response = await this.privatePostOrdersCreate (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -537,6 +538,25 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privatePostOrdersCancel (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": {
+        //             "result": true
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
