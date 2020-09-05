@@ -27,6 +27,7 @@ module.exports = class novadax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
@@ -473,6 +474,28 @@ module.exports = class novadax extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'code': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'wallet': address,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.privatePostAccountWithdrawCoin (this.extend (request, params));
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data": "DR123",
+        //         "message":"Success"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
