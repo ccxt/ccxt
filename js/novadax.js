@@ -24,6 +24,7 @@ module.exports = class novadax extends Exchange {
                 'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchOrder': true,
+                'fetchOrders':true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -589,6 +590,56 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'status': 'SUBMITTED,PROCESSING', // SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
+            // 'fromId': '...', // order id to begin with
+            // 'toId': '...', // order id to end up with
+            // 'fromTimestamp': since,
+            // 'toTimestamp': this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        if (since !== undefined) {
+            request['fromTimestamp'] = since;
+        }
+        const response = await this.privateGetOrdersGet (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "id": "608695678650028032",
+        //                 "symbol": "BTC_BRL",
+        //                 "type": "MARKET",
+        //                 "side": "SELL",
+        //                 "price": null,
+        //                 "averagePrice": "0",
+        //                 "amount": "0.123",
+        //                 "filledAmount": "0",
+        //                 "value": null,
+        //                 "filledValue": "0",
+        //                 "filledFee": "0",
+        //                 "status": "REJECTED",
+        //                 "timestamp": 1565165958796
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
