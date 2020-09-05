@@ -198,7 +198,7 @@ class mercado extends Exchange {
         );
         if ($since !== null) {
             $method .= 'From';
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
         if ($to !== null) {
@@ -389,7 +389,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostGetOrder (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
@@ -452,10 +452,10 @@ class mercado extends Exchange {
             'coin' => strtolower($market['id']),
         );
         if ($limit !== null && $since !== null) {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
         } else if ($since !== null) {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($this->seconds(), 1);
         } else if ($limit !== null) {
             $request['to'] = $this->seconds();

@@ -373,7 +373,7 @@ class bigone extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_time($params = array ()) {
@@ -387,7 +387,7 @@ class bigone extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return intval ($timestamp / 1000000);
+        return intval($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -525,7 +525,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -641,7 +641,7 @@ class bigone extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval ($since / 1000);
+            // $start = intval($since / 1000);
             $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
             $request['time'] = $this->iso8601($end);
         }

@@ -1166,7 +1166,7 @@ class probit(Exchange):
                 self.check_required_credentials()
                 expires = self.safe_integer(self.options, 'expires')
                 if (expires is None) or (expires < now):
-                    raise AuthenticationError(self.id + ' accessToken expired, call signIn() method')
+                    raise AuthenticationError(self.id + ' access token expired, call signIn() method')
                 accessToken = self.safe_string(self.options, 'accessToken')
                 headers = {
                     'Authorization': 'Bearer ' + accessToken,

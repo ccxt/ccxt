@@ -267,7 +267,7 @@ class lbank extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = 60, $params = array ()) {
@@ -295,7 +295,7 @@ class lbank extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string($trade, 'tid');
@@ -326,7 +326,7 @@ class lbank extends Exchange {
             'size' => 100,
         );
         if ($since !== null) {
-            $request['time'] = intval ($since);
+            $request['time'] = intval($since);
         }
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -369,7 +369,7 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
             'size' => $limit,
-            'time' => intval ($since / 1000),
+            'time' => intval($since / 1000),
         );
         $response = $this->publicGetKline (array_merge($request, $params));
         //
@@ -600,7 +600,7 @@ class lbank extends Exchange {
     public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval ($secretLength / $lineLength);
+        $numLines = intval($secretLength / $lineLength);
         $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {

@@ -464,7 +464,7 @@ class zaif extends Exchange {
     }
 
     public function nonce() {
-        $nonce = floatval ($this->milliseconds() / 1000);
+        $nonce = floatval($this->milliseconds() / 1000);
         return sprintf('%.8f', $nonce);
     }
 

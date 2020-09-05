@@ -424,7 +424,7 @@ class digifinex(Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         apiKey = self.safe_value(params, 'apiKey', self.apiKey)

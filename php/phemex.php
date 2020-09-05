@@ -681,12 +681,12 @@ class phemex extends Exchange {
             $precision = null;
             if ($valueScale !== null) {
                 $precision = pow(10, -$valueScale);
-                $precision = floatval ($this->decimal_to_precision($precision, ROUND, 0.00000001, $this->precisionMode));
+                $precision = floatval($this->decimal_to_precision($precision, ROUND, 0.00000001, $this->precisionMode));
                 if ($minValueEv !== null) {
-                    $minAmount = floatval ($this->decimal_to_precision($minValueEv * $precision, ROUND, 0.00000001, $this->precisionMode));
+                    $minAmount = floatval($this->decimal_to_precision($minValueEv * $precision, ROUND, 0.00000001, $this->precisionMode));
                 }
                 if ($maxValueEv !== null) {
-                    $maxAmount = floatval ($this->decimal_to_precision($maxValueEv * $precision, ROUND, 0.00000001, $this->precisionMode));
+                    $maxAmount = floatval($this->decimal_to_precision($maxValueEv * $precision, ROUND, 0.00000001, $this->precisionMode));
                 }
             }
             $result[$code] = array(
@@ -794,7 +794,7 @@ class phemex extends Exchange {
     }
 
     public function to_en($n, $scale, $precision) {
-        return intval ($this->decimal_to_precision($n * pow(10, $scale), ROUND, $precision, DECIMAL_PLACES));
+        return intval($this->decimal_to_precision($n * pow(10, $scale), ROUND, $precision, DECIMAL_PLACES));
     }
 
     public function to_ev($amount, $market = null) {
@@ -813,7 +813,7 @@ class phemex extends Exchange {
 
     public function from_en($en, $scale, $precision, $precisionMode = null) {
         $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
-        return floatval ($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
+        return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
     }
 
     public function from_ep($ep, $market = null) {
@@ -874,7 +874,7 @@ class phemex extends Exchange {
             if ($limit === null) {
                 $limit = 2000; // max 2000
             }
-            $since = intval ($since / 1000);
+            $since = intval($since / 1000);
             $request['from'] = $since;
             $request['to'] = $this->sum($since, $duration * $limit);
         } else if ($limit !== null) {

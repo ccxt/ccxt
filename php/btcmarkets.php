@@ -713,7 +713,7 @@ class btcmarkets extends Exchange {
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         for ($i = 0; $i < count($ids); $i++) {
-            $ids[$i] = intval ($ids[$i]);
+            $ids[$i] = intval($ids[$i]);
         }
         $request = array(
             'ids' => $ids,
@@ -736,16 +736,16 @@ class btcmarkets extends Exchange {
         $cost = null;
         if ($market['quote'] === 'AUD') {
             $currency = $market['quote'];
-            $cost = floatval ($this->cost_to_precision($symbol, $amount * $price));
+            $cost = floatval($this->cost_to_precision($symbol, $amount * $price));
         } else {
             $currency = $market['base'];
-            $cost = floatval ($this->amount_to_precision($symbol, $amount));
+            $cost = floatval($this->amount_to_precision($symbol, $amount));
         }
         return array(
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $rate * $cost)),
+            'cost' => floatval($this->fee_to_precision($symbol, $rate * $cost)),
         );
     }
 

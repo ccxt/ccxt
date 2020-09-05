@@ -353,7 +353,7 @@ class braziliex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$marketId], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -454,7 +454,7 @@ class braziliex extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
         $info = $order;
         if (is_array($info) && array_key_exists('info', $info)) {
             $info = $order['info'];

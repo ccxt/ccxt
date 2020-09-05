@@ -196,6 +196,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
@@ -598,7 +599,7 @@ class ftx extends Exchange {
             $request['limit'] = $limit;
             $request['start_time'] = $request['end_time'] - $limit * $this->parse_timeframe($timeframe);
         } else {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
             $request['limit'] = $limit;
             $request['end_time'] = $this->sum($request['start_time'], $limit * $this->parse_timeframe($timeframe));
         }
@@ -730,7 +731,7 @@ class ftx extends Exchange {
             'market_name' => $marketId,
         );
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
             // start_time doesn't work without end_time
             $request['end_time'] = $this->seconds();
         }
@@ -1004,7 +1005,7 @@ class ftx extends Exchange {
             'side' => $side, // "buy" or "sell"
             // 'price' => 0.306525, // send null for $market orders
             'type' => $type, // "limit", "$market", "stop", "trailingStop", or "takeProfit"
-            'size' => floatval ($this->amount_to_precision($symbol, $amount)),
+            'size' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'reduceOnly' => false, // optional, default is false
             // 'ioc' => false, // optional, default is false, limit or $market orders only
             // 'postOnly' => false, // optional, default is false, limit or $market orders only
@@ -1017,7 +1018,7 @@ class ftx extends Exchange {
         }
         $priceToPrecision = null;
         if ($price !== null) {
-            $priceToPrecision = floatval ($this->price_to_precision($symbol, $price));
+            $priceToPrecision = floatval($this->price_to_precision($symbol, $price));
         }
         $method = 'privatePostConditionalOrders';
         if ($type === 'limit') {
@@ -1093,7 +1094,7 @@ class ftx extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -1103,7 +1104,7 @@ class ftx extends Exchange {
         $type = $this->safe_value($params, 'type');
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
-            $request['order_id'] = intval ($id);
+            $request['order_id'] = intval($id);
             if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
                 $method = 'privateDeleteConditionalOrdersOrderId';
             }
@@ -1243,7 +1244,7 @@ class ftx extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -1296,7 +1297,7 @@ class ftx extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
         }
         $response = $this->privateGetFills (array_merge($request, $params));
         //

@@ -117,7 +117,7 @@ class bitpanda extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.15 / 100,
                     'maker' => 0.10 / 100,
@@ -580,7 +580,7 @@ class bitpanda extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetMarketTicker ($params);
+        $response = $this->publicGetMarketTicker ($params);
         //
         //     array(
         //         {
@@ -602,12 +602,12 @@ class bitpanda extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i]);
+        for ($i = 0; $i < count($response); $i++) {
+            $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -714,7 +714,7 @@ class bitpanda extends Exchange {
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
-        $alignedTimestamp = $duration * intval ($timestamp / $duration);
+        $alignedTimestamp = $duration * intval($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(

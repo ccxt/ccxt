@@ -428,7 +428,7 @@ class digifinex extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -695,7 +695,7 @@ class digifinex extends Exchange {
             // 'end_time' => 1564520003, // ending timestamp, current timestamp by default
         );
         if ($since !== null) {
-            $startTime = intval ($since / 1000);
+            $startTime = intval($since / 1000);
             $request['start_time'] = $startTime;
             if ($limit !== null) {
                 $duration = $this->parse_timeframe($timeframe);
@@ -978,7 +978,7 @@ class digifinex extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000); // default 3 days from now, max 30 days
+            $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
@@ -1062,7 +1062,7 @@ class digifinex extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000); // default 3 days from now, max 30 days
+            $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
@@ -1147,7 +1147,7 @@ class digifinex extends Exchange {
             $request['currency_mark'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000

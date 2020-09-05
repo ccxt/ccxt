@@ -247,7 +247,7 @@ class xbtce extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -284,7 +284,7 @@ class xbtce extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        //     $minutes = intval ($timeframe / 60); // 1 minute by default
+        //     $minutes = intval($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
         //     $market = $this->market($symbol);

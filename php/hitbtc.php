@@ -490,7 +490,7 @@ class hitbtc extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -722,7 +722,7 @@ class hitbtc extends Exchange {
         $parts = explode('-', $uuid);
         $clientOrderId = implode('', $parts);
         $clientOrderId = mb_substr($clientOrderId, 0, 32 - 0);
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         $request = array(
             'clientOrderId' => $clientOrderId,
             'symbol' => $market['id'],
@@ -1097,7 +1097,7 @@ class hitbtc extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
         );
         if ($tag) {

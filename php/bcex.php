@@ -412,9 +412,9 @@ class bcex extends Exchange {
                 $result[$code] = $this->account();
             }
             if ($lockOrOver === 'lock') {
-                $result[$code]['used'] = floatval ($amount);
+                $result[$code]['used'] = floatval($amount);
             } else {
-                $result[$code]['free'] = floatval ($amount);
+                $result[$code]['free'] = floatval($amount);
             }
         }
         $keys = is_array($result) ? array_keys($result) : array();

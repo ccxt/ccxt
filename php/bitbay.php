@@ -886,7 +886,7 @@ class bitbay extends Exchange {
             $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $timerange;
         } else {
-            $request['from'] = intval ($since);
+            $request['from'] = intval($since);
             $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
@@ -1041,9 +1041,9 @@ class bitbay extends Exchange {
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
-            $price = floatval ($price);
+            $price = floatval($price);
         }
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)

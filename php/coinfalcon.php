@@ -128,7 +128,7 @@ class coinfalcon extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->milliseconds();
-        $last = floatval ($ticker['last_price']);
+        $last = floatval($ticker['last_price']);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -169,7 +169,7 @@ class coinfalcon extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -191,7 +191,7 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $tradeId = $this->safe_string($trade, 'id');
@@ -323,10 +323,10 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+                $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
             }
             if ($price !== null) {
-                $cost = floatval ($this->price_to_precision($symbol, $filled * $price));
+                $cost = floatval($this->price_to_precision($symbol, $filled * $price));
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

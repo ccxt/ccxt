@@ -410,7 +410,7 @@ class bitmart(Exchange):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetCurrencies(params)

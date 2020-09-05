@@ -492,7 +492,7 @@ class exmo extends Exchange {
             if ($numParts < 2) {
                 throw new NotSupported($this->id . ' fetchTradingFees format has changed');
             }
-            $fee = floatval (str_replace('%', '', $parts[0])) * 0.01;
+            $fee = floatval(str_replace('%', '', $parts[0])) * 0.01;
             $taker = $fee;
             $maker = $fee;
             return array(
@@ -518,7 +518,7 @@ class exmo extends Exchange {
         $isPercentage = (mb_strpos($input, '%') !== false);
         $parts = explode(' ', $input);
         $value = str_replace('%', '', $parts[0]);
-        $result = floatval ($value);
+        $result = floatval($value);
         if (($result > 0) && $isPercentage) {
             throw new ExchangeError($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
         }
@@ -711,19 +711,19 @@ class exmo extends Exchange {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
-                $request['from'] = intval ($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval ($now / 1000);
+                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+                $request['to'] = intval($now / 1000);
             }
         } else {
-            $request['from'] = intval ($since / 1000) - 1;
+            $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
-                $request['to'] = intval ($now / 1000);
+                $request['to'] = intval($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = intval ($to / 1000);
+                $request['to'] = intval($to / 1000);
             }
         }
         $response = $this->publicGetCandlesHistory (array_merge($request, $params));
@@ -873,7 +873,7 @@ class exmo extends Exchange {
             $ticker = $response[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1067,8 +1067,8 @@ class exmo extends Exchange {
         $response = $this->privatePostOrderCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds();
-        $amount = floatval ($amount);
-        $price = floatval ($price);
+        $amount = floatval($amount);
+        $price = floatval($price);
         $status = 'open';
         $order = array(
             'id' => $id,
@@ -1437,7 +1437,7 @@ class exmo extends Exchange {
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         $key = 'quote';
         if ($side === 'sell') {
             $cost *= $price;
@@ -1448,7 +1448,7 @@ class exmo extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
         );
     }
 
@@ -1556,7 +1556,7 @@ class exmo extends Exchange {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $request['date'] = intval ($since / 1000);
+            $request['date'] = intval($since / 1000);
         }
         $currency = null;
         if ($code !== null) {

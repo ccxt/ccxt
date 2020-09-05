@@ -522,7 +522,7 @@ module.exports = class bitz extends Exchange {
                 });
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTime (params = {}) {
