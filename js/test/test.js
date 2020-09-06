@@ -367,8 +367,11 @@ async function tryAllProxies (exchange, proxies) {
             currentProxy = ++currentProxy % proxies.length
             warn ('[' + e.constructor.name + '] ' + e.message.slice (0, 200))
             if (e instanceof ccxt.DDoSProtection) {
+                continue
             } else if (e instanceof ccxt.RequestTimeout) {
+                continue
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
+                continue
             } else if (e instanceof ccxt.AuthenticationError) {
                 return
             } else if (e instanceof ccxt.AuthenticationError) {
