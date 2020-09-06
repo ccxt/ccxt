@@ -60,7 +60,7 @@ module.exports = class okex extends Exchange {
                 '1M': '2678400',
                 '3M': '8035200',
                 '6M': '16070400',
-                '1y': '31536000'
+                '1y': '31536000',
             },
             'hostname': 'okex.com',
             'urls': {
