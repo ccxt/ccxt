@@ -53,7 +53,7 @@ $exchanges = null;
 
 foreach (\ccxt\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
-    $exchanges[$id] = new $exchange(array('verbose' => false));
+    $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
 }
 
 $keys_global = './keys.json';
@@ -252,6 +252,7 @@ function test_symbol($exchange, $symbol, $code) {
 
 function load_exchange($exchange) {
     $markets = $exchange->load_markets();
+    // $exchange->verbose = true;
     $symbols = array_keys($markets);
     dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
 }

@@ -99,7 +99,7 @@ class bit2c(Exchange):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
             'exceptions': {
                 'exact': {
@@ -223,6 +223,10 @@ class bit2c(Exchange):
         request = {
             'pair': market['id'],
         }
+        if since is not None:
+            request['date'] = int(since)
+        if limit is not None:
+            request['limit'] = limit  # max 100000
         response = await getattr(self, method)(self.extend(request, params))
         if isinstance(response, basestring):
             raise ExchangeError(response)

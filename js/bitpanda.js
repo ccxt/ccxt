@@ -775,7 +775,7 @@ module.exports = class bitpanda extends Exchange {
         //         "sequence":603047
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
+        // fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         //
         //     {
         //         "fee": {
@@ -1346,7 +1346,7 @@ module.exports = class bitpanda extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request = {
             'instrument_code': market['id'],
-            'type': type.toUpperCase (), // LIMIT, MARKET, STOP
+            'type': uppercaseType, // LIMIT, MARKET, STOP
             'side': side.toUpperCase (), // or SELL
             'amount': this.amountToPrecision (symbol, amount),
             // "price": "1234.5678", // required for LIMIT and STOP orders
@@ -1754,9 +1754,9 @@ module.exports = class bitpanda extends Exchange {
         //     {"error":"MISSING_TO_PARAM"}
         //     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         //
-        const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'error');
         if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message

@@ -778,7 +778,7 @@ class bitpanda extends Exchange {
         //         "sequence":603047
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
+        // fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades (private)
         //
         //     {
         //         "$fee" => array(
@@ -1349,7 +1349,7 @@ class bitpanda extends Exchange {
         $uppercaseType = strtoupper($type);
         $request = array(
             'instrument_code' => $market['id'],
-            'type' => strtoupper($type), // LIMIT, MARKET, STOP
+            'type' => $uppercaseType, // LIMIT, MARKET, STOP
             'side' => strtoupper($side), // or SELL
             'amount' => $this->amount_to_precision($symbol, $amount),
             // "$price" => "1234.5678", // required for LIMIT and STOP orders
@@ -1757,9 +1757,9 @@ class bitpanda extends Exchange {
         //     array("error":"MISSING_TO_PARAM")
         //     array("error":"CANDLESTICKS_TIME_RANGE_TOO_BIG")
         //
-        $feedback = $this->id . ' ' . $body;
         $message = $this->safe_string($response, 'error');
         if ($message !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
