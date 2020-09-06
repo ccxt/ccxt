@@ -57,6 +57,10 @@ module.exports = class okex extends Exchange {
                 '12h': '43200',
                 '1d': '86400',
                 '1w': '604800',
+                '1M': '2678400',
+                '3M': '8035200',
+                '6M': '16070400',
+                '1y': '31536000'
             },
             'hostname': 'okex.com',
             'urls': {
@@ -1368,34 +1372,17 @@ module.exports = class okex extends Exchange {
             'instrument_id': market['id'],
             'granularity': this.timeframes[timeframe],
         };
-        if (market['option'] || market['spot']) {
-            method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
-            if (since !== undefined) {
-                if (limit !== undefined) {
-                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                }
-                request['start'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['start'] = this.iso8601 (now - limit * duration * 1000);
-                    request['end'] = this.iso8601 (now);
-                }
+        method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
+        if (since !== undefined) {
+            if (limit !== undefined) {
+                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
             }
+            request['start'] = this.iso8601 (since);
         } else {
-            method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles';
-            if (since !== undefined) {
-                if (limit === undefined) {
-                    limit = 300; // default
-                }
-                request['start'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                request['end'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['end'] = this.iso8601 (now - limit * duration * 1000);
-                    request['start'] = this.iso8601 (now);
-                }
+            if (limit !== undefined) {
+                const now = this.milliseconds ();
+                request['start'] = this.iso8601 (now - limit * duration * 1000);
+                request['end'] = this.iso8601 (now);
             }
         }
         const response = await this[method] (this.extend (request, params));
