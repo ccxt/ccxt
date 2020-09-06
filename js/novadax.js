@@ -21,6 +21,7 @@ module.exports = class novadax extends Exchange {
                 'CORS': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
@@ -870,6 +871,38 @@ module.exports = class novadax extends Exchange {
             'datetime': undefined,
             'fee': undefined,
         };
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccountSubs (params);
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "subId": "CA648856083527372800",
+        //                 "state": "Normal",
+        //                 "subAccount": "003",
+        //                 "subIdentify": "003"
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'subId');
+            const type = this.safeString (account, 'subAccount');
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': undefined,
+                'info': account,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
