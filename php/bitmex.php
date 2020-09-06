@@ -425,7 +425,7 @@ class bitmex extends \ccxt\bitmex {
         //     }
         //
         $data = $this->safe_value($message, 'data');
-        $balance = $this->parseBalanceResponse ($data);
+        $balance = $this->parse_balance_response($data);
         $this->balance = array_merge($this->balance, $balance);
         $messageHash = $this->safe_string($message, 'table');
         $client->resolve ($this->balance, $messageHash);
