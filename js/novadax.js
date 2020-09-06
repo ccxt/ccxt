@@ -37,7 +37,7 @@ module.exports = class novadax extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
                 'api': {
                     'public': 'https://api.novadax.com',
                     'private': 'https://api.novadax.com',
