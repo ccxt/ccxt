@@ -1206,6 +1206,9 @@ class Exchange {
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+        if ($this->enableRateLimit) {
+            $this->throttle();
+        }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
@@ -1270,9 +1273,6 @@ class Exchange {
     // }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
-        if ($this->enableRateLimit) {
-            $this->throttle();
-        }
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
