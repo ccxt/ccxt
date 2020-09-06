@@ -641,7 +641,7 @@ module.exports = class novadax extends Exchange {
         if (since !== undefined) {
             request['fromTimestamp'] = since;
         }
-        const response = await this.privateGetOrdersGet (this.extend (request, params));
+        const response = await this.privateGetOrdersList (this.extend (request, params));
         //
         //     {
         //         "code": "A10000",
@@ -888,6 +888,9 @@ module.exports = class novadax extends Exchange {
                 body = this.json (query);
                 queryString = this.hash (body, 'md5');
             } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
                 queryString = this.urlencode (this.keysort (query));
             }
             const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
