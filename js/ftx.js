@@ -1437,8 +1437,12 @@ module.exports = class ftx extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const txid = this.safeString (transaction, 'txid');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'tag');
+        let address;
+        let tag;
+        if (transaction['address']) {
+            address = this.safeString (transaction['address'], 'address');
+            tag = this.safeString (transaction['address'], 'tag');
+        }
         const fee = this.safeFloat (transaction, 'fee');
         const type = ('destinationName' in transaction) ? 'withdrawal' : 'deposit';
         return {
