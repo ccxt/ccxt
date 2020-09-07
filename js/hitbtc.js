@@ -279,7 +279,8 @@ module.exports = class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const decimals = this.safeInteger (currency, 'precisionTransfer', 8);
-            const precision = this.numberToString (1 / Math.pow (10, decimals)); // default precision, todo: fix "magic constants"
+            const precisionAsString = this.numberToString (1 / Math.pow (10, decimals));
+            const precision = parseFloat (precisionAsString);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
