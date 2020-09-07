@@ -318,11 +318,13 @@ module.exports = class okex extends Exchange {
                 // 401 Unauthorized — Invalid API Key
                 // 403 Forbidden — You do not have access to the requested resource
                 // 404 Not Found
+                // 429 Client Error: Too Many Requests for url
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
                     '1': ExchangeError, // { "code": 1, "message": "System error" }
                     // undocumented
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
+                    'Server is busy, please try again': ExchangeNotAvailable, // { "message": "Server is busy, please try again." }
                     '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     // common
                     // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
