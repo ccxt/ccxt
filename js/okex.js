@@ -650,6 +650,9 @@ module.exports = class okex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchOHLCV': {
+                    'type': 'Candles', // Candles or HistoryCandles
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1366,23 +1369,43 @@ module.exports = class okex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
         const duration = this.parseTimeframe (timeframe);
         const request = {
             'instrument_id': market['id'],
             'granularity': this.timeframes[timeframe],
         };
-        method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
-        if (since !== undefined) {
-            if (limit !== undefined) {
-                request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const type = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
+        const method = market['type'] + 'GetInstrumentsInstrumentId' + type;
+        if (type === 'Candles') {
+            if (since !== undefined) {
+                if (limit !== undefined) {
+                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                }
+                request['start'] = this.iso8601 (since);
+            } else {
+                if (limit !== undefined) {
+                    const now = this.milliseconds ();
+                    request['start'] = this.iso8601 (now - limit * duration * 1000);
+                    request['end'] = this.iso8601 (now);
+                }
             }
-            request['start'] = this.iso8601 (since);
-        } else {
-            if (limit !== undefined) {
-                const now = this.milliseconds ();
-                request['start'] = this.iso8601 (now - limit * duration * 1000);
-                request['end'] = this.iso8601 (now);
+        } else if (type === 'HistoryCandles') {
+            if (market['option']) {
+                throw new NotSupported (this.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets');
+            }
+            if (since !== undefined) {
+                if (limit === undefined) {
+                    limit = 300; // default
+                }
+                request['start'] = this.iso8601 (this.sum (since, limit * duration * 1000));
+                request['end'] = this.iso8601 (since);
+            } else {
+                if (limit !== undefined) {
+                    const now = this.milliseconds ();
+                    request['end'] = this.iso8601 (now - limit * duration * 1000);
+                    request['start'] = this.iso8601 (now);
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
