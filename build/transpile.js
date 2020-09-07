@@ -1353,7 +1353,7 @@ class Transpiler {
             {
                 'jsFile': './js/test/Exchange/test.ohlcv.js',
                 'pyFile': './python/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlv.php',
+                'phpFile': './php/test/test_ohlcv.php',
             },
         ]
         for (const test of tests) {

@@ -7,7 +7,7 @@ date_default_timezone_set('UTC');
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
-include_once 'test_ohlv.php';
+include_once 'test_ohlcv.php';
 include_once 'test_transaction.php';
 
 function style($s, $style) {
