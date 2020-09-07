@@ -1437,7 +1437,6 @@ module.exports = class ftx extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const txid = this.safeString (transaction, 'txid');
-        let address = undefined;
         let tag = undefined;
         let address = this.safeValue (transaction, 'address');
         if (typeof address !== 'string') {
