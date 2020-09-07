@@ -49,13 +49,12 @@ module.exports = class idex2 extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'test': 'https://api-sandbox.idex.io',
-                'logo': 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
-                'api': {
+                'test': {
                     'public': 'https://api-sandbox.idex.io',
                     'private': 'https://api-sandbox.idex.io',
-                    'ws': 'https://api-sandbox.idex.io',
                 },
+                'logo': 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
+                'api': {},
                 'www': 'https://idex.io',
                 'doc': [
                     'https://docs.idex.io/',
@@ -741,21 +740,15 @@ module.exports = class idex2 extends Exchange {
         // }
         const timestamp = this.safeInteger (order, 'time');
         const fills = this.safeValue (order, 'fills');
-        const trades = this.parseTrades (fills, market);
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'market');
         let symbol = undefined;
-        let feeCurrency = undefined;
         const side = this.safeString (order, 'side');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
             symbol = market['symbol'];
-            if (side !== undefined) {
-                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
-            }
         }
+        const trades = this.parseTrades (fills, market);
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'originalQuantity');
         const filled = this.safeFloat (order, 'executedQuantity');
@@ -772,12 +765,13 @@ module.exports = class idex2 extends Exchange {
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
-            'currency': feeCurrency,
-            'cost': 0,
+            'currency': undefined,
+            'cost': undefined,
         };
         let lastTrade = undefined;
         for (let i = 0; i < trades.length; i++) {
             lastTrade = trades[i];
+            fee['currency'] = lastTrade['fee']['currency'];
             fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
         }
         const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
@@ -1004,7 +998,6 @@ module.exports = class idex2 extends Exchange {
             throw new Exception (this.id + ' ' + message);
         }
         if (errorCode !== undefined) {
-            console.log (response)
             throw new ExchangeError (this.id + ' ' + message);
         }
     }
@@ -1124,7 +1117,7 @@ module.exports = class idex2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        let url = this.urls['test'][api] + '/' + this.version + '/' + path;
         const keys = Object.keys (params);
         const length = keys.length;
         let query = undefined;
