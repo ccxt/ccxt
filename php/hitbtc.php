@@ -259,17 +259,19 @@ class hitbtc extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"DDF",
-        //             "fullName":"DDF",
+        //             "$id":"XPNT",
+        //             "fullName":"pToken",
         //             "crypto":true,
-        //             "payinEnabled":false,
+        //             "payinEnabled":true,
         //             "payinPaymentId":false,
-        //             "payinConfirmations":20,
+        //             "payinConfirmations":9,
         //             "payoutEnabled":true,
         //             "payoutIsPaymentId":false,
         //             "transferEnabled":true,
         //             "delisted":false,
-        //             "payoutFee":"646.000000000000"
+        //             "payoutFee":"26.510000000000",
+        //             "precisionPayout":18,
+        //             "precisionTransfer":8
         //         }
         //     )
         //
@@ -280,7 +282,8 @@ class hitbtc extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $decimals = $this->safe_integer($currency, 'precisionTransfer', 8);
+            $precision = 1 / pow(10, $decimals);
             $code = $this->safe_currency_code($id);
             $payin = $this->safe_value($currency, 'payinEnabled');
             $payout = $this->safe_value($currency, 'payoutEnabled');
@@ -310,12 +313,12 @@ class hitbtc extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => 1 / pow(10, $decimals),
+                        'max' => pow(10, $decimals),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => 1 / pow(10, $decimals),
+                        'max' => pow(10, $decimals),
                     ),
                     'cost' => array(
                         'min' => null,
