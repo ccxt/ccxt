@@ -36,23 +36,30 @@ class exmo(Exchange):
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
                 'fetchOrderTrades': True,
-                'fetchOrderBooks': True,
-                'fetchMyTrades': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchFundingFees': True,
-                'fetchCurrencies': True,
                 'fetchTransactions': True,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -481,6 +488,7 @@ class exmo(Exchange):
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def fetch_trading_fees(self, params={}):
@@ -837,7 +845,7 @@ class exmo(Exchange):
             symbol = market['symbol']
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

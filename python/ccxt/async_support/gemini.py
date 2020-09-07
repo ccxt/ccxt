@@ -37,22 +37,29 @@ class gemini(Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddress': False,
-                'createDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchBidsAsks': False,
-                'fetchTickers': True,
-                'fetchMyTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchBidsAsks': False,
+                'fetchClosedOrders': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': False,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
-                'fetchDeposits': False,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -188,7 +195,7 @@ class gemini(Exchange):
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
         return await getattr(self, method)(params)
 
-    async def fetch_markets_from_web(self, symbols=None, params={}):
+    async def fetch_markets_from_web(self, params={}):
         response = await self.webGetRestApi(params)
         sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         numSections = len(sections)
@@ -247,10 +254,10 @@ class gemini(Exchange):
                 symbol = base + '/' + quote
                 if not (symbol in indexedSymbols):
                     continue
-                id = baseId + quoteId
+                marketId = baseId + quoteId
                 active = None
                 result.append({
-                    'id': id,
+                    'id': marketId,
                     'info': row,
                     'symbol': symbol,
                     'base': base,
@@ -483,9 +490,7 @@ class gemini(Exchange):
                 average = self.sum(last, open) / 2
         baseVolume = self.safe_float(volume, baseId)
         quoteVolume = self.safe_float(volume, quoteId)
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

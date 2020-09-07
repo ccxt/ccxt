@@ -21,15 +21,19 @@ class coinmate(Exchange):
             'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
             'rateLimit': 1000,
             'has': {
-                'CORS': True,
-                'fetchBalance': True,
-                'fetchOrders': True,
-                'fetchOrder': True,
-                'fetchMyTrades': True,
-                'fetchTransactions': True,
-                'fetchOpenOrders': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'CORS': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -595,8 +599,10 @@ class coinmate(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
         price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'originalAmount', 'amount')
-        remaining = self.safe_float(order, 'remainingAmount', amount)
+        amount = self.safe_float(order, 'originalAmount')
+        remaining = self.safe_float(order, 'remainingAmount')
+        if remaining is None:
+            remaining = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
         filled = None

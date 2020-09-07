@@ -18,6 +18,9 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
@@ -34,22 +37,30 @@ class bitfinex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
+                'createOrder': True,
                 'deposit': True,
+                'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchTradingFee': True,
-                'fetchTradingFees': True,
+                'fetchDeposits': False,
                 'fetchFundingFees': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'withdraw': True,
             },
@@ -303,6 +314,10 @@ class bitfinex(Exchange):
                 'DAT': 'DATA',
                 'DSH': 'DASH',
                 'DRK': 'DRK',
+                # https://github.com/ccxt/ccxt/issues/7399
+                # https://coinmarketcap.com/currencies/pnetwork/
+                # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO': 'PNT',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -510,7 +525,10 @@ class bitfinex(Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': None,
+                # https://docs.bitfinex.com/docs/introduction#amount-precision
+                # The amount field allows up to 8 decimals.
+                # Anything exceeding self will be rounded to the 8th decimal.
+                'amount': 8,
             }
             limits = {
                 'amount': {
@@ -541,7 +559,18 @@ class bitfinex(Exchange):
         return result
 
     def amount_to_precision(self, symbol, amount):
-        return self.number_to_string(amount)
+        # https://docs.bitfinex.com/docs/introduction#amount-precision
+        # The amount field allows up to 8 decimals.
+        # Anything exceeding self will be rounded to the 8th decimal.
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+
+    def price_to_precision(self, symbol, price):
+        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        # https://docs.bitfinex.com/docs/introduction#price-precision
+        # The precision level of all trading prices is based on significant figures.
+        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        # Prices submit with a precision larger than 5 will be cut by the API.
+        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -607,7 +636,7 @@ class bitfinex(Exchange):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -1107,6 +1136,7 @@ class bitfinex(Exchange):
                 'X-BFX-APIKEY': self.apiKey,
                 'X-BFX-PAYLOAD': self.decode(payload),
                 'X-BFX-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

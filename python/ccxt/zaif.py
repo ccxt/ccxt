@@ -20,10 +20,17 @@ class zaif(Exchange):
             'rateLimit': 2000,
             'version': '1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchOpenOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {

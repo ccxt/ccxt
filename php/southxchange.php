@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ArgumentsRequired;
 
 class southxchange extends Exchange {
 
@@ -16,10 +17,21 @@ class southxchange extends Exchange {
             'countries' => array( 'AR' ), // Argentina
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createDepositAddress' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchDeposits' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -170,7 +182,7 @@ class southxchange extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -314,7 +326,19 @@ class southxchange extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privatePostGeneratenewaddress (array_merge($request, $params));
-        $parts = explode('|', $response);
+        //
+        // the exchange API returns a quoted-quoted-string
+        //
+        //     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        //
+        $address = $response;
+        if ($address[0] === '"') {
+            $address = json_decode($address, $as_associative_array = true);
+            if ($address[0] === '"') {
+                $address = json_decode($address, $as_associative_array = true);
+            }
+        }
+        $parts = explode('|', $address);
         $numParts = is_array($parts) ? count($parts) : 0;
         $address = $parts[0];
         $this->check_address($address);
@@ -347,6 +371,311 @@ class southxchange extends Exchange {
             'info' => $response,
             'id' => null,
         );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'trade' => 'trade',
+            'tradefee' => 'fee',
+            'withdraw' => 'transaction',
+            'deposit' => 'transaction',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     {
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
+        //     }
+        //
+        $id = $this->safe_string($item, 'MovementId');
+        $direction = null;
+        $account = null;
+        $referenceId = $this->safe_string_2($item, 'TradeId', 'OrderCode');
+        $referenceId = $this->safe_string($item, 'Hash', $referenceId);
+        $referenceAccount = $this->safe_string($item, 'Address');
+        $type = $this->safe_string($item, 'Type');
+        $ledgerEntryType = $this->parse_ledger_entry_type($type);
+        $code = $this->safe_currency_code($this->safe_string($item, 'CurrencyCode'), $currency);
+        $amount = $this->safe_float($item, 'Amount');
+        $after = $this->safe_float($item, 'TotalBalance');
+        $before = null;
+        if ($amount !== null) {
+            if ($after !== null) {
+                $before = $after - $amount;
+            }
+            if ($type === 'withdrawal') {
+                $direction = 'out';
+            } else if ($type === 'deposit') {
+                $direction = 'in';
+            } else if (($type === 'trade') || ($type === 'tradefee')) {
+                $direction = ($amount < 0) ? 'out' : 'in';
+                $amount = abs($amount);
+            }
+        }
+        $timestamp = $this->parse8601($this->safe_string($item, 'Date'));
+        $fee = null;
+        $status = $this->safe_string($item, 'Status');
+        return array(
+            'info' => $item,
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $referenceAccount,
+            'type' => $ledgerEntryType,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $limit = ($limit === null) ? 50 : $limit;
+        $request = array(
+            'Currency' => $currency['id'],
+            // 'TransactionType' => 'transactions', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex' => 0,
+            'PageSize' => $limit, // max 50
+            'SortField' => 'Date',
+            // 'Descending' => true,
+        );
+        $pageIndex = $this->safe_integer($params, 'PageIndex');
+        if ($pageIndex === null) {
+            $request['Descending'] = true;
+        }
+        $response = $this->privatePostListTransactions (array_merge($request, $params));
+        //
+        // fetchLedger ('BTC')
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":array(
+        //             array(
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":-0.000000301000000000,
+        //                 "TotalBalance":0.000100099000000000,
+        //                 "Type":"tradefee",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             ),
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":0.000100400000000000,
+        //                 "TotalBalance":0.000100400000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":1.185872,
+        //                 "OtherCurrency":"USDT",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             }
+        //         )
+        //     }
+        //
+        // fetchLedger ('BTC'), same trade, other side
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":array(
+        //             array(
+        //                 "Date":"2020-08-07T13:06:22.133",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":-1.185872000000000000,
+        //                 "TotalBalance":26.428806000000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":0.000100400,
+        //                 "OtherCurrency":"BTC",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             ),
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'Result', array());
+        return $this->parse_ledger($result, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'pending' => 'pending',
+            'processed' => 'pending',
+            'confirmed' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'MovementId');
+        $amount = $this->safe_float($transaction, 'Amount');
+        $address = $this->safe_string($transaction, 'Address');
+        $addressTo = $address;
+        $addressFrom = null;
+        $tag = null;
+        $tagTo = $tag;
+        $tagFrom = null;
+        $txid = $this->safe_string($transaction, 'Hash');
+        $type = $this->safe_string($transaction, 'Type');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'Date'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'Status'));
+        $currencyId = $this->safe_string($transaction, 'CurrencyCode');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
+            'tag' => $tag,
+            'tagTo' => $tagTo,
+            'tagFrom' => $tagFrom,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => null,
+        );
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $limit = ($limit === null) ? 50 : $limit;
+        $request = array(
+            'Currency' => $currency['id'],
+            'TransactionType' => 'depositswithdrawals', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex' => 0,
+            'PageSize' => $limit, // max 50
+            'SortField' => 'Date',
+            // 'Descending' => true,
+        );
+        $pageIndex = $this->safe_integer($params, 'PageIndex');
+        if ($pageIndex === null) {
+            $request['Descending'] = true;
+        }
+        $response = $this->privatePostListTransactions (array_merge($request, $params));
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":array(
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'Result', array());
+        return $this->parse_transactions($result, $currency, $since, $limit);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'TransactionType' => 'deposits',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'TransactionType' => 'withdrawals',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -37,6 +37,7 @@ class whitebit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'privateAPI' => false,
                 'publicAPI' => true,
             ),
@@ -523,7 +524,7 @@ class whitebit extends Exchange {
         if (gettype($timestamp) === 'string') {
             $timestamp = $this->parse8601($timestamp);
         } else {
-            $timestamp = intval ($timestamp * 1000);
+            $timestamp = intval($timestamp * 1000);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'amount', 'volume');
@@ -566,7 +567,7 @@ class whitebit extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default == max == 500

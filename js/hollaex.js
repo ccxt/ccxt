@@ -475,7 +475,7 @@ module.exports = class hollaex extends Exchange {
         //         ]
         //     }
         //
-        const trades = await this.safeValue (response, market['id'], []);
+        const trades = this.safeValue (response, market['id'], []);
         return this.parseTrades (trades, market, since, limit);
     }
 

@@ -21,26 +21,30 @@ class stex extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false, // limit orders only
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchFundingFees' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchOrderBook' => true,
-                'fetchOHLCV' => true,
-                'fetchBalance' => true,
-                'fetchOpenOrders' => true,
-                'fetchOrder' => true,
-                'fetchMyTrades' => true,
-                'fetchOrderTrades' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'fetchDeposits' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
-                'fetchFundingFees' => true,
             ),
             'version' => 'v3',
             'urls' => array(
@@ -664,7 +668,7 @@ class stex extends Exchange {
             $request['timeEnd'] = $this->seconds();
             $request['timeStart'] = $request['timeEnd'] - $timerange;
         } else {
-            $request['timeStart'] = intval ($since / 1000);
+            $request['timeStart'] = intval($since / 1000);
             $request['timeEnd'] = $this->sum($request['timeStart'], $timerange);
         }
         $response = $this->publicGetChartCurrencyPairIdCandlesType (array_merge($request, $params));
@@ -757,7 +761,7 @@ class stex extends Exchange {
         }
         if ($since !== null) {
             $request['sort'] = 'ASC'; // needed to make the from param work
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         $response = $this->publicGetTradesCurrencyPairId (array_merge($request, $params));
         //
@@ -917,7 +921,7 @@ class stex extends Exchange {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
                 }
                 $remaining = max ($remaining, 0.0);
             }
@@ -996,8 +1000,8 @@ class stex extends Exchange {
         $request = array(
             'currencyPairId' => $market['id'],
             'type' => strtoupper($type), // 'BUY', 'SELL', 'STOP_LIMIT_BUY', 'STOP_LIMIT_SELL'
-            'amount' => floatval ($this->amount_to_precision($symbol, $amount)), // required
-            'price' => floatval ($this->price_to_precision($symbol, $price)), // required
+            'amount' => floatval($this->amount_to_precision($symbol, $amount)), // required
+            'price' => floatval($this->price_to_precision($symbol, $price)), // required
             // 'trigger_price' => 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         );
         $response = $this->tradingPostOrdersCurrencyPairId (array_merge($request, $params));
@@ -1700,7 +1704,7 @@ class stex extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency_id' => $currency['id'],
-            'amount' => floatval ($this->currency_to_precision($code, $amount)),
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
             'address' => $address,
             // 'protocol_id' => 10, // optional, to be used with multicurrency wallets like USDT
             // 'additional_address_parameter' => $tag, // optional

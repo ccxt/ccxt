@@ -430,7 +430,6 @@ declare module 'ccxt' {
     /* tslint:disable */
 
     export class acx extends Exchange {}
-    export class anxpro extends Exchange {}
     export class aofex extends Exchange {}
     export class bcex extends Exchange {}
     export class bequant extends hitbtc {}
@@ -446,6 +445,7 @@ declare module 'ccxt' {
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
     export class bitforex extends Exchange {}
+    export class bitget extends Exchange {}
     export class bithumb extends Exchange {}
     export class bitkk extends zb {}
     export class bitmart extends Exchange {}
@@ -499,7 +499,6 @@ declare module 'ccxt' {
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class ftx extends Exchange {}
-    export class fybse extends Exchange {}
     export class gateio extends Exchange {}
     export class gemini extends Exchange {}
     export class hbtc extends Exchange {}

@@ -17,17 +17,23 @@ class indodax extends Exchange {
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
-                'fetchTickers' => false,
-                'fetchTime' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => false,
                 'fetchCurrencies' => false,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => false,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => false,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'version' => '2.0', // as of 9 April 2018
@@ -92,6 +98,13 @@ class indodax extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
+            'commonCurrencies' => array(
+                'STR' => 'XLM',
+                'BCHABC' => 'BCH',
+                'BCHSV' => 'BSV',
+                'DRK' => 'DASH',
+                'NEM' => 'XEM',
+            ),
         ));
     }
 
@@ -148,7 +161,7 @@ class indodax extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $id = $this->safe_string($market, 'id');
+            $id = $this->safe_string($market, 'ticker_id');
             $baseId = $this->safe_string($market, 'traded_currency');
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);

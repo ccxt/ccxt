@@ -17,23 +17,30 @@ module.exports = class gateio extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': true,
                 'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
-                'fetchMyTrades': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -291,7 +298,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': 8,
+                'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': this.safeInteger (details, 'decimal_places'),
             };
             const amountLimits = {
@@ -473,7 +480,7 @@ module.exports = class gateio extends Exchange {
             }
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

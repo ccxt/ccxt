@@ -12,7 +12,7 @@ module.exports = class bcex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bcex',
             'name': 'BCEX',
-            'countries': [ 'CN', 'CA' ],
+            'countries': [ 'CN', 'HK' ],
             'version': '1',
             'has': {
                 'cancelOrder': true,
@@ -97,6 +97,9 @@ module.exports = class bcex extends Exchange {
                 '您的btc不足': InsufficientFunds, // { code: 1, msg: '您的btc不足' } - your btc is insufficient
                 '参数非法': InvalidOrder, // {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
                 '订单信息不存在': OrderNotFound, // {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
+            },
+            'commonCurrencies': {
+                'PNT': 'Penta',
             },
             'options': {
                 'limits': {

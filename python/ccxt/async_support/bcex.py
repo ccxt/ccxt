@@ -18,7 +18,7 @@ class bcex(Exchange):
         return self.deep_extend(super(bcex, self).describe(), {
             'id': 'bcex',
             'name': 'BCEX',
-            'countries': ['CN', 'CA'],
+            'countries': ['CN', 'HK'],
             'version': '1',
             'has': {
                 'cancelOrder': True,
@@ -103,6 +103,9 @@ class bcex(Exchange):
                 '您的btc不足': InsufficientFunds,  # {code: 1, msg: '您的btc不足'} - your btc is insufficient
                 '参数非法': InvalidOrder,  # {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
                 '订单信息不存在': OrderNotFound,  # {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
+            },
+            'commonCurrencies': {
+                'PNT': 'Penta',
             },
             'options': {
                 'limits': {

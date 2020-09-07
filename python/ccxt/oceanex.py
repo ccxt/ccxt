@@ -235,7 +235,7 @@ class oceanex(Exchange):
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, data, market=None):
         #

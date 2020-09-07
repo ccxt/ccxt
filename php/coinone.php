@@ -20,8 +20,11 @@ class coinone extends Exchange {
             'rateLimit' => 667,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -183,7 +186,7 @@ class coinone extends Exchange {
                 $result[$symbol]['timestamp'] = $timestamp;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

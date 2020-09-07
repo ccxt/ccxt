@@ -19,6 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class probit(Exchange):
@@ -144,12 +145,17 @@ class probit(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'timeInForce': {
                     'limit': 'gtc',
                     'market': 'ioc',
                 },
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
             },
         })
 
@@ -191,11 +197,12 @@ class probit(Exchange):
             symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
             active = not closed
-            priceIncrement = self.safe_string(market, 'price_increment')
+            amountPrecision = self.safe_integer(market, 'quantity_precision')
+            costPrecision = self.safe_integer(market, 'cost_precision')
             precision = {
-                'amount': self.safe_integer(market, 'quantity_precision'),
-                'price': self.precision_from_string(priceIncrement),
-                'cost': self.safe_integer(market, 'cost_precision'),
+                'amount': 1 / math.pow(10, amountPrecision),
+                'price': self.safe_float(market, 'price_increment'),
+                'cost': 1 / math.pow(10, costPrecision),
             }
             takerFeeRate = self.safe_float(market, 'taker_fee_rate')
             makerFeeRate = self.safe_float(market, 'maker_fee_rate')
@@ -481,9 +488,7 @@ class probit(Exchange):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'base_volume')
         quoteVolume = self.safe_float(ticker, 'quote_volume')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None):
-            vwap = baseVolume / quoteVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -697,8 +702,7 @@ class probit(Exchange):
             return self.iso8601(previousSunday * 1000)
         else:
             timestamp = int(timestamp / 1000)
-            difference = self.integer_modulo(timestamp, duration)
-            timestamp -= difference
+            timestamp = duration * int(timestamp / duration)
             if after:
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
@@ -1162,7 +1166,7 @@ class probit(Exchange):
                 self.check_required_credentials()
                 expires = self.safe_integer(self.options, 'expires')
                 if (expires is None) or (expires < now):
-                    raise AuthenticationError(self.id + ' accessToken expired, call signIn() method')
+                    raise AuthenticationError(self.id + ' access token expired, call signIn() method')
                 accessToken = self.safe_string(self.options, 'accessToken')
                 headers = {
                     'Authorization': 'Bearer ' + accessToken,

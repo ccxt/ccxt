@@ -28,20 +28,26 @@ class bitmex(Exchange):
             'rateLimit': 2000,
             'pro': True,
             'has': {
-                'CORS': False,
-                'fetchOHLCV': True,
-                'withdraw': True,
-                'editOrder': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
-                'fetchTransactions': 'emulated',
-                'createOrder': True,
-                'cancelOrder': True,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'CORS': False,
+                'createOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': 'emulated',
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -260,25 +266,126 @@ class bitmex(Exchange):
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        request = {
-            'currency': 'all',
-        }
-        response = await self.privateGetUserMargin(self.extend(request, params))
+    def parse_balance_response(self, response):
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableMargin')
-            account['total'] = self.safe_float(balance, 'marginBalance')
+            free = self.safe_float(balance, 'availableMargin')
+            total = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
-                account['free'] = account['free'] / 100000000
-                account['total'] = account['total'] / 100000000
+                if free is not None:
+                    free /= 100000000
+                if total is not None:
+                    total /= 100000000
+            account['free'] = free
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        request = {
+            'currency': 'all',
+        }
+        response = await self.privateGetUserMargin(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "account":1455728,
+        #             "currency":"XBt",
+        #             "riskLimit":1000000000000,
+        #             "prevState":"",
+        #             "state":"",
+        #             "action":"",
+        #             "amount":263542,
+        #             "pendingCredit":0,
+        #             "pendingDebit":0,
+        #             "confirmedDebit":0,
+        #             "prevRealisedPnl":0,
+        #             "prevUnrealisedPnl":0,
+        #             "grossComm":0,
+        #             "grossOpenCost":0,
+        #             "grossOpenPremium":0,
+        #             "grossExecCost":0,
+        #             "grossMarkValue":0,
+        #             "riskValue":0,
+        #             "taxableMargin":0,
+        #             "initMargin":0,
+        #             "maintMargin":0,
+        #             "sessionMargin":0,
+        #             "targetExcessMargin":0,
+        #             "varMargin":0,
+        #             "realisedPnl":0,
+        #             "unrealisedPnl":0,
+        #             "indicativeTax":0,
+        #             "unrealisedProfit":0,
+        #             "syntheticMargin":null,
+        #             "walletBalance":263542,
+        #             "marginBalance":263542,
+        #             "marginBalancePcnt":1,
+        #             "marginLeverage":0,
+        #             "marginUsedPcnt":0,
+        #             "excessMargin":263542,
+        #             "excessMarginPcnt":1,
+        #             "availableMargin":263542,
+        #             "withdrawableMargin":263542,
+        #             "timestamp":"2020-08-03T12:01:01.246Z",
+        #             "grossLastValue":0,
+        #             "commission":null
+        #         }
+        #     ]
+        #
+        return self.parse_balance_response(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -686,7 +793,7 @@ class bitmex(Exchange):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1141,8 +1248,9 @@ class bitmex(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': amount,
             'ordType': self.capitalize(type),
@@ -1154,10 +1262,7 @@ class bitmex(Exchange):
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
         response = await self.privatePostOrder(self.extend(request, params))
-        order = self.parse_order(response)
-        id = self.safe_string(order, 'id')
-        self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
@@ -1176,9 +1281,7 @@ class bitmex(Exchange):
         if price is not None:
             request['price'] = price
         response = await self.privatePutOrder(self.extend(request, params))
-        order = self.parse_order(response)
-        self.orders[order['id']] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1196,9 +1299,7 @@ class bitmex(Exchange):
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
-        order = self.parse_order(order)
-        self.orders[order['id']] = order
-        return self.extend({'info': response}, order)
+        return self.parse_order(order)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
@@ -1272,7 +1373,7 @@ class bitmex(Exchange):
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         return {
             'info': response,
-            'id': response['transactID'],
+            'id': self.safe_string(response, 'transactID'),
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

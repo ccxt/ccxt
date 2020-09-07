@@ -22,24 +22,32 @@ class hitbtc extends Exchange {
             'version' => '2',
             'pro' => true,
             'has' => array(
-                'createDepositAddress' => true,
-                'fetchDepositAddress' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createDepositAddress' => true,
+                'createOrder' => true,
                 'editOrder' => true,
-                'fetchCurrencies' => true,
-                'fetchOHLCV' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
-                'fetchOrderTrades' => false, // not implemented yet
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
-                'fetchWithdrawals' => false,
-                'fetchTransactions' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => false,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -158,6 +166,7 @@ class hitbtc extends Exchange {
                 'UNC' => 'Unigame',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
+                'PNT' => 'Penta',
             ),
             'exceptions' => array(
                 '504' => '\\ccxt\\RequestTimeout', // array("error":array("code":504,"message":"Gateway Timeout"))
@@ -170,6 +179,7 @@ class hitbtc extends Exchange {
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -438,14 +448,7 @@ class hitbtc extends Exchange {
                 $percentage = $change / $open * 100;
             }
         }
-        $vwap = null;
-        if ($quoteVolume !== null) {
-            if ($baseVolume !== null) {
-                if ($baseVolume > 0) {
-                    $vwap = $quoteVolume / $baseVolume;
-                }
-            }
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -487,7 +490,7 @@ class hitbtc extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -719,7 +722,7 @@ class hitbtc extends Exchange {
         $parts = explode('-', $uuid);
         $clientOrderId = implode('', $parts);
         $clientOrderId = mb_substr($clientOrderId, 0, 32 - 0);
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         $request = array(
             'clientOrderId' => $clientOrderId,
             'symbol' => $market['id'],
@@ -1094,7 +1097,7 @@ class hitbtc extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
         );
         if ($tag) {

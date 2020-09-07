@@ -28,22 +28,29 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
-                'fetchDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': False,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -610,7 +617,7 @@ class upbit(Exchange):
             ticker = self.parse_ticker(response[t])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)

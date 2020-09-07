@@ -244,7 +244,7 @@ class bitmart extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->safe_float($market, 'min_buy_amount'),
                     'max' => null,
                 ),
             );
@@ -329,7 +329,7 @@ class bitmart extends Exchange {
             $percentage = $this->safe_string($ticker, 'priceChange');
             if ($percentage !== null) {
                 $percentage = str_replace('%', '', $percentage);
-                $percentage = floatval ($percentage);
+                $percentage = floatval($percentage);
             }
         } else {
             $percentage *= 100;
@@ -419,7 +419,7 @@ class bitmart extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -838,7 +838,7 @@ class bitmart extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $intId = intval ($id);
+        $intId = intval($id);
         $request = array(
             'id' => $intId,
             'entrust_id' => $intId,

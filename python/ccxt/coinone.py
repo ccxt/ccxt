@@ -25,8 +25,11 @@ class coinone(Exchange):
             'rateLimit': 667,
             'version': 'v2',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchCurrencies': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -179,7 +182,7 @@ class coinone(Exchange):
                 ticker = response[id]
                 result[symbol] = self.parse_ticker(ticker, market)
                 result[symbol]['timestamp'] = timestamp
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

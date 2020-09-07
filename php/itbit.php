@@ -20,9 +20,20 @@ class itbit extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -71,6 +82,9 @@ class itbit extends Exchange {
                 'ETH/USD' => array( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'ETH', 'quoteId' => 'USD' ),
                 'ETH/EUR' => array( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'ETH', 'quoteId' => 'EUR' ),
                 'ETH/SGD' => array( 'id' => 'ETHSGD', 'symbol' => 'ETH/SGD', 'base' => 'ETH', 'quote' => 'SGD', 'baseId' => 'ETH', 'quoteId' => 'SGD' ),
+                'PAXGUSD' => array( 'id' => 'PAXGUSD', 'symbol' => 'PAXG/USD', 'base' => 'PAXG', 'quote' => 'USD', 'baseId' => 'PAXG', 'quoteId' => 'USD' ),
+                'BCHUSD' => array( 'id' => 'BCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'BCH', 'quoteId' => 'USD' ),
+                'LTCUSD' => array( 'id' => 'LTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'LTC', 'quoteId' => 'USD' ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -346,7 +360,7 @@ class itbit extends Exchange {
         //         "latestExecutionId" => "332", // most recent execution at time of $response
         //         "recordsPerPage" => "50",
         //         "tradingHistory" => array(
-        //             {
+        //             array(
         //                 "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
         //                 "timestamp" => "2015-05-11T14:48:01.9870000Z",
         //                 "instrument" => "XBTUSD",
@@ -361,7 +375,7 @@ class itbit extends Exchange {
         //                 "rebatesApplied" => "-0.000125265", // negative values represent amount of rebate balance used for $trades removing liquidity from order book; positive values represent amount of rebate balance earned from $trades adding liquidity to order book
         //                 "rebateCurrency" => "USD",
         //                 "executionId" => "23132"
-        //             },
+        //             ),
         //         ),
         //     }
         //

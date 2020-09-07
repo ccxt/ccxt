@@ -13,7 +13,10 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidNonce
 
 
 class bit2c(Exchange):
@@ -25,9 +28,15 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -90,11 +99,18 @@ class bit2c(Exchange):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
             'exceptions': {
-                # {"error" : "Please provide valid APIkey"}
-                # {"error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                'exact': {
+                    'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
+                },
+                'broad': {
+                    # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+                    # {"error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                    'Please provide valid nonce': InvalidNonce,
+                    'please approve new terms of use on site': PermissionDenied,  # {"error" : "please approve new terms of use on site."}
+                },
             },
         })
 
@@ -207,6 +223,10 @@ class bit2c(Exchange):
         request = {
             'pair': market['id'],
         }
+        if since is not None:
+            request['date'] = int(since)
+        if limit is not None:
+            request['limit'] = limit  # max 100000
         response = getattr(self, method)(self.extend(request, params))
         if isinstance(response, basestring):
             raise ExchangeError(response)
@@ -391,3 +411,17 @@ class bit2c(Exchange):
                 'sign': self.decode(signature),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {"error" : "please approve new terms of use on site."}
+        #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+        #
+        error = self.safe_string(response, 'error')
+        if error is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+            raise ExchangeError(feedback)  # unknown message

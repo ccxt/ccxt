@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
+const { TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -112,6 +112,7 @@ module.exports = class eterbase extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -119,6 +120,7 @@ module.exports = class eterbase extends Exchange {
                 'exact': {
                     'Invalid cost': InvalidOrder, // {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
                     'Invalid order ID': InvalidOrder, // {"message":"Invalid order ID","_links":{"self":{"href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false}}}
+                    'Invalid market !': BadSymbol, // {"message":"Invalid market !","_links":{"self":{"href":"/markets/300/order-book","templated":false}}}
                 },
                 'broad': {
                     'Failed to convert argument': BadRequest,
@@ -358,10 +360,7 @@ module.exports = class eterbase extends Exchange {
         const last = this.safeFloat (ticker, 'price');
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
         const quoteVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && baseVolume) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const percentage = this.safeFloat (ticker, 'change');
         const result = {
             'symbol': symbol,

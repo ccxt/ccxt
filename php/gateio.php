@@ -21,23 +21,30 @@ class gateio extends Exchange {
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'createMarketOrder' => false,
-                'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchTransactions' => true,
                 'createDepositAddress' => true,
-                'fetchDepositAddress' => true,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrderTrades' => true,
-                'fetchOrders' => true,
                 'fetchOrder' => true,
-                'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 60,
@@ -295,7 +302,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => 8,
+                'amount' => $this->safe_integer($details, 'amount_decimal_places'),
                 'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
@@ -392,7 +399,7 @@ class gateio extends Exchange {
         // max $limit = 1001
         if ($limit !== null) {
             $periodDurationInSeconds = $this->parse_timeframe($timeframe);
-            $hours = intval (($periodDurationInSeconds * $limit) / 3600);
+            $hours = intval(($periodDurationInSeconds * $limit) / 3600);
             $request['range_hour'] = max (0, $hours - 1);
         }
         $response = $this->publicGetCandlestick2Id (array_merge($request, $params));
@@ -477,7 +484,7 @@ class gateio extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

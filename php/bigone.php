@@ -21,7 +21,6 @@ class bigone extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -374,7 +373,7 @@ class bigone extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_time($params = array ()) {
@@ -388,7 +387,7 @@ class bigone extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return intval ($timestamp / 1000000);
+        return intval($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -526,7 +525,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -642,7 +641,7 @@ class bigone extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval ($since / 1000);
+            // $start = intval($since / 1000);
             $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
             $request['time'] = $this->iso8601($end);
         }
@@ -783,12 +782,34 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $uppercaseType = strtoupper($type);
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $side, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-            'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            'type' => $uppercaseType,
+            // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
+            // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
+        if ($uppercaseType === 'LIMIT') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
+            if ($isStopLimit || $isStopMarket) {
+                $stopPrice = $this->safe_float($params, 'stop_price');
+                if ($stopPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price parameter');
+                }
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                $params = $this->omit($params, 'stop_price');
+            }
+            if ($isStopLimit) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {

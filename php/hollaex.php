@@ -125,7 +125,7 @@ class hollaex extends Exchange {
             ),
             'options' => array(
                 // how many seconds before the authenticated request expires
-                'api-expires' => intval ($this->timeout / 1000),
+                'api-expires' => intval($this->timeout / 1000),
             ),
         ));
     }
@@ -576,10 +576,10 @@ class hollaex extends Exchange {
             }
         } else {
             if ($limit === null) {
-                $request['from'] = intval ($since / 1000);
+                $request['from'] = intval($since / 1000);
                 $request['to'] = $this->seconds();
             } else {
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, $duration * $limit);
             }
@@ -1192,7 +1192,7 @@ class hollaex extends Exchange {
         $url = $this->urls['api'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval ($this->timeout / 1000));
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval($this->timeout / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $path . $expiresString;

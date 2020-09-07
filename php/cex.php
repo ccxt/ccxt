@@ -21,15 +21,23 @@ class cex extends Exchange {
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -109,10 +117,10 @@ class cex extends Exchange {
                         'XRP' => 0.02,
                     ),
                     'deposit' => array(
-                        // 'USD' => amount => amount * 0.035 . 0.25,
-                        // 'EUR' => amount => amount * 0.035 . 0.24,
-                        // 'RUB' => amount => amount * 0.05 . 15.57,
-                        // 'GBP' => amount => amount * 0.035 . 0.2,
+                        // 'USD' => amount => amount * 0.035 + 0.25,
+                        // 'EUR' => amount => amount * 0.035 + 0.24,
+                        // 'RUB' => amount => amount * 0.05 + 15.57,
+                        // 'GBP' => amount => amount * 0.035 + 0.2,
                         'BTC' => 0.0,
                         'ETH' => 0.0,
                         'BCH' => 0.0,
@@ -508,7 +516,7 @@ class cex extends Exchange {
             $market = $this->markets[$symbol];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -647,7 +655,7 @@ class cex extends Exchange {
             $timestamp = $this->parse8601($timestamp);
         } else {
             // either integer or string integer
-            $timestamp = intval ($timestamp);
+            $timestamp = intval($timestamp);
         }
         $symbol = null;
         if ($market === null) {

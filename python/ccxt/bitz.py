@@ -29,17 +29,25 @@ class bitz(Exchange):
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'cancelOrders': True,
+                'createOrder': True,
+                'createMarketOrder': False,
+                'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'createMarketOrder': False,
-                'fetchDeposits': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
-                'fetchWithdrawals': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -508,7 +516,7 @@ class bitz(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 })
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         response = self.marketGetGetServerTime(params)

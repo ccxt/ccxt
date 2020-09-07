@@ -26,21 +26,28 @@ class bittrex extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchDeposits' => true,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'MINUTE_1',
@@ -74,6 +81,7 @@ class bittrex extends Exchange {
                 'v3' => array(
                     'get' => array(
                         'account',
+                        'account/volume',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -87,6 +95,7 @@ class bittrex extends Exchange {
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
+                        'orders/{orderId}/executions',
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
@@ -94,16 +103,26 @@ class bittrex extends Exchange {
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
+                        'withdrawals/whitelistAddresses',
+                        'conditional-orders/{conditionalOrderId}',
+                        'conditional-orders/closed',
+                        'conditional-orders/open',
+                        'transfers/sent',
+                        'transfers/received',
+                        'transfers/{transferId}',
                     ),
                     'post' => array(
                         'addresses',
                         'orders',
                         'subaccounts',
                         'withdrawals',
+                        'conditional-orders',
+                        'transfers',
                     ),
                     'delete' => array(
                         'orders/{orderId}',
                         'withdrawals/{withdrawalId}',
+                        'conditional-orders/{conditionalOrderId}',
                     ),
                 ),
                 'v3public' => array(
@@ -115,8 +134,10 @@ class bittrex extends Exchange {
                         'markets/{marketSymbol}/orderbook',
                         'markets/{marketSymbol}/trades',
                         'markets/{marketSymbol}/ticker',
-                        'markets/{marketSymbol}/candles',
+                        'markets/{marketSymbol}/candles/{candleInterval}/recent',
                         'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}/{day}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}/{month}',
+                        'markets/{marketSymbol}/candles/{candleInterval}/historical/{year}',
                     ),
                 ),
                 'public' => array(
@@ -661,20 +682,37 @@ class bittrex extends Exchange {
             'candleInterval' => $this->timeframes[$timeframe],
             'marketSymbol' => $reverseId,
         );
-        $method = 'v3publicGetMarketsMarketSymbolCandles';
+        $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
         if ($since !== null) {
             $now = $this->milliseconds();
             $difference = abs($now - $since);
-            if ($difference > 86400000) {
-                $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
-                $date = $this->ymd($since);
-                $parts = explode('-', $date);
-                $year = $this->safe_integer($parts, 0);
-                $month = $this->safe_integer($parts, 1);
-                $day = $this->safe_integer($parts, 2);
-                $request['year'] = $year;
-                $request['month'] = $month;
-                $request['day'] = $day;
+            $sinceDate = $this->ymd($since);
+            $parts = explode('-', $sinceDate);
+            $sinceYear = $this->safe_integer($parts, 0);
+            $sinceMonth = $this->safe_integer($parts, 1);
+            $sinceDay = $this->safe_integer($parts, 2);
+            if ($timeframe === '1d') {
+                // if the $since argument is beyond one year into the past
+                if ($difference > 31622400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYear';
+                    $request['year'] = $sinceYear;
+                }
+                // $request['year'] = year;
+            } else if ($timeframe === '1h') {
+                // if the $since argument is beyond 31 days into the past
+                if ($difference > 2678400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonth';
+                    $request['year'] = $sinceYear;
+                    $request['month'] = $sinceMonth;
+                }
+            } else {
+                // if the $since argument is beyond 1 day into the past
+                if ($difference > 86400000) {
+                    $method = 'v3publicGetMarketsMarketSymbolCandlesCandleIntervalHistoricalYearMonthDay';
+                    $request['year'] = $sinceYear;
+                    $request['month'] = $sinceMonth;
+                    $request['day'] = $sinceDay;
+                }
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1307,9 +1345,59 @@ class bittrex extends Exchange {
         return $result;
     }
 
+    public function fetch_my_trades_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->accountGetOrderhistory (array_merge($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        $orders = $this->parse_orders($result, $market);
+        $trades = $this->orders_to_trades($orders);
+        if ($symbol !== null) {
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        } else {
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        }
+    }
+
+    public function fetch_my_trades_v3($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startDate'] = $this->ymdhms($since, 'T') . 'Z';
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and v3 $market ids are reversed in comparison to v1
+            // v3 has to be a completely separate implementation
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
+        }
+        $response = $this->v3GetOrdersClosed (array_merge($request, $params));
+        $orders = $this->parse_orders($response, $market);
+        $trades = $this->orders_to_trades($orders);
+        if ($symbol !== null) {
+            return $this->filter_by_since_limit($trades, $since, $limit);
+        } else {
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        }
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_closed_orders($symbol, $since, $limit, $params);
-        return $this->orders_to_trades($orders);
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'fetch_my_trades_v3');
+        return $this->$method ($symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

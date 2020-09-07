@@ -23,12 +23,19 @@ class bitstamp extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchDepositAddress' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -241,7 +248,7 @@ class bitstamp extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => floatval ($cost),
+                        'min' => floatval($cost),
                         'max' => null,
                     ),
                 ),
@@ -273,7 +280,7 @@ class bitstamp extends Exchange {
         //     }
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
-        $timestamp = intval ($microtimestamp / 1000);
+        $timestamp = intval($microtimestamp / 1000);
         $orderbook = $this->parse_order_book($response, $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
@@ -466,7 +473,7 @@ class bitstamp extends Exchange {
                 $timestamp = $this->parse8601($timestamp);
             } else {
                 // string unix epoch in seconds
-                $timestamp = intval ($timestamp);
+                $timestamp = intval($timestamp);
                 $timestamp = $timestamp * 1000;
             }
         }
@@ -585,14 +592,14 @@ class bitstamp extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
             } else {
                 $limit = 1000;
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
                 $request['limit'] = $limit;
             }
         } else {
             if ($since !== null) {
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }

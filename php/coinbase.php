@@ -470,8 +470,8 @@ class coinbase extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse8601($this->safe_value($trade, 'created_at'));
         if ($market === null) {
-            $baseId = $this->safe_string($totalObject, 'currency');
-            $quoteId = $this->safe_string($amountObject, 'currency');
+            $baseId = $this->safe_string($amountObject, 'currency');
+            $quoteId = $this->safe_string($totalObject, 'currency');
             if (($baseId !== null) && ($quoteId !== null)) {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
@@ -485,7 +485,7 @@ class coinbase extends Exchange {
         $amount = $this->safe_float($amountObject, 'amount');
         $price = null;
         if ($cost !== null) {
-            if ($amount !== null) {
+            if (($amount !== null) && ($amount > 0)) {
                 $price = $cost / $amount;
             }
         }

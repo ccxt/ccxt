@@ -35,20 +35,27 @@ class huobipro(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
-                'fetchDepositAddress': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchTradingLimits': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -135,6 +142,7 @@ class huobipro(Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'query/deposit-withdraw',
+                        'margin/loan-info',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
                         'points/actions',
@@ -218,6 +226,11 @@ class huobipro(Exchange):
                 # https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
+                # https://github.com/ccxt/ccxt/issues/7399
+                # https://coinmarketcap.com/currencies/pnetwork/
+                # https://coinmarketcap.com/currencies/penta/markets/
+                # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT': 'Penta',
             },
         })
 
@@ -407,9 +420,7 @@ class huobipro(Exchange):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
-        vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -538,6 +549,24 @@ class huobipro(Exchange):
         #
         # fetchMyTrades(private)
         #
+        #     {
+        #          'symbol': 'swftcbtc',
+        #          'fee-currency': 'swftc',
+        #          'filled-fees': '0',
+        #          'source': 'spot-api',
+        #          'id': 83789509854000,
+        #          'type': 'buy-limit',
+        #          'order-id': 83711103204909,
+        #          'filled-points': '0.005826843283532154',
+        #          'fee-deduct-currency': 'ht',
+        #          'filled-amount': '45941.53',
+        #          'price': '0.0000001401',
+        #          'created-at': 1597933260729,
+        #          'match-id': 100087455560,
+        #          'role': 'maker',
+        #          'trade-id': 100050305348
+        #     },
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -564,7 +593,7 @@ class huobipro(Exchange):
         feeCost = self.safe_float(trade, 'filled-fees')
         feeCurrency = None
         if market is not None:
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
+            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_float(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
