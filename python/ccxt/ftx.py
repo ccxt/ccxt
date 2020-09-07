@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1373,8 +1380,11 @@ class ftx(Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         txid = self.safe_string(transaction, 'txid')
-        address = self.safe_string(transaction, 'address')
-        tag = self.safe_string(transaction, 'tag')
+        tag = None
+        address = self.safe_value(transaction, 'address')
+        if not isinstance(address, basestring):
+            tag = self.safe_string(address, 'tag')
+            address = self.safe_string(address, 'address')
         fee = self.safe_float(transaction, 'fee')
         type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
