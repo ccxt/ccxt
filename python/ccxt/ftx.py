@@ -1375,7 +1375,7 @@ class ftx(Exchange):
         #     }
         #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
-        id = self.safe_integer(transaction, 'id')
+        id = self.safe_string(transaction, 'id')
         amount = self.safe_float(transaction, 'size')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))

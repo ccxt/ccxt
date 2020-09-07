@@ -1434,7 +1434,7 @@ class ftx extends Exchange {
         //     }
         //
         $code = $this->safe_currency_code($this->safe_string($transaction, 'coin'));
-        $id = $this->safe_integer($transaction, 'id');
+        $id = $this->safe_string($transaction, 'id');
         $amount = $this->safe_float($transaction, 'size');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
