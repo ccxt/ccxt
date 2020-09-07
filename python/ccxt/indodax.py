@@ -22,17 +22,23 @@ class indodax(Exchange):
             'name': 'INDODAX',
             'countries': ['ID'],  # Indonesia
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
-                'fetchTickers': False,
-                'fetchTime': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchMyTrades': False,
                 'fetchCurrencies': False,
                 'fetchMarkets': True,
+                'fetchMyTrades': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -97,6 +103,13 @@ class indodax(Exchange):
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
+            'commonCurrencies': {
+                'STR': 'XLM',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
+                'DRK': 'DASH',
+                'NEM': 'XEM',
+            },
         })
 
     def nonce(self):
@@ -149,7 +162,7 @@ class indodax(Exchange):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = self.safe_string(market, 'id')
+            id = self.safe_string(market, 'ticker_id')
             baseId = self.safe_string(market, 'traded_currency')
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)

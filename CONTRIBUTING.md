@@ -212,7 +212,7 @@ The contents of the repository are structured as follows:
 /examples/py               # ...
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
 /package.json              # npm package file, also used in setup.py for version single-sourcing
-/run-tests.js              # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
+/run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
 
@@ -281,7 +281,7 @@ Below are key notes on how to keep the JS code transpileable.
 Use the linter `npm run lint js/your-exchange-implementation.js` before you build. It will cover many (but not all) the issues,
 so manual checking will still be required if transpilation fails.
 
-If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
+If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisfies the following rules:
 
 - don't put empty lines inside your methods
 - always use Python-style indentation, it is preserved as is for all languages
@@ -295,7 +295,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - every opening bracket like `(` or `{` should have a space before it!
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
-- don't change the arguments of overrided inherited methods, keep them uniform across all exchanges
+- don't change the arguments of overridden inherited methods, keep them uniform across all exchanges
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
@@ -459,7 +459,7 @@ Both work almost identically, and one is implicitly converted to another upon ex
 
 While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
-To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
+To keep the code transpileable, please, remember this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
 #### Sanitizing Input With `safe`-Methods
 
@@ -587,7 +587,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 **All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
 
-In order to convert to milliseconds timestamps, CCXT implementes the following methods:
+In order to convert to milliseconds timestamps, CCXT implements the following methods:
 
 ```JavaScript
 const data = {
@@ -756,6 +756,7 @@ foo += this.c ();
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
 - when implementing a unified method that has some arguments – we can't ignore or miss any of those arguments
 - all structures returned from the unified methods must conform to their specifications from the Manual
+- all API endpoints have to be listed out with proper support for params substituted in the URLs
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 
@@ -871,7 +872,7 @@ You can hide the changes in the generated files by running this command (after t
 npm run git-ignore-generated-files
 ```
 
-Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occured in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
+Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occurred in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
 
 ```
 npm run git-unignore-generated-files

@@ -86,9 +86,26 @@ module.exports = class bitmax extends Exchange {
                         'futures/funding-rates',
                     ],
                 },
+                'accountCategory': {
+                    'get': [
+                        'balance',
+                        'order/open',
+                        'order/status',
+                        'order/hist/current',
+                        'risk',
+                    ],
+                    'post': [
+                        'order',
+                        'order/batch',
+                    ],
+                    'delete': [
+                        'order',
+                        'order/all',
+                        'order/batch',
+                    ],
+                },
                 'accountGroup': {
                     'get': [
-                        '{account-category}/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -97,21 +114,11 @@ module.exports = class bitmax extends Exchange {
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        '{account-category}/order/open',
-                        '{account-category}/order/status',
-                        '{account-category}/order/hist/current',
                         'order/hist',
                     ],
                     'post': [
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        '{account-category}/order',
-                        '{account-category}/order/batch',
-                    ],
-                    'delete': [
-                        '{account-category}/order',
-                        '{account-category}/order/all',
-                        '{account-category}/order/batch',
                     ],
                 },
                 'private': {
@@ -530,11 +537,11 @@ module.exports = class bitmax extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        let method = 'accountGroupGetCashBalance';
-        if (accountCategory === 'margin') {
-            method = 'accountGroupGetMarginBalance';
-        } else if (accountCategory === 'futures') {
+        let method = 'accountCategoryGetBalance';
+        if (accountCategory === 'futures') {
             method = 'accountGroupGetFuturesCollateralBalance';
+        } else {
+            request['account-category'] = accountCategory;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -647,7 +654,7 @@ module.exports = class bitmax extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = marketId;
+        let symbol = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         } else if (marketId !== undefined) {
@@ -1098,7 +1105,7 @@ module.exports = class bitmax extends Exchange {
                 params = this.omit (params, 'stopPrice');
             }
         }
-        const response = await this.accountGroupPostAccountCategoryOrder (this.extend (request, params));
+        const response = await this.accountCategoryPostOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1137,7 +1144,7 @@ module.exports = class bitmax extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const response = await this.accountGroupGetAccountCategoryOrderStatus (this.extend (request, params));
+        const response = await this.accountCategoryGetOrderStatus (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1187,7 +1194,7 @@ module.exports = class bitmax extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const response = await this.accountGroupGetAccountCategoryOrderOpen (this.extend (request, params));
+        const response = await this.accountCategoryGetOrderOpen (this.extend (request, params));
         //
         //     {
         //         "ac": "CASH",
@@ -1274,7 +1281,7 @@ module.exports = class bitmax extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // accountGroupGetAccountCategoryOrderHistCurrent
+        // accountCategoryGetOrderHistCurrent
         //
         //     {
         //         "code":0,
@@ -1373,7 +1380,7 @@ module.exports = class bitmax extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        const response = await this.accountGroupDeleteAccountCategoryOrder (this.extend (request, params));
+        const response = await this.accountCategoryDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1417,7 +1424,7 @@ module.exports = class bitmax extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.accountGroupDeleteAccountCategoryOrderAll (this.extend (request, params));
+        const response = await this.accountCategoryDeleteOrderAll (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1664,12 +1671,18 @@ module.exports = class bitmax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '';
         let query = params;
-        if (api === 'accountGroup') {
+        const accountCategory = (api === 'accountCategory');
+        if (accountCategory || (api === 'accountGroup')) {
             url += this.implodeParams ('/{account-group}', params);
             query = this.omit (params, 'account-group');
         }
         const request = this.implodeParams (path, query);
-        url += '/api/pro/' + this.version + '/' + request;
+        url += '/api/pro/' + this.version;
+        if (accountCategory) {
+            url += this.implodeParams ('/{account-category}', query);
+            query = this.omit (query, 'account-category');
+        }
+        url += '/' + request;
         query = this.omit (query, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

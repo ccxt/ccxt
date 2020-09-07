@@ -27,21 +27,28 @@ class crex24 extends Exchange {
             // new metainfo interface
             'has' => array(
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
                 'fetchTransactions' => true,
@@ -157,6 +164,7 @@ class crex24 extends Exchange {
                     'API Key' => '\\ccxt\\AuthenticationError', // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds', // "Insufficient funds => new order requires 10 ETH which is more than the available balance."
                     'has been delisted.' => '\\ccxt\\BadSymbol', // array("errorDescription":"Instrument '$PAC-BTC' has been delisted.")
+                    'Mandatory parameter' => '\\ccxt\\BadRequest', // array("errorDescription":"Mandatory parameter 'feeCurrency' is missing.")
                 ),
             ),
         ));
@@ -694,7 +702,7 @@ class crex24 extends Exchange {
             if ($amount !== null) {
                 $filled = $amount - $remaining;
                 if ($this->options['parseOrderToPrecision']) {
-                    $filled = floatval ($this->amount_to_precision($symbol, $filled));
+                    $filled = floatval($this->amount_to_precision($symbol, $filled));
                 }
                 $filled = max ($filled, 0.0);
                 if ($price !== null) {
@@ -722,7 +730,7 @@ class crex24 extends Exchange {
                 $average = $cost / $filled;
             }
             if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
         return array(
@@ -1024,7 +1032,7 @@ class crex24 extends Exchange {
         $this->load_markets();
         $request = array(
             'ids' => array(
-                intval ($id),
+                intval($id),
             ),
         );
         $response = $this->tradingPostCancelOrdersById (array_merge($request, $params));
@@ -1251,11 +1259,12 @@ class crex24 extends Exchange {
         $request = array(
             'currency' => $currency['id'],
             'address' => $address,
-            'amount' => floatval ($this->currency_to_precision($code, $amount)),
+            'amount' => floatval($this->currency_to_precision($code, $amount)),
             // sets whether the specified $amount includes fee, can have either of the two values
             // true - balance will be decreased by $amount, whereas [$amount - fee] will be transferred to the specified $address
             // false - $amount will be deposited to the specified $address, whereas the balance will be decreased by [$amount . fee]
             // 'includeFee' => false, // the default value is false
+            'feeCurrency' => $currency['id'], // https://github.com/ccxt/ccxt/issues/7544
         );
         if ($tag !== null) {
             $request['paymentId'] = $tag;

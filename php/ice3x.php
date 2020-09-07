@@ -20,12 +20,19 @@ class ice3x extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87460809-1dd06c00-c616-11ea-98ad-7d5e1cb7fcdd.jpg',
@@ -210,7 +217,7 @@ class ice3x extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -374,8 +381,6 @@ class ice3x extends Exchange {
             'remaining' => $amount,
             'info' => $response,
         ), $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -392,15 +397,21 @@ class ice3x extends Exchange {
             'order _id' => $id,
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
-        $order = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $order = $this->safe_value($data, 'entity');
         return $this->parse_order($order);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrderList ($params);
-        $orders = $this->safe_value($response['response'], 'entities');
-        return $this->parse_orders($orders, null, $since, $limit);
+        $data = $this->safe_value($response, 'response', array());
+        $orders = $this->safe_value($data, 'entities', array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -413,10 +424,11 @@ class ice3x extends Exchange {
             $request['items_per_page'] = $limit;
         }
         if ($since !== null) {
-            $request['date_from'] = intval ($since / 1000);
+            $request['date_from'] = intval($since / 1000);
         }
         $response = $this->privatePostTradeList (array_merge($request, $params));
-        $trades = $this->safe_value($response['response'], 'entities');
+        $data = $this->safe_value($response, 'response', array());
+        $trades = $this->safe_value($data, 'entities', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -427,7 +439,8 @@ class ice3x extends Exchange {
             'currency_id' => $currency['id'],
         );
         $response = $this->privatePostBalanceInfo (array_merge($request, $params));
-        $balance = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $balance = $this->safe_value($data, 'entity', array());
         $address = $this->safe_string($balance, 'address');
         $status = $address ? 'ok' : 'none';
         return array(

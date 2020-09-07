@@ -17,6 +17,12 @@ module.exports = class bl3p extends Exchange {
             'comment': 'An exchange market by BitonicNL',
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',

@@ -27,14 +27,21 @@ class zb(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -289,7 +296,7 @@ class zb(Exchange):
         for i in range(0, len(ids)):
             market = anotherMarketsById[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

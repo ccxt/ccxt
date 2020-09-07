@@ -16,23 +16,30 @@ module.exports = class exmo extends Exchange {
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingFees': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchOrders': 'emulated',
                 'fetchOrderTrades': true,
-                'fetchOrderBooks': true,
-                'fetchMyTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'withdraw': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchFundingFees': true,
-                'fetchCurrencies': true,
                 'fetchTransactions': true,
-                'fetchOHLCV': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -461,6 +468,7 @@ module.exports = class exmo extends Exchange {
                     'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -859,7 +867,7 @@ module.exports = class exmo extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

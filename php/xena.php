@@ -27,10 +27,13 @@ class xena extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -164,7 +167,7 @@ class xena extends Exchange {
         //     }
         //
         $transactTime = $this->safe_integer($response, 'transactTime');
-        return intval ($transactTime / 1000000);
+        return intval($transactTime / 1000000);
     }
 
     public function fetch_markets($params = array ()) {
@@ -491,7 +494,7 @@ class xena extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -530,7 +533,7 @@ class xena extends Exchange {
         $mdEntry = $this->safe_value($response, 'mdEntry', array());
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
-        $timestamp = intval ($lastUpdateTime / 1000000);
+        $timestamp = intval($lastUpdateTime / 1000000);
         return $this->parse_order_book($mdEntriesByType, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
@@ -666,7 +669,7 @@ class xena extends Exchange {
         $id = $this->safe_string($trade, 'tradeId');
         $timestamp = $this->safe_integer($trade, 'transactTime');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp / 1000000);
+            $timestamp = intval($timestamp / 1000000);
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'aggressorSide');
         if ($side === '1') {
@@ -818,7 +821,7 @@ class xena extends Exchange {
         //     }
         //
         $transactTime = $this->safe_integer($ohlcv, 'transactTime');
-        $timestamp = intval ($transactTime / 1000000);
+        $timestamp = intval($transactTime / 1000000);
         $buyVolume = $this->safe_float($ohlcv, 'buyVolume');
         $sellVolume = $this->safe_float($ohlcv, 'sellVolume');
         $volume = $this->sum($buyVolume, $sellVolume);
@@ -948,7 +951,7 @@ class xena extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clOrdId');
         $transactTime = $this->safe_integer($order, 'transactTime');
-        $timestamp = intval ($transactTime / 1000000);
+        $timestamp = intval($transactTime / 1000000);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -1034,7 +1037,7 @@ class xena extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'account' => intval ($accountId),
+            'account' => intval($accountId),
             'symbol' => $market['id'],
             'ordType' => $orderType,
             'side' => $orderSide,
@@ -1107,7 +1110,7 @@ class xena extends Exchange {
         $accountId = $this->get_account_id($params);
         $market = $this->market($symbol);
         $request = array(
-            'account' => intval ($accountId),
+            'account' => intval($accountId),
             'clOrdId' => $this->uuid(),
             'symbol' => $market['id'],
             'transactTime' => $this->milliseconds() * 1000000,
@@ -1164,7 +1167,7 @@ class xena extends Exchange {
         $params = $this->omit($params, array( 'clientOrderId', 'origClOrdId' ));
         $market = $this->market($symbol);
         $request = array(
-            'account' => intval ($accountId),
+            'account' => intval($accountId),
             'symbol' => $market['id'],
             'clOrdId' => $this->uuid(),
             'transactTime' => $this->milliseconds() * 1000000,
@@ -1206,7 +1209,7 @@ class xena extends Exchange {
         $this->load_accounts();
         $accountId = $this->get_account_id($params);
         $request = array(
-            'account' => intval ($accountId),
+            'account' => intval($accountId),
             'clOrdId' => $this->uuid(),
             // 'side' => '1', // 1 = buy, 2 = sell, optional filter, cancel only orders with the given side
             // 'positionEffect' => 'C', // C = Close, O = Open, optional filter, cancel only orders with the given positionEffect, applicable only for accounts with hedged accounting
@@ -1394,7 +1397,7 @@ class xena extends Exchange {
             'accountId' => $accountId,
         );
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $method = 'privateGetTransfersAccountsAccountId' . $this->capitalize($type);
         $response = $this->$method (array_merge($request, $params));
@@ -1490,7 +1493,7 @@ class xena extends Exchange {
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $updated = $this->safe_integer($transaction, 'lastUpdated');
         if ($updated !== null) {
-            $updated = intval ($updated / 1000000);
+            $updated = intval($updated / 1000000);
         }
         $timestamp = null;
         $txid = $this->safe_string($transaction, 'txId');
@@ -1605,7 +1608,7 @@ class xena extends Exchange {
         }
         $timestamp = $this->safe_integer($item, 'ts');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp / 1000000);
+            $timestamp = intval($timestamp / 1000000);
         }
         $fee = array(
             'cost' => $this->safe_float($item, 'commission'),

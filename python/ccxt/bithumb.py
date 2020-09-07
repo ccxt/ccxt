@@ -28,13 +28,18 @@ class bithumb(Exchange):
             'countries': ['KR'],  # South Korea
             'rateLimit': 500,
             'has': {
-                'CORS': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'CORS': True,
                 'createMarketOrder': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -109,13 +114,13 @@ class bithumb(Exchange):
         data = self.safe_value(response, 'data')
         currencyIds = list(data.keys())
         result = []
+        quote = self.safe_currency_code('KRW')
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             if currencyId == 'date':
                 continue
             market = data[currencyId]
-            base = currencyId
-            quote = 'KRW'
+            base = self.safe_currency_code(currencyId)
             symbol = currencyId + '/' + quote
             active = True
             if isinstance(market, list):
@@ -240,9 +245,7 @@ class bithumb(Exchange):
             average = self.sum(open, close) / 2
         baseVolume = self.safe_float(ticker, 'units_traded_24H')
         quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
-        vwap = None
-        if quoteVolume is not None and baseVolume is not None:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -307,7 +310,7 @@ class bithumb(Exchange):
             if not isArray:
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

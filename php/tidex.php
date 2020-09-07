@@ -20,17 +20,24 @@ class tidex extends Exchange {
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
-                'fetchOrderBooks' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => 'emulated',
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
-                'fetchTickers' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
                 'fetchCurrencies' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
+                'fetchOrders' => 'emulated',
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
@@ -123,6 +130,7 @@ class tidex extends Exchange {
             'options' => array(
                 'fetchTickersMaxLength' => 2048,
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -189,7 +197,7 @@ class tidex extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         if ($side === 'sell') {
             $cost *= $price;
         } else {
@@ -398,7 +406,7 @@ class tidex extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -502,8 +510,8 @@ class tidex extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $price = floatval ($price);
-        $amount = floatval ($amount);
+        $price = floatval($price);
+        $amount = floatval($amount);
         $response = $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';
@@ -547,7 +555,7 @@ class tidex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostCancelOrder (array_merge($request, $params));
         if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
@@ -641,7 +649,7 @@ class tidex extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
         $id = (string) $id;
@@ -746,10 +754,10 @@ class tidex extends Exchange {
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['count'] = intval ($limit);
+            $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
         $trades = $this->safe_value($response, 'return', array());
@@ -762,7 +770,7 @@ class tidex extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coinName' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
         );
         // no docs on the $tag, yet...

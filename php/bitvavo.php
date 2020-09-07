@@ -223,6 +223,9 @@ class bitvavo extends Exchange {
                     'expires' => 1000, // 1 second
                 ),
             ),
+            'commonCurrencies' => array(
+                'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            ),
         ));
     }
 
@@ -444,10 +447,7 @@ class bitvavo extends Exchange {
         $last = $this->safe_float($ticker, 'last');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $this->safe_float($ticker, 'volumeQuote');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = null;
         $percentage = null;
         $average = null;

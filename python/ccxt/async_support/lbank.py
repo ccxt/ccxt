@@ -21,12 +21,20 @@ class lbank(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': False,  # status 0 API doesn't work
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'minute1',
@@ -109,6 +117,7 @@ class lbank(Exchange):
             },
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
+                'PNT': 'Penta',
             },
             'options': {
                 'cacheSecretAsPem': True,
@@ -248,7 +257,7 @@ class lbank(Exchange):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=60, params={}):
         await self.load_markets()
@@ -478,10 +487,7 @@ class lbank(Exchange):
         order['order_type'] = type
         order['create_time'] = self.milliseconds()
         order['info'] = response
-        order = self.parse_order(order, market)
-        id = order['id']
-        self.orders[id] = order
-        return order
+        return self.parse_order(order, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -502,7 +508,8 @@ class lbank(Exchange):
             'order_id': id,
         }
         response = await self.privatePostOrdersInfo(self.extend(request, params))
-        orders = self.parse_orders(response['orders'], market)
+        data = self.safe_value(response, 'orders', [])
+        orders = self.parse_orders(data, market)
         numOrders = len(orders)
         if numOrders == 1:
             return orders[0]
@@ -520,7 +527,8 @@ class lbank(Exchange):
             'page_length': limit,
         }
         response = await self.privatePostOrdersInfoHistory(self.extend(request, params))
-        return self.parse_orders(response['orders'], None, since, limit)
+        data = self.safe_value(response, 'orders', [])
+        return self.parse_orders(data, None, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
@@ -543,7 +551,7 @@ class lbank(Exchange):
             request['memo'] = tag
         response = self.privatePostWithdraw(self.extend(request, params))
         return {
-            'id': response['id'],
+            'id': self.safe_string(response, 'id'),
             'info': response,
         }
 

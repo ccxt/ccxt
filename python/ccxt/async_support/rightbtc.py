@@ -22,14 +22,21 @@ class rightbtc(Exchange):
             'name': 'RightBTC',
             'countries': ['AE'],
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
                 'privateAPI': False,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
-                'fetchOrder': 'emulated',
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -249,7 +256,7 @@ class rightbtc(Exchange):
             market = self.marketsById[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

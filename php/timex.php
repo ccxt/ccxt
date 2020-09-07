@@ -19,16 +19,23 @@ class timex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'has' => array(
-                'CORS' => false,
+                'cancelOrder' => true,
                 'cancelOrders' => true,
+                'CORS' => false,
+                'createOrder' => true,
                 'editOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true, // maker fee only
             ),
             'timeframes' => array(
@@ -230,7 +237,7 @@ class timex extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     array(
-        //         {
+        //         array(
         //             "symbol" => "BTC",
         //             "name" => "Bitcoin",
         //             "address" => "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
@@ -250,7 +257,7 @@ class timex extends Exchange {
         //             "active" => true,
         //             "withdrawalFee" => "50000000000000000",
         //             "purchaseCommissions" => array()
-        //         },
+        //         ),
         //     )
         //
         $result = array();
@@ -931,13 +938,13 @@ class timex extends Exchange {
             if ($dotIndex > 0) {
                 $whole = mb_substr($feeString, 0, $dotIndex - 0);
                 $fraction = mb_substr($feeString, -$dotIndex);
-                $fee = floatval ($whole . '.' . $fraction);
+                $fee = floatval($whole . '.' . $fraction);
             } else {
                 $fraction = '.';
                 for ($i = 0; $i < -$dotIndex; $i++) {
                     $fraction .= '0';
                 }
-                $fee = floatval ($fraction . $feeString);
+                $fee = floatval($fraction . $feeString);
             }
         }
         return array(
@@ -1183,7 +1190,7 @@ class timex extends Exchange {
                 $status = 'open';
             }
         }
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $filled));
+        $cost = floatval($this->cost_to_precision($symbol, $price * $filled));
         $fee = null;
         $lastTradeTimestamp = null;
         $trades = null;

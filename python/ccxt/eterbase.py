@@ -9,8 +9,10 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class eterbase(Exchange):
@@ -118,6 +120,7 @@ class eterbase(Exchange):
                 'secret': True,
                 'uid': True,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
             },
@@ -125,6 +128,7 @@ class eterbase(Exchange):
                 'exact': {
                     'Invalid cost': InvalidOrder,  # {"message":"Invalid cost","_links":{"self":{"href":"/orders","templated":false}}}
                     'Invalid order ID': InvalidOrder,  # {"message":"Invalid order ID","_links":{"self":{"href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false}}}
+                    'Invalid market !': BadSymbol,  # {"message":"Invalid market !","_links":{"self":{"href":"/markets/300/order-book","templated":false}}}
                 },
                 'broad': {
                     'Failed to convert argument': BadRequest,
@@ -353,9 +357,7 @@ class eterbase(Exchange):
         last = self.safe_float(ticker, 'price')
         baseVolume = self.safe_float(ticker, 'volumeBase')
         quoteVolume = self.safe_float(ticker, 'volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and baseVolume:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         percentage = self.safe_float(ticker, 'change')
         result = {
             'symbol': symbol,

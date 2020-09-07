@@ -26,24 +26,26 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 500,
-            'certified': False,
+            'certified': True,
+            'pro': True,
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'CORS': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
                 'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTradingFees': True,
-                'fetchOHLCV': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
-                'fetchBalance': True,
-                'fetchOpenOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -371,9 +373,7 @@ class currencycom(Exchange):
             'taker': self.safe_float(response, 'takerCommission'),
         }
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetAccount(params)
+    def parse_balance_response(self, response):
         #
         #     {
         #         "makerCommission":0.20,
@@ -407,6 +407,33 @@ class currencycom(Exchange):
             account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
+
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccount(params)
+        #
+        #     {
+        #         "makerCommission":0.20,
+        #         "takerCommission":0.20,
+        #         "buyerCommission":0.20,
+        #         "sellerCommission":0.20,
+        #         "canTrade":true,
+        #         "canWithdraw":true,
+        #         "canDeposit":true,
+        #         "updateTime":1591056268,
+        #         "balances":[
+        #             {
+        #                 "accountId":5470306579272968,
+        #                 "collateralCurrency":true,
+        #                 "asset":"ETH",
+        #                 "free":0.0,
+        #                 "locked":0.0,
+        #                 "default":false,
+        #             },
+        #         ]
+        #     }
+        #
+        return self.parse_balance_response(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

@@ -53,7 +53,7 @@ async function main () {
                 const globalExchange = globalExchanges[exchangeId]
                 const exchange = new ccxt[exchangeId] ({
                     'enableRateLimit': true,
-                    'verbose': true,
+                    // 'verbose': true, // uncomment for debug output
                     ... users[userId][exchangeId],
                 });
                 [

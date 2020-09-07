@@ -354,7 +354,7 @@ class bitfinex2(bitfinex):
             quoteId = self.get_currency_id(quoteId)
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': self.safe_integer(market, 'price_precision'),
+                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
             limits = {
                 'amount': {
@@ -496,7 +496,7 @@ class bitfinex2(bitfinex):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

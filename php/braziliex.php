@@ -20,12 +20,19 @@ class braziliex extends Exchange {
             'countries' => array( 'BR' ),
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -346,7 +353,7 @@ class braziliex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$marketId], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -447,7 +454,7 @@ class braziliex extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
         $info = $order;
         if (is_array($info) && array_key_exists('info', $info)) {
             $info = $order['info'];
@@ -489,30 +496,49 @@ class braziliex extends Exchange {
             'amount' => $amount,
         );
         $response = $this->$method (array_merge($request, $params));
+        //
+        // sell
+        //
+        //     {
+        //         "$success":1,
+        //         "$message":" ##RESERVED FOR ORDER / SELL / XMR_BTC / AMOUNT => 0.01 XMR / PRICE => 0.017 BTC / TOTAL => 0.00017000 BTC / FEE => 0.00002500 XMR ",
+        //         "order_number":"590b962ba5b98335965fa0a8"
+        //     }
+        //
+        // buy
+        //
+        //     {
+        //         "$success":1,
+        //         "$message":" ##RESERVED FOR ORDER / BUY / XMR_BTC / AMOUNT => 0.005 XMR / PRICE => 0.017 BTC / TOTAL => 0.00008500 BTC / FEE => 0.00000021 BTC ",
+        //         "order_number":"590b962ba5b98335965fa0c0"
+        //     }
+        //
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1) {
             throw new InvalidOrder($this->id . ' ' . $this->json($response));
         }
-        $parts = explode(' / ', $response['message']);
+        $message = $this->safe_string($response, 'message');
+        $parts = explode(' / ', $message);
         $parts = mb_substr($parts, 1);
         $feeParts = explode(' ', $parts[5]);
+        $amountParts = explode(' ', $parts[2]);
+        $priceParts = explode(' ', $parts[3]);
+        $totalParts = explode(' ', $parts[4]);
         $order = $this->parse_order(array(
             'timestamp' => $this->milliseconds(),
             'order_number' => $response['order_number'],
-            'type' => strtolower($parts[0]),
+            'type' => $this->safe_string_lower($parts, 0),
             'market' => strtolower($parts[0]),
-            'amount' => explode(' ', $parts[2])[1],
-            'price' => explode(' ', $parts[3])[1],
-            'total' => explode(' ', $parts[4])[1],
+            'amount' => $this->safe_string($amountParts, 1),
+            'price' => $this->safe_string($priceParts, 1),
+            'total' => $this->safe_string($totalParts, 1),
             'fee' => array(
-                'cost' => floatval ($feeParts[1]),
-                'currency' => $feeParts[2],
+                'cost' => $this->safe_float($feeParts, 1),
+                'currency' => $this->safe_string($feeParts, 2),
             ),
             'progress' => '0.0',
             'info' => $response,
         ), $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -547,7 +573,8 @@ class braziliex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->privatePostOpenOrders (array_merge($request, $params));
-        return $this->parse_orders($response['order_open'], $market, $since, $limit);
+        $orders = $this->safe_value($response, 'order_open', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -557,7 +584,8 @@ class braziliex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
-        return $this->parse_trades($response['trade_history'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trade_history', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

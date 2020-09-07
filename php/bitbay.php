@@ -17,11 +17,19 @@ class bitbay extends Exchange {
             'countries' => array( 'MT', 'EU' ), // Malta
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOpenOrders' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -220,6 +228,9 @@ class bitbay extends Exchange {
                 'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
                 'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
+            ),
+            'commonCurrencies' => array(
+                'GGC' => 'Global Game Coin',
             ),
         ));
     }
@@ -875,7 +886,7 @@ class bitbay extends Exchange {
             $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $timerange;
         } else {
-            $request['from'] = intval ($since);
+            $request['from'] = intval($since);
             $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
@@ -1030,9 +1041,9 @@ class bitbay extends Exchange {
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
-            $price = floatval ($price);
+            $price = floatval($price);
         }
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)

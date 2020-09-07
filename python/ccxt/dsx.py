@@ -34,19 +34,26 @@ class dsx(Exchange):
             'rateLimit': 1500,
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'createMarketOrder': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
-                'fetchOrderBooks': True,
                 'createDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': False,
                 'fetchDepositAddress': True,
-                'fetchTransactions': True,
-                'fetchTickers': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTransactions': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -135,6 +142,7 @@ class dsx(Exchange):
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce,  # {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder,  # {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
@@ -520,7 +528,7 @@ class dsx(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)
@@ -909,8 +917,6 @@ class dsx(Exchange):
             'orderId': id,
         }
         response = self.privatePostOrderCancel(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
         return response
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

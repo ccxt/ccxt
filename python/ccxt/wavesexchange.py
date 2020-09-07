@@ -30,19 +30,21 @@ class wavesexchange(Exchange):
             'certified': True,
             'pro': False,
             'has': {
-                'fetchTicker': True,
+                'cancelOrder': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
+                'fetchTicker': True,
                 'fetchTrades': True,
-                'fetchBalance': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'fetchDepositAddress': True,
-                'fetchOHLCV': True,
-                'createMarketOrder': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1226,10 +1228,8 @@ class wavesexchange(Exchange):
             code = None
             if currencyId in self.currencies_by_id:
                 code = self.safe_currency_code(currencyId)
-            else:
-                code = self.safe_currency_code(self.safe_string(issueTransaction, 'name'))
-            result[code] = self.account()
-            result[code]['total'] = self.from_wei(balance, decimals)
+                result[code] = self.account()
+                result[code]['total'] = self.from_wei(balance, decimals)
         timestamp = self.milliseconds()
         byteArray = [
             self.base58_to_binary(self.apiKey),
@@ -1449,14 +1449,8 @@ class wavesexchange(Exchange):
             proxyAddress = self.safe_string(proxyAddresses, 0)
         else:
             proxyAddress = address
-        fee = None
-        feeAssetId = None
-        if code == 'WAVES':
-            fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)
-            feeAssetId = 'WAVES'
-        else:
-            fee = self.safe_integer(self.options, 'withdrawFeeUSDN', 7420)
-            feeAssetId = self.currency('USDN')['id']
+        fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)  # 0.001 WAVES
+        feeAssetId = 'WAVES'
         type = 4  # transfer
         version = 2
         amountInteger = self.currency_to_precision(code, amount)

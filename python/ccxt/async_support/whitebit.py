@@ -45,6 +45,7 @@ class whitebit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFees': True,
                 'privateAPI': False,
                 'publicAPI': True,
             },

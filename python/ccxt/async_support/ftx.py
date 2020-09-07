@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -37,11 +38,15 @@ class ftx(Exchange):
             },
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -196,11 +201,13 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
+                    'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
                 },
                 'broad': {
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
@@ -222,6 +229,10 @@ class ftx(Exchange):
                 },
                 'fetchOrders': {
                     'method': 'privateGetOrdersHistory',  # privateGetConditionalOrdersHistory
+                },
+                'sign': {
+                    'ftx.com': 'FTX',
+                    'ftx.us': 'FTXUS',
                 },
             },
         })
@@ -808,6 +819,7 @@ class ftx(Exchange):
             'new': 'open',
             'open': 'open',
             'closed': 'closed',  # filled or canceled
+            'triggered': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -873,10 +885,38 @@ class ftx(Exchange):
         #         "reduceOnly": False
         #     }
         #
+        # canceled order with a closed status
+        #
+        #     {
+        #         "avgFillPrice":null,
+        #         "clientId":null,
+        #         "createdAt":"2020-09-01T13:45:57.119695+00:00",
+        #         "filledSize":0.0,
+        #         "future":null,
+        #         "id":8553541288,
+        #         "ioc":false,
+        #         "liquidation":false,
+        #         "market":"XRP/USDT",
+        #         "postOnly":false,
+        #         "price":0.5,
+        #         "reduceOnly":false,
+        #         "remainingSize":0.0,
+        #         "side":"sell",
+        #         "size":46.0,
+        #         "status":"closed",
+        #         "type":"limit"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filledSize')
         remaining = self.safe_float(order, 'remainingSize')
+        if (remaining == 0.0) and (amount is not None) and (filled is not None):
+            remaining = max(amount - filled, 0)
+            if remaining > 0:
+                status = 'canceled'
         symbol = None
         marketId = self.safe_string(order, 'market')
         if marketId is not None:
@@ -889,10 +929,8 @@ class ftx(Exchange):
                 symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        amount = self.safe_float(order, 'size')
         average = self.safe_float(order, 'avgFillPrice')
         price = self.safe_float_2(order, 'price', 'triggerPrice', average)
         cost = None
@@ -1298,7 +1336,7 @@ class ftx(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
@@ -1338,7 +1376,7 @@ class ftx(Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'tag')
         fee = self.safe_float(transaction, 'fee')
-        type = 'deposit' if ('confirmations' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1384,9 +1422,12 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_transactions(result)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parse_transactions(result, currency, since, limit)
 
-    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privateGetWalletWithdrawals(params)
         #
@@ -1406,7 +1447,10 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_transactions(result)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parse_transactions(result, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)
@@ -1422,16 +1466,20 @@ class ftx(Exchange):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
-            headers = {
-                'FTX-KEY': self.apiKey,
-                'FTX-TS': timestamp,
-            }
+            headers = {}
             if method == 'POST':
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers['FTX-SIGN'] = signature
+            options = self.safe_value(self.options, 'sign', {})
+            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
+            keyField = headerPrefix + '-KEY'
+            tsField = headerPrefix + '-TS'
+            signField = headerPrefix + '-SIGN'
+            headers[keyField] = self.apiKey
+            headers[tsField] = timestamp
+            headers[signField] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

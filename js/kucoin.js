@@ -519,6 +519,9 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
+        const baseVolume = this.safeFloat (ticker, 'vol');
+        const quoteVolume = this.safeFloat (ticker, 'volValue');
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return {
             'symbol': symbol,
@@ -530,7 +533,7 @@ module.exports = class kucoin extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
@@ -538,8 +541,8 @@ module.exports = class kucoin extends Exchange {
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
             'average': this.safeFloat (ticker, 'averagePrice'),
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volValue'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -577,7 +580,7 @@ module.exports = class kucoin extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -819,21 +822,26 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
+        const id = this.safeString (data, 'orderId');
         const order = {
-            'id': this.safeString (data, 'orderId'),
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'amount': undefined,
             'cost': undefined,
+            'average': undefined,
             'filled': undefined,
             'remaining': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'status': undefined,
             'fee': undefined,
-            'status': 'open',
-            'clientOrderId': clientOrderId,
-            'info': data,
+            'trades': undefined,
         };
         if (!this.safeValue (params, 'quoteAmount')) {
             order['amount'] = amount;
@@ -1292,7 +1300,10 @@ module.exports = class kucoin extends Exchange {
                 'rate': this.safeFloat (trade, 'feeRate'),
             };
         }
-        const type = this.safeString (trade, 'type');
+        let type = this.safeString (trade, 'type');
+        if (type === 'match') {
+            type = undefined;
+        }
         let cost = this.safeFloat2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
             if (amount !== undefined) {
@@ -1801,6 +1812,15 @@ module.exports = class kucoin extends Exchange {
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers['KC-API-SIGN'] = this.decode (signature);
+            const partner = this.safeValue (this.options, 'partner', {});
+            const partnerId = this.safeString (partner, 'id');
+            const partnerSecret = this.safeString (partner, 'secret');
+            if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
+                const partnerPayload = timestamp + partnerId + this.apiKey;
+                const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
+                headers['KC-API-PARTNER-SIGN'] = this.decode (partnerSignature);
+                headers['KC-API-PARTNER'] = partnerId;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
