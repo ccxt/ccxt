@@ -1375,7 +1375,9 @@ module.exports = class okex extends Exchange {
             'granularity': this.timeframes[timeframe],
         };
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const type = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
+        const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         const method = market['type'] + 'GetInstrumentsInstrumentId' + type;
         if (type === 'Candles') {
             if (since !== undefined) {
