@@ -23,6 +23,10 @@ $exchange->load_markets(); // https://github.com/ccxt/ccxt/wiki/Manual#loading-m
 
 // $exchange->verbose = true; // verbose mode on, uncomment for debugging
 
+$symbol = 'BTC/USDT'
+
+$market = $exchange->market($symbol);
+
 // https://github.com/ccxt/ccxt/wiki/Manual#passing-parameters-to-api-methods
 $params = array(
     'symbol' => $market['id'], // convert a unified CCXT symbol to an exchange-specific market id
