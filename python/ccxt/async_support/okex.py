@@ -84,6 +84,10 @@ class okex(Exchange):
                 '12h': '43200',
                 '1d': '86400',
                 '1w': '604800',
+                '1M': '2678400',
+                '3M': '8035200',
+                '6M': '16070400',
+                '1y': '31536000',
             },
             'hostname': 'okex.com',
             'urls': {
@@ -673,6 +677,9 @@ class okex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchOHLCV': {
+                    'type': 'Candles',  # Candles or HistoryCandles
+                },
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1351,14 +1358,17 @@ class okex(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        method = None
         duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
-        if market['option'] or market['spot']:
-            method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        method = market['type'] + 'GetInstrumentsInstrumentId' + type
+        if type == 'Candles':
             if since is not None:
                 if limit is not None:
                     request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
@@ -1368,8 +1378,9 @@ class okex(Exchange):
                     now = self.milliseconds()
                     request['start'] = self.iso8601(now - limit * duration * 1000)
                     request['end'] = self.iso8601(now)
-        else:
-            method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles'
+        elif type == 'HistoryCandles':
+            if market['option']:
+                raise NotSupported(self.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets')
             if since is not None:
                 if limit is None:
                     limit = 300  # default
