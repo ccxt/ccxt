@@ -23,7 +23,7 @@ $exchange->load_markets(); // https://github.com/ccxt/ccxt/wiki/Manual#loading-m
 
 // $exchange->verbose = true; // verbose mode on, uncomment for debugging
 
-$symbol = 'BTC/USDT'
+$symbol = 'BTC/USDT';
 
 $market = $exchange->market($symbol);
 
