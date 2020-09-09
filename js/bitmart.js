@@ -22,7 +22,7 @@ module.exports = class bitmart extends Exchange {
                 // 'cancelOrder': true,
                 // 'createMarketOrder': false,
                 // 'createOrder': true,
-                // 'fetchBalance': true,
+                'fetchBalance': true,
                 // 'fetchCanceledOrders': true,
                 // 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -1175,7 +1175,20 @@ module.exports = class bitmart extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetWallet (params);
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        if (type === 'spot') {
+            method = 'privateSpotGetWallet';
+        } else if (type === 'account') {
+            method = 'privateAccountGetWallet';
+        } else if ((type === 'swap') || (type === 'future') || (type === 'contract')) {
+            method = 'privateContractGetAccounts';
+        }
+        const response = await this[method] (params);
         //
         //     [
         //         {
@@ -1457,41 +1470,28 @@ module.exports = class bitmart extends Exchange {
                 // console.log (query);
                 url += '?' + this.urlencode (query);
             }
+        } else if (access === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
+            let queryString = '';
+            headers = {
+                'X-BM-KEY': this.apiKey,
+                'X-BM-TIMESTAMP': timestamp,
+            };
+            if ((method === 'POST') || (method === 'PUT')) {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (query);
+                queryString = body;
+            } else {
+                if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
+                    url += '?' + queryString;
+                }
+            }
+            const auth = timestamp + '#' + this.uid + '#' + queryString;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['X-BM-SIGN'] = signature;
         }
-        // else if (api === 'token') {
-        //     this.checkRequiredCredentials ();
-        //     body = this.urlencode (query);
-        //     headers = {
-        //         'Content-Type': 'application/x-www-form-urlencoded',
-        //     };
-        // } else {
-        //     const nonce = this.nonce ();
-        //     this.checkRequiredCredentials ();
-        //     const token = this.safeString (this.options, 'accessToken');
-        //     if (token === undefined) {
-        //         throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
-        //     }
-        //     const expires = this.safeInteger (this.options, 'expires');
-        //     if (expires !== undefined) {
-        //         if (nonce >= expires) {
-        //             throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call the signIn() method');
-        //         }
-        //     }
-        //     if (Object.keys (query).length) {
-        //         url += '?' + this.urlencode (query);
-        //     }
-        //     headers = {
-        //         'Content-Type': 'application/json',
-        //         'X-BM-TIMESTAMP': nonce.toString (),
-        //         'X-BM-AUTHORIZATION': 'Bearer ' + token,
-        //     };
-        //     if (method !== 'GET') {
-        //         query = this.keysort (query);
-        //         body = this.json (query);
-        //         const message = this.urlencode (query);
-        //         headers['X-BM-SIGNATURE'] = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
-        //     }
-        // }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
