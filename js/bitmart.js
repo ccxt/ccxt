@@ -579,15 +579,16 @@ module.exports = class bitmart extends Exchange {
             average = this.sum (last, open) / 2;
         }
         average = this.safeFloat (ticker, 'avg_price', average);
+        const price = this.safeValue (ticker, 'depth_price', ticker);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat2 (ticker, 'high', 'high_24h'),
             'low': this.safeFloat2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bid': this.safeFloat (price, 'best_bid', 'bid_price'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeFloat (price, 'best_ask','ask_price'),
             'askVolume': this.safeFloat (ticker, 'best_ask_size'),
             'vwap': vwap,
             'open': this.safeFloat (ticker, 'open_24h'),
@@ -766,12 +767,69 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-            // 'precision': 4, // optional price precision / depth level whose range is defined in symbol details
-        };
-        const response = await this.publicGetSymbolsSymbolOrders (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buys', 'sells', 'price', 'amount');
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            method = 'publicSpotGetSymbolsBook';
+            request['symbol'] = market['id'];
+            // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
+        } else if (market['swap'] || market['future']) {
+            method = 'publicContractGetDepth';
+            request['contractID'] = market['id'];
+            if (limit !== undefined) {
+                request['size'] = limit; // returns all records if size is omitted
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
+        //         "data":{
+        //             "buys":[
+        //                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
+        //                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
+        //                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        //             ],
+        //             "sells":[
+        //                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
+        //                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
+        //                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "errno":"OK",
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"c330dfca-ca5b-4f15-b350-9fef3f049b4f",
+        //         "data":{
+        //             "sells":[
+        //                 {"price":"347.6","vol":"6678"},
+        //                 {"price":"347.7","vol":"3452"},
+        //                 {"price":"347.8","vol":"6331"},
+        //             ],
+        //             "buys":[
+        //                 {"price":"347.5","vol":"6222"},
+        //                 {"price":"347.4","vol":"20979"},
+        //                 {"price":"347.3","vol":"15179"},
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        if (market['spot']) {
+            return this.parseOrderBook (data, undefined, 'buys', 'sells', 'price', 'amount');
+        } else if (market['swap'] || market['future']) {
+            return this.parseOrderBook (data, undefined, 'buys', 'sells', 'price', 'vol');
+        }
     }
 
     parseTrade (trade, market = undefined) {
