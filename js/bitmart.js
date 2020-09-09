@@ -588,7 +588,7 @@ module.exports = class bitmart extends Exchange {
             'low': this.safeFloat2 (ticker, 'low', 'low_24h'),
             'bid': this.safeFloat (price, 'best_bid', 'bid_price'),
             'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
-            'ask': this.safeFloat (price, 'best_ask','ask_price'),
+            'ask': this.safeFloat (price, 'best_ask', 'ask_price'),
             'askVolume': this.safeFloat (ticker, 'best_ask_size'),
             'vwap': vwap,
             'open': this.safeFloat (ticker, 'open_24h'),
@@ -873,7 +873,7 @@ module.exports = class bitmart extends Exchange {
         let side = this.safeStringLower (trade, 'type');
         if ((side === undefined) && (way !== undefined)) {
             if (way < 5) {
-                side = 'buy;'
+                side = 'buy';
             } else {
                 side = 'sell';
             }
@@ -1126,9 +1126,6 @@ module.exports = class bitmart extends Exchange {
             return this.parseOHLCVs (klines, market, timeframe, since, limit);
         }
     }
-
-
-
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
