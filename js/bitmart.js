@@ -715,7 +715,7 @@ module.exports = class bitmart extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols, true);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1341,7 +1341,7 @@ module.exports = class bitmart extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
             if (Object.keys (query).length) {
-                console.log (query);
+                // console.log (query);
                 url += '?' + this.urlencode (query);
             }
         }

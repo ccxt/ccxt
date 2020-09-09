@@ -281,7 +281,7 @@ class coinex extends Exchange {
             $ticker['symbol'] = $symbol;
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = 20, $params = array ()) {
@@ -316,7 +316,7 @@ class coinex extends Exchange {
         }
         $cost = $this->safe_float($trade, 'deal_money');
         if (!$cost) {
-            $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+            $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
@@ -530,14 +530,14 @@ class coinex extends Exchange {
             'market' => $market['id'],
             'type' => $side,
         );
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         // for $market buy it requires the $amount of quote currency to spend
         if (($type === 'market') && ($side === 'buy')) {
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
-                    $price = floatval ($price);
+                    $price = floatval($price);
                     $request['amount'] = $this->cost_to_precision($symbol, $amount * $price);
                 }
             } else {
@@ -666,7 +666,7 @@ class coinex extends Exchange {
         $request = array(
             'coin_type' => $currency['id'],
             'coin_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
-            'actual_amount' => floatval ($amount), // the actual $amount without fees, https://www.coinex.com/fees
+            'actual_amount' => floatval($amount), // the actual $amount without fees, https://www.coinex.com/fees
             'transfer_method' => 'onchain', // onchain, local
         );
         $response = $this->privatePostBalanceCoinWithdraw (array_merge($request, $params));

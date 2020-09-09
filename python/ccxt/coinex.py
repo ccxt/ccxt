@@ -276,7 +276,7 @@ class coinex(Exchange):
             }, market)
             ticker['symbol'] = symbol
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=20, params={}):
         self.load_markets()

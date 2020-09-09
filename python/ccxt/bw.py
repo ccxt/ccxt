@@ -426,7 +426,7 @@ class bw(Exchange):
             symbol = ticker['symbol']
             if (symbols is None) or self.in_array(symbol, symbols):
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.33.71'
+__version__ = '1.34.11'
 
 # -----------------------------------------------------------------------------
 
@@ -1811,6 +1811,9 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+
+    def vwap(self, baseVolume, quoteVolume):
+        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods

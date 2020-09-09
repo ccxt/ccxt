@@ -278,7 +278,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.publicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
-        return this.indexBy (tickers, 'symbol');
+        const result = this.indexBy (tickers, 'symbol');
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -321,7 +322,7 @@ module.exports = class bibox extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': -feeCost,
                 'currency': feeCurrency,
                 'rate': feeRate,
             };

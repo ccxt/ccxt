@@ -428,9 +428,7 @@ class qtrade(Exchange):
             average = self.sum(last, previous) / 2
         baseVolume = self.safe_float(ticker, 'day_volume_market')
         quoteVolume = self.safe_float(ticker, 'day_volume_base')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

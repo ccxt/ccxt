@@ -452,7 +452,7 @@ class poloniex(Exchange):
                 market = {'symbol': symbol}
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_currencies(self, params={}):
         response = self.publicGetReturnCurrencies(params)

@@ -462,7 +462,7 @@ module.exports = class poloniex extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {

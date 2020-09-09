@@ -229,7 +229,7 @@ class bibox extends Exchange {
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = floatval ($percentage);
+            $percentage = floatval($percentage);
         }
         return array(
             'symbol' => $symbol,
@@ -283,7 +283,8 @@ class bibox extends Exchange {
         );
         $response = $this->publicGetMdata (array_merge($request, $params));
         $tickers = $this->parse_tickers($response['result'], $symbols);
-        return $this->index_by($tickers, 'symbol');
+        $result = $this->index_by($tickers, 'symbol');
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -326,7 +327,7 @@ class bibox extends Exchange {
         }
         if ($feeCost !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
                 'rate' => $feeRate,
             );
@@ -552,7 +553,7 @@ class bibox extends Exchange {
             $account = $this->account();
             $balance = $indexed[$id];
             if (gettype($balance) === 'string') {
-                $balance = floatval ($balance);
+                $balance = floatval($balance);
                 $account['free'] = $balance;
                 $account['used'] = 0.0;
                 $account['total'] = $balance;
@@ -789,7 +790,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : (floatval ($price) * $filled);
+        $cost = $cost ? $cost : (floatval($price) * $filled);
         return array(
             'info' => $order,
             'id' => $id,

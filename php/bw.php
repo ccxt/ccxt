@@ -176,15 +176,15 @@ class bw extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'marketId');
-            $numericId = intval ($id);
+            $numericId = intval($id);
             $name = $this->safe_string_upper($market, 'name');
             list($base, $quote) = explode('_', $name);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($market, 'sellerCurrencyId');
             $quoteId = $this->safe_string($market, 'buyerCurrencyId');
-            $baseNumericId = intval ($baseId);
-            $quoteNumericId = intval ($quoteId);
+            $baseNumericId = intval($baseId);
+            $quoteNumericId = intval($quoteId);
             $symbol = $base . '/' . $quote;
             $state = $this->safe_integer($market, 'state');
             $active = ($state === 1);
@@ -347,29 +347,29 @@ class bw extends Exchange {
             $symbol = $marketId;
         }
         $timestamp = $this->milliseconds();
-        $close = floatval ($this->safe_value($ticker, 1));
+        $close = floatval($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => floatval ($this->safe_value($ticker, 2)),
-            'low' => floatval ($this->safe_value($ticker, 3)),
-            'bid' => floatval ($this->safe_value($ticker, 7)),
+            'high' => floatval($this->safe_value($ticker, 2)),
+            'low' => floatval($this->safe_value($ticker, 3)),
+            'bid' => floatval($this->safe_value($ticker, 7)),
             'bidVolume' => $this->safe_float($bid, 'quantity'),
-            'ask' => floatval ($this->safe_value($ticker, 8)),
+            'ask' => floatval($this->safe_value($ticker, 8)),
             'askVolume' => $this->safe_float($ask, 'quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => floatval ($this->safe_value($ticker, 5)),
+            'change' => floatval($this->safe_value($ticker, 5)),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($this->safe_value($ticker, 4)),
-            'quoteVolume' => floatval ($this->safe_value($ticker, 9)),
+            'baseVolume' => floatval($this->safe_value($ticker, 4)),
+            'quoteVolume' => floatval($this->safe_value($ticker, 9)),
             'info' => $ticker,
         );
     }
@@ -433,7 +433,7 @@ class bw extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -525,7 +525,7 @@ class bw extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'fee' => null,
             'info' => $trade,
         );

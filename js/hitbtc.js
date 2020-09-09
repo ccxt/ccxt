@@ -255,17 +255,19 @@ module.exports = class hitbtc extends Exchange {
         //
         //     [
         //         {
-        //             "id":"DDF",
-        //             "fullName":"DDF",
+        //             "id":"XPNT",
+        //             "fullName":"pToken",
         //             "crypto":true,
-        //             "payinEnabled":false,
+        //             "payinEnabled":true,
         //             "payinPaymentId":false,
-        //             "payinConfirmations":20,
+        //             "payinConfirmations":9,
         //             "payoutEnabled":true,
         //             "payoutIsPaymentId":false,
         //             "transferEnabled":true,
         //             "delisted":false,
-        //             "payoutFee":"646.000000000000"
+        //             "payoutFee":"26.510000000000",
+        //             "precisionPayout":18,
+        //             "precisionTransfer":8
         //         }
         //     ]
         //
@@ -276,7 +278,8 @@ module.exports = class hitbtc extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const decimals = this.safeInteger (currency, 'precisionTransfer', 8);
+            const precision = 1 / Math.pow (10, decimals);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -306,12 +309,12 @@ module.exports = class hitbtc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'cost': {
                         'min': undefined,
@@ -444,14 +447,7 @@ module.exports = class hitbtc extends Exchange {
                 percentage = change / open * 100;
             }
         }
-        let vwap = undefined;
-        if (quoteVolume !== undefined) {
-            if (baseVolume !== undefined) {
-                if (baseVolume > 0) {
-                    vwap = quoteVolume / baseVolume;
-                }
-            }
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -493,7 +489,7 @@ module.exports = class hitbtc extends Exchange {
                 }
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -87,7 +87,7 @@ module.exports = (exchange, ticker, method, symbol) => {
 
         if (ticker['baseVolume'] || ticker['quoteVolume']) {
             if (ticker['bid'] && ticker['ask']) {
-                assert (ticker['bid'] <= ticker['ask'], 'ticker bid is greater than ticker ask!')
+                assert (ticker['bid'] <= ticker['ask'], (ticker['symbol'] ? (ticker['symbol'] + ' ') : '') + 'ticker bid is greater than ticker ask!')
             }
         }
 

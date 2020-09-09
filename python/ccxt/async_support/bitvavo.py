@@ -446,9 +446,7 @@ class bitvavo(Exchange):
         last = self.safe_float(ticker, 'last')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = self.safe_float(ticker, 'volumeQuote')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         change = None
         percentage = None
         average = None

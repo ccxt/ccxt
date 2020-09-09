@@ -488,9 +488,7 @@ class probit(Exchange):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'base_volume')
         quoteVolume = self.safe_float(ticker, 'quote_volume')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None):
-            vwap = baseVolume / quoteVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -704,8 +702,7 @@ class probit(Exchange):
             return self.iso8601(previousSunday * 1000)
         else:
             timestamp = int(timestamp / 1000)
-            difference = self.integer_modulo(timestamp, duration)
-            timestamp -= difference
+            timestamp = duration * int(timestamp / duration)
             if after:
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
@@ -1169,7 +1166,7 @@ class probit(Exchange):
                 self.check_required_credentials()
                 expires = self.safe_integer(self.options, 'expires')
                 if (expires is None) or (expires < now):
-                    raise AuthenticationError(self.id + ' accessToken expired, call signIn() method')
+                    raise AuthenticationError(self.id + ' access token expired, call signIn() method')
                 accessToken = self.safe_string(self.options, 'accessToken')
                 headers = {
                     'Authorization': 'Bearer ' + accessToken,

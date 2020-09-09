@@ -56,6 +56,7 @@ class Transpiler {
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.parseBalance\s/g, '.parse_balance'],
+            [ /\.parseBalanceResponse\s/g, '.parse_balance_response'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
@@ -287,7 +288,7 @@ class Transpiler {
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || count(array_filter(array_keys($1), 'is_string')) != 0" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -373,8 +374,8 @@ class Transpiler {
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
-            [ /parseFloat\s/g, 'floatval '],
-            [ /parseInt\s/g, 'intval '],
+            [ /parseFloat\s/g, 'floatval'],
+            [ /parseInt\s/g, 'intval'],
             [ / \+ (?!\d)/g, ' . ' ],
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
@@ -977,38 +978,47 @@ class Transpiler {
             ids = require ('../exchanges.json').ids;
         } catch (e) {
         }
+
+        const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
         const classNames = fs.readdirSync (jsFolder)
-            .filter (file => file.includes (pattern) && (!ids || ids.includes (basename (file, pattern))))
+            .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
             .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options))
 
-        if (classNames.length === 0)
-            return null
+        const classes = {}
 
-        let classes = {}
+        if (classNames.length === 0) {
+            return null
+        }
+
         classNames.forEach (({ className, baseClass }) => {
             classes[className] = baseClass
         })
 
-        function deleteOldTranspiledFiles (folder, pattern) {
-            fs.readdirSync (folder)
-                .filter (file =>
-                    !fs.lstatSync (folder + file).isDirectory () &&
-                    file.match (pattern) &&
-                    !(file.replace (/\.[a-z]+$/, '') in classes) &&
-                    !file.match (/^Exchange|errors|__init__|\\./))
-                .map (file => folder + file)
-                .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
-        }
+        if (classNames.length > 1) {
 
-        [
-            [ python2Folder, /\.pyc?$/ ],
-            [ python3Folder, /\.pyc?$/ ],
-            [ phpFolder, /\.php$/ ],
-        ].forEach (([ folder, pattern ]) => {
-            if (folder) {
-                deleteOldTranspiledFiles (folder, pattern)
+            function deleteOldTranspiledFiles (folder, pattern) {
+                fs.readdirSync (folder)
+                    .filter (file =>
+                        !fs.lstatSync (folder + file).isDirectory () &&
+                        file.match (regex) &&
+                        !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                        !file.match (/^Exchange|errors|__init__|\\./))
+                    .map (file => folder + file)
+                    .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
-        })
+
+            [
+                [ python2Folder, /\.pyc?$/ ],
+                [ python3Folder, /\.pyc?$/ ],
+                [ phpFolder, /\.php$/ ],
+            ].forEach (([ folder, pattern ]) => {
+                if (folder) {
+                    deleteOldTranspiledFiles (folder, pattern)
+                }
+            })
+
+        }
 
         return classes
     }
@@ -1343,7 +1353,7 @@ class Transpiler {
             {
                 'jsFile': './js/test/Exchange/test.ohlcv.js',
                 'pyFile': './python/test/test_ohlcv.py',
-                'phpFile': './php/test/test_ohlv.php',
+                'phpFile': './php/test/test_ohlcv.php',
             },
         ]
         for (const test of tests) {

@@ -250,10 +250,7 @@ class bithumb extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
         $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
-        $vwap = null;
-        if ($quoteVolume !== null && $baseVolume !== null) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -322,7 +319,7 @@ class bithumb extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

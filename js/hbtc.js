@@ -1687,10 +1687,7 @@ module.exports = class hbtc extends Exchange {
         }
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const baseVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

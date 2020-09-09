@@ -933,8 +933,7 @@ class phemex(Exchange):
         baseVolume = self.from_ev(self.safe_float_2(ticker, 'volumeEv', 'volume'), market)
         vwap = None
         if (market is not None) and (market['spot']):
-            if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0):
-                vwap = quoteVolume / baseVolume
+            vwap = self.vwap(baseVolume, quoteVolume)
         change = None
         percentage = None
         average = None

@@ -423,7 +423,7 @@ class dsx extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         if ($side === 'sell') {
             $cost *= $price;
         } else {
@@ -550,7 +550,7 @@ class dsx extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -616,13 +616,13 @@ class dsx extends Exchange {
             // in their docs they expect milliseconds
             // but it returns empty arrays with milliseconds
             // however, it does work properly with seconds
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
             if ($limit === null) {
                 $request['end'] = $this->seconds();
             } else {
                 $duration = $this->parse_timeframe($timeframe) * 1000;
                 $end = $this->sum($since, $duration * $limit);
-                $request['end'] = intval ($end / 1000);
+                $request['end'] = intval($end / 1000);
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -665,8 +665,8 @@ class dsx extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
             'orderType' => $type,
         );
-        $price = floatval ($price);
-        $amount = floatval ($amount);
+        $price = floatval($price);
+        $amount = floatval($amount);
         $response = $this->privatePostOrderNew (array_merge($request, $params));
         //
         //     {
@@ -857,7 +857,7 @@ class dsx extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'orderId' => intval ($id),
+            'orderId' => intval($id),
         );
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         //
@@ -1014,10 +1014,10 @@ class dsx extends Exchange {
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['count'] = intval ($limit);
+            $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privatePostHistoryTrades (array_merge($request, $params));
         $trades = array();
@@ -1156,7 +1156,7 @@ class dsx extends Exchange {
         $params = $this->omit($params, $commission);
         $request = array(
             'currency' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
             'commission' => $commission,
         );

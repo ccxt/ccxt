@@ -303,7 +303,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(
@@ -421,7 +421,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(

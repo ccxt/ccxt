@@ -436,10 +436,7 @@ class qtrade extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'day_volume_market');
         $quoteVolume = $this->safe_float($ticker, 'day_volume_base');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null) && ($baseVolume > 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -974,7 +971,7 @@ class qtrade extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => intval ($id),
+            'id' => intval($id),
         );
         // successful cancellation returns 200 with no payload
         return $this->privatePostCancelOrder (array_merge($request, $params));

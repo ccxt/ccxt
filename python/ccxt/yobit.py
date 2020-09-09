@@ -417,7 +417,7 @@ class yobit(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)

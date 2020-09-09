@@ -265,6 +265,7 @@ class bybit extends Exchange {
                 ),
                 'broad' => array(
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
+                    'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -522,10 +523,7 @@ class bybit extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'turnover_24h');
         $quoteVolume = $this->safe_float($ticker, 'volume_24h');
-        $vwap = null;
-        if ($quoteVolume !== null && $baseVolume !== null) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -707,7 +705,7 @@ class bybit extends Exchange {
                 $request['from'] = $now - $limit * $duration;
             }
         } else {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
@@ -1103,7 +1101,7 @@ class bybit extends Exchange {
                 }
             }
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
+        $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->safe_float($order, 'cum_exec_fee');
         $fee = null;
@@ -1242,9 +1240,9 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $qty = $this->amount_to_precision($symbol, $amount);
         if ($market['inverse']) {
-            $qty = intval ($qty);
+            $qty = intval($qty);
         } else {
-            $qty = floatval ($qty);
+            $qty = floatval($qty);
         }
         $request = array(
             // orders ---------------------------------------------------------
@@ -1252,7 +1250,7 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
             'order_type' => $this->capitalize($type),
             'qty' => $qty, // order quantity in USD, integer only
-            // 'price' => floatval ($this->price_to_precision($symbol, $price)), // required for limit orders
+            // 'price' => floatval($this->price_to_precision($symbol, $price)), // required for limit orders
             'time_in_force' => 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stop_loss' => 123.45, // stop loss $price, only take effect upon opening the position
@@ -1276,7 +1274,7 @@ class bybit extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price !== null) {
-                $request['price'] = floatval ($this->price_to_precision($symbol, $price));
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
             } else {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
@@ -1291,8 +1289,8 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
             } else {
                 $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
-                $request['stop_px'] = floatval ($this->price_to_precision($symbol, $stopPx));
-                $request['base_price'] = floatval ($this->price_to_precision($symbol, $basePrice));
+                $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
+                $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
                 $params = $this->omit($params, array( 'stop_px', 'base_price' ));
             }
         } else if ($basePrice !== null) {
@@ -1408,10 +1406,10 @@ class bybit extends Exchange {
             $request['order_id'] = $id;
         }
         if ($amount !== null) {
-            $request['p_r_qty'] = intval ($this->amount_to_precision($symbol, $amount));
+            $request['p_r_qty'] = intval($this->amount_to_precision($symbol, $amount));
         }
         if ($price !== null) {
-            $request['p_r_price'] = floatval ($this->price_to_precision($symbol, $price));
+            $request['p_r_price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1693,7 +1691,7 @@ class bybit extends Exchange {
         $request = array(
             // 'order_id' => 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
             // 'symbol' => $market['id'],
-            // 'start_time' => intval ($since / 1000),
+            // 'start_time' => intval($since / 1000),
             // 'page' => 1,
             // 'limit' 20, // max 50
         );
@@ -2121,9 +2119,6 @@ class bybit extends Exchange {
                 'timestamp' => $timestamp,
             ));
             $auth = $this->rawencode($this->keysort($query));
-            // fix https://github.com/ccxt/ccxt/issues/7377
-            // bybit encodes whole floats as integers without .0
-            $auth = str_replace('.0&', '&', $auth);
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'POST') {
                 $body = $this->json(array_merge($query, array(

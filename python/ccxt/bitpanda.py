@@ -125,7 +125,7 @@ class bitpanda(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
                     'taker': 0.15 / 100,
                     'maker': 0.10 / 100,
@@ -515,9 +515,7 @@ class bitpanda(Exchange):
             average = self.sum(last, open) / 2
         baseVolume = self.safe_float(ticker, 'base_volume')
         quoteVolume = self.safe_float(ticker, 'quote_volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -570,7 +568,7 @@ class bitpanda(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetMarketTicker(params)
+        response = self.publicGetMarketTicker(params)
         #
         #     [
         #         {
@@ -592,11 +590,11 @@ class bitpanda(Exchange):
         #     ]
         #
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -700,8 +698,7 @@ class bitpanda(Exchange):
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
-        modulo = self.integer_modulo(timestamp, duration)
-        alignedTimestamp = timestamp - modulo
+        alignedTimestamp = duration * int(timestamp / duration)
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
@@ -761,7 +758,7 @@ class bitpanda(Exchange):
         #         "sequence":603047
         #     }
         #
-        # fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
         #
         #     {
         #         "fee": {
@@ -1287,7 +1284,7 @@ class bitpanda(Exchange):
         uppercaseType = type.upper()
         request = {
             'instrument_code': market['id'],
-            'type': type.upper(),  # LIMIT, MARKET, STOP
+            'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -1663,9 +1660,9 @@ class bitpanda(Exchange):
         #     {"error":"MISSING_TO_PARAM"}
         #     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         #
-        feedback = self.id + ' ' + body
         message = self.safe_string(response, 'error')
         if message is not None:
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

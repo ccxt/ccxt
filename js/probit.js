@@ -492,10 +492,7 @@ module.exports = class probit extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'base_volume');
         const quoteVolume = this.safeFloat (ticker, 'quote_volume');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = baseVolume / quoteVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -730,8 +727,7 @@ module.exports = class probit extends Exchange {
             return this.iso8601 (previousSunday * 1000);
         } else {
             timestamp = parseInt (timestamp / 1000);
-            const difference = this.integerModulo (timestamp, duration);
-            timestamp -= difference;
+            timestamp = duration * parseInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);
             }
@@ -1252,7 +1248,7 @@ module.exports = class probit extends Exchange {
                 this.checkRequiredCredentials ();
                 const expires = this.safeInteger (this.options, 'expires');
                 if ((expires === undefined) || (expires < now)) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
+                    throw new AuthenticationError (this.id + ' access token expired, call signIn() method');
                 }
                 const accessToken = this.safeString (this.options, 'accessToken');
                 headers = {

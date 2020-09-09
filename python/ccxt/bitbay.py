@@ -240,6 +240,9 @@ class bitbay(Exchange):
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
+            'commonCurrencies': {
+                'GGC': 'Global Game Coin',
+            },
         })
 
     def fetch_markets(self, params={}):

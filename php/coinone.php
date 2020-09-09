@@ -186,7 +186,7 @@ class coinone extends Exchange {
                 $result[$symbol]['timestamp'] = $timestamp;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

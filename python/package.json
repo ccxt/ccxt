@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.33.71",
+  "version": "1.34.11",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -46,14 +46,14 @@
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
-    "asciichart": "1.5.7",
+    "asciichart": "1.5.25",
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "14.1.0",
     "eslint-plugin-import": "2.20.1",
-    "mocha": "5.2.0",
+    "mocha": "^8.1.3",
     "ololog": "1.1.155"
   },
   "author": {

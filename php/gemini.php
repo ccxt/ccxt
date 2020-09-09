@@ -501,10 +501,7 @@ class gemini extends Exchange {
         }
         $baseVolume = $this->safe_float($volume, $baseId);
         $quoteVolume = $this->safe_float($volume, $quoteId);
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -750,7 +747,7 @@ class gemini extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->privatePostV1Mytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

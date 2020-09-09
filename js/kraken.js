@@ -567,11 +567,9 @@ module.exports = class kraken extends Exchange {
             const market = this.markets_by_id[id];
             const symbol = market['symbol'];
             const ticker = tickers[id];
-            if (this.inArray (symbol, symbols)) {
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

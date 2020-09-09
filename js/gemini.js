@@ -497,10 +497,7 @@ module.exports = class gemini extends Exchange {
         }
         const baseVolume = this.safeFloat (volume, baseId);
         const quoteVolume = this.safeFloat (volume, quoteId);
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

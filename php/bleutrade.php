@@ -558,7 +558,7 @@ class bleutrade extends Exchange {
             $part = $parts[$i];
             if (mb_strpos($part, 'fee') === 0) {
                 $part = str_replace('fee ', '', $part);
-                $feeCost = floatval ($part);
+                $feeCost = floatval($part);
                 if ($feeCost < 0) {
                     $feeCost = -$feeCost;
                 }
@@ -757,9 +757,9 @@ class bleutrade extends Exchange {
         $feeCost = null;
         $labelParts = explode(';', $label);
         if (strlen($labelParts) === 3) {
-            $amount = floatval ($labelParts[0]);
+            $amount = floatval($labelParts[0]);
             $address = $labelParts[1];
-            $feeCost = floatval ($labelParts[2]);
+            $feeCost = floatval($labelParts[2]);
         } else {
             $address = $label;
         }

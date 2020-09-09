@@ -183,7 +183,7 @@ module.exports = class coinone extends Exchange {
                 result[symbol]['timestamp'] = timestamp;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
