@@ -20,6 +20,7 @@ module.exports = class bitmart extends Exchange {
                 // 'CORS': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 // 'fetchCanceledOrders': true,
@@ -1560,6 +1561,52 @@ module.exports = class bitmart extends Exchange {
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message": "OK",
         //         "data": {}
+        //     }
+        //
+        return response;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' canelOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' cancelOrders does not support ' + market['type'] + ' orders, only contract orders are accepted');
+        }
+        const orders = [];
+        for (let i = 0; i < ids.length; i++) {
+            orders.push (parseInt (ids[i]));
+        }
+        const request = {
+            'orders': orders,
+        };
+        const response = await this.privateContractPostCancelOrders (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "result": true
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "succeed": [
+        //                 2707219612
+        //             ],
+        //             "failed": []
+        //         }
         //     }
         //
         return response;
