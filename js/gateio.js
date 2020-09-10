@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -454,31 +454,49 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (this.parseBalance (this.balance), messageHash);
     }
 
-    async watchOrders (params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
-        const requestId = this.nonce ();
         const method = 'order.update';
+        let messageHash = method;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash = method + ':' + market['id'];
+        }
+        const url = this.urls['api']['ws'];
+        const authenticated = this.authenticate ();
+        const requestId = this.nonce ();
         const subscribeMessage = {
             'id': requestId,
             'method': 'order.subscribe',
             'params': [],
         };
-        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
+        const subscription = {
+            'id': requestId,
+        };
+        const future = this.afterDropped (authenticated, this.watch, url, messageHash, subscribeMessage, method, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleOrder (client, message) {
-        const messageHash = message['method'];
-        const order = message['params'][1];
+        const method = this.safeString (message, 'method');
+        const params = this.safeValue (message, 'params');
+        const order = this.safeValue (params, 1);
         const marketId = this.safeStringLower (order, 'market');
         let market = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
         }
         const parsed = this.parseOrder (order, market);
-        client.resolve (parsed, messageHash);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        const symbolSpecificMessageHash = method + ':' + marketId;
+        client.resolve (orders, method);
+        client.resolve (orders, symbolSpecificMessageHash);
     }
 
     handleAuthenticationMessage (client, message, subscription) {
@@ -519,7 +537,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleSubscriptionStatus (client, message) {
-        const messageId = message['id'];
+        const messageId = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, messageId, {});
         const method = this.safeValue (subscription, 'method');
