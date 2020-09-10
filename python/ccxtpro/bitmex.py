@@ -419,7 +419,7 @@ class bitmex(Exchange, ccxt.bitmex):
         #     }
         #
         data = self.safe_value(message, 'data')
-        balance = self.parseBalanceResponse(data)
+        balance = self.parse_balance_response(data)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)

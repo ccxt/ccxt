@@ -105,7 +105,7 @@ class currencycom extends \ccxt\currencycom {
         //     }
         //
         $payload = $this->safe_value($message, 'payload');
-        $balance = $this->parseBalanceResponse ($payload);
+        $balance = $this->parse_balance_response($payload);
         $this->balance = array_merge($this->balance, $balance);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, $messageHash);
