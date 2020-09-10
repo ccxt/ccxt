@@ -188,7 +188,9 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //     fetchOrder
+        //
+        // fetchOrder
+        //
         //     {
         //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
         //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
@@ -203,7 +205,8 @@ module.exports = class independentreserve extends Exchange {
         //         "SecondaryCurrencyCode": "Usd"
         //     }
         //
-        //     fetchOpenOrders & fetchClosedOrders
+        // fetchOpenOrders & fetchClosedOrders
+        //
         //     {
         //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
         //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
@@ -218,6 +221,7 @@ module.exports = class independentreserve extends Exchange {
         //         "SecondaryCurrencyCode": "Usd",
         //         "FeePercent": 0.005,
         //     }
+        //
         let symbol = undefined;
         const baseId = this.safeString (order, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
