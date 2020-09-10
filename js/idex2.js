@@ -19,7 +19,7 @@ module.exports = class idex2 extends ccxt.idex2 {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchOrders': true,
-                'watchBalance': true,
+                'watchTransactions': true,
             },
             'urls': {
                 'test': {
@@ -147,7 +147,8 @@ module.exports = class idex2 extends ccxt.idex2 {
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
-        return await this.subscribe (subscribeObject, messageHash);
+        const future = this.subscribe (subscribeObject, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTrade (client, message) {
@@ -234,7 +235,8 @@ module.exports = class idex2 extends ccxt.idex2 {
             'interval': interval,
         };
         const messageHash = name + ':' + market['id'];
-        return await this.subscribe (subscribeObject, messageHash);
+        const future = this.subscribe (subscribeObject, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleOHLCV (client, message) {
@@ -305,14 +307,23 @@ module.exports = class idex2 extends ccxt.idex2 {
                 for (let j = 0; j < markets.length; j++) {
                     const marketId = markets[j];
                     const orderBookSubscriptions = this.safeValue (this.options, 'orderBookSubscriptions', {});
-                    if (!(marketId in orderBookSubscriptions)) {
-                        this.spawn (this.fetchOrderBook)
+                    if (!(marketId in orderBookSubscriptions) && (marketId in this.markets_by_id)) {
+                        const symbol = this.markets_by_id[marketId]['symbol'];
+                        if (!(symbol in this.orderbooks)) {
+                            this.orderbooks[symbol] = this.orderBook ({});
+                        }
+                        this.spawn (this.fetchOrderBookSnapshot, symbol);
                     }
                 }
                 break;
             }
         }
-        console.log (JSON.stringify (message, undefined, 2))
+    }
+
+    async fetchOrderBookSnapshot (symbol, params = {}) {
+        const book = await this.fetchOrderBook (symbol, params);
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (book);
     }
 
     async watchOrderBook (symbol, params = {}) {
@@ -328,7 +339,114 @@ module.exports = class idex2 extends ccxt.idex2 {
     }
 
     handleOrderBook (client, message) {
-        console.log (message)
+        // {
+        //   "type": "l2orderbook",
+        //   "data": {
+        //     "m": "DIL-ETH",
+        //     "t": 1599570110362,
+        //     "u": 69998574,
+        //     "b": [
+        //       [
+        //         "0.09595532",
+        //         "8.56448181",
+        //         1
+        //       ],
+        //       [
+        //         "0.09582380",
+        //         "1.81909035",
+        //         1
+        //       ],
+        //       [
+        //         "0.09576758",
+        //         "3.86812979",
+        //         1
+        //       ],
+        //       [
+        //         "0.09560818",
+        //         "3.13670284",
+        //         1
+        //       ],
+        //       [
+        //         "0.09559541",
+        //         "1.63959064",
+        //         1
+        //       ],
+        //       [
+        //         "0.09540683",
+        //         "3.33012185",
+        //         1
+        //       ],
+        //       [
+        //         "0.09537234",
+        //         "3.67353039",
+        //         1
+        //       ],
+        //       [
+        //         "0.09527353",
+        //         "4.61202161",
+        //         1
+        //       ],
+        //       [
+        //         "0.09526166",
+        //         "3.88483005",
+        //         1
+        //       ],
+        //       [
+        //         "0.09511193",
+        //         "2.04464298",
+        //         1
+        //       ]
+        //     ],
+        //     "a": [
+        //       [
+        //         "0.09807172",
+        //         "1.76426833",
+        //         1
+        //       ],
+        //       [
+        //         "0.09827205",
+        //         "2.00109664",
+        //         1
+        //       ],
+        //       [
+        //         "0.09837124",
+        //         "3.67136319",
+        //         1
+        //       ],
+        //       [
+        //         "0.09842841",
+        //         "3.44890575",
+        //         1
+        //       ],
+        //       [
+        //         "0.09855225",
+        //         "4.20887742",
+        //         1
+        //       ],
+        //       [
+        //         "0.09870646",
+        //         "4.45117077",
+        //         1
+        //       ],
+        //       [
+        //         "0.50000000",
+        //         "0.40000000",
+        //         1
+        //       ],
+        //       [
+        //         "0.90000000",
+        //         "0.25000000",
+        //         1
+        //       ],
+        //       [
+        //         "1.00000000",
+        //         "0.30000000",
+        //         2
+        //       ]
+        //     ]
+        //   }
+        // }
+        console.log (JSON.stringify (message, undefined, 2))
     }
 
     async authenticate (params = {}) {
@@ -358,7 +476,8 @@ module.exports = class idex2 extends ccxt.idex2 {
             subscribeObject['markets'] = [ marketId ];
             messageHash = name + ':' + marketId;
         }
-        return await this.subscribePrivate (subscribeObject, messageHash);
+        const future = this.subscribePrivate (subscribeObject, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleOrder (client, message) {
@@ -435,7 +554,6 @@ module.exports = class idex2 extends ccxt.idex2 {
             'cost': undefined,
         };
         let lastTrade = undefined;
-        console.log (trades)
         for (let i = 0; i < trades.length; i++) {
             lastTrade = trades[i];
             fee['currency'] = lastTrade['fee']['currency'];
@@ -473,18 +591,63 @@ module.exports = class idex2 extends ccxt.idex2 {
         client.resolve (orders, type);
     }
 
-    async watchBalance (params = {}) {
+    async watchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {
             'name': name,
         };
-        return await this.subscribePrivate (subscribeObject, name);
+        let messageHash = name;
+        if (code !== undefined) {
+            messageHash = name + ':' + code;
+        }
+        const future = this.subscribePrivate (subscribeObject, messageHash);
+        return await this.after (future, this.filterBySinceLimit, since, limit);
     }
 
     handleTransaction (client, message) {
         // Update Speed: Real time, updates on any deposit or withdrawal of the wallet
-        console.log (message)
+        // { type: 'balances',
+        //   data:
+        //    { w: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
+        //      a: 'ETH',
+        //      q: '0.11198667',
+        //      f: '0.11198667',
+        //      l: '0.00000000',
+        //      d: '0.00' } }
+        const type = this.safeString (message, 'type');
+        const data = this.safeValue (message, 'data');
+        const currencyId = this.safeString (data, 'a');
+        const messageHash = type + ':' + currencyId;
+        const code = this.safeCurrencyCode (currencyId);
+        const address = this.safeString (data, 'w');
+        const transaction = {
+            'info': message,
+            'id': undefined,
+            'currency': code,
+            'amount': undefined,
+            'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': 'ok',
+            'type': undefined,
+            'updated': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+        };
+        if (!(code in this.transactions)) {
+            const limit = this.safeInteger (this.options, 'transactionsLimit', 1000);
+            this.transactions[code] = new ArrayCache (limit);
+        }
+        const transactions = this.transactions[code];
+        transactions.append (transaction);
+        client.resolve (transactions, messageHash);
+        client.resolve (transactions, type);
     }
 
     handleMessage (client, message) {
@@ -495,7 +658,7 @@ module.exports = class idex2 extends ccxt.idex2 {
             'subscriptions': this.handleSubscribeMessage,
             'candles': this.handleOHLCV,
             'l2orderbook': this.handleOrderBook,
-            'balances': this.handleBalance,
+            'balances': this.handleTransaction,
             'orders': this.handleOrder,
         };
         if (type in methods) {
