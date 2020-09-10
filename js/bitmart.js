@@ -18,7 +18,7 @@ module.exports = class bitmart extends Exchange {
             'version': 'v1',
             'has': {
                 // 'CORS': true,
-                // 'cancelAllOrders': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
