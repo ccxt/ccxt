@@ -20,8 +20,10 @@ class independentreserve extends Exchange {
                 'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
@@ -188,7 +190,7 @@ class independentreserve extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        //
+        //     fetchOrder
         //     {
         //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
         //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
@@ -203,9 +205,24 @@ class independentreserve extends Exchange {
         //         "SecondaryCurrencyCode" => "Usd"
         //     }
         //
+        //     fetchOpenOrders & fetchClosedOrders
+        //     {
+        //         "OrderGuid" => "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc" => "2020-09-08T03:04:18.616367Z",
+        //         "OrderType" => "LimitOffer",
+        //         "Volume" => 0.0005,
+        //         "Outstanding" => 0.0005,
+        //         "Price" => 113885.83,
+        //         "AvgPrice" => 113885.83,
+        //         "Value" => 56.94,
+        //         "Status" => "Open",
+        //         "PrimaryCurrencyCode" => "Xbt",
+        //         "SecondaryCurrencyCode" => "Usd",
+        //         "FeePercent" => 0.005,
+        //     }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
-        $quoteId = $this->safe_string($order, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($order, 'SecondaryCurrencyCode');
         $base = null;
         $quote = null;
         if (($baseId !== null) && ($quoteId !== null)) {
@@ -217,11 +234,10 @@ class independentreserve extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
+        $orderType = null;
         $orderType = $this->safe_value($order, 'Type');
-        if (mb_strpos($orderType, 'Market') !== false) {
-            $orderType = 'market';
-        } else if (mb_strpos($orderType, 'Limit') !== false) {
-            $orderType = 'limit';
+        if ($orderType === null) {
+            $orderType = $this->safe_value($order, 'OrderType');
         }
         $side = null;
         if (mb_strpos($orderType, 'Bid') !== false) {
@@ -229,22 +245,32 @@ class independentreserve extends Exchange {
         } else if (mb_strpos($orderType, 'Offer') !== false) {
             $side = 'sell';
         }
+        if (mb_strpos($orderType, 'Market') !== false) {
+            $orderType = 'market';
+        } else if (mb_strpos($orderType, 'Limit') !== false) {
+            $orderType = 'limit';
+        }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_float($order, 'VolumeOrdered');
         if ($amount === null) {
             $amount = $this->safe_float($order, 'Volume');
         }
         $filled = $this->safe_float($order, 'VolumeFilled');
-        $remaining = null;
+        $remaining = $this->safe_float($order, 'Outstanding');
+        if ($filled === null) {
+            if (($remaining !== null) && ($amount !== null)) {
+                $filled = max (0, $amount - $remaining);
+            }
+        }
+        if ($remaining === null) {
+            if (($amount !== null) && ($amount !== null)) {
+                $remaining = $amount - $filled;
+            }
+        }
         $feeRate = $this->safe_float($order, 'FeePercent');
         $feeCost = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-                if ($feeRate !== null) {
-                    $feeCost = $feeRate * $filled;
-                }
-            }
+        if ($feeRate !== null) {
+            $feeCost = $feeRate * $filled;
         }
         $fee = array(
             'rate' => $feeRate,
@@ -301,6 +327,44 @@ class independentreserve extends Exchange {
             $market = $this->market($symbol);
         }
         return $this->parse_order($response, $market);
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
+        if ($limit === null) {
+            $limit = 50;
+        }
+        $request = $this->ordered(array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['primaryCurrencyCode'] = $market['baseId'];
+            $request['secondaryCurrencyCode'] = $market['quoteId'];
+        }
+        $request['pageIndex'] = $pageIndex;
+        $request['pageSize'] = $limit;
+        $response = $this->privatePostGetOpenOrders (array_merge($request, $params));
+        return $this->parse_orders($response['Data'], $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
+        if ($limit === null) {
+            $limit = 50;
+        }
+        $request = $this->ordered(array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['primaryCurrencyCode'] = $market['baseId'];
+            $request['secondaryCurrencyCode'] = $market['quoteId'];
+        }
+        $request['pageIndex'] = $pageIndex;
+        $request['pageSize'] = $limit;
+        $response = $this->privatePostGetClosedOrders (array_merge($request, $params));
+        return $this->parse_orders($response['Data'], $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = 50, $params = array ()) {
