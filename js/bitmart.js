@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
-const { ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,8 +20,7 @@ module.exports = class bitmart extends Exchange {
                 // 'CORS': true,
                 // 'cancelAllOrders': true,
                 // 'cancelOrder': true,
-                // 'createMarketOrder': false,
-                // 'createOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 // 'fetchCanceledOrders': true,
                 // 'fetchClosedOrders': true,
@@ -137,43 +136,6 @@ module.exports = class bitmart extends Exchange {
                         ],
                     },
                 },
-                //
-                // ----------------------------------------------------------------------------
-                //
-                // 'token': {
-                //     'post': [
-                //         'authentication',
-                //     ],
-                // },
-                // 'public': {
-                //     'get': [
-                //         'currencies',
-                //         'ping',
-                //         'steps',
-                //         'symbols',
-                //         'symbols_details',
-                //         'symbols/{symbol}/kline',
-                //         'symbols/{symbol}/orders',
-                //         'symbols/{symbol}/trades',
-                //         'ticker',
-                //         'time',
-                //     ],
-                // },
-                // 'private': {
-                //     'get': [
-                //         'orders',
-                //         'orders/{id}',
-                //         'trades',
-                //         'wallet',
-                //     ],
-                //     'post': [
-                //         'orders',
-                //     ],
-                //     'delete': [
-                //         'orders',
-                //         'orders/{id}',
-                //     ],
-                // },
             },
             'timeframes': {
                 '1m': 1,
@@ -244,6 +206,13 @@ module.exports = class bitmart extends Exchange {
             'commonCurrencies': {
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
+            },
+            'options': {
+                'defaultType': 'spot', // 'spot', 'swap'
+                'fetchBalance': {
+                    'type': 'spot', // 'spot', 'swap', 'contract', 'account'
+                },
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -1264,7 +1233,7 @@ module.exports = class bitmart extends Exchange {
         // createOrder
         //
         //     {
-        //         "entrust_id":1223181
+        //         "order_id": 2707217580
         //     }
         //
         // cancelOrder
@@ -1273,20 +1242,9 @@ module.exports = class bitmart extends Exchange {
         //
         // fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "entrust_id":1223181,
-        //         "symbol":"BMX_ETH",
-        //         "timestamp":1528060666000,
-        //         "side":"buy",
-        //         "price":"1.000000",
-        //         "fees":"0.1",
-        //         "original_amount":"1",
-        //         "executed_amount":"1",
-        //         "remaining_amount":"0",
-        //         "status":3
-        //     }
+        //     ...
         //
-        const id = this.safeString (order, 'entrust_id');
+        const id = this.safeString (order, 'order_id');
         const timestamp = this.safeInteger (order, 'timestamp', this.milliseconds ());
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
@@ -1364,24 +1322,70 @@ module.exports = class bitmart extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'side': side.toLowerCase (),
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-        };
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['side'] = side;
+            request['type'] = type;
+            method = 'privateSpotPostSubmitOrder';
+            if (type === 'limit') {
+                request['size'] = this.amountToPrecision (symbol, amount);
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else if (type === 'market') {
+                // for market buy it requires the amount of quote currency to spend
+                if (side === 'buy') {
+                    let notional = this.safeFloat (params, 'notional');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                        }
+                    } else {
+                        notional = (notional === undefined) ? amount : notional;
+                    }
+                    const precision = market['precision']['price'];
+                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                } else if (side === 'sell') {
+                    request['size'] = this.amountToPrecision (symbol, amount);
+                }
+            }
+        } else if (market['swap'] || market['future']) {
+            method = 'privateContractPostSubmitOrder';
+            request['contractID'] = market['id'];
+            if (type === 'limit') {
+                request['category'] = 1;
+            } else if (type === 'market') {
+                request['category'] = 2;
+            }
+            request['way'] = side; // 1 = open long, 2 = close short, 3 = close long, 4 = open short
+            request['custom_id'] = this.nonce ();
+            request['open_type'] = 1; // 1 = cross margin, 2 = fixed margin
+            request['leverage'] = 1; // must meet the effective range of leverage configured in the contract
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['vol'] = this.amountToPrecision (symbol, amount);
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot and contract
         //
         //     {
-        //         "entrust_id":1223181
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "order_id": 2707217580
+        //         }
         //     }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
