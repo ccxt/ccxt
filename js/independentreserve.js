@@ -232,11 +232,7 @@ module.exports = class independentreserve extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let orderType = undefined;
-        orderType = this.safeValue (order, 'Type');
-        if (orderType === undefined) {
-            orderType = this.safeValue (order, 'OrderType');
-        }
+        let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side = undefined;
         if (orderType.indexOf ('Bid') >= 0) {
             side = 'buy';
@@ -249,10 +245,7 @@ module.exports = class independentreserve extends Exchange {
             orderType = 'limit';
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
-        let amount = this.safeFloat (order, 'VolumeOrdered');
-        if (amount === undefined) {
-            amount = this.safeFloat (order, 'Volume');
-        }
+        const amount = this.safeFloat2 (order, 'VolumeOrdered', 'Volume');
         let filled = this.safeFloat (order, 'VolumeFilled');
         let remaining = this.safeFloat (order, 'Outstanding');
         if (filled === undefined) {
@@ -261,8 +254,8 @@ module.exports = class independentreserve extends Exchange {
             }
         }
         if (remaining === undefined) {
-            if ((amount !== undefined) && (amount !== undefined)) {
-                remaining = amount - filled;
+            if ((filled !== undefined) && (amount !== undefined)) {
+                remaining = Math.max (0, amount - filled);
             }
         }
         const feeRate = this.safeFloat (order, 'FeePercent');
