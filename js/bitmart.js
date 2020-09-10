@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, NotSupported } = require ('./base/errors');
 const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ module.exports = class bitmart extends Exchange {
             'has': {
                 // 'CORS': true,
                 // 'cancelAllOrders': true,
-                // 'cancelOrder': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 // 'fetchCanceledOrders': true,
@@ -1476,17 +1476,64 @@ module.exports = class bitmart extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const intId = parseInt (id);
-        const request = {
-            'id': intId,
-            'entrust_id': intId,
-        };
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateSpotPostCancelOrder';
+            request['order_id'] = parseInt (id);
+            request['symbol'] = market['id'];
+        } else if (market['swap'] || market['future']) {
+            method = 'privateContractPostCancelOrders';
+            request['contractID'] = market['id'];
+            request['orders'] = [ parseInt (id) ];
+        }
+        const response = await this[method] (this.extend (request, params));
         //
-        // responds with an empty object {}
+        // spot
         //
-        return this.parseOrder (response);
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "result": true
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "succeed": [
+        //                 2707219612
+        //             ],
+        //             "failed": []
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const succeeded = this.safeValue (data, 'succeed');
+        if (succeeded !== undefined) {
+            id = this.safeString (succeeded, 0);
+            if (id === undefined) {
+                throw new InvalidOrder (this.id + ' cancelOrder failed to cancel ' + symbol + ' order id ' + id);
+            }
+        } else {
+            const result = this.safeValue (data, 'result');
+            if (!result) {
+                throw new InvalidOrder (this.id + ' cancelOrder ' + symbol + ' order id ' + id + ' is filled or canceled');
+            }
+        }
+        const order = this.parseOrder (id, market);
+        return this.extend (order, { 'id': id });
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1499,13 +1546,21 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' cancelAllOrders does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
         const request = {
             'symbol': market['id'],
             'side': side, // 'buy' or 'sell'
         };
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateSpotPostCancelOrders (this.extend (request, params));
         //
-        // responds with an empty object {}
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {}
+        //     }
         //
         return response;
     }
