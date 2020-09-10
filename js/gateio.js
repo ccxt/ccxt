@@ -459,8 +459,9 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         const method = 'order.update';
         let messageHash = method;
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             messageHash = method + ':' + market['id'];
         }
         const url = this.urls['api']['ws'];
@@ -514,7 +515,7 @@ module.exports = class gateio extends ccxt.gateio {
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
             const error = new AuthenticationError ('not success');
-            client.reject (error, 'autheticated');
+            client.reject (error, 'authenticated');
             if ('server.sign' in client.subscriptions) {
                 delete client.subscriptions['server.sign'];
             }
