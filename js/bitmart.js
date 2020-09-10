@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol } = require ('./base/errors');
 const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -185,23 +185,110 @@ module.exports = class bitmart extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'Place order error': InvalidOrder, // {"message":"Place order error"}
-                    'Not found': OrderNotFound, // {"message":"Not found"}
-                    'Visit too often, please try again later': DDoSProtection, // {"code":-30,"msg":"Visit too often, please try again later","subMsg":"","data":{}}
-                    'Unknown symbol': BadSymbol, // {"message":"Unknown symbol"}
-                    'Unauthorized': AuthenticationError,
+                    // general errors
+                    '30000': ExchangeError, // 404, Not found
+                    '30001': AuthenticationError, // 401, Header X-BM-KEY is empty
+                    '30002': AuthenticationError, // 401, Header X-BM-KEY not found
+                    '30003': AccountSuspended, // 401, Header X-BM-KEY has frozen
+                    '30004': AuthenticationError, // 401, Header X-BM-SIGN is empty
+                    '30005': AuthenticationError, // 401, Header X-BM-SIGN is wrong
+                    '30006': AuthenticationError, // 401, Header X-BM-TIMESTAMP is empty
+                    '30007': AuthenticationError, // 401, Header X-BM-TIMESTAMP range. Within a minute
+                    '30008': AuthenticationError, // 401, Header X-BM-TIMESTAMP invalid format
+                    '30010': PermissionDenied, // 403, IP is forbidden. We recommend enabling IP whitelist for API trading. After that reauth your account
+                    '30011': AuthenticationError, // 403, Header X-BM-KEY over expire time
+                    '30012': AuthenticationError, // 403, Header X-BM-KEY is forbidden to request it
+                    '30013': RateLimitExceeded, // 429, Request too many requests
+                    '30014': ExchangeNotAvailable, // 503, Service unavailable
+                    // funding account errors
+                    '60000': BadRequest, // 400, Invalid request (maybe the body is empty, or the int parameter passes string data)
+                    '60001': BadRequest, // 400, Asset account type does not exist
+                    '60002': BadRequest, // 400, currency does not exist
+                    '60003': ExchangeError, // 400, Currency has been closed recharge channel, if there is any problem, please consult customer service
+                    '60004': ExchangeError, // 400, Currency has been closed withdraw channel, if there is any problem, please consult customer service
+                    '60005': ExchangeError, // 400, Minimum amount is %s
+                    '60006': ExchangeError, // 400, Maximum withdraw precision is %d
+                    '60007': InvalidAddress, // 400, Only withdrawals from added addresses are allowed
+                    '60008': InsufficientFunds, // 400, Balance not enough
+                    '60009': ExchangeError, // 400, Beyond the limit
+                    '60010': ExchangeError, // 400, Withdraw id or deposit id not found
+                    '60011': InvalidAddress, // 400, Address is not valid
+                    '60012': ExchangeError, // 400, This action is not supported in this currency(If IOTA, HLX recharge and withdraw calls are prohibited)
+                    '60020': PermissionDenied, // 403, Your account is not allowed to recharge
+                    '60021': PermissionDenied, // 403, Your account is not allowed to withdraw
+                    '60022': PermissionDenied, // 403, No withdrawals for 24 hours
+                    '60030': BadRequest, // 405, Method Not Allowed
+                    '60031': BadRequest, // 415, Unsupported Media Type
+                    '60050': ExchangeError, // 500, User account not found
+                    '60051': ExchangeError, // 500, Internal Server Error
+                    // spot errors
+                    '50000': BadRequest, // 400, Bad Request
+                    '50001': BadSymbol, // 400, Symbol not found
+                    '50002': BadRequest, // 400, From Or To format error
+                    '50003': BadRequest, // 400, Step format error
+                    '50004': BadRequest, // 400, Kline size over 500
+                    '50005': OrderNotFound, // 400, Order Id not found
+                    '50006': InvalidOrder, // 400, Minimum size is %s
+                    '50007': InvalidOrder, // 400, Maximum size is %s
+                    '50008': InvalidOrder, // 400, Minimum price is %s
+                    '50009': InvalidOrder, // 400, Minimum count*price is %s
+                    '50010': InvalidOrder, // 400, RequestParam size is required
+                    '50011': InvalidOrder, // 400, RequestParam price is required
+                    '50012': InvalidOrder, // 400, RequestParam notional is required
+                    '50013': InvalidOrder, // 400, Maximum limit*offset is %d
+                    '50014': BadRequest, // 400, RequestParam limit is required
+                    '50015': BadRequest, // 400, Minimum limit is 1
+                    '50016': BadRequest, // 400, Maximum limit is %d
+                    '50017': BadRequest, // 400, RequestParam offset is required
+                    '50018': BadRequest, // 400, Minimum offset is 1
+                    '50019': BadRequest, // 400, Maximum price is %s
+                    // '50019': ExchangeError, // 400, Invalid status. validate status is [1=Failed, 2=Success, 3=Frozen Failed, 4=Frozen Success, 5=Partially Filled, 6=Fully Fulled, 7=Canceling, 8=Canceled
+                    '50020': InsufficientFunds, // 400, Balance not enough
+                    '50021': BadRequest, // 400, Invalid %s
+                    '50022': ExchangeNotAvailable, // 400, Service unavailable
+                    '50023': BadSymbol, // 400, This Symbol can't place order by api
+                    '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
+                    '57001': BadRequest, // 405, Method Not Allowed
+                    '58001': BadRequest, // 415, Unsupported Media Type
+                    '59001': ExchangeError, // 500, User account not found
+                    '59002': ExchangeError, // 500, Internal Server Error
+                    // contract errors
+                    '40001': ExchangeError, // 400, Cloud account not found
+                    '40002': ExchangeError, // 400, out_trade_no not found
+                    '40003': ExchangeError, // 400, out_trade_no already existed
+                    '40004': ExchangeError, // 400, Cloud account count limit
+                    '40005': ExchangeError, // 400, Transfer vol precision error
+                    '40006': PermissionDenied, // 400, Invalid ip error
+                    '40007': BadRequest, // 400, Parse parameter error
+                    '40008': InvalidNonce, // 400, Check nonce error
+                    '40009': BadRequest, // 400, Check ver error
+                    '40010': BadRequest, // 400, Not found func error
+                    '40011': BadRequest, // 400, Invalid request
+                    '40012': ExchangeError, // 500, System error
+                    '40013': ExchangeError, // 400, Access too often" CLIENT_TIME_INVALID, "Please check your system time.
+                    '40014': BadSymbol, // 400, This contract is offline
+                    '40015': BadSymbol, // 400, This contract's exchange has been paused
+                    '40016': InvalidOrder, // 400, This order would trigger user position liquidate
+                    '40017': InvalidOrder, // 400, It is not possible to open and close simultaneously in the same position
+                    '40018': InvalidOrder, // 400, Your position is closed
+                    '40019': ExchangeError, // 400, Your position is in liquidation delegating
+                    '40020': InvalidOrder, // 400, Your position volume is not enough
+                    '40021': ExchangeError, // 400, The position is not exsit
+                    '40022': ExchangeError, // 400, The position is not isolated
+                    '40023': ExchangeError, // 400, The position would liquidate when sub margin
+                    '40024': ExchangeError, // 400, The position would be warnning of liquidation when sub margin
+                    '40025': ExchangeError, // 400, The position’s margin shouldn’t be lower than the base limit
+                    '40026': ExchangeError, // 400, You cross margin position is in liquidation delegating
+                    '40027': InsufficientFunds, // 400, You contract account available balance not enough
+                    '40028': PermissionDenied, // 400, Your plan order's count is more than system maximum limit.
+                    '40029': InvalidOrder, // 400, The order's leverage is too large.
+                    '40030': InvalidOrder, // 400, The order's leverage is too small.
+                    '40031': InvalidOrder, // 400, The deviation between current price and trigger price is too large.
+                    '40032': InvalidOrder, // 400, The plan order's life cycle is too long.
+                    '40033': InvalidOrder, // 400, The plan order's life cycle is too short.
+                    '40034': BadSymbol, // 400, This contract is not found
                 },
-                'broad': {
-                    'Invalid limit. limit must be in the range': InvalidOrder,
-                    'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
-                    // {"message":"Required Integer parameter 'status' is not present"}
-                    // {"message":"Required String parameter 'symbol' is not present"}
-                    // {"message":"Required Integer parameter 'offset' is not present"}
-                    // {"message":"Required Integer parameter 'limit' is not present"}
-                    // {"message":"Required Long parameter 'from' is not present"}
-                    // {"message":"Required Long parameter 'to' is not present"}
-                    'is not present': BadRequest,
-                },
+                'broad': {},
             },
             'commonCurrencies': {
                 'ONE': 'Menlo One',
@@ -1556,14 +1643,18 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Bad Request [to is empty]","code":50000,"trace":"f9d46e1b-4edb-4d07-a06e-4895fb2fc8fc","data":{}}
         //     {"message":"Bad Request [from is empty]","code":50000,"trace":"579986f7-c93a-4559-926b-06ba9fa79d76","data":{}}
         //     {"message":"Kline size over 500","code":50004,"trace":"d625caa8-e8ca-4bd2-b77c-958776965819","data":{}}
+        //     {"message":"Balance not enough","code":50020,"trace":"7c709d6a-3292-462c-98c5-32362540aeef","data":{}}
         //
         // contract
         //
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
-        const feedback = this.id + ' ' + body;
-        const message = this.safeString2 (response, 'message', 'msg');
-        if ((message !== undefined) && (message !== 'OK')) {
+        const message = this.safeString (response, 'message');
+        const errorCode = this.safeString (response, 'code');
+        if (((errorCode !== undefined) && (errorCode !== '1000')) || ((message !== undefined) && (message !== 'OK'))) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
