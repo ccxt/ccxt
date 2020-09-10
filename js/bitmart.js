@@ -1190,6 +1190,8 @@ module.exports = class bitmart extends Exchange {
         }
         const response = await this[method] (params);
         //
+        // spot
+        //
         //     {
         //         "message":"OK",
         //         "code":1000,
@@ -1203,16 +1205,55 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
+        // account
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
+        //         "data":{
+        //             "wallet":[
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "accounts": [
+        //                 {
+        //                     "account_id": 10,
+        //                     "coin_code": "USDT",
+        //                     "freeze_vol": "1201.8",
+        //                     "available_vol": "8397.65",
+        //                     "cash_vol": "0",
+        //                     "realised_vol": "-0.5",
+        //                     "unrealised_vol": "-0.5",
+        //                     "earnings_vol": "-0.5",
+        //                     "created_at": "2018-07-13T16:48:49+08:00",
+        //                     "updated_at": "2018-07-13T18:34:45.900387+08:00"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        const wallet = this.safeValue (data, 'wallet', []);
+        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
         const result = { 'info': response };
         for (let i = 0; i < wallet.length; i++) {
             const balance = wallet[i];
-            const currencyId = this.safeString (balance, 'id');
+            let currencyId = this.safeString2 (balance, 'id', 'currency');
+            currencyId = this.safeString (balance, 'coind_code', currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeFloat2 (balance, 'available', 'available_vol');
+            account['used'] = this.safeFloat2 (balance, 'frozen', 'freeze_vol');
             result[code] = account;
         }
         return this.parseBalance (result);
