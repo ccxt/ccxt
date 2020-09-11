@@ -266,6 +266,7 @@ async def test_trades(exchange, symbol):
 
 # ------------------------------------------------------------------------------
 
+
 async def test_orders(exchange, symbol):
     if exchange.has['fetchOrders']:
         skipped_exchanges = [
