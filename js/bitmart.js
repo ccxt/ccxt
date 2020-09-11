@@ -309,13 +309,19 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const response = await this.publicSystemGetTime (params);
         //
         //     {
-        //         "server_time": 1527777538000
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"c4e5e5b7-fe9f-4191-89f7-53f6c5bf9030",
+        //         "data":{
+        //             "server_time":1599843709578
+        //         }
         //     }
         //
-        return this.safeInteger (response, 'server_time');
+        const data = this.safeValue (response, 'data', {});
+        return this.safeInteger (data, 'server_time');
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -1967,7 +1973,7 @@ module.exports = class bitmart extends Exchange {
             request['orderID'] = id;
             method = 'privateContractGetUserOrderInfo';
         }
-        const response = // await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2248,13 +2254,21 @@ module.exports = class bitmart extends Exchange {
         const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const access = this.safeString (api, 0);
         const type = this.safeString (api, 1);
-        let url = baseUrl + '/' + type + '/' + this.version;
+        let url = baseUrl + '/' + type;
+        if (type !== 'system') {
+            url += '/' + this.version;
+        }
         if (type === 'contract') {
             url += '/' + 'ifcontract';
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (access === 'public') {
+        if (type === 'system') {
+            if (Object.keys (query).length) {
+                // console.log (query);
+                url += '?' + this.urlencode (query);
+            }
+        } else if (access === 'public') {
             if (Object.keys (query).length) {
                 // console.log (query);
                 url += '?' + this.urlencode (query);
