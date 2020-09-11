@@ -1453,17 +1453,58 @@ module.exports = class bitmart extends Exchange {
         //
         // cancelOrder
         //
-        //     {}
+        //     '2707217580' // order id
         //
-        // fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
+        // spot fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
         //
-        //     ...
+        //     {
+        //         "order_id":1736871726781,
+        //         "symbol":"BTC_USDT",
+        //         "create_time":1591096004000,
+        //         "side":"sell",
+        //         "type":"market",
+        //         "price":"0.00",
+        //         "price_avg":"0.00",
+        //         "size":"0.02000",
+        //         "notional":"0.00000000",
+        //         "filled_notional":"0.00000000",
+        //         "filled_size":"0.00000",
+        //         "status":"8"
+        //     }
         //
-        const id = this.safeString (order, 'order_id');
-        const timestamp = this.safeInteger (order, 'timestamp', this.milliseconds ());
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // contract fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchOrders
+        //
+        //     {
+        //         "order_id": 10539098,
+        //         "contract_id": 1,
+        //         "position_id": 10539088,
+        //         "account_id": 10,
+        //         "price": "16",
+        //         "vol": "1",
+        //         "done_avg_price": "16",
+        //         "done_vol": "1",
+        //         "way": 3,
+        //         "category": 1,
+        //         "open_type": 2,
+        //         "make_fee": "0.00025",
+        //         "take_fee": "0.012",
+        //         "origin": "",
+        //         "created_at": "2018-07-23T11:55:56.715305Z",
+        //         "finished_at": "2018-07-23T11:55:56.763941Z",
+        //         "status": 4,
+        //         "errno": 0
+        //     }
+        //
+        let id = undefined;
+        if (typeof order === 'string') {
+            id = order;
+            order = {};
+        }
+        id = this.safeString (order, 'order_id', id);
+        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        timestamp = this.safeInteger (order, 'create_time', timestamp);
         let symbol = undefined;
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.safeString (order, 'symbol', 'contract_id');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -1477,11 +1518,16 @@ module.exports = class bitmart extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        let status = undefined;
+        if (market !== undefined) {
+            status = this.parseOrderStatusByType (market['type'], this.safeString (order, 'status'));
+        }
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'original_amount');
+        const average = this.safeFloat2 (order, 'price_avg', 'done_avg_price');
+        const amount = this.safeFloat2 (order, 'size', 'vol');
         let cost = undefined;
-        let filled = this.safeFloat (order, 'executed_amount');
-        let remaining = this.safeFloat (order, 'remaining_amount');
+        let filled = this.safeFloat2 (order, 'filled_size', 'done_vol');
+        let remaining = undefined;
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 if (filled === undefined) {
@@ -1493,14 +1539,25 @@ module.exports = class bitmart extends Exchange {
                     remaining = Math.max (0, amount - filled);
                 }
                 if (cost === undefined) {
-                    if (price !== undefined) {
-                        cost = price * filled;
+                    if (average !== undefined) {
+                        cost = average * filled;
                     }
                 }
             }
         }
-        const side = this.safeString (order, 'side');
-        const type = undefined;
+        let side = this.safeString (order, 'side');
+        // 1 = Open long
+        // 2 = Close short
+        // 3 = Close long
+        // 4 = Open short
+        side = this.safeString (order, 'way', side);
+        const category = this.safeInteger (order, 'category');
+        let type = this.safeString (order, 'type');
+        if (category === 1) {
+            type = 'limit';
+        } else if (category === 2) {
+            type = 'market';
+        }
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -1514,7 +1571,7 @@ module.exports = class bitmart extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -1523,15 +1580,23 @@ module.exports = class bitmart extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatusByType (type, status) {
         const statuses = {
-            '0': 'all',
-            '1': 'open',
-            '2': 'open',
-            '3': 'closed',
-            '4': 'canceled',
-            '5': 'open',
-            '6': 'closed',
+            'spot': {
+                '1': 'failed', // Order failure
+                '2': 'open', // Placing order
+                '3': 'failed', // Order failure, Freeze failure
+                '4': 'open', // Order success, Pending for fulfilment
+                '5': 'open', // Partially filled
+                '6': 'closed', // Fully filled
+                '7': 'canceling', // Canceling
+                '8': 'canceled', // Canceled
+            },
+            'swap': {
+                '1': 'open', // Submitting
+                '2': 'open', // Commissioned
+                '4': 'closed', // Completed
+            },
         };
         return this.safeString (statuses, status, status);
     }
