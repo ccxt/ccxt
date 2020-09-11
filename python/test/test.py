@@ -240,6 +240,13 @@ def test_trades(exchange, symbol):
 
 def test_orders(exchange, symbol):
     if exchange.has['fetchOrders']:
+        skipped_exchanges = [
+            'bitmart',
+            'rightbtc',
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_orders() skipped')
+            return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
