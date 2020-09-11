@@ -45,6 +45,7 @@
     "coolcoin":      { "skip": true },
     "crypton":       { "skip": true },
     "dsx":           { "skip": true },
+    "duedex":        { "skip": true },
     "dx":            { "skip": true },
     "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
