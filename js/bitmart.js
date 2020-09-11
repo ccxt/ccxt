@@ -23,7 +23,7 @@ module.exports = class bitmart extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                // 'fetchCanceledOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -32,7 +32,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchOpenOrders': true,
                 // 'fetchOrder': true,
                 'fetchOrderBook': true,
-                // 'fetchOrders': false,
+                'fetchOrders': true,
                 // 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1654,7 +1654,13 @@ module.exports = class bitmart extends Exchange {
             // 2 = Commissioned
             // 3 = 1 and 2
             // 4 = Completed
-            request['status'] = 3;
+            if (status === 'open') {
+                request['status'] = 3;
+            } else if (status === 'closed') {
+                request['status'] = 4;
+            } else {
+                request['status'] = status;
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1729,7 +1735,14 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 0 = all
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!(market['swap'] || market['future'])) {
+            throw new NotSupported (this.id + ' fetchOrders does not support ' + market['type'] + ' markets, only contracts are supported');
+        }
         return await this.fetchOrdersByStatus (0, symbol, since, limit, params);
     }
 
