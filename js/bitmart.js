@@ -1890,6 +1890,87 @@ module.exports = class bitmart extends Exchange {
         return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // Create
+            '1': 'pending', // Submitted, waiting for withdrawal
+            '2': 'pending', // Processing
+            '3': 'ok', // Success
+            '4': 'canceled', // Cancel
+            '5': 'failed', // Fail
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "withdraw_id":"1679952",
+        //         "deposit_id":"",
+        //         "operation_type":"withdraw",
+        //         "currency":"BMX",
+        //         "apply_time":1588867374000,
+        //         "arrival_amount":"59.000000000000",
+        //         "fee":"1.000000000000",
+        //         "status":0,
+        //         "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //         "address_memo":"",
+        //         "tx_id":""
+        //     }
+        //
+        let id = undefined;
+        const withdrawId = this.safeString (transaction, 'withdraw_id');
+        const depositId = this.safeString (transaction, 'deposit_id');
+        let type = undefined;
+        if ((withdrawId !== undefined) && (withdrawId !== '')) {
+            type = 'withdraw';
+            id = withdrawId;
+        } else if ((depositId !== undefined) && (depositId !== '')) {
+            type = 'deposit';
+            id = depositId;
+        }
+        const amount = this.safeFloat (transaction, 'arrival_amount');
+        const timestamp = this.safeInteger (transaction, 'tapply_timeime');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        let txid = this.safeString (transaction, 'tx_id');
+        if (txid === '') {
+            txid = undefined;
+        }
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'address_memo');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
