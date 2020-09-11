@@ -282,7 +282,7 @@ module.exports = class aax extends Exchange {
                     ohlcvArr.push (highArr[i]);
                     ohlcvArr.push (lowArr[i]);
                     ohlcvArr.push (closeArr[i]);
-                    ohlcvArr.push (volumeArr[i]);
+                    ohlcvArr.push (volumeArr[i] / closeArr[i]);
                     result.push (ohlcvArr);
                     prevOpenTime = openTime;
                 }
