@@ -1814,8 +1814,6 @@ module.exports = class bitmart extends Exchange {
             'amount': amount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
-            // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
-            // 'fee': 0.001, // bitcoin network fee
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
@@ -1831,10 +1829,13 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdraw_id'),
-        };
+        const data = this.safeValue (response, 'data');
+        const transaction = this.parseTransaction (data, currency);
+        return this.extend (transaction, {
+            'code': code,
+            'address': address,
+            'tag': tag,
+        });
     }
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1903,6 +1904,12 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "withdraw_id": "121212"
+        //     }
         //
         // fetchDeposits, fetchWithdrawals
         //
