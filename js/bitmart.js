@@ -27,6 +27,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -39,6 +40,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
@@ -1833,6 +1835,59 @@ module.exports = class bitmart extends Exchange {
             'info': response,
             'id': this.safeString (response, 'withdraw_id'),
         };
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 50; // max 50
+        }
+        const request = {
+            'operation_type': type, // deposit or withdraw
+            'offset': 1,
+            'limit': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currenc (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"142bf92a-fc50-4689-92b6-590886f90b97",
+        //         "data":{
+        //             "records":[
+        //                 {
+        //                     "withdraw_id":"1679952",
+        //                     "deposit_id":"",
+        //                     "operation_type":"withdraw",
+        //                     "currency":"BMX",
+        //                     "apply_time":1588867374000,
+        //                     "arrival_amount":"59.000000000000",
+        //                     "fee":"1.000000000000",
+        //                     "status":0,
+        //                     "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                     "address_memo":"",
+        //                     "tx_id":""
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const records = this.safeValue (data, 'records', []);
+        return this.parseTransactions (records, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
     }
 
     nonce () {
