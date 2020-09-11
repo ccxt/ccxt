@@ -261,6 +261,7 @@ class wavesexchange(Exchange):
                 'wavesAddress': None,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
+                'wavesPrecision': 8,
             },
             'requiresEddsa': True,
             'exceptions': {
@@ -404,8 +405,10 @@ class wavesexchange(Exchange):
 
     def parse_order_book_side(self, bookSide, market=None, limit=None):
         precision = market['precision']
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         amountPrecision = math.pow(10, precision['amount'])
-        pricePrecision = math.pow(10, precision['price'])
+        difference = precision['amount'] - precision['price']
+        pricePrecision = math.pow(10, wavesPrecision - difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
@@ -772,7 +775,10 @@ class wavesexchange(Exchange):
         return currencyId
 
     def price_to_precision(self, symbol, price):
-        return int(float(self.to_wei(price, self.markets[symbol]['precision']['price'])))
+        market = self.markets[symbol]
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
+        difference = market['precision']['amount'] - market['precision']['price']
+        return int(float(self.to_wei(price, wavesPrecision - difference)))
 
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_wei(amount, self.markets[symbol]['precision']['amount'])))
@@ -782,6 +788,12 @@ class wavesexchange(Exchange):
 
     def currency_from_precision(self, currency, amount):
         return self.from_wei(amount, self.currencies[currency]['precision'])
+
+    def price_from_precision(self, symbol, price):
+        market = self.markets[symbol]
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
+        difference = market['precision']['amount'] - market['precision']['price']
+        return self.from_wei(price, wavesPrecision - difference)
 
     def get_default_expiry(self):
         expiry = self.safe_integer(self.options, 'createOrderDefaultExpiry')
@@ -883,11 +895,11 @@ class wavesexchange(Exchange):
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES')
         if matcherFee is None:
+            wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
             rate = self.safe_float(rates, matcherFeeAssetId)
             code = self.safe_currency_code(matcherFeeAssetId)
-            waves = self.currency('WAVES')
             currency = self.currency(code)
-            newPrecison = math.pow(10, waves['precision'] - currency['precision'])
+            newPrecison = math.pow(10, wavesPrecision - currency['precision'])
             matcherFee = int(math.ceil(rate * baseMatcherFee / newPrecison))
         byteArray = [
             self.number_to_be(3, 1),
@@ -1093,12 +1105,55 @@ class wavesexchange(Exchange):
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
     def parse_order(self, order, market=None):
-        isCreateOrder = self.safe_integer(order, 'version')
+        # createOrder
+        # {
+        #   version: 3,
+        #   id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        #   sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        #   senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        #   matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        #   assetPair: {
+        #     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #     priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        #   },
+        #   orderType: 'buy',
+        #   amount: 10000,
+        #   price: 400000000,
+        #   timestamp: 1599848586891,
+        #   expiration: 1602267786891,
+        #   matcherFee: 3008,
+        #   matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #   signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #   proofs: [
+        #     '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        #   ]
+        # }
+        # fetchClosedOrders
+        # {
+        #   id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        #   type: 'buy',
+        #   orderType: 'limit',
+        #   amount: 30000000000,
+        #   filled: 0,
+        #   price: 1000000,
+        #   fee: 300000,
+        #   filledFee: 0,
+        #   feeAsset: 'WAVES',
+        #   timestamp: 1594303779322,
+        #   status: 'Cancelled',
+        #   assetPair: {
+        #     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #     priceAsset: 'WAVES'
+        #   },
+        #   avgWeighedPrice: 0,
+        #   version: 3
+        # }
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_2(order, 'type', 'orderType')
         type = 'limit'
-        if not isCreateOrder:
-            type = self.safe_string(order, 'orderType')
+        if 'type' in order:
+            # fetchOrders
+            type = self.safe_string(order, 'orderType', type)
         id = self.safe_string(order, 'id')
         filled = self.safe_string(order, 'filled')
         price = self.safe_string(order, 'price')
@@ -1109,9 +1164,8 @@ class wavesexchange(Exchange):
             symbol = self.get_symbol_from_asset_pair(assetPair)
         elif market is not None:
             symbol = market['symbol']
-        priceCurrency = self.safe_currency_code(self.safe_string(assetPair, 'priceAsset', 'WAVES'))
         amountCurrency = self.safe_currency_code(self.safe_string(assetPair, 'amountAsset', 'WAVES'))
-        price = self.currency_from_precision(priceCurrency, price)
+        price = self.price_from_precision(symbol, price)
         amount = self.currency_from_precision(amountCurrency, amount)
         cost = None
         if (price is not None) and (amount is not None):
@@ -1120,20 +1174,20 @@ class wavesexchange(Exchange):
         remaining = None
         if (filled is not None) and (amount is not None):
             remaining = amount - filled
-        average = self.currency_from_precision(priceCurrency, self.safe_string(order, 'avgWeighedPrice'))
+        average = self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = None
-        if isCreateOrder:
-            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
-            fee = {
-                'currency': currency,
-                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
-            }
-        else:
+        if 'type' in order:
             currency = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
             fee = {
                 'currency': currency,
                 'fee': self.currency_from_precision(currency, self.safe_integer(order, 'filledFee')),
+            }
+        else:
+            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
+            fee = {
+                'currency': currency,
+                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
             }
         return {
             'info': order,
