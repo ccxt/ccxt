@@ -1213,12 +1213,14 @@ module.exports = class bitmart extends Exchange {
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['offset'] = 1;
+            if (limit === undefined) {
+                limit = 100; // max 100
+            }
             request['limit'] = limit;
             method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             // request['offset'] = 1;
-            // request['limit'] = limit;
             if (limit !== undefined) {
                 request['size'] = limit; // max 60
             }
