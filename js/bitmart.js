@@ -24,12 +24,12 @@ module.exports = class bitmart extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 // 'fetchCanceledOrders': true,
-                // 'fetchClosedOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                // 'fetchOpenOrders': true,
+                'fetchOpenOrders': true,
                 // 'fetchOrder': true,
                 'fetchOrderBook': true,
                 // 'fetchOrders': false,
@@ -1618,54 +1618,119 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 500; // default 500, max 1000
+        const request = {};
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateSpotGetOrders';
+            request['symbol'] = market['id'];
+            request['offset'] = 1; // max offset * limit < 500
+            request['limit'] = 100; // max limit is 100
+            //  1 = Order failure
+            //  2 = Placing order
+            //  3 = Order failure, Freeze failure
+            //  4 = Order success, Pending for fulfilment
+            //  5 = Partially filled
+            //  6 = Fully filled
+            //  7 = Canceling
+            //  8 = Canceled
+            //  9 = Outstanding (4 and 5)
+            // 10 = 6 and 8
+            if (status === 'open') {
+                request['status'] = 9;
+            } else if (status === 'closed') {
+                request['status'] = 6;
+            } else {
+                request['status'] = status;
+            }
+        } else if (market['swap'] || market['future']) {
+            method = 'privateContractGetUserOrders';
+            request['contractID'] = market['id'];
+            // request['offset'] = 1;
+            if (limit !== undefined) {
+                request['size'] = limit; // max 60
+            }
+            // 0 = All
+            // 1 = Submitting
+            // 2 = Commissioned
+            // 3 = 1 and 2
+            // 4 = Completed
+            request['status'] = 3;
         }
-        const request = {
-            'symbol': market['id'],
-            'status': status,
-            'offset': 0, // current page, starts from 0
-            'limit': limit,
-        };
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
-        //         "orders":[
-        //             {
-        //                 "entrust_id":1223181,
-        //                 "symbol":"BMX_ETH",
-        //                 "timestamp":1528060666000,
-        //                 "side":"buy",
-        //                 "price":"1.000000",
-        //                 "fees":"0.1",
-        //                 "original_amount":"1",
-        //                 "executed_amount":"1",
-        //                 "remaining_amount":"0",
-        //                 "status":3
-        //             }
-        //         ],
-        //         "total_pages":1,
-        //         "total_orders":1,
-        //         "current_page":0,
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"70e7d427-7436-4fb8-8cdd-97e1f5eadbe9",
+        //         "data":{
+        //             "current_page":1,
+        //             "orders":[
+        //                 {
+        //                     "order_id":2147601241,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1591099963000,
+        //                     "side":"sell",
+        //                     "type":"limit",
+        //                     "price":"9000.00",
+        //                     "price_avg":"0.00",
+        //                     "size":"1.00000",
+        //                     "notional":"9000.00000000",
+        //                     "filled_notional":"0.00000000",
+        //                     "filled_size":"0.00000",
+        //                     "status":"4"
+        //                 }
+        //             ]
+        //         }
         //     }
         //
-        const orders = this.safeValue (response, 'orders', []);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "order_id": 10284160,
+        //                     "contract_id": 1,
+        //                     "price": "8",
+        //                     "vol": "4",
+        //                     "done_avg_price": "0",
+        //                     "done_vol": "0",
+        //                     "way": 1,
+        //                     "category": 1,
+        //                     "open_type": 2,
+        //                     "make_fee": "0",
+        //                     "take_fee": "0",
+        //                     "origin": "",
+        //                     "created_at": "2018-07-17T07:24:13.410507Z",
+        //                     "finished_at": null,
+        //                     "status": 2,
+        //                     "errno": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 5 = pending & partially filled orders
-        return await this.fetchOrdersByStatus (5, symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 3 = closed orders
-        return await this.fetchOrdersByStatus (3, symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // 4 = canceled orders
-        return await this.fetchOrdersByStatus (4, symbol, since, limit, params);
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // 0 = all
+        return await this.fetchOrdersByStatus (0, symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
