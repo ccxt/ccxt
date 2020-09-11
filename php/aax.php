@@ -289,7 +289,7 @@ class aax extends Exchange {
                     $ohlcvArr[] = $highArr[$i];
                     $ohlcvArr[] = $lowArr[$i];
                     $ohlcvArr[] = $closeArr[$i];
-                    $ohlcvArr[] = $volumeArr[$i];
+                    $ohlcvArr[] = $volumeArr[$i] / $closeArr[$i];
                     $result[] = $ohlcvArr;
                     $prevOpenTime = $openTime;
                 }

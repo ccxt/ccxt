@@ -282,7 +282,7 @@ class aax(Exchange):
                     ohlcvArr.append(highArr[i])
                     ohlcvArr.append(lowArr[i])
                     ohlcvArr.append(closeArr[i])
-                    ohlcvArr.append(volumeArr[i])
+                    ohlcvArr.append(volumeArr[i] / closeArr[i])
                     result.append(ohlcvArr)
                     prevOpenTime = openTime
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
