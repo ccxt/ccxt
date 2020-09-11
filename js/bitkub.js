@@ -51,32 +51,32 @@ module.exports = class bitkub extends Exchange {
                 'public': {
                     'get': [
                         'servertime',
-                        'asks',
-                        'bids',
-                        'books',
-                        'symbols',
-                        'ticker',
-                        'trades',
-                        // 'tradingview',
+                        'market/asks',
+                        'market/bids',
+                        'market/books',
+                        'market/symbols',
+                        'market/ticker',
+                        'market/trades',
+                        // 'market/tradingview',
                     ],
                 },
                 'private': {
                     'post': [
-                        'balances',
-                        'cancel-order',
-                        'my-open-orders',
-                        'my-order-history',
-                        'order-info',
-                        'place-ask',
-                        'place-bid',
-                        'wallet',
+                        'market/balances',
+                        'market/cancel-order',
+                        'market/my-open-orders',
+                        'market/my-order-history',
+                        'market/order-info',
+                        'market/place-ask',
+                        'market/place-bid',
+                        'market/wallet',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': 0.0025,
+                    'maker': 0.0025,
                 },
             },
             'commonCurrencies': {},
@@ -116,7 +116,7 @@ module.exports = class bitkub extends Exchange {
 
     async fetchMarkets (params = {}) {
         // OK - exchange = /api/market/symbols
-        const markets = await this.publicGetSymbols (params);
+        const markets = await this.publicGetMarketSymbols (params);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -173,7 +173,7 @@ module.exports = class bitkub extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         // OK - exchange = /api/market/ticker
         await this.loadMarkets ();
-        const tickers = await this.publicGetTicker ();
+        const tickers = await this.publicGetMarketTicker ();
         const result = {};
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -196,7 +196,7 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': sym,
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
         const ticker = this.safeValue (response, sym);
         return this.parseTicker (ticker, market);
     }
@@ -245,7 +245,7 @@ module.exports = class bitkub extends Exchange {
         };
         // Limit is mandatory. Set default count to 1000
         request['lmt'] = (limit !== undefined) ? limit : 1000;
-        const trades = await this.publicGetTrades (this.extend (request, params));
+        const trades = await this.publicGetMarketTrades (this.extend (request, params));
         return await this.parseTrades (trades, market, undefined, limit, params);
     }
 
@@ -257,7 +257,7 @@ module.exports = class bitkub extends Exchange {
             'sym': market['id'],
         };
         request['lmt'] = (limit !== undefined) ? limit : 1000;
-        const orderbook = await this.publicGetBooks (this.extend (request, params));
+        const orderbook = await this.publicGetMarketBooks (this.extend (request, params));
         // Get most recent timestamp
         // TODO
         const lastBidTime = orderbook['bids'][0][1];
@@ -270,7 +270,7 @@ module.exports = class bitkub extends Exchange {
         // OK - exchange = /api/market/balances
         const request = {
         };
-        const balances = await this.privatePostBalances (this.extend (request, params));
+        const balances = await this.privatePostMarketBalances (this.extend (request, params));
         const result = { 'info': balances };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -352,9 +352,9 @@ module.exports = class bitkub extends Exchange {
         };
         let response = {};
         if (side === 'sell') {
-            response = await this.privatePostPlaceAsk (this.extend (request, params));
+            response = await this.privatePostMarketPlaceAsk (this.extend (request, params));
         } else {
-            response = await this.privatePostPlaceBid (this.extend (request, params));
+            response = await this.privatePostMarketPlaceBid (this.extend (request, params));
         }
         params = { 'side': side };
         return await this.parseOrder (response, market, params);
@@ -369,7 +369,7 @@ module.exports = class bitkub extends Exchange {
             'id': id,
             'sd': params['side'],
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostMarketCancelOrder (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -379,7 +379,7 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        const orders = await this.privatePostMyOpenOrders (this.extend (request, params));
+        const orders = await this.privatePostMarketMyOpenOrders (this.extend (request, params));
         const result = [];
         for (let i = 0; i < orders.length; i++) {
             const res = await this.parseOrder (orders[i], market, undefined);
@@ -389,7 +389,7 @@ module.exports = class bitkub extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/api/market/';
+        let url = this.urls['api'] + '/api/';
         if (path) {
             url += path;
         }
@@ -414,7 +414,7 @@ module.exports = class bitkub extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (path === 'ticker') {
+        if (path === 'market/ticker') {
             // Stupid ticker endpoint has no error reporting
             return response;
         }
