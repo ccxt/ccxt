@@ -34,7 +34,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                // 'fetchOrderTrades': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1282,11 +1282,77 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const request = {
-            'entrust_id': id,
-        };
-        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+        const market = this.market (symbol);
+        let method = undefined;
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+            method = 'privateSpotGetTrades';
+        } else if (market['swap'] || market['future']) {
+            request['contractID'] = market['id'];
+            request['orderID'] = id;
+            method = 'privateContractGetOrderTrades';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
+        //         "data":{
+        //             "current_page":1,
+        //             "trades":[
+        //                 {
+        //                     "detail_id":256348632,
+        //                     "order_id":2147484350,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1590462303000,
+        //                     "side":"buy",
+        //                     "fees":"0.00001350",
+        //                     "fee_coin_name":"BTC",
+        //                     "notional":"88.00000000",
+        //                     "price_avg":"8800.00",
+        //                     "size":"0.01000",
+        //                     "exec_type":"M"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "order_id": 10116361,
+        //                     "trade_id": 10116363,
+        //                     "contract_id": 1,
+        //                     "deal_price": "16",
+        //                     "deal_vol": "10",
+        //                     "make_fee": "0.04",
+        //                     "take_fee": "0.12",
+        //                     "created_at": null,
+        //                     "way": 5,
+        //                     "fluctuation": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
