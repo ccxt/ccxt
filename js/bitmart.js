@@ -1504,7 +1504,7 @@ module.exports = class bitmart extends Exchange {
         let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         timestamp = this.safeInteger (order, 'create_time', timestamp);
         let symbol = undefined;
-        const marketId = this.safeString (order, 'symbol', 'contract_id');
+        const marketId = this.safeString2 (order, 'symbol', 'contract_id');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -1522,8 +1522,8 @@ module.exports = class bitmart extends Exchange {
         if (market !== undefined) {
             status = this.parseOrderStatusByType (market['type'], this.safeString (order, 'status'));
         }
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat2 (order, 'price_avg', 'done_avg_price');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat2 (order, 'price_avg', 'done_avg_price');
         const amount = this.safeFloat2 (order, 'size', 'vol');
         let cost = undefined;
         let filled = this.safeFloat2 (order, 'filled_size', 'done_vol');
@@ -1557,6 +1557,14 @@ module.exports = class bitmart extends Exchange {
             type = 'limit';
         } else if (category === 2) {
             type = 'market';
+        }
+        if (type === 'market') {
+            if (price === 0.0) {
+                price = undefined;
+            }
+            if (average === 0.0) {
+                average = undefined;
+            }
         }
         return {
             'id': id,
@@ -1959,7 +1967,7 @@ module.exports = class bitmart extends Exchange {
             request['orderID'] = id;
             method = 'privateContractGetUserOrderInfo';
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = // await this[method] (this.extend (request, params));
         //
         // spot
         //
