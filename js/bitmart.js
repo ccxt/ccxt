@@ -26,6 +26,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1767,6 +1768,44 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (code in this.currencies) {
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+        } else {
+            // USDT default is OMNI
+            // USDT-TRC20 is TRC20
+            // USDT-ERC20 is ERC20
+            request['currency'] = code;
+        }
+        const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data":{
+        //             "currency":"USDT-TRC20",
+        //             "chain":"USDT-TRC20",
+        //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //             "address_memo":""
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'address_memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     nonce () {
