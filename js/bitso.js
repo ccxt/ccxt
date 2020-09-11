@@ -466,10 +466,10 @@ module.exports = class bitso extends Exchange {
         const response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag = undefined;
-        if (code === 'XRP') {
+        if (address.indexOf ('?dt=') >= 0) {
             const parts = address.split ('?dt=');
-            address = parts[0];
-            tag = parts[1];
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
         }
         this.checkAddress (address);
         return {
