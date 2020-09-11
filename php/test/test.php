@@ -125,9 +125,16 @@ function test_trades($exchange, $symbol) {
 
 function test_orders($exchange, $symbol) {
     if ($exchange->has['fetchOrders']) {
+        $skipped_exchanges = array (
+            'bitmart',
+            'rightbtc',
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), 'fetch_orders() skipped');
+            return;
+        }
         $delay = $exchange->rateLimit * 1000;
         usleep($delay);
-
         dump(green($symbol), 'fetching orders...');
         $orders = $exchange->fetch_orders($symbol);
         foreach ($orders as $order) {
