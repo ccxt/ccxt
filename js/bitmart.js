@@ -39,6 +39,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info for Hong Kong users
             'urls': {
@@ -798,7 +799,7 @@ module.exports = class bitmart extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
+            const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
@@ -1772,16 +1773,10 @@ module.exports = class bitmart extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        if (code in this.currencies) {
-            const currency = this.currency (code);
-            request['currency'] = currency['id'];
-        } else {
-            // USDT default is OMNI
-            // USDT-TRC20 is TRC20
-            // USDT-ERC20 is ERC20
-            request['currency'] = code;
-        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
         const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1805,6 +1800,38 @@ module.exports = class bitmart extends Exchange {
             'address': address,
             'tag': tag,
             'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
+            'address': address,
+            // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
+            // 'fee': 0.001, // bitcoin network fee
+        };
+        if (tag !== undefined) {
+            request['address_memo'] = tag;
+        }
+        const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "withdraw_id": "121212"
+        //         }
+        //     }
+        //
+        return {
+            'info': response,
+            'id': this.safeString (response, 'withdraw_id'),
         };
     }
 
