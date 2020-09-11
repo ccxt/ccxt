@@ -17,7 +17,6 @@ module.exports = class bitmart extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                // 'CORS': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -29,10 +28,10 @@ module.exports = class bitmart extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
-                // 'fetchMyTrades': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                // 'fetchOrder': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 // 'fetchOrderTrades': true,
@@ -905,7 +904,7 @@ module.exports = class bitmart extends Exchange {
         //         "type":"sell"
         //     }
         //
-        // public fetchTrades contract
+        // public fetchTrades contract, private fetchMyTrades contract
         //
         //     {
         //         "order_id":109159616160,
@@ -920,18 +919,30 @@ module.exports = class bitmart extends Exchange {
         //         "fluctuation":"0"
         //     }
         //
-        // private fetchMyTrades
+        // private fetchMyTrades spot
         //
-        //     ...
+        //     {
+        //         "detail_id":256348632,
+        //         "order_id":2147484350,
+        //         "symbol":"BTC_USDT",
+        //         "create_time":1590462303000,
+        //         "side":"buy",
+        //         "fees":"0.00001350",
+        //         "fee_coin_name":"BTC",
+        //         "notional":"88.00000000",
+        //         "price_avg":"8800.00",
+        //         "size":"0.01000",
+        //         "exec_type":"M"
+        //     }
         //
-        const id = this.safeString (trade, 'trade_id');
-        let timestamp = this.safeInteger2 (trade, 'order_time');
+        const id = this.safeString2 (trade, 'trade_id', 'detail_id');
+        let timestamp = this.safeInteger2 (trade, 'order_time', 'create_time');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         const type = undefined;
         const way = this.safeInteger (trade, 'way');
-        let side = this.safeStringLower (trade, 'type');
+        let side = this.safeStringLower2 (trade, 'type', 'side');
         if ((side === undefined) && (way !== undefined)) {
             if (way < 5) {
                 side = 'buy';
@@ -939,14 +950,16 @@ module.exports = class bitmart extends Exchange {
                 side = 'sell';
             }
         }
-        const price = this.safeFloat2 (trade, 'price', 'deal_price');
-        const amount = this.safeFloat2 (trade, 'amount', 'deal_vol');
-        let cost = this.safeFloat (trade, 'count');
+        let price = this.safeFloat2 (trade, 'price', 'deal_price');
+        price = this.safeFloat (trade, 'price_avg', price);
+        let amount = this.safeFloat2 (trade, 'amount', 'deal_vol');
+        amount = this.safeFloat (trade, 'size', amount);
+        let cost = this.safeFloat2 (trade, 'count', 'notional');
         if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
             cost = amount * price;
         }
         const orderId = this.safeInteger (trade, 'order_id');
-        const marketId = this.safeString (trade, 'contract_id');
+        const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
@@ -1194,35 +1207,76 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // limit is required, must be in the range (0, 50)
-        const maxLimit = 50;
-        limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const request = {
-            'symbol': market['id'],
-            'offset': 0, // current page, starts from 0
-            'limit': limit, // required
-        };
-        const response = await this.privateGetTrades (this.extend (request, params));
+        let method = undefined;
+        const request = {};
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['offset'] = 1;
+            request['limit'] = limit;
+            method = 'privateSpotGetTrades';
+        } else if (market['swap'] || market['future']) {
+            request['contractID'] = market['id'];
+            // request['offset'] = 1;
+            // request['limit'] = limit;
+            if (limit !== undefined) {
+                request['size'] = limit; // max 60
+            }
+            method = 'privateContractGetUserTrades';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
-        //         "total_trades": 216,
-        //         "total_pages": 22,
-        //         "current_page": 0,
-        //         "trades": [
-        //             {
-        //                 "symbol": "BMX_ETH",
-        //                 "amount": "1.0",
-        //                 "fees": "0.0005000000",
-        //                 "trade_id": 2734956,
-        //                 "price": "0.00013737",
-        //                 "active": true,
-        //                 "entrust_id": 5576623,
-        //                 "timestamp": 1545292334000
-        //             },
-        //         ]
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
+        //         "data":{
+        //             "current_page":1,
+        //             "trades":[
+        //                 {
+        //                     "detail_id":256348632,
+        //                     "order_id":2147484350,
+        //                     "symbol":"BTC_USDT",
+        //                     "create_time":1590462303000,
+        //                     "side":"buy",
+        //                     "fees":"0.00001350",
+        //                     "fee_coin_name":"BTC",
+        //                     "notional":"88.00000000",
+        //                     "price_avg":"8800.00",
+        //                     "size":"0.01000",
+        //                     "exec_type":"M"
+        //                 },
+        //             ]
+        //         }
         //     }
         //
-        const trades = this.safeValue (response, 'trades', []);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "order_id": 10116361,
+        //                     "trade_id": 10116363,
+        //                     "contract_id": 1,
+        //                     "deal_price": "16",
+        //                     "deal_vol": "10",
+        //                     "make_fee": "0.04",
+        //                     "take_fee": "0.12",
+        //                     "created_at": null,
+        //                     "way": 5,
+        //                     "fluctuation": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1751,26 +1805,91 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const request = {};
+        const market = this.market (symbol);
+        let method = undefined;
+        if (typeof id !== 'string') {
+            id = id.toString ();
+        }
+        if (market['spot']) {
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+            method = 'privateSpotGetOrderDetail';
+        } else if (market['swap'] || market['future']) {
+            request['contractID'] = market['id'];
+            request['orderID'] = id;
+            method = 'privateContractGetUserOrderInfo';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
-        //         "entrust_id":1223181,
-        //         "symbol":"BMX_ETH",
-        //         "timestamp":1528060666000,
-        //         "side":"buy",
-        //         "price":"1.000000",
-        //         "fees":"0.1",
-        //         "original_amount":"1",
-        //         "executed_amount":"1",
-        //         "remaining_amount":"0",
-        //         "status":3
+        //         "message":"OK",
+        //         "code":1000,
+        //         "trace":"a27c2cb5-ead4-471d-8455-1cfeda054ea6",
+        //         "data": {
+        //             "order_id":1736871726781,
+        //             "symbol":"BTC_USDT",
+        //             "create_time":1591096004000,
+        //             "side":"sell",
+        //             "type":"market",
+        //             "price":"0.00",
+        //             "price_avg":"0.00",
+        //             "size":"0.02000",
+        //             "notional":"0.00000000",
+        //             "filled_notional":"0.00000000",
+        //             "filled_size":"0.00000",
+        //             "status":"8"
+        //         }
         //     }
         //
-        return this.parseOrder (response);
+        // contract
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "order_id": 10539098,
+        //                     "contract_id": 1,
+        //                     "position_id": 10539088,
+        //                     "account_id": 10,
+        //                     "price": "16",
+        //                     "vol": "1",
+        //                     "done_avg_price": "16",
+        //                     "done_vol": "1",
+        //                     "way": 3,
+        //                     "category": 1,
+        //                     "make_fee": "0.00025",
+        //                     "take_fee": "0.012",
+        //                     "origin": "",
+        //                     "created_at": "2018-07-23T11:55:56.715305Z",
+        //                     "finished_at": "2018-07-23T11:55:56.763941Z",
+        //                     "status": 4,
+        //                     "errno": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        if ('orders' in data) {
+            const orders = this.safeValue (data, 'orders', []);
+            const firstOrder = this.safeValue (orders, 0);
+            if (firstOrder === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder could not find ' + symbol + ' order id ' + id);
+            }
+            return this.parseOrder (firstOrder, market);
+        } else {
+            return this.parseOrder (data, market);
+        }
     }
 
     async fetchDepositAddress (code, params = {}) {
