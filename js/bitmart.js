@@ -1581,7 +1581,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseOrderStatusByType (type, status) {
-        const statuses = {
+        const statusesByType = {
             'spot': {
                 '1': 'failed', // Order failure
                 '2': 'open', // Placing order
@@ -1598,6 +1598,7 @@ module.exports = class bitmart extends Exchange {
                 '4': 'closed', // Completed
             },
         };
+        const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
     }
 
