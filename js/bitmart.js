@@ -38,6 +38,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
+                'fetchStatus': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -322,6 +323,65 @@ module.exports = class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.safeInteger (data, 'server_time');
+    }
+
+    async fetchStatus (params = {}) {
+        const options = this.safeValue (this.options, 'fetchBalance', {});
+        const defaultType = this.safeString (this.options, 'defaultType');
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const response = await this.publicSystemGetService (params);
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": {
+        //             "serivce":[
+        //                 {
+        //                     "title": "Spot API Stop",
+        //                     "service_type": "spot",
+        //                     "status": "2",
+        //                     "start_time": 1527777538000,
+        //                     "end_time": 1527777538000
+        //                 },
+        //                 {
+        //                     "title": "Contract API Stop",
+        //                     "service_type": "contract",
+        //                     "status": "2",
+        //                     "start_time": 1527777538000,
+        //                     "end_time": 1527777538000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const services = this.safeValue (data, 'service', []);
+        const servicesByType = this.indexBy (services, 'service_type');
+        if ((type === 'swap') || (type === 'future')) {
+            type = 'contract';
+        }
+        const service = this.safeValue (servicesByType, type);
+        let status = undefined;
+        let eta = undefined;
+        if (service !== undefined) {
+            const statusCode = this.safeInteger (service, 'status');
+            if (statusCode === 2) {
+                status = 'ok';
+            } else {
+                status = 'maintenance';
+                eta = this.safeInteger (service, 'end_time');
+            }
+        }
+        this.status = this.extend (this.status, {
+            'status': status,
+            'updated': this.milliseconds (),
+            'eta': eta,
+        });
+        return this.status;
+
     }
 
     async fetchSpotMarkets (params = {}) {
