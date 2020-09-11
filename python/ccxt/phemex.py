@@ -369,8 +369,11 @@ class phemex(Exchange):
         #     }
         #
         id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'baseCurrency', 'contractUnderlyingAssets')
         quoteId = self.safe_string(market, 'quoteCurrency')
-        baseId = self.safe_string(market, 'baseCurrency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
         type = self.safe_string_lower(market, 'type')
         taker = None
         maker = None
@@ -391,8 +394,10 @@ class phemex(Exchange):
         maxPriceEp = self.safe_float(market, 'maxPriceEp')
         makerFeeRateEr = self.safe_float(market, 'makerFeeRateEr')
         takerFeeRateEr = self.safe_float(market, 'takerFeeRateEr')
-        maker = self.from_en(makerFeeRateEr, ratioScale, 0.00000001)
-        taker = self.from_en(takerFeeRateEr, ratioScale, 0.00000001)
+        if makerFeeRateEr is not None:
+            maker = self.from_en(makerFeeRateEr, ratioScale, 0.00000001)
+        if takerFeeRateEr is not None:
+            taker = self.from_en(takerFeeRateEr, ratioScale, 0.00000001)
         limits = {
             'amount': {
                 'min': precision['amount'],
@@ -407,9 +412,6 @@ class phemex(Exchange):
                 'max': self.parse_safe_float(self.safe_string(market, 'maxOrderQty')),
             },
         }
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
         active = None
         return {
             'id': id,
