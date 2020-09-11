@@ -102,16 +102,28 @@ module.exports = class poloniex extends ccxt.poloniex {
     }
 
     async watchBalance (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        this.balance = await this.fetchBalance (params);
         const channelId = '1000';
-        const subscribe = {
-            'command': 'subscribe',
-            'channel': channelId,
-        };
-        const messageHash = channelId + ':b:e';
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, subscribe, channelId);
+        const client = this.client (url);
+        const messageHash = channelId + ':b:e';
+        if (!(channelId in client.subscriptions)) {
+            this.balance = await this.fetchBalance (params);
+            const nonce = this.nonce ();
+            const payload = this.urlencode ({ 'nonce': nonce });
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
+            const subscribe = {
+                'command': 'subscribe',
+                'channel': channelId,
+                'key': this.apiKey,
+                'payload': payload,
+                'sign': signature,
+            };
+            return await this.watch (url, messageHash, subscribe, channelId);
+        } else {
+            return await this.watch (url, messageHash, {}, channelId);
+        }
     }
 
     async watchTicker (symbol, params = {}) {
@@ -190,23 +202,6 @@ module.exports = class poloniex extends ccxt.poloniex {
         const channelId = '1010';
         const url = this.urls['api']['ws'];
         return await this.watch (url, channelId);
-    }
-
-    signMessage (client, messageHash, message, params = {}) {
-        if (messageHash.indexOf ('1000') === 0) {
-            const throwOnError = false;
-            if (this.checkRequiredCredentials (throwOnError)) {
-                const nonce = this.nonce ();
-                const payload = this.urlencode ({ 'nonce': nonce });
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
-                message = this.extend (message, {
-                    'key': this.apiKey,
-                    'payload': payload,
-                    'sign': signature,
-                });
-            }
-        }
-        return message;
     }
 
     handleHeartbeat (client, message) {

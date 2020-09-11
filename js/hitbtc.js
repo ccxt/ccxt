@@ -345,11 +345,6 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         return message;
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleNotification (client, message) {
         //
         //     { jsonrpc: '2.0', result: true, id: null }

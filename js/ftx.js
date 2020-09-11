@@ -115,10 +115,6 @@ module.exports = class ftx extends ccxt.ftx {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    signMessage (client, messageHash, message) {
-        return message;
-    }
-
     handlePartial (client, message) {
         const methods = {
             'orderbook': this.handleOrderBookSnapshot,

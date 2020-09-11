@@ -645,11 +645,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleMessage (client, message) {
         //
         //     {
