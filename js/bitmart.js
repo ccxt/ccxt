@@ -381,7 +381,6 @@ module.exports = class bitmart extends Exchange {
             'eta': eta,
         });
         return this.status;
-
     }
 
     async fetchSpotMarkets (params = {}) {
