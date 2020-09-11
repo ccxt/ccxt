@@ -980,8 +980,9 @@ module.exports = class bitmart extends Exchange {
         const feeCost = this.safeFloat (trade, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_coin_name');
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            if ((feeCurrencyCode === undefined) && (market !== undefined)) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
