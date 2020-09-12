@@ -1096,9 +1096,9 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             };
-            request = '/api' + request;
+            request = '/' + request;
         } else if (api === 'public') {
-            request = '/api/' + this.version + request;
+            request = '/' + this.version + request;
             if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
             }
