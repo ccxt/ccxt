@@ -350,6 +350,7 @@ def test_exchange(exchange):
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'USD/SLL',
