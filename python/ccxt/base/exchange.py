@@ -1075,7 +1075,7 @@ class Exchange(object):
         if digest == 'base64':
             return Exchange.encode(Exchange.binary_to_base64(binary))
         elif digest == 'hex':
-            return Exchange.binary_to_base16(binary)
+            return Exchange.binary_to_base16(binary).lower()
         return binary
 
     @staticmethod
