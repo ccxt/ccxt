@@ -312,19 +312,24 @@ module.exports = class idex2 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // [
-        //   {
-        //     start: 1598345580000,
-        //     open: '0.09771286',
-        //     high: '0.09771286',
-        //     low: '0.09771286',
-        //     close: '0.09771286',
-        //     volume: '1.45340410',
-        //     sequence: 3853
-        //   }, ...
-        // ]
         const response = await this.publicGetCandles (this.extend (request, params));
-        return this.parseOHLCVs (response, market);
+        if (Array.isArray (response)) {
+            // [
+            //   {
+            //     start: 1598345580000,
+            //     open: '0.09771286',
+            //     high: '0.09771286',
+            //     low: '0.09771286',
+            //     close: '0.09771286',
+            //     volume: '1.45340410',
+            //     sequence: 3853
+            //   }, ...
+            // ]
+            return this.parseOHLCVs (response, market, timeframe, since, limit);
+        } else {
+            //  {"nextTime":1595536440000}
+            return [];
+        }
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -370,7 +375,7 @@ module.exports = class idex2 extends Exchange {
         //   }, ...
         // ]
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
