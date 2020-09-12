@@ -41,59 +41,59 @@ module.exports = class btcmarkets extends Exchange {
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
-                    'publicV3': 'https://api.btcmarkets.net',
-                    'privateV3': 'https://api.btcmarkets.net',
-                    'web': 'https://btcmarkets.net/data',
+                    // 'publicV3': 'https://api.btcmarkets.net',
+                    // 'privateV3': 'https://api.btcmarkets.net',
+                    // 'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
                 'doc': [
-                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://api.btcmarkets.net/doc/v3',
                     'https://github.com/BTCMarkets/API',
                 ],
             },
             'api': {
+                // 'public': {
+                //     'get': [
+                //         'market/{id}/tick',
+                //         'market/{id}/orderbook',
+                //         'market/{id}/trades',
+                //         'v2/market/{id}/tickByTime/{timeframe}',
+                //         'v2/market/{id}/trades',
+                //         'v2/market/active',
+                //         'v3/markets',
+                //         'v3/markets/{marketId}/ticker',
+                //         'v3/markets/{marketId}/trades',
+                //         'v3/markets/{marketId}/orderbook',
+                //         'v3/markets/{marketId}/candles',
+                //         'v3/markets/tickers',
+                //         'v3/markets/orderbooks',
+                //         'v3/time',
+                //     ],
+                // },
+                // 'private': {
+                //     'get': [
+                //         'account/balance',
+                //         'account/{id}/tradingfee',
+                //         'fundtransfer/history',
+                //         'v2/order/open',
+                //         'v2/order/open/{id}',
+                //         'v2/order/history/{instrument}/{currency}/',
+                //         'v2/order/trade/history/{id}',
+                //         'v2/transaction/history/{currency}',
+                //     ],
+                //     'post': [
+                //         'fundtransfer/withdrawCrypto',
+                //         'fundtransfer/withdrawEFT',
+                //         'order/create',
+                //         'order/cancel',
+                //         'order/history',
+                //         'order/open',
+                //         'order/trade/history',
+                //         'order/createBatch', // they promise it's coming soon...
+                //         'order/detail',
+                //     ],
+                // },
                 'public': {
-                    'get': [
-                        'market/{id}/tick',
-                        'market/{id}/orderbook',
-                        'market/{id}/trades',
-                        'v2/market/{id}/tickByTime/{timeframe}',
-                        'v2/market/{id}/trades',
-                        'v2/market/active',
-                        'v3/markets',
-                        'v3/markets/{marketId}/ticker',
-                        'v3/markets/{marketId}/trades',
-                        'v3/markets/{marketId}/orderbook',
-                        'v3/markets/{marketId}/candles',
-                        'v3/markets/tickers',
-                        'v3/markets/orderbooks',
-                        'v3/time',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        'account/balance',
-                        'account/{id}/tradingfee',
-                        'fundtransfer/history',
-                        'v2/order/open',
-                        'v2/order/open/{id}',
-                        'v2/order/history/{instrument}/{currency}/',
-                        'v2/order/trade/history/{id}',
-                        'v2/transaction/history/{currency}',
-                    ],
-                    'post': [
-                        'fundtransfer/withdrawCrypto',
-                        'fundtransfer/withdrawEFT',
-                        'order/create',
-                        'order/cancel',
-                        'order/history',
-                        'order/open',
-                        'order/trade/history',
-                        'order/createBatch', // they promise it's coming soon...
-                        'order/detail',
-                    ],
-                },
-                'publicV3': {
                     'get': [
                         'markets',
                         'markets/{marketId}/ticker',
@@ -105,7 +105,7 @@ module.exports = class btcmarkets extends Exchange {
                         'time',
                     ],
                 },
-                'privateV3': {
+                'private': {
                     'get': [
                         'orders',
                         'orders/{id}',
@@ -142,16 +142,16 @@ module.exports = class btcmarkets extends Exchange {
                         'orders/{id}',
                     ],
                 },
-                'web': {
-                    'get': [
-                        'market/BTCMarkets/{id}/tickByTime',
-                    ],
-                },
+                // 'web': {
+                //     'get': [
+                //         'market/BTCMarkets/{id}/tickByTime',
+                //     ],
+                // },
             },
             'timeframes': {
-                '1m': 'minute',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'exceptions': {
                 '3': InvalidOrder,
@@ -324,7 +324,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicV3GetMarkets (params);
+        const response = await this.publicGetMarkets (params);
         //
         //     [
         //         {
@@ -422,78 +422,81 @@ module.exports = class btcmarkets extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //     {
-        //         "timestamp":1572307200000,
-        //         "open":1962218,
-        //         "high":1974850,
-        //         "low":1962208,
-        //         "close":1974850,
-        //         "volume":305211315,
-        //     }
+        //     [
+        //         "2020-09-12T18:30:00.000000Z",
+        //         "14409.45", // open
+        //         "14409.45", // high
+        //         "14403.91", // low
+        //         "14403.91", // close
+        //         "0.01571701" // volume
+        //     ]
         //
-        const multiplier = 100000000; // for price and volume
-        const keys = [ 'open', 'high', 'low', 'close', 'volume' ];
-        const result = [
-            this.safeInteger (ohlcv, 'timestamp'),
+        return [
+            this.parse8601 (this.safeString (ohlcv, 0)),
+            this.safeFloat (ohlcv, 1), // open
+            this.safeFloat (ohlcv, 2), // high
+            this.safeFloat (ohlcv, 3), // low
+            this.safeFloat (ohlcv, 4), // close
+            this.safeFloat (ohlcv, 5), // volume
         ];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            let value = this.safeFloat (ohlcv, key);
-            if (value !== undefined) {
-                value = value / multiplier;
-            }
-            result.push (value);
-        }
-        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.load_markets ();
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
-            'timeframe': this.timeframes[timeframe],
-            // set to true to see candles more recent than the timestamp in the
-            // since parameter, if a since parameter is used, default is false
-            'indexForward': true,
-            // set to true to see the earliest candles first in the list of
-            // returned candles in chronological order, default is false
-            'sortForward': true,
+            'marketId': market['id'],
+            'timeWindow': this.timeframes[timeframe],
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()),
+            // 'before': 1234567890123,
+            // 'after': 1234567890123,
+            // 'limit': limit, // default 10
         };
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 3000
+            request['limit'] = limit; // default is 10
         }
-        const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketIdCandles (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "paging":{
-        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
-        //             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
-        //         },
-        //         "ticks":[
-        //             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
-        //             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
-        //             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
-        //         ],
-        //     }
+        //     [
+        //         ["2020-09-12T18:30:00.000000Z","14409.45","14409.45","14403.91","14403.91","0.01571701"],
+        //         ["2020-09-12T18:21:00.000000Z","14409.45","14409.45","14409.45","14409.45","0.0035"],
+        //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
+        //     ]
         //
-        const ticks = this.safeValue (response, 'ticks', []);
-        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
+            'marketId': market['id'],
         };
-        const response = await this.publicGetMarketIdOrderbook (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        const response = await this.publicGetMarketsMarketIdOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "marketId":"BTC-AUD",
+        //         "snapshotId":1599936148941000,
+        //         "asks":[
+        //             ["14459.45","0.00456475"],
+        //             ["14463.56","2"],
+        //             ["14470.91","0.98"],
+        //         ],
+        //         "bids":[
+        //             ["14421.01","0.52"],
+        //             ["14421","0.75"],
+        //             ["14418","0.3521"],
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (response, 'snapshotId', 0.001);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = this.safeInteger (response, 'snapshotId');
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -569,7 +572,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'marketId': market['id'],
         };
-        const response = await this.publicV3GetMarketsMarketIdTicker (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketIdTicker (this.extend (request, params));
         //
         //     {
         //         "marketId":"BAT-AUD",
@@ -700,7 +703,7 @@ module.exports = class btcmarkets extends Exchange {
             // 'since': 59868345231,
             'marketId': market['id'],
         };
-        const response = await this.publicGetV3MarketsMarketIdTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketIdTrades (this.extend (request, params));
         //
         //     [
         //         {"id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"},
@@ -1040,32 +1043,33 @@ module.exports = class btcmarkets extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
+        // if (api === 'private') {
+        //     this.checkRequiredCredentials ();
+        //     const nonce = this.nonce ().toString ();
+        //     let auth = undefined;
+        //     headers = {
+        //         'apikey': this.apiKey,
+        //         'timestamp': nonce,
+        //     };
+        //     if (method === 'POST') {
+        //         headers['Content-Type'] = 'application/json';
+        //         auth = request + "\n" + nonce + "\n"; // eslint-disable-line quotes
+        //         body = this.json (params);
+        //         auth += body;
+        //     } else {
+        //         let queryString = '';
+        //         if (Object.keys (query).length) {
+        //             queryString = this.urlencode (query);
+        //             request += '?' + queryString;
+        //             queryString += "\n"; // eslint-disable-line quotes
+        //         }
+        //         auth = request + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
+        //     }
+        //     const secret = this.base64ToBinary (this.secret);
+        //     const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
+        //     headers['signature'] = this.decode (signature);
+        // } else
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let auth = undefined;
-            headers = {
-                'apikey': this.apiKey,
-                'timestamp': nonce,
-            };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                auth = request + "\n" + nonce + "\n"; // eslint-disable-line quotes
-                body = this.json (params);
-                auth += body;
-            } else {
-                let queryString = '';
-                if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
-                    request += '?' + queryString;
-                    queryString += "\n"; // eslint-disable-line quotes
-                }
-                auth = request + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
-            }
-            const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            headers['signature'] = this.decode (signature);
-        } else if (api === 'privateV3') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
@@ -1093,15 +1097,15 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE': signature,
             };
             request = '/api' + request;
-        } else if (api === 'publicV3') {
+        } else if (api === 'public') {
             request = '/api/' + this.version + request;
             if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
             }
-        } else {
-            if (Object.keys (query).length) {
-                request += '?' + this.urlencode (query);
-            }
+        // } else {
+        //     if (Object.keys (query).length) {
+        //         request += '?' + this.urlencode (query);
+        //     }
         }
         const url = this.urls['api'][api] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
