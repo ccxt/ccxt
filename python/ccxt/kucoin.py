@@ -517,6 +517,9 @@ class kucoin(Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
+        baseVolume = self.safe_float(ticker, 'vol')
+        quoteVolume = self.safe_float(ticker, 'volValue')
+        vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
@@ -528,7 +531,7 @@ class kucoin(Exchange):
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
-            'vwap': None,
+            'vwap': vwap,
             'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
@@ -536,8 +539,8 @@ class kucoin(Exchange):
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
             'average': self.safe_float(ticker, 'averagePrice'),
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'volValue'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -572,7 +575,7 @@ class kucoin(Exchange):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1236,6 +1239,8 @@ class kucoin(Exchange):
                 'rate': self.safe_float(trade, 'feeRate'),
             }
         type = self.safe_string(trade, 'type')
+        if type == 'match':
+            type = None
         cost = self.safe_float_2(trade, 'funds', 'dealValue')
         if cost is None:
             if amount is not None:

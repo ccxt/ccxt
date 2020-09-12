@@ -176,7 +176,7 @@ module.exports = class gemini extends Exchange {
         return await this[method] (params);
     }
 
-    async fetchMarketsFromWeb (symbols = undefined, params = {}) {
+    async fetchMarketsFromWeb (params = {}) {
         const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
@@ -241,10 +241,10 @@ module.exports = class gemini extends Exchange {
                 if (!(symbol in indexedSymbols)) {
                     continue;
                 }
-                const id = baseId + quoteId;
+                const marketId = baseId + quoteId;
                 const active = undefined;
                 result.push ({
-                    'id': id,
+                    'id': marketId,
                     'info': row,
                     'symbol': symbol,
                     'base': base,
@@ -497,10 +497,7 @@ module.exports = class gemini extends Exchange {
         }
         const baseVolume = this.safeFloat (volume, baseId);
         const quoteVolume = this.safeFloat (volume, quoteId);
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,

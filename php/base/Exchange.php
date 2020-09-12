@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.33.20';
+$version = '1.34.19';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.33.20';
+    const VERSION = '1.34.19';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -865,7 +865,7 @@ class Exchange {
         $this->tickers = array();
         $this->fees = array('trading' => array(), 'funding' => array());
         $this->precision = array();
-        $this->orders = array();
+        $this->orders = null;
         $this->myTrades = null;
         $this->trades = array();
         $this->transactions = array();
@@ -1206,6 +1206,9 @@ class Exchange {
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+        if ($this->enableRateLimit) {
+            $this->throttle();
+        }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
@@ -1270,9 +1273,6 @@ class Exchange {
     // }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
-        if ($this->enableRateLimit) {
-            $this->throttle();
-        }
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
@@ -1422,10 +1422,10 @@ class Exchange {
         }
 
         $json_response = null;
+        $is_json_encoded_response = $this->is_json_encoded_object($result);
 
-        if ($this->is_json_encoded_object($result)) {
+        if ($is_json_encoded_response) {
             $json_response = $this->parse_json($result);
-
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
             }
@@ -1474,7 +1474,7 @@ class Exchange {
             throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
-        if (!$json_response) {
+        if ($is_json_encoded_response && !$json_response) {
             $details = '(possible reasons: ' . implode(', ', array(
                     'exchange is down or offline',
                     'on maintenance',
@@ -1483,9 +1483,10 @@ class Exchange {
                 )) . ')';
             $error_class = null;
             if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                print("fobaro\n");
+                exit();
                 $error_class = 'ExchangeNotAvailable';
             }
-
             if (preg_match('#cloudflare|incapsula#i', $result)) {
                 $error_class = 'DDosProtection';
             }
@@ -1978,9 +1979,11 @@ class Exchange {
     }
 
     public function purge_cached_orders($before) {
-        $this->orders = static::index_by(array_filter($this->orders, function ($order) use ($before) {
-            return ('open' === $order['status']) || ($order['timestamp'] >= $before);
-        }), 'id');
+        if ($this->orders) {
+            $this->orders = static::index_by(array_filter($this->orders, function ($order) use ($before) {
+                return ('open' === $order['status']) || ($order['timestamp'] >= $before);
+            }), 'id');
+        }
         return $this->orders;
     }
 
@@ -2667,6 +2670,10 @@ class Exchange {
             $s = $sign . '0.' . $zeros . $number;
         }
         return $s;
+    }
+
+    public function vwap($baseVolume, $quoteVolume) {
+        return (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume > 0)) ? ($quoteVolume / $baseVolume) : null;
     }
 
     // ------------------------------------------------------------------------

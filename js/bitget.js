@@ -1086,10 +1086,7 @@ module.exports = class bitget extends Exchange {
         }
         const baseVolume = this.safeFloat2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeFloat (ticker, 'vol');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         let change = undefined;
         let percentage = undefined;
         let average = undefined;

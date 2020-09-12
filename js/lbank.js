@@ -265,7 +265,7 @@ module.exports = class lbank extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = 60, params = {}) {
@@ -518,10 +518,7 @@ module.exports = class lbank extends Exchange {
         order['order_type'] = type;
         order['create_time'] = this.milliseconds ();
         order['info'] = response;
-        order = this.parseOrder (order, market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return order;
+        return this.parseOrder (order, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -544,7 +541,8 @@ module.exports = class lbank extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostOrdersInfo (this.extend (request, params));
-        const orders = this.parseOrders (response['orders'], market);
+        const data = this.safeValue (response, 'orders', []);
+        const orders = this.parseOrders (data, market);
         const numOrders = orders.length;
         if (numOrders === 1) {
             return orders[0];
@@ -565,7 +563,8 @@ module.exports = class lbank extends Exchange {
             'page_length': limit,
         };
         const response = await this.privatePostOrdersInfoHistory (this.extend (request, params));
-        return this.parseOrders (response['orders'], undefined, since, limit);
+        const data = this.safeValue (response, 'orders', []);
+        return this.parseOrders (data, undefined, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -591,7 +590,7 @@ module.exports = class lbank extends Exchange {
         }
         const response = this.privatePostWithdraw (this.extend (request, params));
         return {
-            'id': response['id'],
+            'id': this.safeString (response, 'id'),
             'info': response,
         };
     }

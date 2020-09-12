@@ -804,7 +804,7 @@ class bitget extends Exchange {
         }
         $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
         $tick_size = $this->safe_float($market, 'tick_size');
-        $newtick_size = floatval ('1e-' . $this->number_to_string($tick_size));
+        $newtick_size = floatval('1e-' . $this->number_to_string($tick_size));
         $precision = array(
             'amount' => $this->safe_float($market, 'size_increment', $lotSize),
             'price' => $newtick_size,
@@ -1090,10 +1090,7 @@ class bitget extends Exchange {
         }
         $baseVolume = $this->safe_float_2($ticker, 'amount', 'volume_24h');
         $quoteVolume = $this->safe_float($ticker, 'vol');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = null;
         $percentage = null;
         $average = null;
@@ -1223,7 +1220,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', $response);
         $timestamp = null;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
             $timestamp = $this->safe_integer($response, 'ts');
         }
         $result = array();
@@ -1578,7 +1575,7 @@ class bitget extends Exchange {
         //     ]
         //
         $candles = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
             $candles = $this->safe_value($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
@@ -2345,7 +2342,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_orders($data, $market, null, $limit);
@@ -2437,7 +2434,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_orders($data, $market, null, $limit);
@@ -2727,7 +2724,7 @@ class bitget extends Exchange {
         //     )
         //
         $data = $response;
-        if (!gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_trades($data, $market, $since, $limit);

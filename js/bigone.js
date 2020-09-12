@@ -370,7 +370,7 @@ module.exports = class bigone extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTime (params = {}) {

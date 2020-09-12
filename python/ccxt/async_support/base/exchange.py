@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.33.20'
+__version__ = '1.34.19'
 
 # -----------------------------------------------------------------------------
 
@@ -301,16 +301,16 @@ class Exchange(BaseExchange):
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
 
-    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    async def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     async def sleep(self, milliseconds):

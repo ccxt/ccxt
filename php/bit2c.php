@@ -89,11 +89,18 @@ class bit2c extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod' => 'public_get_exchanges_pair_trades',
             ),
             'exceptions' => array(
-                // array( "error" : "Please provide valid APIkey" )
-                // array( "error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" )
+                'exact' => array(
+                    'Please provide valid APIkey' => '\\ccxt\\AuthenticationError', // array( "error" : "Please provide valid APIkey" )
+                ),
+                'broad' => array(
+                    // array( "error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+                    // array( "error" => "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" )
+                    'Please provide valid nonce' => '\\ccxt\\InvalidNonce',
+                    'please approve new terms of use on site' => '\\ccxt\\PermissionDenied', // array( "error" : "please approve new terms of use on site." )
+                ),
             ),
         ));
     }
@@ -213,6 +220,12 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
+        if ($since !== null) {
+            $request['date'] = intval($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 100000
+        }
         $response = $this->$method (array_merge($request, $params));
         if (gettype($response) === 'string') {
             throw new ExchangeError($response);
@@ -424,5 +437,22 @@ class bit2c extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        //
+        //     array( "$error" : "please approve new terms of use on site." )
+        //     array( "$error" => "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490).")
+        //
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown message
+        }
     }
 }

@@ -76,7 +76,7 @@ The CCXT library currently supports the following 122 cryptocurrency exchange ma
 | [![bitget](https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | bitget             | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | 3   | [API](https://bitgetlimited.github.io/apidoc/en/swap)                                        |                                                                                                                             |                                                                              |
 | [![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)](https://www.bithumb.com)                                                       | bithumb            | [Bithumb](https://www.bithumb.com)                                                      | *   | [API](https://apidocs.bithumb.com)                                                           |                                                                                                                             |                                                                              |
 | [![bitkk](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)](https://www.bitkk.com)                                                           | bitkk              | [bitkk](https://www.bitkk.com)                                                          | 1   | [API](https://www.bitkk.com/i/developer)                                                     |                                                                                                                             |                                                                              |
-| [![bitmart](https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg)](http://www.bitmart.com/?r=rQCFLh)                                              | bitmart            | [BitMart](http://www.bitmart.com/?r=rQCFLh)                                             | 2   | [API](https://github.com/bitmartexchange/bitmart-official-api-docs)                          |                                                                                                                             |                                                                              |
+| [![bitmart](https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg)](http://www.bitmart.com/?r=rQCFLh)                                              | bitmart            | [BitMart](http://www.bitmart.com/?r=rQCFLh)                                             | 1   | [API](https://github.com/bitmartexchange/bitmart-official-api-docs)                          |                                                                                                                             |                                                                              |
 | [![bitmax](https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg)](https://bitmax.io/#/register?inviteCode=EL6BXBQM)                               | bitmax             | [BitMax](https://bitmax.io/#/register?inviteCode=EL6BXBQM)                              | 1   | [API](https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation)        |                                                                                                                             |                                                                              |
 | [![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)](https://www.bitmex.com/register/upZpOX)                                         | bitmex             | [BitMEX](https://www.bitmex.com/register/upZpOX)                                        | 1   | [API](https://www.bitmex.com/app/apiOverview)                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitpanda](https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg)](https://www.bitpanda.com/en/pro)                                             | bitpanda           | [Bitpanda Pro](https://www.bitpanda.com/en/pro)                                         | 1   | [API](https://developers.bitpanda.com/exchange/)                                             |                                                                                                                             |                                                                              |
@@ -564,6 +564,80 @@ A later retry is usually enough to handle that. More on that here:
 - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
+
+### Notes On Rate Limiter
+
+The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
+
+```JavaScript
+// DO NOT DO THIS!
+
+const binance1 = new ccxt.binance ({ enableRateLimit: true })
+const binance2 = new ccxt.binance ({ enableRateLimit: true })
+const binance3 = new ccxt.binance ({ enableRateLimit: true })
+
+while (true) {
+    const result = await Promise.all ([
+        binance1.fetchOrderBook ('BTC/USDT'),
+        binance2.fetchOrderBook ('ETH/USDT'),
+        binance3.fetchOrderBook ('ETH/BTC'),
+    ])
+    console.log (result)
+}
+```
+
+Reuse the exchange instance as much as possible as shown below:
+
+```JavaScript
+// DO THIS INSTEAD:
+
+const binance = new ccxt.binance ({ enableRateLimit: true })
+
+while (true) {
+    const result = await Promise.all ([
+        binance.fetchOrderBook ('BTC/USDT'),
+        binance.fetchOrderBook ('ETH/USDT'),
+        binance.fetchOrderBook ('ETH/BTC'),
+    ])
+    console.log (result)
+}
+```
+
+Since the rate limiter belongs to the exchange instance, destroying the exchange instance will destroy the rate limiter as well. Among the most common pitfalls with the rate limiting is creating and dropping the exchange instance over and over again. If in your program you are creating and destroying the exchange instance (say, inside a function that is called multiple times), then you are effectively resetting the rate limiter over and over and that will eventually break the rate limits.
+
+```JavaScript
+// DO NOT DO THIS!
+
+function tick () {
+    const exchange = new ccxt.binance ({ enableRateLimit: true })
+    const response = await exchange.fetchOrderBook ('BTC/USDT')
+    // ... some processing here ...
+    return response
+}
+
+while (true) {
+    const result = await tick ()
+    console.log (result)
+}
+```
+
+Do not break this rule unless you really understand the inner workings of the rate-limiter and you are 100% sure you know what you're doing. In order to stay safe always reuse the exchange instance throughout your functions and methods callchain like shown below:
+
+```JavaScript
+// DO THIS INSTEAD:
+
+async function tick (exchange) {
+    const response = await exchange.fetchOrderBook ('BTC/USDT')
+    // ... some processing here ...
+    return response
+}
+
+const exchange = new ccxt.binance ({ enableRateLimit: true })
+while (true) {
+    const result = await tick (exchange)
+    console.log (result)
+}
+```
 
 ### DDoS Protection By Cloudflare / Incapsula
 

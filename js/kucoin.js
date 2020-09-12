@@ -519,6 +519,9 @@ module.exports = class kucoin extends Exchange {
                 symbol = market['symbol'];
             }
         }
+        const baseVolume = this.safeFloat (ticker, 'vol');
+        const quoteVolume = this.safeFloat (ticker, 'volValue');
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return {
             'symbol': symbol,
@@ -530,7 +533,7 @@ module.exports = class kucoin extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
@@ -538,8 +541,8 @@ module.exports = class kucoin extends Exchange {
             'change': this.safeFloat (ticker, 'changePrice'),
             'percentage': percentage,
             'average': this.safeFloat (ticker, 'averagePrice'),
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volValue'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -577,7 +580,7 @@ module.exports = class kucoin extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1297,7 +1300,10 @@ module.exports = class kucoin extends Exchange {
                 'rate': this.safeFloat (trade, 'feeRate'),
             };
         }
-        const type = this.safeString (trade, 'type');
+        let type = this.safeString (trade, 'type');
+        if (type === 'match') {
+            type = undefined;
+        }
         let cost = this.safeFloat2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
             if (amount !== undefined) {

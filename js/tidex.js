@@ -123,6 +123,7 @@ module.exports = class tidex extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -398,7 +399,7 @@ module.exports = class tidex extends Exchange {
             }
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -132,6 +132,14 @@ class binance extends Exchange {
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
                         'futures/transfer',
+                        'futures/loan/borrow/history',
+                        'futures/loan/repay/history',
+                        'futures/loan/wallet',
+                        'futures/loan/configs',
+                        'futures/loan/calcAdjustLevel',
+                        'futures/loan/calcMaxAdjustAmount',
+                        'futures/loan/adjustCollateral/history',
+                        'futures/loan/liquidationHistory',
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall', // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address',
@@ -142,8 +150,10 @@ class binance extends Exchange {
                         'sub-account/futures/account',
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
+                        'sub-account/futures/internalTransfer',
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
+                        'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
                         // lending endpoints
@@ -177,12 +187,20 @@ class binance extends Exchange {
                         'margin/order',
                         'margin/isolated/create',
                         'margin/isolated/transfer',
+                        'sub-account/margin/transfer',
                         'sub-account/margin/enable',
                         'sub-account/margin/enable',
                         'sub-account/futures/enable',
+                        'sub-account/futures/transfer',
+                        'sub-account/futures/internalTransfer',
+                        'sub-account/transfer/subToSub',
+                        'sub-account/transfer/subToMaster',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
+                        'futures/loan/borrow',
+                        'futures/loan/repay',
+                        'futures/loan/adjustCollateral',
                         // lending
                         'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
@@ -638,7 +656,7 @@ class binance extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
         );
     }
 
@@ -814,7 +832,7 @@ class binance extends Exchange {
             }
         } else {
             $balances = $response;
-            if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
                 $balances = $this->safe_value($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
@@ -1264,7 +1282,7 @@ class binance extends Exchange {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
                 }
                 $remaining = max ($remaining, 0.0);
             }
@@ -1282,7 +1300,7 @@ class binance extends Exchange {
                     if (($cost > 0) && ($filled > 0)) {
                         $price = $cost / $filled;
                         if ($this->options['parseOrderToPrecision']) {
-                            $price = floatval ($this->price_to_precision($symbol, $price));
+                            $price = floatval($this->price_to_precision($symbol, $price));
                         }
                     }
                 }
@@ -1314,11 +1332,11 @@ class binance extends Exchange {
             if ($filled) {
                 $average = $cost / $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $average = floatval ($this->price_to_precision($symbol, $average));
+                    $average = floatval($this->price_to_precision($symbol, $average));
                 }
             }
             if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
@@ -1503,7 +1521,7 @@ class binance extends Exchange {
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
-            $request['orderId'] = intval ($id);
+            $request['orderId'] = intval($id);
         }
         $query = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
@@ -1597,7 +1615,7 @@ class binance extends Exchange {
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
-            $fetchOpenOrdersRateLimit = intval ($numSymbols / 2);
+            $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this $method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -1631,11 +1649,11 @@ class binance extends Exchange {
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            // 'orderId' => intval ($id),
+            // 'orderId' => intval($id),
             // 'origClientOrderId' => $id,
         );
         if ($origClientOrderId === null) {
-            $request['orderId'] = intval ($id);
+            $request['orderId'] = intval($id);
         } else {
             $request['origClientOrderId'] = $origClientOrderId;
         }
@@ -2076,7 +2094,7 @@ class binance extends Exchange {
         $request = array(
             'asset' => $currency['id'],
             'address' => $address,
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'name' => $name, // $name is optional, can be overrided via $params
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni

@@ -238,6 +238,7 @@ async function testExchange (exchange) {
         'BTC/ETH',
         'ETH/BTC',
         'ETH/USD',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
@@ -268,6 +269,10 @@ async function testExchange (exchange) {
     }
 
     exchange.checkRequiredCredentials ()
+
+    if (exchange['has']['signIn']) {
+        await exchange.signIn ()
+    }
 
     // move to testnet/sandbox if possible before accessing the balance
     // if (exchange.urls['test'])
@@ -335,7 +340,8 @@ async function testExchange (exchange) {
 
 async function tryAllProxies (exchange, proxies) {
 
-    let currentProxy = 0
+    const index = proxies.indexOf (exchange.proxy)
+    let currentProxy = (index >= 0) ? index : 0
     const maxRetries = proxies.length
 
     if (settings && ('proxy' in settings)) {
@@ -360,17 +366,18 @@ async function tryAllProxies (exchange, proxies) {
         } catch (e) {
 
             currentProxy = ++currentProxy % proxies.length
+            warn ('[' + e.constructor.name + '] ' + e.message.slice (0, 200))
             if (e instanceof ccxt.DDoSProtection) {
-                warn ('[DDoS Protection]' + e.message.slice (0, 200))
+                continue
             } else if (e instanceof ccxt.RequestTimeout) {
-                warn ('[Request Timeout] ' + e.message.slice (0, 200))
+                continue
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
-                warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
+                continue
             } else if (e instanceof ccxt.AuthenticationError) {
-                warn ('[Authentication Error] ' + e.message.slice (0, 200))
+                return
+            } else if (e instanceof ccxt.AuthenticationError) {
                 return
             } else if (e instanceof ccxt.InvalidNonce) {
-                warn ('[Invalid Nonce] ' + e.message.slice (0, 200))
                 return
             } else {
                 throw e

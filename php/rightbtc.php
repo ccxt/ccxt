@@ -262,7 +262,7 @@ class rightbtc extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -329,7 +329,7 @@ class rightbtc extends Exchange {
             $symbol = $market['symbol'];
         }
         $cost = $this->cost_to_precision($symbol, $price * $amount);
-        $cost = floatval ($cost);
+        $cost = floatval($cost);
         $side = $this->safe_string_lower($trade, 'side');
         if ($side === 'b') {
             $side = 'buy';
@@ -366,11 +366,11 @@ class rightbtc extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->safe_integer($ohlcv, 0),
-            floatval ($ohlcv[2]) / 1e8,
-            floatval ($ohlcv[3]) / 1e8,
-            floatval ($ohlcv[4]) / 1e8,
-            floatval ($ohlcv[5]) / 1e8,
-            floatval ($ohlcv[1]) / 1e8,
+            floatval($ohlcv[2]) / 1e8,
+            floatval($ohlcv[3]) / 1e8,
+            floatval($ohlcv[4]) / 1e8,
+            floatval($ohlcv[5]) / 1e8,
+            floatval($ohlcv[1]) / 1e8,
         ];
     }
 
@@ -433,9 +433,9 @@ class rightbtc extends Exchange {
             'trading_pair' => $market['id'],
             // We need to use decimalToPrecision here, since
             //   0.036*1e8 === 3599999.9999999995
-            // which would get truncated to 3599999 after intval             // which would then be rejected by rightBtc because it's too precise
-            'quantity' => intval ($this->decimal_to_precision($amount * 1e8, ROUND, 0, $this->precisionMode)),
-            'limit' => intval ($this->decimal_to_precision($price * 1e8, ROUND, 0, $this->precisionMode)),
+            // which would get truncated to 3599999 after intval            // which would then be rejected by rightBtc because it's too precise
+            'quantity' => intval($this->decimal_to_precision($amount * 1e8, ROUND, 0, $this->precisionMode)),
+            'limit' => intval($this->decimal_to_precision($price * 1e8, ROUND, 0, $this->precisionMode)),
             'type' => strtoupper($type),
             'side' => strtoupper($side),
         );

@@ -41,11 +41,11 @@ while True:
         #     trade = trades[i]
         #     print (i, trade['id'], trade['datetime'], trade['amount'])
         last_trade = trades[len(trades) - 1]
-        from_id = last_trade['id']
-        params['fromId'] = from_id
-        if from_id == previous_from_id:
+        if last_trade['id'] == previous_from_id:
             break
         else:
+            previous_from_id = last_trade['id']
+            params['fromId'] = last_trade['id']
             all_trades = all_trades + trades
     else:
         break

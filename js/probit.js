@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -130,6 +130,7 @@ module.exports = class probit extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'timeInForce': {
@@ -182,11 +183,12 @@ module.exports = class probit extends Exchange {
             const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
             const active = !closed;
-            const priceIncrement = this.safeString (market, 'price_increment');
+            const amountPrecision = this.safeInteger (market, 'quantity_precision');
+            const costPrecision = this.safeInteger (market, 'cost_precision');
             const precision = {
-                'amount': this.safeInteger (market, 'quantity_precision'),
-                'price': this.precisionFromString (priceIncrement),
-                'cost': this.safeInteger (market, 'cost_precision'),
+                'amount': 1 / Math.pow (10, amountPrecision),
+                'price': this.safeFloat (market, 'price_increment'),
+                'cost': 1 / Math.pow (10, costPrecision),
             };
             const takerFeeRate = this.safeFloat (market, 'taker_fee_rate');
             const makerFeeRate = this.safeFloat (market, 'maker_fee_rate');
@@ -490,10 +492,7 @@ module.exports = class probit extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'base_volume');
         const quoteVolume = this.safeFloat (ticker, 'quote_volume');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = baseVolume / quoteVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -728,8 +727,7 @@ module.exports = class probit extends Exchange {
             return this.iso8601 (previousSunday * 1000);
         } else {
             timestamp = parseInt (timestamp / 1000);
-            const difference = this.integerModulo (timestamp, duration);
-            timestamp -= difference;
+            timestamp = duration * parseInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);
             }
@@ -1250,7 +1248,7 @@ module.exports = class probit extends Exchange {
                 this.checkRequiredCredentials ();
                 const expires = this.safeInteger (this.options, 'expires');
                 if ((expires === undefined) || (expires < now)) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
+                    throw new AuthenticationError (this.id + ' access token expired, call signIn() method');
                 }
                 const accessToken = this.safeString (this.options, 'accessToken');
                 headers = {

@@ -303,7 +303,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(
@@ -421,7 +421,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(
@@ -469,10 +469,10 @@ class bitso extends Exchange {
         $response = $this->privateGetFundingDestination (array_merge($request, $params));
         $address = $this->safe_string($response['payload'], 'account_identifier');
         $tag = null;
-        if ($code === 'XRP') {
+        if (mb_strpos($address, '?dt=') !== false) {
             $parts = explode('?dt=', $address);
-            $address = $parts[0];
-            $tag = $parts[1];
+            $address = $this->safe_string($parts, 0);
+            $tag = $this->safe_string($parts, 1);
         }
         $this->check_address($address);
         return array(

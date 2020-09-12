@@ -104,6 +104,8 @@ class bitstamp extends Exchange {
                         'eth_address/',
                         'xrp_withdrawal/',
                         'xrp_address/',
+                        'xlm_withdrawal/',
+                        'xlm_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -248,7 +250,7 @@ class bitstamp extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => floatval ($cost),
+                        'min' => floatval($cost),
                         'max' => null,
                     ),
                 ),
@@ -280,7 +282,7 @@ class bitstamp extends Exchange {
         //     }
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
-        $timestamp = intval ($microtimestamp / 1000);
+        $timestamp = intval($microtimestamp / 1000);
         $orderbook = $this->parse_order_book($response, $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
@@ -473,7 +475,7 @@ class bitstamp extends Exchange {
                 $timestamp = $this->parse8601($timestamp);
             } else {
                 // string unix epoch in seconds
-                $timestamp = intval ($timestamp);
+                $timestamp = intval($timestamp);
                 $timestamp = $timestamp * 1000;
             }
         }
@@ -592,14 +594,14 @@ class bitstamp extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
             } else {
                 $limit = 1000;
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
                 $request['limit'] = $limit;
             }
         } else {
             if ($since !== null) {
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['start'] = $start;
                 $request['end'] = $this->sum($start, $limit * $duration);
             }
@@ -1167,10 +1169,8 @@ class bitstamp extends Exchange {
         $v1 = ($code === 'BTC');
         $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize($name) . 'Withdrawal';
-        if ($code === 'XRP') {
-            if ($tag !== null) {
-                $request['destination_tag'] = $tag;
-            }
+        if ($tag !== null) {
+            $request['destination_tag'] = $tag;
         }
         $response = $this->$method (array_merge($request, $params));
         return array(

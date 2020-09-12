@@ -204,6 +204,7 @@ module.exports = class poloniex extends Exchange {
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -461,7 +462,7 @@ module.exports = class poloniex extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {

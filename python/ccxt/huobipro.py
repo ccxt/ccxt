@@ -142,6 +142,7 @@ class huobipro(Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'query/deposit-withdraw',
+                        'margin/loan-info',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
                         'points/actions',
@@ -419,9 +420,7 @@ class huobipro(Exchange):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
-        vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -550,6 +549,24 @@ class huobipro(Exchange):
         #
         # fetchMyTrades(private)
         #
+        #     {
+        #          'symbol': 'swftcbtc',
+        #          'fee-currency': 'swftc',
+        #          'filled-fees': '0',
+        #          'source': 'spot-api',
+        #          'id': 83789509854000,
+        #          'type': 'buy-limit',
+        #          'order-id': 83711103204909,
+        #          'filled-points': '0.005826843283532154',
+        #          'fee-deduct-currency': 'ht',
+        #          'filled-amount': '45941.53',
+        #          'price': '0.0000001401',
+        #          'created-at': 1597933260729,
+        #          'match-id': 100087455560,
+        #          'role': 'maker',
+        #          'trade-id': 100050305348
+        #     },
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
@@ -576,7 +593,7 @@ class huobipro(Exchange):
         feeCost = self.safe_float(trade, 'filled-fees')
         feeCurrency = None
         if market is not None:
-            feeCurrency = market['base'] if (side == 'buy') else market['quote']
+            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_float(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):

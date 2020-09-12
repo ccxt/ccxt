@@ -241,7 +241,7 @@ class tidebit(Exchange):
                 symbol = market['symbol']
                 ticker = tickers[id]
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

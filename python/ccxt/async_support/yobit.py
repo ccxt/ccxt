@@ -208,6 +208,7 @@ class yobit(Exchange):
                     'Rate Limited': RateLimitExceeded,
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_balance(self, params={}):
@@ -416,7 +417,7 @@ class yobit(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         tickers = await self.fetch_tickers([symbol], params)

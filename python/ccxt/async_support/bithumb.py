@@ -245,9 +245,7 @@ class bithumb(Exchange):
             average = self.sum(open, close) / 2
         baseVolume = self.safe_float(ticker, 'units_traded_24H')
         quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
-        vwap = None
-        if quoteVolume is not None and baseVolume is not None:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -312,7 +310,7 @@ class bithumb(Exchange):
             if not isArray:
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

@@ -488,6 +488,7 @@ class exmo(Exchange):
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_trading_fees(self, params={}):
@@ -844,7 +845,7 @@ class exmo(Exchange):
             symbol = market['symbol']
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

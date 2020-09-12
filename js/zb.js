@@ -297,7 +297,7 @@ module.exports = class zb extends Exchange {
             const market = anotherMarketsById[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

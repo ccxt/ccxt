@@ -469,7 +469,7 @@ class gateio(Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
             result[symbol] = self.parse_ticker(response[id], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

@@ -842,7 +842,7 @@ class bitmex extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1326,8 +1326,9 @@ class bitmex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
             'side' => $this->capitalize($side),
             'orderQty' => $amount,
             'ordType' => $this->capitalize($type),
@@ -1341,10 +1342,7 @@ class bitmex extends Exchange {
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $response = $this->privatePostOrder (array_merge($request, $params));
-        $order = $this->parse_order($response);
-        $id = $this->safe_string($order, 'id');
-        $this->orders[$id] = $order;
-        return array_merge(array( 'info' => $response ), $order);
+        return $this->parse_order($response, $market);
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -1368,9 +1366,7 @@ class bitmex extends Exchange {
             $request['price'] = $price;
         }
         $response = $this->privatePutOrder (array_merge($request, $params));
-        $order = $this->parse_order($response);
-        $this->orders[$order['id']] = $order;
-        return array_merge(array( 'info' => $response ), $order);
+        return $this->parse_order($response);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1392,9 +1388,7 @@ class bitmex extends Exchange {
                 throw new OrderNotFound($this->id . ' cancelOrder() failed => ' . $error);
             }
         }
-        $order = $this->parse_order($order);
-        $this->orders[$order['id']] = $order;
-        return array_merge(array( 'info' => $response ), $order);
+        return $this->parse_order($order);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
@@ -1475,7 +1469,7 @@ class bitmex extends Exchange {
         $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
         return array(
             'info' => $response,
-            'id' => $response['transactID'],
+            'id' => $this->safe_string($response, 'transactID'),
         );
     }
 

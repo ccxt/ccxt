@@ -231,7 +231,7 @@ class coingi(Exchange):
             if symbol in self.markets:
                 market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

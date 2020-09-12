@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.33.20'
+__version__ = '1.34.19'
 
 # -----------------------------------------------------------------------------
 
@@ -338,7 +338,6 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
-        self.orders = dict() if self.orders is None else self.orders
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
@@ -469,7 +468,7 @@ class Exchange(object):
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
             else:
-                Exchange.define_rest_api(value, method_name, paths + [key])
+                cls.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -1394,9 +1393,10 @@ class Exchange(object):
         return order['status']
 
     def purge_cached_orders(self, before):
-        orders = self.to_array(self.orders)
-        orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-        self.orders = self.index_by(orders, 'id')
+        if self.orders:
+            orders = self.to_array(self.orders)
+            orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
+            self.orders = self.index_by(orders, 'id')
         return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -1420,16 +1420,16 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order_trades() is not supported yet')
 
-    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1811,6 +1811,9 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+
+    def vwap(self, baseVolume, quoteVolume):
+        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods

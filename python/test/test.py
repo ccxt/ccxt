@@ -21,6 +21,8 @@ sys.path.append(root)
 import ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
+from test_ohlcv import test_ohlcv  # noqa: E402
+from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -136,7 +138,7 @@ def test_order_book(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-def test_ohlcv(exchange, symbol):
+def test_ohlcvs(exchange, symbol):
     ignored_exchanges = [
         'cex',  # CEX can return historical candles for a certain date only
         'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
@@ -153,6 +155,8 @@ def test_ohlcv(exchange, symbol):
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000
         ohlcvs = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+        for ohlcv in ohlcvs:
+            test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
@@ -236,6 +240,13 @@ def test_trades(exchange, symbol):
 
 def test_orders(exchange, symbol):
     if exchange.has['fetchOrders']:
+        skipped_exchanges = [
+            'bitmart',
+            'rightbtc',
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_orders() skipped')
+            return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
@@ -278,6 +289,20 @@ def test_open_orders(exchange, symbol):
     else:
         dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
 
+# ------------------------------------------------------------------------------
+
+
+def test_transactions(exchange, symbol):
+    if exchange.has['fetchTransactions']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+
+        transactions = exchange.fetch_transactions(symbol)
+        for transaction in transactions:
+            test_transaction(exchange, transaction, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(transactions)), 'transactions')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_transactions() not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -296,9 +321,10 @@ def test_symbol(exchange, symbol):
             test_orders(exchange, symbol)
             test_open_orders(exchange, symbol)
             test_closed_orders(exchange, symbol)
+            test_transactions(exchange, symbol)
 
     test_tickers(exchange, symbol)
-    test_ohlcv(exchange, symbol)
+    test_ohlcvs(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -324,6 +350,7 @@ def test_exchange(exchange):
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'USD/SLL',

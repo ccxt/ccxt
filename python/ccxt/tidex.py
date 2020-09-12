@@ -144,6 +144,7 @@ class tidex(Exchange):
             'options': {
                 'fetchTickersMaxLength': 2048,
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def fetch_currencies(self, params={}):
@@ -393,7 +394,7 @@ class tidex(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)

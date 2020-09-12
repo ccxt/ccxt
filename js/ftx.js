@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -194,6 +194,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
@@ -846,6 +847,7 @@ module.exports = class ftx extends Exchange {
             'new': 'open',
             'open': 'open',
             'closed': 'closed', // filled or canceled
+            'triggered': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -912,10 +914,40 @@ module.exports = class ftx extends Exchange {
         //         "reduceOnly": false
         //     }
         //
+        // canceled order with a closed status
+        //
+        //     {
+        //         "avgFillPrice":null,
+        //         "clientId":null,
+        //         "createdAt":"2020-09-01T13:45:57.119695+00:00",
+        //         "filledSize":0.0,
+        //         "future":null,
+        //         "id":8553541288,
+        //         "ioc":false,
+        //         "liquidation":false,
+        //         "market":"XRP/USDT",
+        //         "postOnly":false,
+        //         "price":0.5,
+        //         "reduceOnly":false,
+        //         "remainingSize":0.0,
+        //         "side":"sell",
+        //         "size":46.0,
+        //         "status":"closed",
+        //         "type":"limit"
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filledSize');
-        const remaining = this.safeFloat (order, 'remainingSize');
+        let remaining = this.safeFloat (order, 'remainingSize');
+        if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (amount - filled, 0);
+            if (remaining > 0) {
+                status = 'canceled';
+            }
+        }
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         if (marketId !== undefined) {
@@ -931,10 +963,8 @@ module.exports = class ftx extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const amount = this.safeFloat (order, 'size');
         const average = this.safeFloat (order, 'avgFillPrice');
         const price = this.safeFloat2 (order, 'price', 'triggerPrice', average);
         let cost = undefined;
@@ -1402,13 +1432,17 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
-        const id = this.safeInteger (transaction, 'id');
+        const id = this.safeString (transaction, 'id');
         const amount = this.safeFloat (transaction, 'size');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const txid = this.safeString (transaction, 'txid');
-        const address = this.safeString (transaction, 'address');
-        const tag = this.safeString (transaction, 'tag');
+        let tag = undefined;
+        let address = this.safeValue (transaction, 'address');
+        if (typeof address !== 'string') {
+            tag = this.safeString (address, 'tag');
+            address = this.safeString (address, 'address');
+        }
         const fee = this.safeFloat (transaction, 'fee');
         const type = ('destinationName' in transaction) ? 'withdrawal' : 'deposit';
         return {
@@ -1457,10 +1491,14 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseTransactions (result);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (result, currency, since, limit);
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletWithdrawals (params);
         //
@@ -1480,7 +1518,11 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseTransactions (result);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (result, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

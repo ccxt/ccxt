@@ -388,7 +388,6 @@ class coinegg(Exchange):
             'type': side,
             'info': response,
         }, market)
-        self.orders[id] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -410,7 +409,8 @@ class coinegg(Exchange):
             'quote': market['quoteId'],
         }
         response = self.privatePostTradeViewRegionQuote(self.extend(request, params))
-        return self.parse_order(response['data'], market)
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -422,7 +422,8 @@ class coinegg(Exchange):
         if since is not None:
             request['since'] = since / 1000
         response = self.privatePostTradeListRegionQuote(self.extend(request, params))
-        return self.parse_orders(response['data'], market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {

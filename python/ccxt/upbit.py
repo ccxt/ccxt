@@ -617,7 +617,7 @@ class upbit(Exchange):
             ticker = self.parse_ticker(response[t])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)

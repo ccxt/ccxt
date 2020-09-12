@@ -440,10 +440,10 @@ class bitso(Exchange):
         response = await self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
         tag = None
-        if code == 'XRP':
+        if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
-            address = parts[0]
-            tag = parts[1]
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
             'currency': code,

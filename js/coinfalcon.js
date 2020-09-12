@@ -167,7 +167,7 @@ module.exports = class coinfalcon extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -177,7 +177,8 @@ module.exports = class coinfalcon extends Exchange {
             'level': '3',
         };
         const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
-        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'size');
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (data, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
@@ -236,7 +237,8 @@ module.exports = class coinfalcon extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -249,7 +251,8 @@ module.exports = class coinfalcon extends Exchange {
             request['since'] = this.iso8601 (since);
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -368,10 +371,8 @@ module.exports = class coinfalcon extends Exchange {
         }
         request['operation_type'] = type + '_order';
         const response = await this.privatePostUserOrders (this.extend (request, params));
-        const order = this.parseOrder (response['data'], market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return order;
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -381,7 +382,8 @@ module.exports = class coinfalcon extends Exchange {
         };
         const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
         const market = this.market (symbol);
-        return this.parseOrder (response['data'], market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -390,21 +392,25 @@ module.exports = class coinfalcon extends Exchange {
             'id': id,
         };
         const response = await this.privateGetUserOrdersId (this.extend (request, params));
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            request['market'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['market'] = market['id'];
         }
         if (since !== undefined) {
-            request['since_time'] = this.iso8601 (this.milliseconds ());
+            request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
-        return this.parseOrders (response['data']);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     nonce () {

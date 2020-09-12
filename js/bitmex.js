@@ -838,7 +838,7 @@ module.exports = class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1322,8 +1322,9 @@ module.exports = class bitmex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': amount,
             'ordType': this.capitalize (type),
@@ -1337,10 +1338,7 @@ module.exports = class bitmex extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
-        const order = this.parseOrder (response);
-        const id = this.safeString (order, 'id');
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1364,9 +1362,7 @@ module.exports = class bitmex extends Exchange {
             request['price'] = price;
         }
         const response = await this.privatePutOrder (this.extend (request, params));
-        const order = this.parseOrder (response);
-        this.orders[order['id']] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1381,16 +1377,14 @@ module.exports = class bitmex extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        let order = this.safeValue (response, 0, {});
+        const order = this.safeValue (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
             }
         }
-        order = this.parseOrder (order);
-        this.orders[order['id']] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.parseOrder (order);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1471,7 +1465,7 @@ module.exports = class bitmex extends Exchange {
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return {
             'info': response,
-            'id': response['transactID'],
+            'id': this.safeString (response, 'transactID'),
         };
     }
 

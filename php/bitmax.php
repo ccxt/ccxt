@@ -488,7 +488,7 @@ class bitmax extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
         );
     }
 

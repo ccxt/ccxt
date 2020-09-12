@@ -103,6 +103,13 @@ class indodax(Exchange):
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
+            'commonCurrencies': {
+                'STR': 'XLM',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
+                'DRK': 'DASH',
+                'NEM': 'XEM',
+            },
         })
 
     def nonce(self):

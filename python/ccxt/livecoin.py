@@ -119,11 +119,13 @@ class livecoin(Exchange):
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
                 'ORE': 'Orectic',
                 'PLN': 'Plutaneum',  # conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'UNUS': 'LEO',  # https://github.com/ccxt/ccxt/issues/7496
                 'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
@@ -379,7 +381,7 @@ class livecoin(Exchange):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

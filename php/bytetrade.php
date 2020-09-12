@@ -234,11 +234,14 @@ class bytetrade extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $base = $this->safe_string($market, 'baseName');
             $quote = $this->safe_string($market, 'quoteName');
-            $normalBase = explode('@', $base)[0];
-            $normalQuote = explode('@', $quote)[0];
-            $normalSymbol = $normalBase . '/' . $normalQuote;
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
+            $normalBase = explode('@', $base)[0];
+            $normalQuote = explode('@', $quote)[0];
+            if ($quoteId === '126') {
+                $normalQuote = 'ZAR'; // The $id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
+            }
+            $normalSymbol = $normalBase . '/' . $normalQuote;
             if (is_array($this->commonCurrencies) && array_key_exists($baseId, $this->commonCurrencies)) {
                 $base = $this->commonCurrencies[$baseId];
             }
@@ -657,8 +660,8 @@ class bytetrade extends Exchange {
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
             $this->number_to_le(0, 2),
-            $this->number_to_le(intval ($quoteId), 4),
-            $this->number_to_le(intval ($baseId), 4),
+            $this->number_to_le(intval($quoteId), 4),
+            $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
             $this->number_to_le(1, 1),
             $this->number_to_le(strlen($dappId), 1),
@@ -687,8 +690,8 @@ class bytetrade extends Exchange {
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
             $this->number_to_le(0, 2),
-            $this->number_to_le(intval ($quoteId), 4),
-            $this->number_to_le(intval ($baseId), 4),
+            $this->number_to_le(intval($quoteId), 4),
+            $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
             $this->number_to_le(1, 1),
             $this->number_to_le(strlen($dappId), 1),
@@ -722,8 +725,8 @@ class bytetrade extends Exchange {
             'amount' => $amountChain,
             'price' => $priceChain,
             'use_btt_as_fee' => false,
-            'money_id' => intval ($quoteId),
-            'stock_id' => intval ($baseId),
+            'money_id' => intval($quoteId),
+            'stock_id' => intval($baseId),
         );
         $fatty = array(
             'timestamp' => $datetime,
@@ -882,8 +885,8 @@ class bytetrade extends Exchange {
             $this->number_to_le(strlen($normalSymbol), 1),
             $this->encode($normalSymbol),
             $this->base16_to_binary($id),
-            $this->number_to_le(intval ($quoteId), 4),
-            $this->number_to_le(intval ($baseId), 4),
+            $this->number_to_le(intval($quoteId), 4),
+            $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
             $this->number_to_le(1, 1),
             $this->number_to_le(strlen($dappId), 1),
@@ -900,8 +903,8 @@ class bytetrade extends Exchange {
             'creator' => $this->apiKey,
             'order_id' => $id,
             'market_name' => $normalSymbol,
-            'money_id' => intval ($quoteId),
-            'stock_id' => intval ($baseId),
+            'money_id' => intval($quoteId),
+            'stock_id' => intval($baseId),
         );
         $fatty = array(
             'timestamp' => $datetime,
@@ -956,7 +959,7 @@ class bytetrade extends Exchange {
         $currency = $this->currency($code);
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         $amountChain = $this->to_wei($amountTruncate, $currency['precision']['amount']);
-        $assetType = intval ($currency['id']);
+        $assetType = intval($currency['id']);
         $now = $this->milliseconds();
         $expiration = $now;
         $datetime = $this->iso8601($now);
@@ -1001,7 +1004,7 @@ class bytetrade extends Exchange {
             'fee' => '300000000000000',
             'from' => $this->apiKey,
             'to' => $address,
-            'asset_type' => intval ($currency['id']),
+            'asset_type' => intval($currency['id']),
             'amount' => (string) $amountChain,
             'message' => $message,
         );
@@ -1255,7 +1258,7 @@ class bytetrade extends Exchange {
                 $this->encode($this->apiKey),
                 $this->number_to_le(strlen($address), 1),
                 $this->encode($address),
-                $this->number_to_le(intval ($coinId), 4),
+                $this->number_to_le(intval($coinId), 4),
                 $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
                 $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
                 $this->number_to_le(1, 1),
@@ -1288,7 +1291,7 @@ class bytetrade extends Exchange {
                 $this->encode($this->apiKey),
                 $this->number_to_le(strlen($middleAddress), 1),
                 $this->encode($middleAddress),
-                $this->number_to_le(intval ($coinId), 4),
+                $this->number_to_le(intval($coinId), 4),
                 $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
                 $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
                 $this->number_to_le(0, 1),
@@ -1312,7 +1315,7 @@ class bytetrade extends Exchange {
                 'fee' => $feeAmount,
                 'from' => $this->apiKey,
                 'to_external_address' => $address,
-                'asset_type' => intval ($coinId),
+                'asset_type' => intval($coinId),
                 'amount' => $amountChain,
                 'asset_fee' => $assetFee,
             );
@@ -1341,7 +1344,7 @@ class bytetrade extends Exchange {
                 'fee' => $feeAmount,
                 'from' => $this->apiKey,
                 'to_external_address' => $middleAddress,
-                'asset_type' => intval ($coinId),
+                'asset_type' => intval($coinId),
                 'amount' => $amountChain,
                 'asset_fee' => $assetFee,
             );

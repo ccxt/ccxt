@@ -213,7 +213,7 @@ module.exports = class ice3x extends Exchange {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -377,8 +377,6 @@ module.exports = class ice3x extends Exchange {
             'remaining': amount,
             'info': response,
         }, market);
-        const id = order['id'];
-        this.orders[id] = order;
         return order;
     }
 
@@ -395,15 +393,21 @@ module.exports = class ice3x extends Exchange {
             'order _id': id,
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
-        const order = this.safeValue (response['response'], 'entity');
+        const data = this.safeValue (response, 'response', {});
+        const order = this.safeValue (data, 'entity');
         return this.parseOrder (order);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostOrderList (params);
-        const orders = this.safeValue (response['response'], 'entities');
-        return this.parseOrders (orders, undefined, since, limit);
+        const data = this.safeValue (response, 'response', {});
+        const orders = this.safeValue (data, 'entities', []);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -419,7 +423,8 @@ module.exports = class ice3x extends Exchange {
             request['date_from'] = parseInt (since / 1000);
         }
         const response = await this.privatePostTradeList (this.extend (request, params));
-        const trades = this.safeValue (response['response'], 'entities');
+        const data = this.safeValue (response, 'response', {});
+        const trades = this.safeValue (data, 'entities', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -430,7 +435,8 @@ module.exports = class ice3x extends Exchange {
             'currency_id': currency['id'],
         };
         const response = await this.privatePostBalanceInfo (this.extend (request, params));
-        const balance = this.safeValue (response['response'], 'entity');
+        const data = this.safeValue (response, 'response', {});
+        const balance = this.safeValue (data, 'entity', {});
         const address = this.safeString (balance, 'address');
         const status = address ? 'ok' : 'none';
         return {

@@ -278,7 +278,7 @@ module.exports = class coinex extends Exchange {
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
@@ -547,10 +547,8 @@ module.exports = class coinex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
-        const order = this.parseOrder (response['data'], market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return order;
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -561,7 +559,8 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
         };
         const response = await this.privateDeleteOrderPending (this.extend (request, params));
-        return this.parseOrder (response['data'], market);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -601,7 +600,8 @@ module.exports = class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        return this.parseOrder (response['data'], market);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -620,7 +620,9 @@ module.exports = class coinex extends Exchange {
         }
         const method = 'privateGetOrder' + this.capitalize (status);
         const response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['data']['data'], market, since, limit);
+        const data = this.safeValue (response, 'data');
+        const orders = this.safeValue (data, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -646,7 +648,9 @@ module.exports = class coinex extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrderUserDeals (this.extend (request, params));
-        return this.parseTrades (response['data']['data'], market, since, limit);
+        const data = this.safeValue (response, 'data');
+        const trades = this.safeValue (data, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -841,7 +845,8 @@ module.exports = class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -884,7 +889,8 @@ module.exports = class coinex extends Exchange {
         //         "message": "Ok"
         //     }
         //
-        return this.parseTransactions (response['data'], currency, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     nonce () {

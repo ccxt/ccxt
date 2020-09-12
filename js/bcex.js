@@ -12,7 +12,7 @@ module.exports = class bcex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bcex',
             'name': 'BCEX',
-            'countries': [ 'CN', 'CA' ],
+            'countries': [ 'CN', 'HK' ],
             'version': '1',
             'has': {
                 'cancelOrder': true,

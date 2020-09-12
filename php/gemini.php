@@ -180,9 +180,9 @@ class gemini extends Exchange {
         return $this->$method ($params);
     }
 
-    public function fetch_markets_from_web($symbols = null, $params = array ()) {
+    public function fetch_markets_from_web($params = array ()) {
         $response = $this->webGetRestApi ($params);
-        $sections = explode('<h1 $id="$symbols-and-minimums">Symbols and minimums</h1>', $response);
+        $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
         $numSections = is_array($sections) ? count($sections) : 0;
         $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
@@ -245,10 +245,10 @@ class gemini extends Exchange {
                 if (!(is_array($indexedSymbols) && array_key_exists($symbol, $indexedSymbols))) {
                     continue;
                 }
-                $id = $baseId . $quoteId;
+                $marketId = $baseId . $quoteId;
                 $active = null;
                 $result[] = array(
-                    'id' => $id,
+                    'id' => $marketId,
                     'info' => $row,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -501,10 +501,7 @@ class gemini extends Exchange {
         }
         $baseVolume = $this->safe_float($volume, $baseId);
         $quoteVolume = $this->safe_float($volume, $quoteId);
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -750,7 +747,7 @@ class gemini extends Exchange {
             $request['limit_trades'] = $limit;
         }
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->privatePostV1Mytrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

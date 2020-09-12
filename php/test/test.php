@@ -7,6 +7,8 @@ date_default_timezone_set('UTC');
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
+include_once 'test_ohlcv.php';
+include_once 'test_transaction.php';
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -51,7 +53,7 @@ $exchanges = null;
 
 foreach (\ccxt\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
-    $exchanges[$id] = new $exchange(array('verbose' => false));
+    $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
 }
 
 $keys_global = './keys.json';
@@ -115,7 +117,7 @@ function test_trades($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
-        dump(green($symbol), 'fetchTrades () not supported');
+        dump(green($symbol), 'fetchTrades() not supported');
     }
 }
 
@@ -123,9 +125,16 @@ function test_trades($exchange, $symbol) {
 
 function test_orders($exchange, $symbol) {
     if ($exchange->has['fetchOrders']) {
+        $skipped_exchanges = array (
+            'bitmart',
+            'rightbtc',
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), 'fetch_orders() skipped');
+            return;
+        }
         $delay = $exchange->rateLimit * 1000;
         usleep($delay);
-
         dump(green($symbol), 'fetching orders...');
         $orders = $exchange->fetch_orders($symbol);
         foreach ($orders as $order) {
@@ -133,7 +142,7 @@ function test_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
     } else {
-        dump(green($symbol), 'fetchOrders () not supported');
+        dump(green($symbol), 'fetchOrders() not supported');
     }
 }
 
@@ -152,7 +161,7 @@ function test_closed_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
     } else {
-        dump(green($symbol), 'fetchClosedOrders () not supported');
+        dump(green($symbol), 'fetchClosedOrders() not supported');
     }
 }
 
@@ -171,35 +180,94 @@ function test_open_orders($exchange, $symbol) {
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
     } else {
-        dump(green($symbol), 'fetchOpenOrders () not supported');
+        dump(green($symbol), 'fetchOpenOrders() not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
-function test_symbol($exchange, $symbol) {
+function test_transactions($exchange, $code) {
+    if ($exchange->has['fetchTransactions']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        dump(green($code), 'fetching transactions...');
+        $transactions = $exchange->fetch_transactions($code);
+        foreach ($transactions as $transaction) {
+            test_transaction($exchange, $transaction, $code, time() * 1000);
+        }
+        dump(green($code), 'fetched', green(count($transactions)), 'transactions');
+    } else {
+        dump(green($code), 'fetchTransactions() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_ohlcvs($exchange, $symbol) {
+    $ignored_exchanges = array(
+        'cex',
+        'okex',
+        'okexusd',
+    );
+    if (array_key_exists($exchange->id, $ignored_exchanges)) {
+        return;
+    }
+    if ($exchange->has['fetchOHLCV']) {
+        $delay = $exchange->rateLimit * 1000;
+        usleep($delay);
+
+        $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
+        $timeframe = array_keys($timeframes)[0];
+        $limit = 10;
+        $duration = $exchange->parse_timeframe($timeframe);
+        $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
+        dump(green($symbol), 'fetching ohlcvs...');
+        $ohlcvs = $exchange->fetch_ohlcv($symbol, $timeframe, $since, $limit);
+        foreach ($ohlcvs as $ohlcv) {
+            test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($ohlcvs)), 'ohlcvs');
+    } else {
+        dump(green($symbol), 'fetchOHLCV() not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_symbol($exchange, $symbol, $code) {
     test_ticker($exchange, $symbol);
     if ($exchange->id === 'coinmarketcap') {
         dump(var_export($exchange->fetchGlobal()));
     } else {
         test_order_book($exchange, $symbol);
         test_trades($exchange, $symbol);
-        if ($exchange->apiKey) {
+        test_ohlcvs($exchange, $symbol);
+        if ($exchange->check_required_credentials(false)) {
+            if ($exchange->has['signIn']) {
+                $exchange->sign_in();
+            }
             test_orders($exchange, $symbol);
             test_closed_orders($exchange, $symbol);
             test_open_orders($exchange, $symbol);
+            test_transactions($exchange, $code);
+            $balance = $exchange->fetch_balance();
+            var_dump($balance);
         }
     }
 }
 
 function load_exchange($exchange) {
     $markets = $exchange->load_markets();
+    // $exchange->verbose = true;
     $symbols = array_keys($markets);
     dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
 }
 
 function try_all_proxies($exchange, $proxies) {
-    $current_proxy = 0;
+
+    $index = array_search($exchange->proxy, $proxies);
+    $current_proxy = ($index >= 0) ? $index : 0;
     $max_retries = count($proxies);
 
     for ($i = 0; $i < $max_retries; $i++) {
@@ -247,6 +315,7 @@ function test_exchange($exchange) {
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
     );
@@ -258,29 +327,51 @@ function test_exchange($exchange) {
         }
     }
 
+    $codes = array(
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
+    );
+
+    $code = $codes[0];
+    for ($i = 0; $i < count($codes); $i++) {
+        if (array_key_exists($codes[$i], $exchange->currencies)) {
+            $code = $codes[$i];
+        }
+    }
+
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
-
-        test_symbol($exchange, $symbol);
+        dump(green('CODE:'), green($code));
+        test_symbol($exchange, $symbol, $code);
     }
-
-    // usleep ($delay);
-    // $trades = $exchange->fetch_trades (array_keys ($markets)[0]);
-    // var_dump ($trades);
-
-    if ((!$exchange->apiKey) or (strlen($exchange->apiKey) < 1)) {
-        return;
-    }
-
-    usleep($delay);
-
-    $balance = $exchange->fetch_balance();
-    var_dump($balance);
-
-    // $exchange->verbose = true;
-    // $order = $exchange->create_market_buy_order ('LTC/BTC', 0.1);
-    // var_dump ($order);
-    // print_r ($order);
 }
 
 $proxies = array(

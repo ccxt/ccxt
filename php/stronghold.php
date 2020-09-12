@@ -374,8 +374,8 @@ class stronghold extends Exchange {
         $timestamp = null;
         $orderId = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $price = floatval ($trade[0]);
-            $amount = floatval ($trade[1]);
+            $price = floatval($trade[0]);
+            $amount = floatval($trade[1]);
             $side = $trade[2];
             $timestamp = $this->parse8601($trade[3]);
         } else {

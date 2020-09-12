@@ -179,6 +179,7 @@ class hitbtc extends Exchange {
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -258,17 +259,19 @@ class hitbtc extends Exchange {
         //
         //     array(
         //         {
-        //             "$id":"DDF",
-        //             "fullName":"DDF",
+        //             "$id":"XPNT",
+        //             "fullName":"pToken",
         //             "crypto":true,
-        //             "payinEnabled":false,
+        //             "payinEnabled":true,
         //             "payinPaymentId":false,
-        //             "payinConfirmations":20,
+        //             "payinConfirmations":9,
         //             "payoutEnabled":true,
         //             "payoutIsPaymentId":false,
         //             "transferEnabled":true,
         //             "delisted":false,
-        //             "payoutFee":"646.000000000000"
+        //             "payoutFee":"26.510000000000",
+        //             "precisionPayout":18,
+        //             "precisionTransfer":8
         //         }
         //     )
         //
@@ -279,7 +282,8 @@ class hitbtc extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $decimals = $this->safe_integer($currency, 'precisionTransfer', 8);
+            $precision = 1 / pow(10, $decimals);
             $code = $this->safe_currency_code($id);
             $payin = $this->safe_value($currency, 'payinEnabled');
             $payout = $this->safe_value($currency, 'payoutEnabled');
@@ -309,12 +313,12 @@ class hitbtc extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => 1 / pow(10, $decimals),
+                        'max' => pow(10, $decimals),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => 1 / pow(10, $decimals),
+                        'max' => pow(10, $decimals),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -447,14 +451,7 @@ class hitbtc extends Exchange {
                 $percentage = $change / $open * 100;
             }
         }
-        $vwap = null;
-        if ($quoteVolume !== null) {
-            if ($baseVolume !== null) {
-                if ($baseVolume > 0) {
-                    $vwap = $quoteVolume / $baseVolume;
-                }
-            }
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -496,7 +493,7 @@ class hitbtc extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -728,7 +725,7 @@ class hitbtc extends Exchange {
         $parts = explode('-', $uuid);
         $clientOrderId = implode('', $parts);
         $clientOrderId = mb_substr($clientOrderId, 0, 32 - 0);
-        $amount = floatval ($amount);
+        $amount = floatval($amount);
         $request = array(
             'clientOrderId' => $clientOrderId,
             'symbol' => $market['id'],
@@ -1103,7 +1100,7 @@ class hitbtc extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
         );
         if ($tag) {

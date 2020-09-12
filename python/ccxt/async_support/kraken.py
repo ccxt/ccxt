@@ -564,9 +564,8 @@ class kraken(Exchange):
             market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = tickers[id]
-            if self.in_array(symbol, symbols):
-                result[symbol] = self.parse_ticker(ticker, market)
-        return result
+            result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

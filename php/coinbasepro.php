@@ -755,7 +755,7 @@ class coinbasepro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval ($this->currency_to_precision($currency, $rate * $cost)),
+            'cost' => floatval($this->currency_to_precision($currency, $rate * $cost)),
         );
     }
 

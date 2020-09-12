@@ -428,9 +428,7 @@ class qtrade(Exchange):
             average = self.sum(last, previous) / 2
         baseVolume = self.safe_float(ticker, 'day_volume_market')
         quoteVolume = self.safe_float(ticker, 'day_volume_base')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None) and (baseVolume > 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -552,6 +550,7 @@ class qtrade(Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
+            'desc': True,  # Returns newest trades first when True
             # 'older_than': 123,  # returns trades with id < older_than
             # 'newer_than': 123,  # returns trades with id > newer_than
         }
