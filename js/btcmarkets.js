@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,6 +114,7 @@ module.exports = class btcmarkets extends Exchange {
                 'OrderAlreadyCancelled': InvalidOrder,
                 'OrderNotFound': OrderNotFound,
                 'OrderStatusIsFinal': InvalidOrder,
+                'InvalidPaginationParameter': BadRequest,
             },
             'fees': {
                 'percentage': true,
@@ -402,13 +403,13 @@ module.exports = class btcmarkets extends Exchange {
             // 'to': this.iso8601 (this.milliseconds ()),
             // 'before': 1234567890123,
             // 'after': 1234567890123,
-            // 'limit': limit, // default 10
+            // 'limit': limit, // default 10, max 200
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10
+            request['limit'] = limit; // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles (this.extend (request, params));
         //
