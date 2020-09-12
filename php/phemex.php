@@ -431,11 +431,6 @@ class phemex extends \ccxt\phemex {
         return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
-    }
-
     public function handle_message($client, $message) {
         if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message))) {
             return $this->handle_ticker($client, $message);

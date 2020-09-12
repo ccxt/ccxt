@@ -79,11 +79,6 @@ class gateio extends \ccxt\gateio {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
-    }
-
     public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);

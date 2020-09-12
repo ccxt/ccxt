@@ -279,10 +279,6 @@ class binance(Exchange, ccxt.binance):
                 del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_order_book_subscription(self, client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         symbol = self.safe_string(subscription, 'symbol')

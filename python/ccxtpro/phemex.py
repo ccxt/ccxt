@@ -392,10 +392,6 @@ class phemex(Exchange, ccxt.phemex):
             return ev
         return self.from_en(ev, market['valueScale'], market['precision']['amount'])
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
-
     def handle_message(self, client, message):
         if ('market24h' in message) or ('spot_market24h' in message):
             return self.handle_ticker(client, message)

@@ -508,11 +508,6 @@ class kraken extends \ccxt\kraken {
         return true;
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
-    }
-
     public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
             $channelId = (string) $message[0];
