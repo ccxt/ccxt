@@ -326,10 +326,6 @@ module.exports = class independentreserve extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
-        }
         const request = this.ordered ({});
         let market = undefined;
         if (symbol !== undefined) {
@@ -337,18 +333,18 @@ module.exports = class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        request['pageIndex'] = pageIndex;
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        return this.parseOrders (response['Data'], market, since, limit);
+        const data = this.safeValue (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
-        }
         const request = this.ordered ({});
         let market = undefined;
         if (symbol !== undefined) {
@@ -356,10 +352,14 @@ module.exports = class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        request['pageIndex'] = pageIndex;
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
         request['pageSize'] = limit;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        return this.parseOrders (response['Data'], market, since, limit);
+        const data = this.safeValue (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
