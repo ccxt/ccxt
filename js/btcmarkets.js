@@ -344,7 +344,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetV3Time (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "timestamp": "2019-09-01T18:34:27.045000Z"
