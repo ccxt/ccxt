@@ -110,9 +110,6 @@ class ftx(Exchange, ccxt.ftx):
         future = self.watch_public(symbol, 'orderbook')
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def sign_message(self, client, messageHash, message):
-        return message
-
     def handle_partial(self, client, message):
         methods = {
             'orderbook': self.handle_order_book_snapshot,

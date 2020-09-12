@@ -417,10 +417,6 @@ class currencycom(Exchange, ccxt.currencycom):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
-
     def handle_message(self, client, message):
         #
         #     {

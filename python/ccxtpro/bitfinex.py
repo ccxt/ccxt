@@ -361,10 +361,6 @@ class bitfinex(Exchange, ccxt.bitfinex):
         client.subscriptions[channelId] = message
         return message
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
-
     async def authenticate(self):
         url = self.urls['api']['ws']['private']
         client = self.client(url)

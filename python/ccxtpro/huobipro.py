@@ -413,10 +413,6 @@ class huobipro(Exchange, ccxt.huobipro):
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')

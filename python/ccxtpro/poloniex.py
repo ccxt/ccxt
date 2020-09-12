@@ -100,16 +100,27 @@ class poloniex(Exchange, ccxt.poloniex):
         client.resolve(result, messageHash)
 
     async def watch_balance(self, params={}):
+        self.check_required_credentials()
         await self.load_markets()
-        self.balance = await self.fetchBalance(params)
         channelId = '1000'
-        subscribe = {
-            'command': 'subscribe',
-            'channel': channelId,
-        }
-        messageHash = channelId + ':b:e'
         url = self.urls['api']['ws']
-        return await self.watch(url, messageHash, subscribe, channelId)
+        client = self.client(url)
+        messageHash = channelId + ':b:e'
+        if not (channelId in client.subscriptions):
+            self.balance = await self.fetchBalance(params)
+            nonce = self.nonce()
+            payload = self.urlencode({'nonce': nonce})
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+            subscribe = {
+                'command': 'subscribe',
+                'channel': channelId,
+                'key': self.apiKey,
+                'payload': payload,
+                'sign': signature,
+            }
+            return await self.watch(url, messageHash, subscribe, channelId)
+        else:
+            return await self.watch(url, messageHash, {}, channelId)
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -180,20 +191,6 @@ class poloniex(Exchange, ccxt.poloniex):
         channelId = '1010'
         url = self.urls['api']['ws']
         return await self.watch(url, channelId)
-
-    def sign_message(self, client, messageHash, message, params={}):
-        if messageHash.find('1000') == 0:
-            throwOnError = False
-            if self.check_required_credentials(throwOnError):
-                nonce = self.nonce()
-                payload = self.urlencode({'nonce': nonce})
-                signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-                message = self.extend(message, {
-                    'key': self.apiKey,
-                    'payload': payload,
-                    'sign': signature,
-                })
-        return message
 
     def handle_heartbeat(self, client, message):
         #

@@ -316,10 +316,6 @@ class hitbtc(Exchange, ccxt.hitbtc):
                 client.resolve(stored, messageHash)
         return message
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_notification(self, client, message):
         #
         #     {jsonrpc: '2.0', result: True, id: null}

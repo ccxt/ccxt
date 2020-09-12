@@ -994,10 +994,6 @@ class bittrex(Exchange, ccxt.bittrex):
         if numKeys < 1:
             self.handle_heartbeat(client, message)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage() if needed
-        return message
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if api == 'signalr':
             url = self.implode_params(self.urls['api'][api], {

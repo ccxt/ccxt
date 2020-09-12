@@ -516,11 +516,6 @@ class okex extends \ccxt\okex {
         return $message;
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // okex uses login requests instead of $message signing
-        return $message;
-    }
-
     public function ping($client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong

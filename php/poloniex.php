@@ -105,16 +105,28 @@ class poloniex extends \ccxt\poloniex {
     }
 
     public function watch_balance($params = array ()) {
+        $this->check_required_credentials();
         $this->load_markets();
-        $this->balance = $this->fetchBalance ($params);
         $channelId = '1000';
-        $subscribe = array(
-            'command' => 'subscribe',
-            'channel' => $channelId,
-        );
-        $messageHash = $channelId . ':b:e';
         $url = $this->urls['api']['ws'];
-        return $this->watch($url, $messageHash, $subscribe, $channelId);
+        $client = $this->client($url);
+        $messageHash = $channelId . ':b:e';
+        if (!(is_array($client->subscriptions) && array_key_exists($channelId, $client->subscriptions))) {
+            $this->balance = $this->fetchBalance ($params);
+            $nonce = $this->nonce();
+            $payload = $this->urlencode(array( 'nonce' => $nonce ));
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
+            $subscribe = array(
+                'command' => 'subscribe',
+                'channel' => $channelId,
+                'key' => $this->apiKey,
+                'payload' => $payload,
+                'sign' => $signature,
+            );
+            return $this->watch($url, $messageHash, $subscribe, $channelId);
+        } else {
+            return $this->watch($url, $messageHash, array(), $channelId);
+        }
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -193,23 +205,6 @@ class poloniex extends \ccxt\poloniex {
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
         return $this->watch($url, $channelId);
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        if (mb_strpos($messageHash, '1000') === 0) {
-            $throwOnError = false;
-            if ($this->check_required_credentials($throwOnError)) {
-                $nonce = $this->nonce();
-                $payload = $this->urlencode(array( 'nonce' => $nonce ));
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
-                $message = array_merge($message, array(
-                    'key' => $this->apiKey,
-                    'payload' => $payload,
-                    'sign' => $signature,
-                ));
-            }
-        }
-        return $message;
     }
 
     public function handle_heartbeat($client, $message) {

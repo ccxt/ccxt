@@ -583,10 +583,6 @@ class bitvavo(Exchange, ccxt.bitvavo):
             if event in client.subscriptions:
                 del client.subscriptions[event]
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_message(self, client, message):
         #
         #     {

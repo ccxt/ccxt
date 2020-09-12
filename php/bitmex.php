@@ -841,11 +841,6 @@ class bitmex extends \ccxt\bitmex {
         return $this->watch($url, $event);
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo bitmex signMessage not implemented yet
-        return $message;
-    }
-
     public function handle_order_book($client, $message) {
         //
         // first snapshot
