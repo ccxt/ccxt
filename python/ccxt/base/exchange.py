@@ -393,7 +393,7 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not self.web3:
+        if self.requiresWeb3 and Web3 and not cls.web3:
             cls.web3 = Web3(HTTPProvider())
 
     def __del__(self):
@@ -1065,10 +1065,9 @@ class Exchange(object):
         except (TypeError, OverflowError, OSError, ValueError):
             return None
 
-    @classmethod
     def hash(cls, request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
-            binary = bytes(cls.web3.sha3(request))
+            binary = bytes(Exchange.web3.sha3(request))
         else:
             h = hashlib.new(algorithm, request)
             binary = h.digest()
