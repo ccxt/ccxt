@@ -118,6 +118,8 @@ class bitstamp(Exchange):
                         'eth_address/',
                         'xrp_withdrawal/',
                         'xrp_address/',
+                        'xlm_withdrawal/',
+                        'xlm_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -1082,9 +1084,8 @@ class bitstamp(Exchange):
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
-        if code == 'XRP':
-            if tag is not None:
-                request['destination_tag'] = tag
+        if tag is not None:
+            request['destination_tag'] = tag
         response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
