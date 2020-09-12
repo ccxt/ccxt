@@ -41,9 +41,6 @@ module.exports = class btcmarkets extends Exchange {
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
-                    // 'publicV3': 'https://api.btcmarkets.net',
-                    // 'privateV3': 'https://api.btcmarkets.net',
-                    // 'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
                 'doc': [
@@ -52,47 +49,6 @@ module.exports = class btcmarkets extends Exchange {
                 ],
             },
             'api': {
-                // 'public': {
-                //     'get': [
-                //         'market/{id}/tick',
-                //         'market/{id}/orderbook',
-                //         'market/{id}/trades',
-                //         'v2/market/{id}/tickByTime/{timeframe}',
-                //         'v2/market/{id}/trades',
-                //         'v2/market/active',
-                //         'v3/markets',
-                //         'v3/markets/{marketId}/ticker',
-                //         'v3/markets/{marketId}/trades',
-                //         'v3/markets/{marketId}/orderbook',
-                //         'v3/markets/{marketId}/candles',
-                //         'v3/markets/tickers',
-                //         'v3/markets/orderbooks',
-                //         'v3/time',
-                //     ],
-                // },
-                // 'private': {
-                //     'get': [
-                //         'account/balance',
-                //         'account/{id}/tradingfee',
-                //         'fundtransfer/history',
-                //         'v2/order/open',
-                //         'v2/order/open/{id}',
-                //         'v2/order/history/{instrument}/{currency}/',
-                //         'v2/order/trade/history/{id}',
-                //         'v2/transaction/history/{currency}',
-                //     ],
-                //     'post': [
-                //         'fundtransfer/withdrawCrypto',
-                //         'fundtransfer/withdrawEFT',
-                //         'order/create',
-                //         'order/cancel',
-                //         'order/history',
-                //         'order/open',
-                //         'order/trade/history',
-                //         'order/createBatch', // they promise it's coming soon...
-                //         'order/detail',
-                //     ],
-                // },
                 'public': {
                     'get': [
                         'markets',
@@ -142,11 +98,6 @@ module.exports = class btcmarkets extends Exchange {
                         'orders/{id}',
                     ],
                 },
-                // 'web': {
-                //     'get': [
-                //         'market/BTCMarkets/{id}/tickByTime',
-                //     ],
-                // },
             },
             'timeframes': {
                 '1m': '1m',
@@ -1041,51 +992,20 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let request = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
-        // if (api === 'private') {
-        //     this.checkRequiredCredentials ();
-        //     const nonce = this.nonce ().toString ();
-        //     let auth = undefined;
-        //     headers = {
-        //         'apikey': this.apiKey,
-        //         'timestamp': nonce,
-        //     };
-        //     if (method === 'POST') {
-        //         headers['Content-Type'] = 'application/json';
-        //         auth = request + "\n" + nonce + "\n"; // eslint-disable-line quotes
-        //         body = this.json (params);
-        //         auth += body;
-        //     } else {
-        //         let queryString = '';
-        //         if (Object.keys (query).length) {
-        //             queryString = this.urlencode (query);
-        //             request += '?' + queryString;
-        //             queryString += "\n"; // eslint-disable-line quotes
-        //         }
-        //         auth = request + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
-        //     }
-        //     const secret = this.base64ToBinary (this.secret);
-        //     const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-        //     headers['signature'] = this.decode (signature);
-        // } else
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret); // or stringToBase64
-            request = '/' + this.version + request;
-            const query = this.keysort (this.omit (params, this.extractParams (path)));
-            let auth = undefined;
+            let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                auth = method + request + nonce;
-                let queryString = '';
                 if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
-                    request += '?' + queryString;
+                    request += '?' + this.urlencode (query);
                 }
             } else {
                 body = this.json (query);
-                auth = method + request + nonce + body;
+                auth += body;
             }
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
@@ -1096,16 +1016,10 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             };
-            request = '/' + request;
         } else if (api === 'public') {
-            request = '/' + this.version + request;
             if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
             }
-        // } else {
-        //     if (Object.keys (query).length) {
-        //         request += '?' + this.urlencode (query);
-        //     }
         }
         const url = this.urls['api'][api] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
