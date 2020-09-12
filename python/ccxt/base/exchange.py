@@ -1065,26 +1065,31 @@ class Exchange(object):
         except (TypeError, OverflowError, OSError, ValueError):
             return None
 
-    def hash(cls, request, algorithm='md5', digest='hex'):
+    @staticmethod
+    def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
             binary = bytes(Exchange.web3.sha3(request))
         else:
             h = hashlib.new(algorithm, request)
             binary = h.digest()
         if digest == 'base64':
-            return Exchange.binary_to_base64(binary)
+            return Exchange.encode(Exchange.binary_to_base64(binary))
         elif digest == 'hex':
             return Exchange.binary_to_base16(binary)
-        return digest
+        return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
-        h = hmac.new(secret, request, algorithm)
-        if digest == 'hex':
-            return h.hexdigest()
-        elif digest == 'base64':
-            return Exchange.binary_to_base64(h.digest())
-        return h.digest()
+        if algorithm == 'keccak':
+            binary = bytes(Exchange.web3.sha3(request))
+        else:
+            h = hmac.new(secret, request, algorithm)
+            binary = h.digest()
+        if digest == 'base64':
+            return Exchange.encode(Exchange.binary_to_base64(binary))
+        elif digest == 'hex':
+            return Exchange.binary_to_base16(binary)
+        return binary
 
     @staticmethod
     def binary_concat(*args):
