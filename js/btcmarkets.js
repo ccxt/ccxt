@@ -998,7 +998,7 @@ module.exports = class btcmarkets extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.secret); // or stringToBase64
+            const secret = this.base64ToBinary (this.encode (this.secret)); // or stringToBase64
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
@@ -1015,7 +1015,7 @@ module.exports = class btcmarkets extends Exchange {
                 'Content-Type': 'application/json',
                 'BM-AUTH-APIKEY': this.apiKey,
                 'BM-AUTH-TIMESTAMP': nonce,
-                'BM-AUTH-SIGNATURE': signature,
+                'BM-AUTH-SIGNATURE': this.decode (signature),
             };
         } else if (api === 'public') {
             if (Object.keys (query).length) {
