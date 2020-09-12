@@ -1081,12 +1081,11 @@ class Exchange(object):
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
         h = hmac.new(secret, request, algorithm)
-        binary = h.digest()
-        if digest == 'base64':
-            return Exchange.encode(Exchange.binary_to_base64(binary))
-        elif digest == 'hex':
-            return Exchange.binary_to_base16(binary)
-        return binary
+        if digest == 'hex':
+            return h.hexdigest()
+        elif digest == 'base64':
+            return Exchange.encode(Exchange.binary_to_base64(h.digest()))
+        return h.digest()
 
     @staticmethod
     def binary_concat(*args):
