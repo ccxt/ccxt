@@ -1067,8 +1067,11 @@ class Exchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
-        h = hashlib.new(algorithm, request)
-        binary = h.digest()
+        if algorithm == 'keccak':
+            binary = bytes(Exchange.web3.sha3(request))
+        else:
+            h = hashlib.new(algorithm, request)
+            binary = h.digest()
         if digest == 'base64':
             return Exchange.encode(Exchange.binary_to_base64(binary))
         elif digest == 'hex':
@@ -1077,11 +1080,8 @@ class Exchange(object):
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
-        if algorithm == 'keccak':
-            binary = bytes(Exchange.web3.sha3(request))
-        else:
-            h = hmac.new(secret, request, algorithm)
-            binary = h.digest()
+        h = hmac.new(secret, request, algorithm)
+        binary = h.digest()
         if digest == 'base64':
             return Exchange.encode(Exchange.binary_to_base64(binary))
         elif digest == 'hex':
