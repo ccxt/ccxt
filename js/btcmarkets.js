@@ -199,15 +199,15 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetTransfers', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetTransfers', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetDeposits', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetDeposits', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetWithdrawals', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetWithdrawals', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -404,7 +404,7 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateV3GetAccountsMeBalances (params);
+        const response = await this.privateGetAccountsMeBalances (params);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -775,7 +775,7 @@ module.exports = class btcmarkets extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         params = this.omit (params, 'clientOrderId');
-        const response = await this.privateV3PostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "orderId": "7524",
@@ -806,7 +806,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'ids': ids,
         };
-        return await this.privateV3DeleteBatchordersIds (this.extend (request, params));
+        return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -814,7 +814,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateV3DeleteOrdersId (this.extend (request, params));
+        return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -938,7 +938,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateV3GetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -958,7 +958,7 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateV3GetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -986,7 +986,7 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateV3GetTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
