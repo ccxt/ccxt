@@ -239,14 +239,14 @@ In many cases due to a unidirectional nature of the underlying data feeds, the a
 
 All of that functionality is handled by CCXT Pro for the user. To work with CCXT Pro, the user does not have to track or manage subscriptions and related data. CCXT Pro will keep a cache of structures in memory to handle the underlying hassle.
 
-Each incoming update says which parts of the data have changed and the receiving side "increments" local state S by merging the update on top of current state S and moves to next local state S'. In terms CCXT Pro that is called _"incremental state"_ and the structures involved in the process of storing and updating the cached state are called _"incremental structures"_. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
+Each incoming update says which parts of the data have changed and the receiving side "increments" local state S by merging the update on top of current state S and moves to next local state S'. In terms of CCXT Pro that is called _"incremental state"_ and the structures involved in the process of storing and updating the cached state are called _"incremental structures"_. CCXT Pro introduces several new base classes to handle the incremental state where necessary.
 
-The incremental structures returned from the unified methods of CCXT Pro is often one of two types:
+The incremental structures returned from the unified methods of CCXT Pro are often one of two types:
 
 1. JSON-decoded object (`object` in JavaScript, `dict` in Python, `array()` in PHP). This type may be returned from public and private methods like `watchTicker`, `watchBalance`, `watchOrder`, etc.
 2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, etc.
 
-In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects kept in memory. The allowed maximum can be configured by the user upon instantiation or later.
+In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects stored in memory. The allowed maximum can be configured by the user upon instantiation or later.
 
 ## Linking
 
