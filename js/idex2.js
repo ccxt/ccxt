@@ -15,7 +15,7 @@ module.exports = class idex2 extends Exchange {
             'name': 'IDEX',
             'countries': [ 'US' ],
             'rateLimit': 1500,
-            'version': 'v1',
+            'version': 'v2',
             'certified': false,
             'requiresWeb3': true,
             'has': {
@@ -54,7 +54,10 @@ module.exports = class idex2 extends Exchange {
                     'private': 'https://api-sandbox.idex.io',
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
-                'api': {},
+                'api': {
+                    'public': 'https://api-sandbox.idex.io',
+                    'private': 'https://api-sandbox.idex.io',
+                },
                 'www': 'https://idex.io',
                 'doc': [
                     'https://docs.idex.io/',
@@ -1143,7 +1146,8 @@ module.exports = class idex2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['test'][api] + '/' + this.version + '/' + path;
+        const version = this.safeString (this.options, 'version', 'v1');
+        let url = this.urls['api'][api] + '/' + version + '/' + path;
         const keys = Object.keys (params);
         const length = keys.length;
         let query = undefined;
