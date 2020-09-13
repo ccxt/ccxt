@@ -187,9 +187,6 @@ class Transpiler {
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
-            [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
-            [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
-            [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
@@ -380,7 +377,7 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace($2, $1)' ],
+            [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
             [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
@@ -527,7 +524,6 @@ class Transpiler {
     createPythonClass (className, baseClass, body, methods, async = false) {
 
         const pythonStandardLibraries = {
-            'base64': 'base64',
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',

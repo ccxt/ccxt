@@ -23,7 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
@@ -108,7 +108,6 @@ try:
     from web3 import Web3, HTTPProvider
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-
 # -----------------------------------------------------------------------------
 
 
@@ -298,6 +297,7 @@ class Exchange(object):
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
+    paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
@@ -393,8 +393,8 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not self.web3:
-            self.web3 = Web3(HTTPProvider())
+        if self.requiresWeb3 and Web3 and not cls.web3:
+            cls.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -777,6 +777,10 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
+    def uuidv1():
+        return str(uuid.uuid1()).replace('-', '')
+
+    @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
@@ -1063,12 +1067,16 @@ class Exchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
-        h = hashlib.new(algorithm, request)
-        if digest == 'hex':
-            return h.hexdigest()
-        elif digest == 'base64':
-            return base64.b64encode(h.digest())
-        return h.digest()
+        if algorithm == 'keccak':
+            binary = bytes(Exchange.web3.sha3(request))
+        else:
+            h = hashlib.new(algorithm, request)
+            binary = h.digest()
+        if digest == 'base64':
+            return Exchange.encode(Exchange.binary_to_base64(binary))
+        elif digest == 'hex':
+            return Exchange.binary_to_base16(binary).lower()
+        return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
@@ -1076,7 +1084,7 @@ class Exchange(object):
         if digest == 'hex':
             return h.hexdigest()
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
+            return Exchange.encode(Exchange.binary_to_base64(h.digest()))
         return h.digest()
 
     @staticmethod
@@ -1100,6 +1108,16 @@ class Exchange(object):
     @staticmethod
     def binary_to_base64(s):
         return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
+    def base64_to_binary(s):
+        return base64.standard_b64decode(s)
+
+    @staticmethod
+    def string_to_base64(s):
+        # will return string in the future
+        binary = Exchange.encode(s) if isinstance(s, str) else s
+        return Exchange.encode(Exchange.binary_to_base64(binary))
 
     @staticmethod
     def jwt(request, secret, alg='HS256'):
@@ -1198,11 +1216,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode()
+        return string.encode('latin-1')
 
     @staticmethod
     def decode(string):
-        return string.decode()
+        return string.decode('latin-1')
 
     @staticmethod
     def to_array(value):
@@ -1255,19 +1273,19 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1391,13 +1409,6 @@ class Exchange(object):
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
         return order['status']
-
-    def purge_cached_orders(self, before):
-        if self.orders:
-            orders = self.to_array(self.orders)
-            orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-            self.orders = self.index_by(orders, 'id')
-        return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
@@ -1913,7 +1924,7 @@ class Exchange(object):
         return self.web3.soliditySha3(types, unpacked).hex()
 
     @staticmethod
-    def remove_0x_prefix(value):
+    def remove0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
@@ -1930,8 +1941,8 @@ class Exchange(object):
             if not isinstance(value, str):
                 raise TypeError("Value must be an instance of str")
             if len(value) % 2:
-                value = "0x0" + self.remove_0x_prefix(value)
-            return base64.b16decode(self.remove_0x_prefix(value), casefold=True)
+                value = "0x0" + self.remove0x_prefix(value)
+            return base64.b16decode(self.remove0x_prefix(value), casefold=True)
 
         domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
         order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
@@ -1986,7 +1997,7 @@ class Exchange(object):
         )
 
     def hashMessage(self, message):
-        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove_0x_prefix(message)), True)
+        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
         hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
@@ -1998,6 +2009,10 @@ class Exchange(object):
             's': '0x' + signature['s'],
             'v': 27 + signature['v'],
         }
+
+    def sign_message_string(self, message, privateKey):
+        signature = self.signMessage(message, privateKey)
+        return signature['r'] + Exchange.remove0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
 
     def signMessage(self, message, privateKey):
         #
@@ -2077,6 +2092,10 @@ class Exchange(object):
     @staticmethod
     def base16_to_binary(s):
         return base64.b16decode(s, True)
+
+    @staticmethod
+    def binary_to_base16(s):
+        return Exchange.decode(base64.b16encode(s))
 
     # python supports arbitrarily big integers
     @staticmethod

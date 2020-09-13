@@ -41,7 +41,7 @@ const { // eslint-disable-line object-curly-newline
     , ExchangeNotAvailable
     , RateLimitExceeded } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 
@@ -200,6 +200,7 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'paddingMode': NO_PADDING,
             'limits': {
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
@@ -1274,23 +1275,23 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
+        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1325,7 +1326,7 @@ module.exports = class Exchange {
             if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
                 encoded.push (this.numberToBE (this.numberToString (value), 32))
             } else {
-                const noPrefix = Exchange.remove0xPrefix (value)
+                const noPrefix = this.remove0xPrefix (value)
                 if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
                     encoded.push (this.base16ToBinary (noPrefix))
                 } else {
@@ -1438,7 +1439,7 @@ module.exports = class Exchange {
         return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
     }
 
-    static remove0xPrefix (hexData) {
+    remove0xPrefix (hexData) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2)
         } else {
@@ -1448,7 +1449,7 @@ module.exports = class Exchange {
 
     hashMessage (message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (Exchange.remove0xPrefix (message))
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
@@ -1464,6 +1465,13 @@ module.exports = class Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    signMessageString (message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage (message, privateKey)
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']));
     }
 
     oath () {
