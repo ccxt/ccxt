@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.34.23'
+__version__ = '1.34.24'
 
 # -----------------------------------------------------------------------------
 
@@ -130,6 +130,7 @@ from ccxt.async_support.huobipro import huobipro                          # noqa
 from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
+from ccxt.async_support.idex2 import idex2                                # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
@@ -254,6 +255,7 @@ exchanges = [
     'huobiru',
     'ice3x',
     'idex',
+    'idex2',
     'independentreserve',
     'indodax',
     'itbit',

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1176,7 +1175,7 @@ class timex(Exchange):
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':
             self.check_required_credentials()
-            auth = base64.b64encode(self.encode(self.apiKey + ':' + self.secret))
+            auth = self.string_to_base64(self.encode(self.apiKey + ':' + self.secret))
             secret = 'Basic ' + self.decode(auth)
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

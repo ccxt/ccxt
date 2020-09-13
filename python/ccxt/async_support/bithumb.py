@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -715,7 +714,7 @@ class bithumb(Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            signature64 = self.decode(base64.b64encode(self.encode(signature)))
+            signature64 = self.decode(self.string_to_base64(self.encode(signature)))
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',

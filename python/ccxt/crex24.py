@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -1209,7 +1208,7 @@ class crex24(Exchange):
         if (api == 'trading') or (api == 'account'):
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             auth = request + nonce
             headers = {
                 'X-CREX24-API-KEY': self.apiKey,
@@ -1219,7 +1218,7 @@ class crex24(Exchange):
                 headers['Content-Type'] = 'application/json'
                 body = self.json(params)
                 auth += body
-            signature = base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
+            signature = self.string_to_base64(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
             headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

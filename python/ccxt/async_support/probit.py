@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1148,7 +1147,7 @@ class probit(Exchange):
             self.check_required_credentials()
             url += self.implode_params(path, params)
             auth = self.apiKey + ':' + self.secret
-            auth64 = base64.b64encode(self.encode(auth))
+            auth64 = self.string_to_base64(self.encode(auth))
             headers = {
                 'Authorization': 'Basic ' + self.decode(auth64),
                 'Content-Type': 'application/json',

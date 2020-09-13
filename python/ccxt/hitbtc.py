@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1050,7 +1049,7 @@ class hitbtc(Exchange):
             elif query:
                 body = self.json(query)
             payload = self.encode(self.apiKey + ':' + self.secret)
-            auth = base64.b64encode(payload)
+            auth = self.string_to_base64(payload)
             headers = {
                 'Authorization': 'Basic ' + self.decode(auth),
                 'Content-Type': 'application/json',

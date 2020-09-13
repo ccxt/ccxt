@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -434,8 +433,8 @@ class wavesexchange(Exchange):
             secretKeyBytes = self.base58_to_binary(self.secret)
         except Exception as e:
             raise AuthenticationError(self.id + ' secret must be a base58 encoded private key')
-        hexApiKeyBytes = base64.b16encode(apiKeyBytes)
-        hexSecretKeyBytes = base64.b16encode(secretKeyBytes)
+        hexApiKeyBytes = self.binary_to_base16(apiKeyBytes)
+        hexSecretKeyBytes = self.binary_to_base16(secretKeyBytes)
         if len(hexApiKeyBytes) != 64:
             raise AuthenticationError(self.id + ' apiKey must be a base58 encoded public key')
         if len(hexSecretKeyBytes) != 64:
@@ -493,9 +492,9 @@ class wavesexchange(Exchange):
             seconds = str(seconds)
             clientId = 'waves.exchange'
             message = 'W:' + clientId + ':' + seconds
-            messageHex = self.decode(base64.b16encode(self.encode(message)))
+            messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
-            hexKey = base64.b16encode(self.base58_to_binary(self.secret))
+            hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
             signature = self.eddsa(payload, hexKey, 'ed25519')
             request = {
                 'grant_type': 'password',
@@ -916,7 +915,7 @@ class wavesexchange(Exchange):
             self.get_asset_bytes(matcherFeeAssetId),
         ]
         binary = self.binary_concat_array(byteArray)
-        signature = self.eddsa(base64.b16encode(binary), base64.b16encode(self.base58_to_binary(self.secret)), 'ed25519')
+        signature = self.eddsa(self.binary_to_base16(binary), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1013,8 +1012,8 @@ class wavesexchange(Exchange):
             self.number_to_be(timestamp, 8),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
@@ -1290,8 +1289,8 @@ class wavesexchange(Exchange):
             self.number_to_be(timestamp, 8),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
@@ -1523,8 +1522,8 @@ class wavesexchange(Exchange):
             self.number_to_be(0, 2),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,

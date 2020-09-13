@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -1129,7 +1128,7 @@ class bitfinex(Exchange):
                 'request': request,
             }, query)
             body = self.json(query)
-            payload = base64.b64encode(self.encode(body))
+            payload = self.string_to_base64(self.encode(body))
             secret = self.encode(self.secret)
             signature = self.hmac(payload, secret, hashlib.sha384)
             headers = {

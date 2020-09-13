@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -291,7 +290,7 @@ class lakebtc(Exchange):
             query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
-            signature64 = self.decode(base64.b64encode(auth))
+            signature64 = self.decode(self.string_to_base64(auth))
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,
                 'Authorization': 'Basic ' + signature64,

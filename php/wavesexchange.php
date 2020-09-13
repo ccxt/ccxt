@@ -512,7 +512,7 @@ class wavesexchange extends Exchange {
             $seconds = (string) $seconds;
             $clientId = 'waves.exchange';
             $message = 'W:' . $clientId . ':' . $seconds;
-            $messageHex = $this->decode(bin2hex($this->encode($message)));
+            $messageHex = bin2hex($this->encode($message));
             $payload = $prefix . $messageHex;
             $hexKey = bin2hex($this->base58_to_binary($this->secret));
             $signature = $this->eddsa($payload, $hexKey, 'ed25519');

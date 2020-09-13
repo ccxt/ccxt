@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -674,9 +673,9 @@ class fcoin(Exchange):
                 if query:
                     body = self.json(query)
                     auth += self.urlencode(query)
-            payload = base64.b64encode(self.encode(auth))
+            payload = self.string_to_base64(self.encode(auth))
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha1, 'binary')
-            signature = self.decode(base64.b64encode(signature))
+            signature = self.decode(self.string_to_base64(signature))
             headers = {
                 'FC-ACCESS-KEY': self.apiKey,
                 'FC-ACCESS-SIGNATURE': signature,

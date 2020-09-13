@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -929,7 +928,7 @@ class btcmarkets(Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = base64.b64decode(self.encode(self.secret))  # or stringToBase64
+            secret = self.base64_to_binary(self.encode(self.secret))  # or stringToBase64
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
                 if query:

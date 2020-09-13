@@ -23,15 +23,16 @@ except NameError:
 #  ---------------------------------------------------------------------------
 
 def test_ohlcv(exchange, ohlcv, symbol, now):
+    json = exchange.json(ohlcv)
     assert ohlcv
-    assert isinstance(ohlcv, list)
+    assert isinstance(ohlcv, list), json
     length = len(ohlcv)
     assert length >= 6
     for i in range(0, len(ohlcv)):
-        assert(ohlcv[i] is None) or (isinstance(ohlcv[i], numbers.Real))
+        assert(ohlcv[i] is None) or (isinstance(ohlcv[i], numbers.Real)), json
 
-    assert ohlcv[0] > 1230940800000  # 03 Jan 2009 - first block
-    assert ohlcv[0] < 2147483648000  # 19 Jan 2038 - int32 overflows
+    assert ohlcv[0] > 1230940800000, json  # 03 Jan 2009 - first block
+    assert ohlcv[0] < 2147483648000, json  # 19 Jan 2038 - int32 overflows
 
     assert(ohlcv[1] is None) or (ohlcv[2] is None) or (ohlcv[1] <= ohlcv[2]), 'open > high, ' + exchange.safe_string(ohlcv, 1, 'None') + ' > ' + exchange.safe_string(ohlcv, 2, 'None')  # open <= high
     assert(ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), 'low > high, ' + exchange.safe_string(ohlcv, 2, 'None') + ' > ' + exchange.safe_string(ohlcv, 3, 'None')  # low <= high
