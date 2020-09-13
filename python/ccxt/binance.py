@@ -86,6 +86,8 @@ class binance(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'test': {
+                    'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
+                    'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -97,6 +99,9 @@ class binance(Exchange):
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'dapiPublic': 'https://dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'fapiData': 'https://fapi.binance.com/futures/data',
@@ -248,6 +253,75 @@ class binance(Exchange):
                         'sub-account/assets',
                     ],
                 },
+                'dapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'exchangeInfo',
+                        'depth',
+                        'trades',
+                        'historicalTrades',
+                        'aggTrades',
+                        'premiumIndex',
+                        'fundingRate',
+                        'klines',
+                        'continuousKlines',
+                        'indexPriceKlines',
+                        'markPriceKlines',
+                        'ticker/24hr',
+                        'ticker/price',
+                        'ticker/bookTicker',
+                        'allForceOrders',
+                        'openInterest',
+                    ],
+                },
+                'dapiData': {
+                    'get': [
+                        'openInterestHist',
+                        'topLongShortAccountRatio',
+                        'topLongShortPositionRatio',
+                        'globalLongShortAccountRatio',
+                        'takerBuySellVol',
+                        'basis',
+                    ],
+                },
+                'dapiPrivate': {
+                    'get': [
+                        'positionSide/dual',
+                        'order',
+                        'openOrder',
+                        'openOrders',
+                        'allOrders',
+                        'balance',
+                        'account',
+                        'positionMargin/history',
+                        'positionRisk',
+                        'userTrades',
+                        'income',
+                        'leverageBracket',
+                        'forceOrders',
+                        'adlQuantile',
+                    ],
+                    'post': [
+                        'positionSide/dual',
+                        'order',
+                        'batchOrders',
+                        'countdownCancelAll',
+                        'leverage',
+                        'marginType',
+                        'positionMargin',
+                        'listenKey',
+                    ],
+                    'put': [
+                        'listenKey',
+                    ],
+                    'delete': [
+                        'order',
+                        'allOpenOrders',
+                        'batchOrders',
+                        'listenKey',
+                    ],
+                },
                 'fapiPublic': {
                     'get': [
                         'ping',
@@ -383,7 +457,7 @@ class binance(Exchange):
                 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot',  # 'spot', 'future', 'margin'
+                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
@@ -453,7 +527,11 @@ class binance(Exchange):
 
     def fetch_time(self, params={}):
         type = self.safe_string_2(self.options, 'fetchTime', 'defaultType', 'spot')
-        method = 'publicGetTime' if (type == 'spot') else 'fapiPublicGetTime'
+        method = 'publicGetTime'
+        if type == 'future':
+            method = 'fapiPublicGetTime'
+        elif type == 'delivery':
+            method = 'dapiPublicGetTime'
         response = getattr(self, method)(params)
         return self.safe_integer(response, 'serverTime')
 
@@ -467,9 +545,13 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        if (type != 'spot') and (type != 'future') and (type != 'margin'):
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin' or 'future'")  # eslint-disable-line quotes
-        method = 'fapiPublicGetExchangeInfo' if (type == 'future') else 'publicGetExchangeInfo'
+        if (type != 'spot') and (type != 'future') and (type != 'margin') and (type != 'delivery'):
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
+        method = 'publicGetExchangeInfo'
+        if type == 'future':
+            method = 'fapiPublicGetExchangeInfo'
+        elif type == 'delivery':
+            method = 'dapiPublicGetExchangeInfo'
         response = getattr(self, method)(query)
         #
         # spot / margin
@@ -512,7 +594,7 @@ class binance(Exchange):
         #         ],
         #     }
         #
-        # futures(fapi)
+        # futures/usdt-margined(fapi)
         #
         #     {
         #         "timezone":"UTC",
@@ -547,22 +629,97 @@ class binance(Exchange):
         #         ]
         #     }
         #
+        # delivery/coin-margined(dapi)
+        #
+        #     {
+        #         "timezone": "UTC",
+        #         "serverTime": 1597667052958,
+        #         "rateLimits": [
+        #             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":6000},
+        #             {"rateLimitType":"ORDERS","interval":"MINUTE","intervalNum":1,"limit":6000}
+        #         ],
+        #         "exchangeFilters": [],
+        #         "symbols": [
+        #             {
+        #                 "symbol": "BTCUSD_200925",
+        #                 "pair": "BTCUSD",
+        #                 "contractType": "CURRENT_QUARTER",
+        #                 "deliveryDate": 1601020800000,
+        #                 "onboardDate": 1590739200000,
+        #                 "contractStatus": "TRADING",
+        #                 "contractSize": 100,
+        #                 "marginAsset": "BTC",
+        #                 "maintMarginPercent": "2.5000",
+        #                 "requiredMarginPercent": "5.0000",
+        #                 "baseAsset": "BTC",
+        #                 "quoteAsset": "USD",
+        #                 "pricePrecision": 1,
+        #                 "quantityPrecision": 0,
+        #                 "baseAssetPrecision": 8,
+        #                 "quotePrecision": 8,
+        #                 "equalQtyPrecision": 4,
+        #                 "filters": [
+        #                     {"minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"},
+        #                     {"stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"},
+        #                     {"stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"},
+        #                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        #                     {"multiplierDown":"0.9500","multiplierUp":"1.0500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        #                 ],
+        #                 "orderTypes": ["LIMIT","MARKET","STOP","STOP_MARKET","TAKE_PROFIT","TAKE_PROFIT_MARKET","TRAILING_STOP_MARKET"],
+        #                 "timeInForce": ["GTC","IOC","FOK","GTX"]
+        #             },
+        #             {
+        #                 "symbol": "BTCUSD_PERP",
+        #                 "pair": "BTCUSD",
+        #                 "contractType": "PERPETUAL",
+        #                 "deliveryDate": 4133404800000,
+        #                 "onboardDate": 1596006000000,
+        #                 "contractStatus": "TRADING",
+        #                 "contractSize": 100,
+        #                 "marginAsset": "BTC",
+        #                 "maintMarginPercent": "2.5000",
+        #                 "requiredMarginPercent": "5.0000",
+        #                 "baseAsset": "BTC",
+        #                 "quoteAsset": "USD",
+        #                 "pricePrecision": 1,
+        #                 "quantityPrecision": 0,
+        #                 "baseAssetPrecision": 8,
+        #                 "quotePrecision": 8,
+        #                 "equalQtyPrecision": 4,
+        #                 "filters": [
+        #                     {"minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"},
+        #                     {"stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"},
+        #                     {"stepSize":"1","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"},
+        #                     {"limit":200,"filterType":"MAX_NUM_ORDERS"},
+        #                     {"multiplierDown":"0.8500","multiplierUp":"1.1500","multiplierDecimal":"4","filterType":"PERCENT_PRICE"}
+        #                 ],
+        #                 "orderTypes": ["LIMIT","MARKET","STOP","STOP_MARKET","TAKE_PROFIT","TAKE_PROFIT_MARKET","TRAILING_STOP_MARKET"],
+        #                 "timeInForce": ["GTC","IOC","FOK","GTX"]
+        #             }
+        #         ]
+        #     }
+        #
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         markets = self.safe_value(response, 'symbols')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            future = ('maintMarginPercent' in market)
-            spot = not future
-            marketType = 'spot' if spot else 'future'
+            marketType = 'spot'
+            future = False
+            delivery = False
+            if 'maintMarginPercent' in market:
+                delivery = ('marginAsset' in market)
+                future = not delivery
+                marketType = 'delivery' if delivery else 'future'
+            spot = not (future or delivery)
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+            symbol = id if delivery else (base + '/' + quote)
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
@@ -571,9 +728,9 @@ class binance(Exchange):
                 'amount': self.safe_integer(market, 'baseAssetPrecision'),
                 'price': self.safe_integer(market, 'quotePrecision'),
             }
-            status = self.safe_string(market, 'status')
+            status = self.safe_string(market, 'contractStatus' if delivery else 'status')
             active = (status == 'TRADING')
-            margin = self.safe_value(market, 'isMarginTradingAllowed', future)
+            margin = self.safe_value(market, 'isMarginTradingAllowed', future or delivery)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -587,6 +744,7 @@ class binance(Exchange):
                 'spot': spot,
                 'margin': margin,
                 'future': future,
+                'delivery': delivery,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -666,6 +824,10 @@ class binance(Exchange):
             options = self.safe_value(self.options, 'future', {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount')
+        elif type == 'delivery':
+            options = self.safe_value(self.options, 'delivery', {})
+            fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
+            method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
         elif type == 'margin':
             method = 'sapiGetMarginAccount'
         query = self.omit(params, 'type')
@@ -848,7 +1010,11 @@ class binance(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
-        method = 'publicGetDepth' if market['spot'] else 'fapiPublicGetDepth'
+        method = 'publicGetDepth'
+        if market['future']:
+            method = 'fapiPublicGetDepth'
+        elif market['delivery']:
+            method = 'dapiPublicGetDepth'
         response = getattr(self, method)(self.extend(request, params))
         orderbook = self.parse_order_book(response)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
@@ -903,7 +1069,11 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
         }
-        method = 'publicGetTicker24hr' if market['spot'] else 'fapiPublicGetTicker24hr'
+        method = 'publicGetTicker24hr'
+        if market['future']:
+            method = 'fapiPublicGetTicker24hr'
+        elif market['delivery']:
+            method = 'dapiPublicGetTicker24hr'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ticker(response, market)
 
@@ -918,7 +1088,11 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        method = 'publicGetTickerBookTicker' if (type == 'spot') else 'fapiPublicGetTickerBookTicker'
+        method = 'publicGetTickerBookTicker'
+        if type == 'future':
+            method = 'fapiPublicGetTickerBookTicker'
+        elif type == 'delivery':
+            method = 'dapiPublicGetTickerBookTicker'
         response = getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
@@ -965,7 +1139,11 @@ class binance(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit  # default == max == 500
-        method = 'publicGetKlines' if market['spot'] else 'fapiPublicGetKlines'
+        method = 'publicGetKlines'
+        if market['future']:
+            method = 'fapiPublicGetKlines'
+        elif market['delivery']:
+            method = 'dapiPublicGetKlines'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     [
@@ -1107,7 +1285,11 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        defaultMethod = 'fapiPublicGetTrades' if (type == 'future') else 'publicGetTrades'
+        defaultMethod = 'publicGetTrades'
+        if type == 'future':
+            defaultMethod = 'fapiPublicGetTrades'
+        elif type == 'delivery':
+            defaultMethod = 'dapiPublicGetTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
         if method == 'publicGetAggTrades':
             if since is not None:
@@ -1117,8 +1299,13 @@ class binance(Exchange):
                 request['endTime'] = self.sum(since, 3600000)
             if type == 'future':
                 method = 'fapiPublicGetAggTrades'
-        elif (method == 'publicGetHistoricalTrades') and (type == 'future'):
-            method = 'fapiPublicGetHistoricalTrades'
+            elif type == 'delivery':
+                method = 'dapiPublicGetAggTrades'
+        elif method == 'publicGetHistoricalTrades':
+            if type == 'future':
+                method = 'fapiPublicGetHistoricalTrades'
+            elif type == 'delivery':
+                method = 'dapiPublicGetHistoricalTrades'
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         #
@@ -1311,6 +1498,8 @@ class binance(Exchange):
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'
+        elif orderType == 'delivery':
+            method = 'dapiPrivatePostOrder'
         elif orderType == 'margin':
             method = 'sapiPostMarginOrder'
         # the next 5 lines are added to support for testing orders
@@ -1430,6 +1619,8 @@ class binance(Exchange):
         method = 'privateGetOrder'
         if type == 'future':
             method = 'fapiPrivateGetOrder'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetOrder'
         elif type == 'margin':
             method = 'sapiGetMarginOrder'
         request = {
@@ -1454,6 +1645,8 @@ class binance(Exchange):
         method = 'privateGetAllOrders'
         if type == 'future':
             method = 'fapiPrivateGetAllOrders'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetAllOrders'
         elif type == 'margin':
             method = 'sapiGetMarginAllOrders'
         request = {
@@ -1535,6 +1728,8 @@ class binance(Exchange):
         method = 'privateGetOpenOrders'
         if type == 'future':
             method = 'fapiPrivateGetOpenOrders'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetOpenOrders'
         elif type == 'margin':
             method = 'sapiGetMarginOpenOrders'
         response = getattr(self, method)(self.extend(request, query))
@@ -1565,6 +1760,8 @@ class binance(Exchange):
         method = 'privateDeleteOrder'
         if type == 'future':
             method = 'fapiPrivateDeleteOrder'
+        elif type == 'delivery':
+            method = 'dapiPrivateDeleteOrder'
         elif type == 'margin':
             method = 'sapiDeleteMarginOrder'
         query = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId'])
@@ -1582,7 +1779,11 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'cancelAllOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        method = 'privateDeleteOpenOrders' if (type == 'spot') else 'fapiPrivateDeleteAllOpenOrders'
+        method = 'privateDeleteOpenOrders'
+        if type == 'future':
+            method = 'fapiPrivateDeleteAllOpenOrders'
+        elif type == 'delivery':
+            method = 'dapiPrivateDeleteAllOpenOrders'
         response = getattr(self, method)(self.extend(request, query))
         if isinstance(response, list):
             return self.parse_orders(response, market)
@@ -1600,6 +1801,8 @@ class binance(Exchange):
             method = 'privateGetMyTrades'
         elif type == 'future':
             method = 'fapiPrivateGetUserTrades'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetUserTrades'
         params = self.omit(params, 'type')
         request = {
             'symbol': market['id'],
@@ -2069,7 +2272,7 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
