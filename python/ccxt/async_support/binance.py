@@ -728,7 +728,7 @@ class binance(Exchange):
                 'amount': self.safe_integer(market, 'baseAssetPrecision'),
                 'price': self.safe_integer(market, 'quotePrecision'),
             }
-            status = self.safe_string(market, 'contractStatus' if delivery else 'status')
+            status = self.safe_string_2(market, 'status', 'contractStatus')
             active = (status == 'TRADING')
             margin = self.safe_value(market, 'isMarginTradingAllowed', future or delivery)
             entry = {

@@ -725,7 +725,7 @@ class binance extends Exchange {
                 'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
                 'price' => $this->safe_integer($market, 'quotePrecision'),
             );
-            $status = $this->safe_string($market, $delivery ? 'contractStatus' : 'status');
+            $status = $this->safe_string_2($market, 'status', 'contractStatus');
             $active = ($status === 'TRADING');
             $margin = $this->safe_value($market, 'isMarginTradingAllowed', $future || $delivery);
             $entry = array(
