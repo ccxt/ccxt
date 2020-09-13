@@ -570,35 +570,13 @@ module.exports = class Exchange {
         if ((code >= 200) && (code <= 299)) {
             return
         }
-        let details = body
         const codeAsString = code.toString ()
         let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
             ErrorClass = this.httpExceptions[codeAsString]
         }
-        if (response === undefined) {
-            const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
-            if (maintenance) {
-                ErrorClass = ExchangeNotAvailable
-                details += ' offline, on maintenance, or unreachable from this location at the moment'
-            }
-            if (ddosProtection) {
-                ErrorClass = DDoSProtection
-            }
-        }
-        if (ErrorClass === ExchangeNotAvailable) {
-            details += ' (possible reasons: ' + [
-                'invalid API keys',
-                'bad or old nonce',
-                'exchange is down or offline',
-                'on maintenance',
-                'DDoS protection',
-                'rate-limiting',
-            ].join (', ') + ')'
-        }
         if (ErrorClass !== undefined) {
-            throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+            throw new ErrorClass ([ this.id, method, url, code, reason, body ].join (' '))
         }
     }
 
