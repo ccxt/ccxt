@@ -571,11 +571,8 @@ module.exports = class Exchange {
             return
         }
         const codeAsString = code.toString ()
-        let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
-            ErrorClass = this.httpExceptions[codeAsString]
-        }
-        if (ErrorClass !== undefined) {
+            const ErrorClass = this.httpExceptions[codeAsString]
             throw new ErrorClass ([ this.id, method, url, code, reason, body ].join (' '))
         }
     }
