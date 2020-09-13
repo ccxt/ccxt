@@ -1254,20 +1254,20 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+    def cost_to_precision(self, symbol, cost, rounding_mode=ROUND):
+        return self.decimal_to_precision(cost, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
 
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+    def price_to_precision(self, symbol, price, rounding_mode=ROUND):
+        return self.decimal_to_precision(price, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
 
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+    def amount_to_precision(self, symbol, amount, rounding_mode=TRUNCATE):
+        return self.decimal_to_precision(amount, rounding_mode, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
-    def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+    def fee_to_precision(self, symbol, fee, rounding_mode=ROUND):
+        return self.decimal_to_precision(fee, rounding_mode, self.markets[symbol]['precision']['price'], self.precisionMode)
 
-    def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+    def currency_to_precision(self, currency, fee, rounding_mode=ROUND):
+        return self.decimal_to_precision(fee, rounding_mode, self.currencies[currency]['precision'], self.precisionMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
