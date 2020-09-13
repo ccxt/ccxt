@@ -15,9 +15,9 @@ module.exports = class bithumbglobal extends Exchange {
             'name': 'Bithumb Global',
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
+            'version': 'v1',
             'has': {
                 'cancelOrder': true,
-                'CORS': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -30,14 +30,15 @@ module.exports = class bithumbglobal extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'withdraw': false,
             },
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://global-openapi.bithumb.pro/openapi/v1',
-                    'private': 'https://global-openapi.bithumb.pro/openapi/v1',
+                    'public': 'https://global-openapi.bithumb.pro/openapi',
+                    'private': 'https://global-openapi.bithumb.pro/openapi',
                 },
                 'www': 'https://www.bithumb.pro',
                 'doc': 'https://github.com/bithumb-pro/bithumb.pro-official-api-docs',
@@ -132,6 +133,20 @@ module.exports = class bithumbglobal extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetServerTime (params);
+        //
+        //     {
+        //         "data":1600010650147,
+        //         "code":"0",
+        //         "msg":"success",
+        //         "timestamp":1600010650147,
+        //         "startTime":null
+        //     }
+        //
+        return this.safeInteger (response, 'timestamp');
     }
 
     async fetchMarkets (params = {}) {
@@ -563,7 +578,7 @@ module.exports = class bithumbglobal extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let url = this.urls['api'][api] + '/' + this.version + endpoint;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
