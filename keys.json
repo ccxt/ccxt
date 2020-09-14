@@ -46,6 +46,7 @@
     "crypton":       { "skip": true },
     "dsx":           { "skip": true },
     "dx":            { "skip": true },
+    "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
     "exmo":          { "skip": true },
     "exx":           { "skip": true },

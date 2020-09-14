@@ -238,6 +238,7 @@ async function testExchange (exchange) {
         'BTC/ETH',
         'ETH/BTC',
         'ETH/USD',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',

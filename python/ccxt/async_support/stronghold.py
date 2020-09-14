@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -728,7 +727,7 @@ class stronghold(Exchange):
             payload = timestamp + method + request
             if body is not None:
                 payload += body
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             headers = {
                 'SH-CRED-ID': self.apiKey,
                 'SH-CRED-SIG': self.hmac(self.encode(payload), secret, hashlib.sha256, 'base64'),

@@ -63,6 +63,10 @@ class okex extends Exchange {
                 '12h' => '43200',
                 '1d' => '86400',
                 '1w' => '604800',
+                '1M' => '2678400',
+                '3M' => '8035200',
+                '6M' => '16070400',
+                '1y' => '31536000',
             ),
             'hostname' => 'okex.com',
             'urls' => array(
@@ -652,6 +656,9 @@ class okex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'fetchOHLCV' => array(
+                    'type' => 'Candles', // Candles or HistoryCandles
+                ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array( 'spot', 'futures', 'swap', 'option' ),
                 'defaultType' => 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -1368,14 +1375,17 @@ class okex extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
         $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'instrument_id' => $market['id'],
             'granularity' => $this->timeframes[$timeframe],
         );
-        if ($market['option'] || $market['spot']) {
-            $method = $market['type'] . 'GetInstrumentsInstrumentIdCandles';
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $defaultType = $this->safe_string($options, 'type', 'Candles'); // Candles or HistoryCandles
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $method = $market['type'] . 'GetInstrumentsInstrumentId' . $type;
+        if ($type === 'Candles') {
             if ($since !== null) {
                 if ($limit !== null) {
                     $request['end'] = $this->iso8601($this->sum($since, $limit * $duration * 1000));
@@ -1388,8 +1398,10 @@ class okex extends Exchange {
                     $request['end'] = $this->iso8601($now);
                 }
             }
-        } else {
-            $method = $market['type'] . 'GetInstrumentsInstrumentIdHistoryCandles';
+        } else if ($type === 'HistoryCandles') {
+            if ($market['option']) {
+                throw new NotSupported($this->id . ' fetchOHLCV does not have ' . $type . ' for ' . $market['type'] . ' markets');
+            }
             if ($since !== null) {
                 if ($limit === null) {
                     $limit = 300; // default

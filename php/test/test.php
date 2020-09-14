@@ -7,7 +7,7 @@ date_default_timezone_set('UTC');
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
-include_once 'test_ohlv.php';
+include_once 'test_ohlcv.php';
 include_once 'test_transaction.php';
 
 function style($s, $style) {
@@ -125,9 +125,16 @@ function test_trades($exchange, $symbol) {
 
 function test_orders($exchange, $symbol) {
     if ($exchange->has['fetchOrders']) {
+        $skipped_exchanges = array (
+            'bitmart',
+            'rightbtc',
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), 'fetch_orders() skipped');
+            return;
+        }
         $delay = $exchange->rateLimit * 1000;
         usleep($delay);
-
         dump(green($symbol), 'fetching orders...');
         $orders = $exchange->fetch_orders($symbol);
         foreach ($orders as $order) {
@@ -308,6 +315,7 @@ function test_exchange($exchange) {
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
     );

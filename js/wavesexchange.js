@@ -248,6 +248,7 @@ module.exports = class wavesexchange extends Exchange {
                 'wavesAddress': undefined,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
+                'wavesPrecision': 8,
             },
             'requiresEddsa': true,
             'exceptions': {
@@ -398,8 +399,10 @@ module.exports = class wavesexchange extends Exchange {
 
     parseOrderBookSide (bookSide, market = undefined, limit = undefined) {
         const precision = market['precision'];
+        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const amountPrecision = Math.pow (10, precision['amount']);
-        const pricePrecision = Math.pow (10, precision['price']);
+        const difference = precision['amount'] - precision['price'];
+        const pricePrecision = Math.pow (10, wavesPrecision - difference);
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const entry = bookSide[i];
@@ -503,7 +506,7 @@ module.exports = class wavesexchange extends Exchange {
             seconds = seconds.toString ();
             const clientId = 'waves.exchange';
             const message = 'W:' + clientId + ':' + seconds;
-            const messageHex = this.decode (this.binaryToBase16 (this.stringToBinary (this.encode (message))));
+            const messageHex = this.binaryToBase16 (this.stringToBinary (this.encode (message)));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
             const signature = this.eddsa (payload, hexKey, 'ed25519');
@@ -808,7 +811,10 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     priceToPrecision (symbol, price) {
-        return parseInt (parseFloat (this.toWei (price, this.markets[symbol]['precision']['price'])));
+        const market = this.markets[symbol];
+        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
+        const difference = market['precision']['amount'] - market['precision']['price'];
+        return parseInt (parseFloat (this.toWei (price, wavesPrecision - difference)));
     }
 
     amountToPrecision (symbol, amount) {
@@ -821,6 +827,13 @@ module.exports = class wavesexchange extends Exchange {
 
     currencyFromPrecision (currency, amount) {
         return this.fromWei (amount, this.currencies[currency]['precision']);
+    }
+
+    priceFromPrecision (symbol, price) {
+        const market = this.markets[symbol];
+        const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
+        const difference = market['precision']['amount'] - market['precision']['price'];
+        return this.fromWei (price, wavesPrecision - difference);
     }
 
     getDefaultExpiry () {
@@ -930,11 +943,11 @@ module.exports = class wavesexchange extends Exchange {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
         }
         if (matcherFee === undefined) {
+            const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
             const rate = this.safeFloat (rates, matcherFeeAssetId);
             const code = this.safeCurrencyCode (matcherFeeAssetId);
-            const waves = this.currency ('WAVES');
             const currency = this.currency (code);
-            const newPrecison = Math.pow (10, waves['precision'] - currency['precision']);
+            const newPrecison = Math.pow (10, wavesPrecision - currency['precision']);
             matcherFee = Math.ceil (rate * baseMatcherFee / newPrecison);
         }
         const byteArray = [
@@ -1152,12 +1165,55 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const isCreateOrder = this.safeInteger (order, 'version');
+        // createOrder
+        // {
+        //   version: 3,
+        //   id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        //   sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        //   senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        //   matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        //   assetPair: {
+        //     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //     priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        //   },
+        //   orderType: 'buy',
+        //   amount: 10000,
+        //   price: 400000000,
+        //   timestamp: 1599848586891,
+        //   expiration: 1602267786891,
+        //   matcherFee: 3008,
+        //   matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //   signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //   proofs: [
+        //     '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        //   ]
+        // }
+        // fetchClosedOrders
+        // {
+        //   id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        //   type: 'buy',
+        //   orderType: 'limit',
+        //   amount: 30000000000,
+        //   filled: 0,
+        //   price: 1000000,
+        //   fee: 300000,
+        //   filledFee: 0,
+        //   feeAsset: 'WAVES',
+        //   timestamp: 1594303779322,
+        //   status: 'Cancelled',
+        //   assetPair: {
+        //     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //     priceAsset: 'WAVES'
+        //   },
+        //   avgWeighedPrice: 0,
+        //   version: 3
+        // }
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeString2 (order, 'type', 'orderType');
         let type = 'limit';
-        if (!isCreateOrder) {
-            type = this.safeString (order, 'orderType');
+        if ('type' in order) {
+            // fetchOrders
+            type = this.safeString (order, 'orderType', type);
         }
         const id = this.safeString (order, 'id');
         let filled = this.safeString (order, 'filled');
@@ -1170,9 +1226,8 @@ module.exports = class wavesexchange extends Exchange {
         } else if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const priceCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'priceAsset', 'WAVES'));
         const amountCurrency = this.safeCurrencyCode (this.safeString (assetPair, 'amountAsset', 'WAVES'));
-        price = this.currencyFromPrecision (priceCurrency, price);
+        price = this.priceFromPrecision (symbol, price);
         amount = this.currencyFromPrecision (amountCurrency, amount);
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
@@ -1183,20 +1238,20 @@ module.exports = class wavesexchange extends Exchange {
         if ((filled !== undefined) && (amount !== undefined)) {
             remaining = amount - filled;
         }
-        const average = this.currencyFromPrecision (priceCurrency, this.safeString (order, 'avgWeighedPrice'));
+        const average = this.priceFromPrecision (symbol, this.safeString (order, 'avgWeighedPrice'));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let fee = undefined;
-        if (isCreateOrder) {
-            const currency = this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES'));
-            fee = {
-                'currency': currency,
-                'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'matcherFee')),
-            };
-        } else {
+        if ('type' in order) {
             const currency = this.safeCurrencyCode (this.safeString (order, 'feeAsset'));
             fee = {
                 'currency': currency,
                 'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'filledFee')),
+            };
+        } else {
+            const currency = this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES'));
+            fee = {
+                'currency': currency,
+                'fee': this.currencyFromPrecision (currency, this.safeInteger (order, 'matcherFee')),
             };
         }
         return {

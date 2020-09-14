@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -572,7 +571,7 @@ class luno(Exchange):
         if api == 'private':
             self.check_required_credentials()
             auth = self.encode(self.apiKey + ':' + self.secret)
-            auth = base64.b64encode(auth)
+            auth = self.string_to_base64(auth)
             headers = {'Authorization': 'Basic ' + self.decode(auth)}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
