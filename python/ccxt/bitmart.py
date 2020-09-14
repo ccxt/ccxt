@@ -1007,6 +1007,10 @@ class bitmart(Exchange):
                 side = 'buy'
             else:
                 side = 'sell'
+        takerOrMaker = None
+        execType = self.safe_string(trade, 'exec_type')
+        if execType is not None:
+            takerOrMaker = 'maker' if (execType == 'M') else 'taker'
         price = self.safe_float_2(trade, 'price', 'deal_price')
         price = self.safe_float(trade, 'price_avg', price)
         amount = self.safe_float_2(trade, 'amount', 'deal_vol')
@@ -1052,7 +1056,7 @@ class bitmart(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'fee': fee,
         }
 

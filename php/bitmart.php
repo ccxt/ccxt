@@ -1020,6 +1020,11 @@ class bitmart extends Exchange {
                 $side = 'sell';
             }
         }
+        $takerOrMaker = null;
+        $execType = $this->safe_string($trade, 'exec_type');
+        if ($execType !== null) {
+            $takerOrMaker = ($execType === 'M') ? 'maker' : 'taker';
+        }
         $price = $this->safe_float_2($trade, 'price', 'deal_price');
         $price = $this->safe_float($trade, 'price_avg', $price);
         $amount = $this->safe_float_2($trade, 'amount', 'deal_vol');
@@ -1072,7 +1077,7 @@ class bitmart extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
         );
     }
