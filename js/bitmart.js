@@ -1015,6 +1015,11 @@ module.exports = class bitmart extends Exchange {
                 side = 'sell';
             }
         }
+        let takerOrMaker = undefined;
+        const execType = this.safeString (trade, 'exec_type');
+        if (execType !== undefined) {
+            takerOrMaker = (execType === 'M') ? 'maker' : 'taker';
+        }
         let price = this.safeFloat2 (trade, 'price', 'deal_price');
         price = this.safeFloat (trade, 'price_avg', price);
         let amount = this.safeFloat2 (trade, 'amount', 'deal_vol');
@@ -1067,7 +1072,7 @@ module.exports = class bitmart extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'fee': fee,
         };
     }
