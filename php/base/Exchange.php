@@ -1472,48 +1472,10 @@ class Exchange {
 
         if (array_key_exists($string_code, $this->httpExceptions)) {
             $error_class = $this->httpExceptions[$string_code];
-            if ($error_class === 'ExchangeNotAvailable') {
-                if (preg_match('#cloudflare|incapsula|overload|ddos#i', $result)) {
-                    throw new DDoSProtection(implode(' ', array($url, $method, $http_status_code, $result)));
-                }
-                $details = '(possible reasons: ' . implode(', ', array(
-                        'invalid API keys',
-                        'bad or old nonce',
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting in effect',
-                    )) . ')';
-                throw new ExchangeNotAvailable(implode(' ', array($url, $method, $http_status_code, $result, $details)));
-            }
             if (substr($error_class, 0, 6) !== '\\ccxt\\') {
                 $error_class = '\\ccxt\\' . $error_class;
             }
             throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
-        }
-
-        if ($is_json_encoded_response && !$json_response) {
-            $details = '(possible reasons: ' . implode(', ', array(
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting in effect',
-                )) . ')';
-            $error_class = null;
-            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
-                print("fobaro\n");
-                exit();
-                $error_class = 'ExchangeNotAvailable';
-            }
-            if (preg_match('#cloudflare|incapsula#i', $result)) {
-                $error_class = 'DDosProtection';
-            }
-            if ($error_class !== null) {
-                if (substr($error_class, 0, 6) !== '\\ccxt\\') {
-                    $error_class = '\\ccxt\\' . $error_class;
-                }
-                throw new $error_class(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
-            }
         }
 
         return isset($json_response) ? $json_response : $result;
