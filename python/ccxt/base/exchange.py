@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.34.26'
+__version__ = '1.34.29'
 
 # -----------------------------------------------------------------------------
 
@@ -1876,125 +1876,11 @@ class Exchange(object):
     def solidityValues(self, array):
         return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
-    def getZeroExOrderHash2(self, order):
-        return self.soliditySha3([
-            order['exchangeContractAddress'],  # address
-            order['maker'],  # address
-            order['taker'],  # address
-            order['makerTokenAddress'],  # address
-            order['takerTokenAddress'],  # address
-            order['feeRecipient'],  # address
-            order['makerTokenAmount'],  # uint256
-            order['takerTokenAmount'],  # uint256
-            order['makerFee'],  # uint256
-            order['takerFee'],  # uint256
-            order['expirationUnixTimestampSec'],  # uint256
-            order['salt'],  # uint256
-        ])
-
-    def getZeroExOrderHash(self, order):
-        unpacked = [
-            self.web3.toChecksumAddress(order['exchangeContractAddress']),  # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['maker']),                    # { value: order.maker, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['taker']),                    # { value: order.taker, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['makerTokenAddress']),        # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['takerTokenAddress']),        # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['feeRecipient']),             # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            int(order['makerTokenAmount']),             # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            int(order['takerTokenAmount']),             # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            int(order['makerFee']),                     # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            int(order['takerFee']),                     # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            int(order['expirationUnixTimestampSec']),   # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            int(order['salt']),                         # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        types = [
-            'address',  # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.maker, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.taker, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            'uint256',  # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        return self.web3.soliditySha3(types, unpacked).hex()
-
     @staticmethod
     def remove0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
-
-    def getZeroExOrderHashV2(self, order):
-        # https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        def pad_20_bytes_to_32(twenty_bytes):
-            return bytes(12) + twenty_bytes
-
-        def int_to_32_big_endian_bytes(i):
-            return i.to_bytes(32, byteorder="big")
-
-        def to_bytes(value):
-            if not isinstance(value, str):
-                raise TypeError("Value must be an instance of str")
-            if len(value) % 2:
-                value = "0x0" + self.remove0x_prefix(value)
-            return base64.b16decode(self.remove0x_prefix(value), casefold=True)
-
-        domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
-        order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
-        header = b"\x19\x01"
-
-        domain_struct_hash = self.web3.sha3(
-            domain_struct_header +
-            pad_20_bytes_to_32(to_bytes(order["exchangeAddress"]))
-        )
-
-        order_struct_hash = self.web3.sha3(
-            order_schema_hash +
-            pad_20_bytes_to_32(to_bytes(order["makerAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["takerAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["feeRecipientAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["senderAddress"])) +
-            int_to_32_big_endian_bytes(int(order["makerAssetAmount"])) +
-            int_to_32_big_endian_bytes(int(order["takerAssetAmount"])) +
-            int_to_32_big_endian_bytes(int(order["makerFee"])) +
-            int_to_32_big_endian_bytes(int(order["takerFee"])) +
-            int_to_32_big_endian_bytes(int(order["expirationTimeSeconds"])) +
-            int_to_32_big_endian_bytes(int(order["salt"])) +
-            self.web3.sha3(to_bytes(order["makerAssetData"])) +
-            self.web3.sha3(to_bytes(order["takerAssetData"]))
-        )
-
-        sha3 = self.web3.sha3(
-            header +
-            domain_struct_hash +
-            order_struct_hash
-        )
-        return '0x' + base64.b16encode(sha3).decode('ascii').lower()
-
-    def signZeroExOrderV2(self, order, privateKey):
-        orderHash = self.getZeroExOrderHashV2(order)
-        signature = self.signMessage(orderHash[-64:], privateKey)
-        return self.extend(order, {
-            'orderHash': orderHash,
-            'signature': self._convertECSignatureToSignatureHex(signature),
-        })
-
-    def _convertECSignatureToSignatureHex(self, signature):
-        # https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
-        v = signature["v"]
-        if v != 27 and v != 28:
-            v = v + 27
-        return (
-            hex(v) +
-            signature["r"][-64:] +
-            signature["s"][-64:] +
-            "03"
-        )
 
     def hashMessage(self, message):
         message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
