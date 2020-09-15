@@ -1841,6 +1841,28 @@ class Exchange {
         return $this->parse_orders($orders, $market, $since, $limit, $params);
     }
 
+    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                return $market['symbol'];
+            } else if ($delimiter !== null) {
+                list($baseId, $quoteId) = explode($delimiter, $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                return $base . '/' . $quote;
+            }
+        }
+        if ($market !== null) {
+            return $market['symbol'];
+        }
+        return $marketId;
+    }
+
+    public function safeSymbol($marketId, $market = null, $delimiter = null) {
+        return $this->safe_symbol($marketId, $market, $delimiter);
+    }
+
     public function safe_currency_code($currency_id, $currency = null) {
         $code = null;
         if ($currency_id !== null) {
