@@ -138,6 +138,7 @@ class Transpiler {
             [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
             [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
             [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+            [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.roundTimeframe/g, '.round_timeframe'],
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
