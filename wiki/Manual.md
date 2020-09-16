@@ -716,7 +716,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `tierBased`. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. The values inside this market property depend on the `exchange.precisionMode`.
-    - If `exchange.precisionMode` is `DECIMAL_DIGITS` then the `market['precision']` designates the number of decimal digits after the dot.
+    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `market['precision']` designates the number of decimal digits after the dot.
     - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `market['precision']` designates the number of non-zero digits after the dot.
     - When `exchange.precisionMode` is `TICK_SIZE` then the `market['precision']` designates the smallest possible float fractions.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
@@ -755,7 +755,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether or not trading and funding (depositing and withdrawing) this currency is currently possible. Often, when a currency is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that currency. The user should check if the currency is active and [reload markets periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value inside this property depend on the `exchange.precisionMode`.
-    - If `exchange.precisionMode` is `DECIMAL_DIGITS` then the `currency['precision']` designates the number of decimal digits after the dot.
+    - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `currency['precision']` designates the number of decimal digits after the dot.
     - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
     - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
 - `limits`. The minimums and maximums for prices, amounts (volumes), costs (where cost = price * amount) and withdrawals.
