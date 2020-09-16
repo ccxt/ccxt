@@ -58,9 +58,6 @@ class upbit(Exchange, ccxt.upbit):
         future = self.watch_public(symbol, 'orderbook')
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def sign_message(self, client, messageHash, message):
-        return message
-
     def handle_ticker(self, client, message):
         # 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         # {type: 'ticker',

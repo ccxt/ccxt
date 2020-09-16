@@ -101,7 +101,7 @@ class currencycom(Exchange, ccxt.currencycom):
         #     }
         #
         payload = self.safe_value(message, 'payload')
-        balance = self.parseBalanceResponse(payload)
+        balance = self.parse_balance_response(payload)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(self.balance, messageHash)
@@ -416,10 +416,6 @@ class currencycom(Exchange, ccxt.currencycom):
         self.handle_deltas(orderbook['asks'], asks)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
 
     def handle_message(self, client, message):
         #

@@ -419,7 +419,7 @@ class bitmex(Exchange, ccxt.bitmex):
         #     }
         #
         data = self.safe_value(message, 'data')
-        balance = self.parseBalanceResponse(data)
+        balance = self.parse_balance_response(data)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)
@@ -802,10 +802,6 @@ class bitmex(Exchange, ccxt.bitmex):
         event = 'heartbeat'
         url = self.urls['api']['ws']
         return await self.watch(url, event)
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo bitmex signMessage not implemented yet
-        return message
 
     def handle_order_book(self, client, message):
         #

@@ -389,11 +389,6 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: signMessage not implemented yet
-        return message;
-    }
-
     async authenticate () {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);

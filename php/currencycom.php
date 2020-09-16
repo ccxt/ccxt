@@ -105,7 +105,7 @@ class currencycom extends \ccxt\currencycom {
         //     }
         //
         $payload = $this->safe_value($message, 'payload');
-        $balance = $this->parseBalanceResponse ($payload);
+        $balance = $this->parse_balance_response($payload);
         $this->balance = array_merge($this->balance, $balance);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, $messageHash);
@@ -450,11 +450,6 @@ class currencycom extends \ccxt\currencycom {
         $this->handle_deltas($orderbook['asks'], $asks);
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
     }
 
     public function handle_message($client, $message) {

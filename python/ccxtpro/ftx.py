@@ -67,22 +67,22 @@ class ftx(Exchange, ccxt.ftx):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['id']
-        self.authenticate()
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
             'channel': channel,
         }
-        return await self.watch(url, messageHash, request, channel)
+        future = self.authenticate()
+        return await self.after_dropped(future, self.watch, url, messageHash, request, channel)
 
     def authenticate(self):
         url = self.urls['api']['ws']
         client = self.client(url)
         authenticate = 'authenticate'
+        method = 'login'
         if not (authenticate in client.subscriptions):
             self.check_required_credentials()
             client.subscriptions[authenticate] = True
-            method = 'login'
             time = self.milliseconds()
             payload = str(time) + 'websocket_login'
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
@@ -95,7 +95,9 @@ class ftx(Exchange, ccxt.ftx):
                 'op': method,
             }
             # ftx does not reply to self message
-            self.spawn(self.watch, url, method, message)
+            future = self.watch(url, method, message)
+            future.resolve(True)
+        return client.future(method)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public(symbol, 'ticker')
@@ -107,9 +109,6 @@ class ftx(Exchange, ccxt.ftx):
     async def watch_order_book(self, symbol, limit=None, params={}):
         future = self.watch_public(symbol, 'orderbook')
         return await self.after(future, self.limit_order_book, symbol, limit, params)
-
-    def sign_message(self, client, messageHash, message):
-        return message
 
     def handle_partial(self, client, message):
         methods = {
@@ -311,9 +310,6 @@ class ftx(Exchange, ccxt.ftx):
     def handle_subscription_status(self, client, message):
         # todo: handle unsubscription status
         # {'type': 'subscribed', 'channel': 'trades', 'market': 'BTC-PERP'}
-        channel = self.safe_string(message, 'channel')
-        if (channel == 'orders') or (channel == 'fills'):
-            client.resolve(True, 'login')
         return message
 
     def handle_unsubscription_status(self, client, message):
@@ -342,7 +338,6 @@ class ftx(Exchange, ccxt.ftx):
             # just reject the private api futures
             client.reject(error, 'fills')
             client.reject(error, 'orders')
-            client.reject(error, 'login')
         return message
 
     def ping(self, client):

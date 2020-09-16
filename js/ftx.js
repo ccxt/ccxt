@@ -66,23 +66,23 @@ module.exports = class ftx extends ccxt.ftx {
             const market = this.market (symbol);
             messageHash = messageHash + ':' + market['id'];
         }
-        this.authenticate ();
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'channel': channel,
         };
-        return await this.watch (url, messageHash, request, channel);
+        const future = this.authenticate ();
+        return await this.afterDropped (future, this.watch, url, messageHash, request, channel);
     }
 
     authenticate () {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const authenticate = 'authenticate';
+        const method = 'login';
         if (!(authenticate in client.subscriptions)) {
             this.checkRequiredCredentials ();
             client.subscriptions[authenticate] = true;
-            const method = 'login';
             const time = this.milliseconds ();
             const payload = time.toString () + 'websocket_login';
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
@@ -95,8 +95,10 @@ module.exports = class ftx extends ccxt.ftx {
                 'op': method,
             };
             // ftx does not reply to this message
-            this.spawn (this.watch, url, method, message);
+            const future = this.watch (url, method, message);
+            future.resolve (true);
         }
+        return client.future (method);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -111,10 +113,6 @@ module.exports = class ftx extends ccxt.ftx {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const future = this.watchPublic (symbol, 'orderbook');
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
-    }
-
-    signMessage (client, messageHash, message) {
-        return message;
     }
 
     handlePartial (client, message) {
@@ -338,10 +336,6 @@ module.exports = class ftx extends ccxt.ftx {
     handleSubscriptionStatus (client, message) {
         // todo: handle unsubscription status
         // {'type': 'subscribed', 'channel': 'trades', 'market': 'BTC-PERP'}
-        const channel = this.safeString (message, 'channel');
-        if ((channel === 'orders') || (channel === 'fills')) {
-            client.resolve (true, 'login');
-        }
         return message;
     }
 
@@ -375,7 +369,6 @@ module.exports = class ftx extends ccxt.ftx {
             // just reject the private api futures
             client.reject (error, 'fills');
             client.reject (error, 'orders');
-            client.reject (error, 'login');
         }
         return message;
     }

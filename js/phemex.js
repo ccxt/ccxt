@@ -429,11 +429,6 @@ module.exports = class phemex extends ccxt.phemex {
         return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: signMessage not implemented yet
-        return message;
-    }
-
     handleMessage (client, message) {
         if (('market24h' in message) || ('spot_market24h' in message)) {
             return this.handleTicker (client, message);

@@ -308,11 +308,6 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleOrderBookSubscription (client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');

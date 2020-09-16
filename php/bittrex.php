@@ -1075,11 +1075,6 @@ class bittrex extends \ccxt\bittrex {
         }
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage() if needed
-        return $message;
-    }
-
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($api === 'signalr') {
             $url = $this->implode_params($this->urls['api'][$api], array(

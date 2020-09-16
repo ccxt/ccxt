@@ -443,11 +443,6 @@ module.exports = class huobipro extends ccxt.huobipro {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');

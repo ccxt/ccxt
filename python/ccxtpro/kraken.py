@@ -466,10 +466,6 @@ class kraken(Exchange, ccxt.kraken):
                 return False
         return True
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
-
     def handle_message(self, client, message):
         if isinstance(message, list):
             channelId = str(message[0])
