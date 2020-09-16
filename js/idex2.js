@@ -289,16 +289,21 @@ module.exports = class idex2 extends ccxt.idex2 {
         client.resolve (stored, messageHash);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleErrorMessage (client, message) {
     }
 
     handleSubscribeMessage (client, message) {
+        // { type: 'subscriptions',
+        //   subscriptions: [ { name: 'l2orderbook', markets: [Array] } ] }
+        // 2020-09-16T19:00:37.307Z 'onMessage' { type: 'l2orderbook',
+        //   data:
+        //    { m: 'DIL-ETH',
+        //      t: 1600282837590,
+        //      u: 96456704,
+        //      b: [ [ "0.09662187", "0.00000000", ] ],
+        //      a: [] } }
         const subscriptions = this.safeValue (message, 'subscriptions');
+        /*
         for (let i = 0; i < subscriptions.length; i++) {
             const subcription = subscriptions[i];
             const name = this.safeString (subcription, 'name');
@@ -317,7 +322,9 @@ module.exports = class idex2 extends ccxt.idex2 {
                 }
                 break;
             }
-        }
+
+         */
+        console.log (JSON.stringify (message, undefined, 2))
     }
 
     async fetchOrderBookSnapshot (symbol, params = {}) {
@@ -343,110 +350,20 @@ module.exports = class idex2 extends ccxt.idex2 {
         //   "type": "l2orderbook",
         //   "data": {
         //     "m": "DIL-ETH",
-        //     "t": 1599570110362,
-        //     "u": 69998574,
+        //     "t": 1600197205037,
+        //     "u": 94116643,
         //     "b": [
         //       [
-        //         "0.09595532",
-        //         "8.56448181",
-        //         1
-        //       ],
-        //       [
-        //         "0.09582380",
-        //         "1.81909035",
-        //         1
-        //       ],
-        //       [
-        //         "0.09576758",
-        //         "3.86812979",
-        //         1
-        //       ],
-        //       [
-        //         "0.09560818",
-        //         "3.13670284",
-        //         1
-        //       ],
-        //       [
-        //         "0.09559541",
-        //         "1.63959064",
-        //         1
-        //       ],
-        //       [
-        //         "0.09540683",
-        //         "3.33012185",
-        //         1
-        //       ],
-        //       [
-        //         "0.09537234",
-        //         "3.67353039",
-        //         1
-        //       ],
-        //       [
-        //         "0.09527353",
-        //         "4.61202161",
-        //         1
-        //       ],
-        //       [
-        //         "0.09526166",
-        //         "3.88483005",
-        //         1
-        //       ],
-        //       [
-        //         "0.09511193",
-        //         "2.04464298",
-        //         1
+        //         "0.09662187",
+        //         "0.00000000",
+        //         0
         //       ]
         //     ],
-        //     "a": [
-        //       [
-        //         "0.09807172",
-        //         "1.76426833",
-        //         1
-        //       ],
-        //       [
-        //         "0.09827205",
-        //         "2.00109664",
-        //         1
-        //       ],
-        //       [
-        //         "0.09837124",
-        //         "3.67136319",
-        //         1
-        //       ],
-        //       [
-        //         "0.09842841",
-        //         "3.44890575",
-        //         1
-        //       ],
-        //       [
-        //         "0.09855225",
-        //         "4.20887742",
-        //         1
-        //       ],
-        //       [
-        //         "0.09870646",
-        //         "4.45117077",
-        //         1
-        //       ],
-        //       [
-        //         "0.50000000",
-        //         "0.40000000",
-        //         1
-        //       ],
-        //       [
-        //         "0.90000000",
-        //         "0.25000000",
-        //         1
-        //       ],
-        //       [
-        //         "1.00000000",
-        //         "0.30000000",
-        //         2
-        //       ]
-        //     ]
+        //     "a": []
         //   }
         // }
-        console.log (JSON.stringify (message, undefined, 2))
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'm');
     }
 
     async authenticate (params = {}) {
