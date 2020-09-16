@@ -46,22 +46,6 @@ const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConst
 const BN = require ('../static_dependencies/BN/bn')
 
 // ----------------------------------------------------------------------------
-// web3 / 0x imports
-
-let ethAbi = undefined
-    , ethUtil = undefined
-
-try {
-    const requireFunction = require;
-    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
-    // we prefer bignumber.js over BN.js
-    // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
-} catch (e) {
-    // nothing
-}
-
-// ----------------------------------------------------------------------------
 
 module.exports = class Exchange {
 
@@ -1281,16 +1265,8 @@ module.exports = class Exchange {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // web3 / 0x methods
-    static hasWeb3 () {
-        return ethUtil && ethAbi
-    }
-
     checkRequiredDependencies () {
-        if (this.requiresWeb3 && !Exchange.hasWeb3 ()) {
-            throw new ExchangeError ('Required dependencies missing: \nnpm i ethereumjs-util ethereumjs-abi --no-save');
-        }
+        return
     }
 
     soliditySha3 (array) {
