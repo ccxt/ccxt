@@ -21,7 +21,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/83935830-0061e400-a7c6-11ea-8215-92983a611531.png)](https://ccxt.pro) **[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)**
+| **[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)** [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/93346896-22dfb080-f83d-11ea-957f-6b8ae008f62a.png)](https://ccxt.pro) |
+|:-:|
+| [![Waves.Exchange Market Maker Program](https://user-images.githubusercontent.com/1294454/93346883-1fe4c000-f83d-11ea-8e06-b8fce45853de.jpeg)](https://waves.exchange/market-making) |
 
 
 ## See Also
