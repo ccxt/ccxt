@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -293,47 +292,75 @@ module.exports = class idex2 extends ccxt.idex2 {
     }
 
     handleSubscribeMessage (client, message) {
-        // { type: 'subscriptions',
-        //   subscriptions: [ { name: 'l2orderbook', markets: [Array] } ] }
-        // 2020-09-16T19:00:37.307Z 'onMessage' { type: 'l2orderbook',
-        //   data:
-        //    { m: 'DIL-ETH',
-        //      t: 1600282837590,
-        //      u: 96456704,
-        //      b: [ [ "0.09662187", "0.00000000", ] ],
-        //      a: [] } }
+        // {
+        //   "type": "subscriptions",
+        //   "subscriptions": [
+        //     {
+        //       "name": "l2orderbook",
+        //       "markets": [
+        //         "DIL-ETH"
+        //       ]
+        //     }
+        //   ]
+        // }
         const subscriptions = this.safeValue (message, 'subscriptions');
-        /*
         for (let i = 0; i < subscriptions.length; i++) {
-            const subcription = subscriptions[i];
-            const name = this.safeString (subcription, 'name');
+            const subscription = subscriptions[i];
+            const name = this.safeString (subscription, 'name');
             if (name === 'l2orderbook') {
-                const markets = this.safeValue (subcription, 'markets');
+                const markets = this.safeValue (subscription, 'markets');
                 for (let j = 0; j < markets.length; j++) {
                     const marketId = markets[j];
                     const orderBookSubscriptions = this.safeValue (this.options, 'orderBookSubscriptions', {});
                     if (!(marketId in orderBookSubscriptions) && (marketId in this.markets_by_id)) {
                         const symbol = this.markets_by_id[marketId]['symbol'];
                         if (!(symbol in this.orderbooks)) {
-                            this.orderbooks[symbol] = this.orderBook ({});
+                            const orderbook = this.countedOrderBook ({});
+                            orderbook.cache = [];
+                            this.orderbooks[symbol] = orderbook;
                         }
-                        this.spawn (this.fetchOrderBookSnapshot, symbol);
+                        this.spawn (this.fetchOrderBookSnapshot, client, symbol);
                     }
                 }
                 break;
             }
-
-         */
-        console.log (JSON.stringify (message, undefined, 2))
+        }
     }
 
-    async fetchOrderBookSnapshot (symbol, params = {}) {
-        const book = await this.fetchOrderBook (symbol, params);
+    async fetchOrderBookSnapshot (client, symbol, params = {}) {
         const orderbook = this.orderbooks[symbol];
+        const market = this.market (symbol);
+        const messageHash = 'l2orderbook' + ':' + market['id'];
+        let firstBuffered = this.safeValue (orderbook.cache, 0);
+        let firstData = this.safeValue (firstBuffered, 'data');
+        let firstNonce = this.safeInteger (firstData, 'u');
+        // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
+        let book = await this.fetchOrderBook (symbol, 0);
+        while ((firstNonce === undefined) || (book['nonce'] < firstNonce)) {
+            // 4. If the sequence in the order book snapshot is less than the sequence of the
+            //    first buffered order book update message, discard the order book snapshot and retry step 3.
+            book = await this.fetchOrderBook (symbol, 0);
+            firstBuffered = this.safeValue (orderbook.cache, 0);
+            firstData = this.safeValue (firstBuffered, 'data');
+            firstNonce = this.safeInteger (firstData, 'u');
+        }
         orderbook.reset (book);
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        // unroll buffered messages
+        for (let i = 0; i < orderbook.cache.length; i++) {
+            const message = orderbook.cache[i];
+            const data = this.safeValue (message, 'data');
+            const u = this.safeInteger (data, 'u');
+            if (u > nonce) {
+                // 5. Discard all order book update messages with sequence numbers less than or equal to the snapshot sequence number.
+                // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book snapshot.
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
+        }
+        client.resolve (orderbook, messageHash);
     }
 
-    async watchOrderBook (symbol, params = {}) {
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'l2orderbook';
@@ -342,10 +369,28 @@ module.exports = class idex2 extends ccxt.idex2 {
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
-        return await this.subscribe (subscribeObject, messageHash);
+        // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
+        const future = this.subscribe (subscribeObject, messageHash);
+        return await this.after (future, this.limitOrderBook, symbol, limit);
     }
 
     handleOrderBook (client, message) {
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'm');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
+        const orderbook = this.orderbooks[symbol];
+        if (orderbook['nonce'] === undefined) {
+            // 2. Buffer the incoming order book update subscription messages.
+            orderbook.cache.push (message);
+        } else {
+            this.handleOrderBookMessage (client, message, orderbook);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
         // {
         //   "type": "l2orderbook",
         //   "data": {
@@ -362,8 +407,33 @@ module.exports = class idex2 extends ccxt.idex2 {
         //     "a": []
         //   }
         // }
+        const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
+        const messageHash = type + ':' + marketId;
+        const nonce = this.safeInteger (data, 'u');
+        const timestamp = this.safeInteger (data, 't');
+        const bids = this.safeValue (data, 'b');
+        const asks = this.safeValue (data, 'a');
+        this.handleDeltas (orderbook['bids'], bids);
+        this.handleDeltas (orderbook['asks'], asks);
+        orderbook['nonce'] = nonce;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        const count = this.safeInteger (delta, 2);
+        bookside.store (price, amount, count);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     async authenticate (params = {}) {
