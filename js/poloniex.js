@@ -17,24 +17,31 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
                 'fetchOpenOrders': true, // true endpoint for open orders
                 'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open order only)
+                'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrders': 'emulated', // no endpoint for open-or-closed orders (just for open orders only)
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
@@ -197,6 +204,7 @@ module.exports = class poloniex extends Exchange {
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -271,6 +279,15 @@ module.exports = class poloniex extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+        }
+        return markets;
     }
 
     async fetchMarkets (params = {}) {
@@ -445,7 +462,7 @@ module.exports = class poloniex extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchCurrencies (params = {}) {
@@ -459,6 +476,7 @@ module.exports = class poloniex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
             const numericId = this.safeInteger (currency, 'id');
+            const fee = this.safeFloat (currency, 'txFee');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -466,7 +484,7 @@ module.exports = class poloniex extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -482,7 +500,7 @@ module.exports = class poloniex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': Math.pow (10, precision),
                     },
                 },
@@ -533,23 +551,19 @@ module.exports = class poloniex extends Exchange {
         const orderId = this.safeString (trade, 'orderNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
         if ((!market) && ('currencyPair' in trade)) {
-            const currencyPair = trade['currencyPair'];
-            if (currencyPair in this.markets_by_id) {
-                market = this.markets_by_id[currencyPair];
+            const marketId = this.safeString (trade, 'currencyPair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             } else {
-                const parts = currencyPair.split ('_');
-                quote = parts[0];
-                base = parts[1];
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
         }
         const side = this.safeString (trade, 'type');
         let fee = undefined;
@@ -802,8 +816,17 @@ module.exports = class poloniex extends Exchange {
         }
         let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const price = this.safeFloat2 (order, 'price', 'rate');
@@ -1205,9 +1228,17 @@ module.exports = class poloniex extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        // USDT, USDTETH, USDTTRON
+        let currencyId = undefined;
+        let currency = undefined;
+        if (code in this.currencies) {
+            currency = this.currency (code);
+            currencyId = currency['id'];
+        } else {
+            currencyId = code;
+        }
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
         const response = await this.privatePostGenerateNewAddress (this.extend (request, params));
         let address = undefined;
@@ -1216,10 +1247,12 @@ module.exports = class poloniex extends Exchange {
             address = this.safeString (response, 'response');
         }
         this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
+        if (currency !== undefined) {
+            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+            if (depositAddress !== undefined) {
+                tag = address;
+                address = depositAddress;
+            }
         }
         return {
             'currency': code,
@@ -1231,16 +1264,25 @@ module.exports = class poloniex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const response = await this.privatePostReturnDepositAddresses (params);
-        const currencyId = currency['id'];
+        // USDT, USDTETH, USDTTRON
+        let currencyId = undefined;
+        let currency = undefined;
+        if (code in this.currencies) {
+            currency = this.currency (code);
+            currencyId = currency['id'];
+        } else {
+            currencyId = code;
+        }
         let address = this.safeString (response, currencyId);
         let tag = undefined;
         this.checkAddress (address);
-        const depositAddress = this.safeString (currency['info'], 'depositAddress');
-        if (depositAddress !== undefined) {
-            tag = address;
-            address = depositAddress;
+        if (currency !== undefined) {
+            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+            if (depositAddress !== undefined) {
+                tag = address;
+                address = depositAddress;
+            }
         }
         return {
             'currency': code,

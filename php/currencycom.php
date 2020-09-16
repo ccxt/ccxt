@@ -19,24 +19,26 @@ class currencycom extends Exchange {
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
             'rateLimit' => 500,
-            'certified' => false,
+            'certified' => true,
+            'pro' => true,
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => false,
                 'createOrder' => true,
                 'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTradingFees' => true,
-                'fetchOHLCV' => true,
                 'fetchTrades' => true,
-                'fetchMyTrades' => true,
-                'fetchBalance' => true,
-                'fetchOpenOrders' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -158,7 +160,7 @@ class currencycom extends Exchange {
     public function load_time_difference($params = array ()) {
         $response = $this->publicGetTime ($params);
         $after = $this->milliseconds();
-        $this->options['timeDifference'] = intval ($after - $response['serverTime']);
+        $this->options['timeDifference'] = intval($after - $response['serverTime']);
         return $this->options['timeDifference'];
     }
 
@@ -328,7 +330,7 @@ class currencycom extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
         );
     }
 
@@ -383,9 +385,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccount ($params);
+    public function parse_balance_response($response) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -420,6 +420,34 @@ class currencycom extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccount ($params);
+        //
+        //     {
+        //         "makerCommission":0.20,
+        //         "takerCommission":0.20,
+        //         "buyerCommission":0.20,
+        //         "sellerCommission":0.20,
+        //         "canTrade":true,
+        //         "canWithdraw":true,
+        //         "canDeposit":true,
+        //         "updateTime":1591056268,
+        //         "balances":array(
+        //             array(
+        //                 "accountId":5470306579272968,
+        //                 "collateralCurrency":true,
+        //                 "asset":"ETH",
+        //                 "free":0.0,
+        //                 "locked":0.0,
+        //                 "default":false,
+        //             ),
+        //         )
+        //     }
+        //
+        return $this->parse_balance_response($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -809,7 +837,7 @@ class currencycom extends Exchange {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
                 }
                 $remaining = max ($remaining, 0.0);
             }
@@ -855,7 +883,7 @@ class currencycom extends Exchange {
                 $average = $cost / $filled;
             }
             if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
         return array(
@@ -946,7 +974,7 @@ class currencycom extends Exchange {
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
-            $fetchOpenOrdersRateLimit = intval ($numSymbols / 2);
+            $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetOpenOrders (array_merge($request, $params));
@@ -962,7 +990,7 @@ class currencycom extends Exchange {
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            // 'orderId' => intval ($id),
+            // 'orderId' => intval($id),
             // 'origClientOrderId' => $id,
         );
         if ($origClientOrderId === null) {

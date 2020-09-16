@@ -424,9 +424,8 @@ class latoken(Exchange):
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
-            if symbols is None or self.in_array(symbol, symbols):
-                result[symbol] = ticker
-        return result
+            result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #

@@ -27,13 +27,23 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -430,10 +440,10 @@ class bitso(Exchange):
         response = await self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
         tag = None
-        if code == 'XRP':
+        if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
-            address = parts[0]
-            tag = parts[1]
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
             'currency': code,

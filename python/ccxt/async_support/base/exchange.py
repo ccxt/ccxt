@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.61'
+__version__ = '1.34.30'
 
 # -----------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
+            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
@@ -301,16 +301,16 @@ class Exchange(BaseExchange):
     async def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
 
-    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    async def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     async def sleep(self, milliseconds):

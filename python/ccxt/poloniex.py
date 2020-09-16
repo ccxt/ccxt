@@ -33,24 +33,31 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,  # True endpoint for a single open order
                 'fetchOpenOrders': True,  # True endpoint for open orders
                 'fetchOrder': 'emulated',  # no endpoint for a single open-or-closed order(just for an open order only)
+                'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',  # no endpoint for open-or-closed orders(just for open orders only)
                 'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
@@ -213,6 +220,7 @@ class poloniex(Exchange):
                     'is either completed or does not exist': InvalidOrder,  # {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -280,6 +288,13 @@ class poloniex(Exchange):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def load_markets(self, reload=False, params={}):
+        markets = super(poloniex, self).load_markets(reload, params)
+        currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
+        if (currenciesByNumericId is None) or reload:
+            self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
+        return markets
 
     def fetch_markets(self, params={}):
         markets = self.publicGetReturnTicker(params)
@@ -437,7 +452,7 @@ class poloniex(Exchange):
                 market = {'symbol': symbol}
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_currencies(self, params={}):
         response = self.publicGetReturnCurrencies(params)
@@ -450,6 +465,7 @@ class poloniex(Exchange):
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
+            fee = self.safe_float(currency, 'txFee')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -457,7 +473,7 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -473,7 +489,7 @@ class poloniex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['txFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
@@ -521,21 +537,17 @@ class poloniex(Exchange):
         orderId = self.safe_string(trade, 'orderNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
-        base = None
-        quote = None
         if (not market) and ('currencyPair' in trade):
-            currencyPair = trade['currencyPair']
-            if currencyPair in self.markets_by_id:
-                market = self.markets_by_id[currencyPair]
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
             else:
-                parts = currencyPair.split('_')
-                quote = parts[0]
-                base = parts[1]
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
         price = self.safe_float(trade, 'rate')
@@ -767,8 +779,15 @@ class poloniex(Exchange):
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                quoteId, baseId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
@@ -1112,9 +1131,16 @@ class poloniex(Exchange):
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
-        currency = self.currency(code)
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         }
         response = self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
@@ -1122,10 +1148,11 @@ class poloniex(Exchange):
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,
@@ -1135,16 +1162,23 @@ class poloniex(Exchange):
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currency = self.currency(code)
         response = self.privatePostReturnDepositAddresses(params)
-        currencyId = currency['id']
+        # USDT, USDTETH, USDTTRON
+        currencyId = None
+        currency = None
+        if code in self.currencies:
+            currency = self.currency(code)
+            currencyId = currency['id']
+        else:
+            currencyId = code
         address = self.safe_string(response, currencyId)
         tag = None
         self.check_address(address)
-        depositAddress = self.safe_string(currency['info'], 'depositAddress')
-        if depositAddress is not None:
-            tag = address
-            address = depositAddress
+        if currency is not None:
+            depositAddress = self.safe_string(currency['info'], 'depositAddress')
+            if depositAddress is not None:
+                tag = address
+                address = depositAddress
         return {
             'currency': code,
             'address': address,

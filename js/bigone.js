@@ -17,16 +17,23 @@ module.exports = class bigone extends Exchange {
             'rateLimit': 1200, // 500 request per 10 minutes
             'has': {
                 'cancelAllOrders': true,
-                'createMarketOrder': false,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -363,7 +370,21 @@ module.exports = class bigone extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "data": {
+        //             "timestamp": 1527665262168391000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return parseInt (timestamp / 1000000);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -758,12 +779,34 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         side = (side === 'buy') ? 'BID' : 'ASK';
+        const uppercaseType = type.toUpperCase ();
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': side, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            'price': this.priceToPrecision (symbol, price), // order price, string, required
+            // 'price': this.priceToPrecision (symbol, price), // order price, string, required
+            'type': uppercaseType,
+            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
+            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
         };
+        if (uppercaseType === 'LIMIT') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const isStopLimit = (uppercaseType === 'STOP_LIMIT');
+            const isStopMarket = (uppercaseType === 'STOP_MARKET');
+            if (isStopLimit || isStopMarket) {
+                const stopPrice = this.safeFloat (params, 'stop_price');
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                }
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                params = this.omit (params, 'stop_price');
+            }
+            if (isStopLimit) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {

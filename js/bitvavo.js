@@ -221,6 +221,9 @@ module.exports = class bitvavo extends Exchange {
                     'expires': 1000, // 1 second
                 },
             },
+            'commonCurrencies': {
+                'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            },
         });
     }
 
@@ -442,10 +445,7 @@ module.exports = class bitvavo extends Exchange {
         const last = this.safeFloat (ticker, 'last');
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         let change = undefined;
         let percentage = undefined;
         let average = undefined;

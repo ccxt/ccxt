@@ -19,22 +19,29 @@ class luno extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
                 'fetchAccounts' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
             ),
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api' => 'https://api.mybitx.com/api',
+                'api' => 'https://api.luno.com/api',
                 'www' => 'https://www.luno.com',
                 'doc' => array(
                     'https://www.luno.com/en/api',
@@ -69,6 +76,7 @@ class luno extends Exchange {
                     ),
                     'post' => array(
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -330,7 +338,7 @@ class luno extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

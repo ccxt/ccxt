@@ -16,19 +16,26 @@ module.exports = class dsx extends Exchange {
             'rateLimit': 1500,
             'version': 'v3',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
-                'fetchOrderBooks': true,
                 'createDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
-                'fetchTransactions': true,
-                'fetchTickers': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -117,6 +124,7 @@ module.exports = class dsx extends Exchange {
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce, // {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder, // {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
@@ -539,7 +547,7 @@ module.exports = class dsx extends Exchange {
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -961,9 +969,6 @@ module.exports = class dsx extends Exchange {
             'orderId': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
         return response;
     }
 

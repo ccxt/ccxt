@@ -20,14 +20,23 @@ class digifinex extends Exchange {
             'version' => 'v3',
             'rateLimit' => 900, // 300 for posts
             'has' => array(
+                'cancelOrder' => true,
                 'cancelOrders' => true,
-                'fetchOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchStatus' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchMyTrades' => true,
-                'fetchLedger' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -41,7 +50,7 @@ class digifinex extends Exchange {
                 '1w' => '1W',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
                 'api' => 'https://openapi.digifinex.com',
                 'www' => 'https://www.digifinex.com',
                 'doc' => array(
@@ -68,6 +77,7 @@ class digifinex extends Exchange {
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ),
                 ),
                 'private' => array(
@@ -154,30 +164,35 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type($type, $params = array ()) {
-        $method = 'publicGet' . $this->capitalize($type) . 'Symbols';
-        $response = $this->$method ($params);
+    public function fetch_markets($params = array ()) {
+        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+        $method = $this->safe_string($options, 'method', 'fetch_markets_v2');
+        return $this->$method ($params);
+    }
+
+    public function fetch_markets_v2($params = array ()) {
+        $response = $this->publicGetTradesSymbols ($params);
         //
         //     {
-        //         "symbol_list" => [
-        //             array(
+        //         "symbol_list":[
+        //             {
         //                 "order_types":["LIMIT","MARKET"],
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
         //                 "$status":"TRADING",
-        //                 "minimum_amount":0.001,
-        //                 "$symbol":"LTC_USDT",
-        //                 "margin_rate":0.3,
+        //                 "minimum_amount":0.0001,
+        //                 "$symbol":"BTC_USDT",
+        //                 "is_allow":1,
         //                 "zone":"MAIN",
-        //                 "base_asset":"LTC",
+        //                 "base_asset":"BTC",
         //                 "price_precision":2
-        //             ),
+        //             }
         //         ],
         //         "code":0
         //     }
         //
-        $markets = $this->safe_value($response, 'symbols_list', array());
+        $markets = $this->safe_value($response, 'symbol_list', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -215,7 +230,9 @@ class digifinex extends Exchange {
             // $status = $this->safe_string($market, 'status');
             // $active = ($status === 'TRADING');
             //
-            $active = null;
+            $isAllowed = $this->safe_value($market, 'is_allow', 1);
+            $active = $isAllowed ? true : false;
+            $type = 'spot';
             $spot = ($type === 'spot');
             $margin = ($type === 'margin');
             $result[] = array(
@@ -237,7 +254,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets_v1($params = array ()) {
         $response = $this->publicGetMarkets ($params);
         //
         //     {
@@ -411,7 +428,7 @@ class digifinex extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -543,7 +560,7 @@ class digifinex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$market];
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
@@ -583,6 +600,32 @@ class digifinex extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        //
+        //     {
+        //         "server_time" => 1589873762,
+        //         "code" => 0
+        //     }
+        //
+        return $this->safe_timestamp($response, 'server_time');
+    }
+
+    public function fetch_status($params = array ()) {
+        $this->publicGetPing ($params);
+        //
+        //     {
+        //         "msg" => "pong",
+        //         "code" => 0
+        //     }
+        //
+        $this->status = array_merge($this->status, array(
+            'status' => 'ok',
+            'updated' => $this->milliseconds(),
+        ));
+        return $this->status;
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -652,7 +695,7 @@ class digifinex extends Exchange {
             // 'end_time' => 1564520003, // ending timestamp, current timestamp by default
         );
         if ($since !== null) {
-            $startTime = intval ($since / 1000);
+            $startTime = intval($since / 1000);
             $request['start_time'] = $startTime;
             if ($limit !== null) {
                 $duration = $this->parse_timeframe($timeframe);
@@ -935,7 +978,7 @@ class digifinex extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000); // default 3 days from now, max 30 days
+            $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
@@ -1019,7 +1062,7 @@ class digifinex extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000); // default 3 days from now, max 30 days
+            $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 100
@@ -1104,7 +1147,7 @@ class digifinex extends Exchange {
             $request['currency_mark'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_time'] = intval ($since / 1000);
+            $request['start_time'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000

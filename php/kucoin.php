@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\InvalidOrder;
 
 class kucoin extends Exchange {
 
@@ -49,7 +50,7 @@ class kucoin extends Exchange {
                 'fetchLedger' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral' => 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api' => array(
                     'public' => 'https://openapi-v2.kucoin.com',
@@ -263,7 +264,7 @@ class kucoin extends Exchange {
         $response = $this->publicGetTimestamp ($params);
         $after = $this->milliseconds();
         $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval ($after - $kucoinTime);
+        $this->options['timeDifference'] = intval($after - $kucoinTime);
         return $this->options['timeDifference'];
     }
 
@@ -522,6 +523,9 @@ class kucoin extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
+        $baseVolume = $this->safe_float($ticker, 'vol');
+        $quoteVolume = $this->safe_float($ticker, 'volValue');
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return array(
             'symbol' => $symbol,
@@ -533,7 +537,7 @@ class kucoin extends Exchange {
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
-            'vwap' => null,
+            'vwap' => $vwap,
             'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
@@ -541,8 +545,8 @@ class kucoin extends Exchange {
             'change' => $this->safe_float($ticker, 'changePrice'),
             'percentage' => $percentage,
             'average' => $this->safe_float($ticker, 'averagePrice'),
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'volValue'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -580,7 +584,7 @@ class kucoin extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -643,7 +647,7 @@ class kucoin extends Exchange {
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $endAt = $this->milliseconds(); // required param
         if ($since !== null) {
-            $request['startAt'] = intval ((int) floor($since / 1000));
+            $request['startAt'] = intval((int) floor($since / 1000));
             if ($limit === null) {
                 // https://docs.kucoin.com/#get-klines
                 // https://docs.kucoin.com/#details
@@ -654,9 +658,9 @@ class kucoin extends Exchange {
             $endAt = $this->sum($since, $limit * $duration);
         } else if ($limit !== null) {
             $since = $endAt - $limit * $duration;
-            $request['startAt'] = intval ((int) floor($since / 1000));
+            $request['startAt'] = intval((int) floor($since / 1000));
         }
-        $request['endAt'] = intval ((int) floor($endAt / 1000));
+        $request['endAt'] = intval((int) floor($endAt / 1000));
         $response = $this->publicGetMarketCandles (array_merge($request, $params));
         //
         //     {
@@ -822,21 +826,26 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
+        $id = $this->safe_string($data, 'orderId');
         $order = array(
-            'id' => $this->safe_string($data, 'orderId'),
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $data,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'amount' => null,
             'cost' => null,
+            'average' => null,
             'filled' => null,
             'remaining' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'status' => null,
             'fee' => null,
-            'status' => 'open',
-            'clientOrderId' => $clientOrderId,
-            'info' => $data,
+            'trades' => null,
         );
         if (!$this->safe_value($params, 'quoteAmount')) {
             $order['amount'] = $amount;
@@ -925,6 +934,12 @@ class kucoin extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        // a special case for null ids
+        // otherwise a wrong endpoint for all orders will be triggered
+        // https://github.com/ccxt/ccxt/issues/7234
+        if ($id === null) {
+            throw new InvalidOrder($this->id . ' fetchOrder requires an order id');
+        }
         $request = array(
             'orderId' => $id,
         );
@@ -933,7 +948,7 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
-        $responseData = $response['data'];
+        $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }
 
@@ -968,8 +983,8 @@ class kucoin extends Exchange {
         //         "clientOid" => "",       // user-entered $order unique mark
         //         "remark" => "",          // remark
         //         "tags" => "",            // tag $order source
-        //         "isActive" => false,     // $status before unfilled or uncancelled
-        //         "cancelExist" => false,   // $order cancellation transaction record
+        //         "$isActive" => false,     // $status before unfilled or uncancelled
+        //         "$cancelExist" => false,   // $order cancellation transaction record
         //         "createdAt" => 1547026471000  // time
         //     }
         //
@@ -1006,8 +1021,10 @@ class kucoin extends Exchange {
         $cost = $this->safe_float($order, 'dealFunds');
         $remaining = $amount - $filled;
         // bool
-        $status = $order['isActive'] ? 'open' : 'closed';
-        $status = $order['cancelExist'] ? 'canceled' : $status;
+        $isActive = $this->safe_value($order, 'isActive', false);
+        $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $status = $isActive ? 'open' : 'closed';
+        $status = $cancelExist ? 'canceled' : $status;
         $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,
@@ -1073,7 +1090,7 @@ class kucoin extends Exchange {
             // it returns historical $trades instead of orders
             // returns $trades earlier than 2019-02-18T00:00:00Z only
             if ($since !== null) {
-                $request['startAt'] = intval ($since / 1000);
+                $request['startAt'] = intval($since / 1000);
             }
         } else {
             throw new ExchangeError($this->id . ' invalid fetchClosedOrder method');
@@ -1261,7 +1278,7 @@ class kucoin extends Exchange {
         $amount = $this->safe_float_2($trade, 'size', 'amount');
         $timestamp = $this->safe_integer($trade, 'time');
         if ($timestamp !== null) {
-            $timestamp = intval ($timestamp / 1000000);
+            $timestamp = intval($timestamp / 1000000);
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
@@ -1288,6 +1305,9 @@ class kucoin extends Exchange {
             );
         }
         $type = $this->safe_string($trade, 'type');
+        if ($type === 'match') {
+            $type = null;
+        }
         $cost = $this->safe_float_2($trade, 'funds', 'dealValue');
         if ($cost === null) {
             if ($amount !== null) {
@@ -1465,7 +1485,7 @@ class kucoin extends Exchange {
         if ($since !== null) {
             // if $since is earlier than 2019-02-18T00:00:00Z
             if ($since < 1550448000000) {
-                $request['startAt'] = intval ($since / 1000);
+                $request['startAt'] = intval($since / 1000);
                 $method = 'privateGetHistDeposits';
             } else {
                 $request['startAt'] = $since;
@@ -1528,7 +1548,7 @@ class kucoin extends Exchange {
         if ($since !== null) {
             // if $since is earlier than 2019-02-18T00:00:00Z
             if ($since < 1550448000000) {
-                $request['startAt'] = intval ($since / 1000);
+                $request['startAt'] = intval($since / 1000);
                 $method = 'privateGetHistWithdrawals';
             } else {
                 $request['startAt'] = $since;
@@ -1796,6 +1816,15 @@ class kucoin extends Exchange {
             $payload = $timestamp . $method . $endpoint . $endpart;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers['KC-API-SIGN'] = $this->decode($signature);
+            $partner = $this->safe_value($this->options, 'partner', array());
+            $partnerId = $this->safe_string($partner, 'id');
+            $partnerSecret = $this->safe_string($partner, 'secret');
+            if (($partnerId !== null) && ($partnerSecret !== null)) {
+                $partnerPayload = $timestamp . $partnerId . $this->apiKey;
+                $partnerSignature = $this->hmac($this->encode($partnerPayload), $this->encode($partnerSecret), 'sha256', 'base64');
+                $headers['KC-API-PARTNER-SIGN'] = $this->decode($partnerSignature);
+                $headers['KC-API-PARTNER'] = $partnerId;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

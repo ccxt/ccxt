@@ -29,16 +29,25 @@ class bitz(Exchange):
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'cancelOrders': True,
+                'createOrder': True,
+                'createMarketOrder': False,
+                'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'createMarketOrder': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -54,7 +63,7 @@ class bitz(Exchange):
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -74,6 +83,7 @@ class bitz(Exchange):
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -506,7 +516,21 @@ class bitz(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 })
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        response = self.marketGetGetServerTime(params)
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":[],
+        #         "time":1555490875,
+        #         "microtime":"0.35994200 1555490875",
+        #         "source":"api"
+        #     }
+        #
+        return self.safe_timestamp(response, 'time')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

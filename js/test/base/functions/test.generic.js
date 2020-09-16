@@ -38,7 +38,7 @@ it ('deepExtend() works', () => {
     }]
 
     const extended = deepExtend (...values)
-    deepEqual ({
+    deepEqual (extended, {
         a: 1,
         b: 3,
         d: {
@@ -53,7 +53,7 @@ it ('deepExtend() works', () => {
         h: /abc/g,
         i: null,
         j: [3, 4]
-    }, extended)
+    })
 
     deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
 })
@@ -112,7 +112,7 @@ it ('omit works', () => {
     deepEqual (omit ({ foo: 2, bar: 3 }), { foo: 2, bar: 3 })
     deepEqual (omit ({ foo: 2, bar: 3 }, 'foo', 'bar'), {})
     deepEqual (omit ({ foo: 2, bar: 3 }, ['foo'], 'bar'), {})
-    deepEqual (omit ({ 5: 2, bar: 3 }, [5]), { bar: 3 })
+    deepEqual (omit ({ 5: 2, bar: 3 }, [ 5 ]), { bar: 3 })
     deepEqual (omit ({ 5: 2, bar: 3 }, 5), { bar: 3 })
 })
 
@@ -121,33 +121,35 @@ it ('omit works', () => {
 it ('sum works', () => {
 
     equal (undefined, sum ())
-    equal (2,         sum (2))
-    equal (432,       sum (2,30,400))
-    equal (432,       sum (2, undefined, [88], 30, '7', 400, null))
+    equal (2,   sum (2))
+    equal (432, sum (2, 30, 400))
+    equal (432, sum (2, undefined, [ 88 ], 30, '7', 400, null))
 })
 
 /*  ------------------------------------------------------------------------ */
 
 it ('sortBy works', () => {
 
-    const arr = [{ x: 5 }, { x: 2 }, { x: 4 }, { x: 0 },{ x: 1 },{ x: 3 }]
+    const arr = [{ 'x': 5 }, { 'x': 2 }, { 'x': 4 }, { 'x': 0 }, { 'x': 1 }, { 'x': 3 }]
     sortBy (arr, 'x')
 
-    deepEqual (arr
-        [ { x: 0 },
-        { x: 1 },
-        { x: 2 },
-        { x: 3 },
-        { x: 4 },
-        { x: 5 }  ])
+    deepEqual (arr, [
+        { 'x': 0 },
+        { 'x': 1 },
+        { 'x': 2 },
+        { 'x': 3 },
+        { 'x': 4 },
+        { 'x': 5 },
+    ])
 
-    deepEqual (sortBy (arr, 'x', true),
-        [ { x: 5 },
-        { x: 4 },
-        { x: 3 },
-        { x: 2 },
-        { x: 1 },
-        { x: 0 }  ])
+    deepEqual (sortBy (arr, 'x', true), [
+        { 'x': 5 },
+        { 'x': 4 },
+        { 'x': 3 },
+        { 'x': 2 },
+        { 'x': 1 },
+        { 'x': 0 },
+    ])
 
     deepEqual (sortBy ([], 'x'), [])
 })

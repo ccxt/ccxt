@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -32,21 +31,28 @@ class crex24(Exchange):
             # new metainfo interface
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
@@ -162,6 +168,7 @@ class crex24(Exchange):
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds,  # "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
         })
@@ -1184,6 +1191,7 @@ class crex24(Exchange):
             # True - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address
             # False - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee]
             # 'includeFee': False,  # the default value is False
+            'feeCurrency': currency['id'],  # https://github.com/ccxt/ccxt/issues/7544
         }
         if tag is not None:
             request['paymentId'] = tag
@@ -1200,7 +1208,7 @@ class crex24(Exchange):
         if (api == 'trading') or (api == 'account'):
             self.check_required_credentials()
             nonce = str(self.nonce())
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             auth = request + nonce
             headers = {
                 'X-CREX24-API-KEY': self.apiKey,
@@ -1210,7 +1218,7 @@ class crex24(Exchange):
                 headers['Content-Type'] = 'application/json'
                 body = self.json(params)
                 auth += body
-            signature = base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
+            signature = self.string_to_base64(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
             headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

@@ -352,7 +352,7 @@ class bitfinex2 extends bitfinex {
             $quoteId = $this->get_currency_id($quoteId);
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
-                'amount' => $this->safe_integer($market, 'price_precision'),
+                'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
             );
             $limits = array(
                 'amount' => array(
@@ -510,7 +510,7 @@ class bitfinex2 extends bitfinex {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -611,7 +611,7 @@ class bitfinex2 extends bitfinex {
                     }
                 }
                 $fee = array(
-                    'cost' => floatval ($feeCost),
+                    'cost' => floatval($feeCost),
                     'currency' => $feeCurrency,
                 );
             }
@@ -879,7 +879,7 @@ class bitfinex2 extends bitfinex {
             $params = $this->omit($params, array( 'cid', 'clientOrderId' ));
         } else {
             $request = array(
-                'id' => intval ($id),
+                'id' => intval($id),
             );
         }
         $response = $this->privatePostAuthWOrderCancel (array_merge($request, $params));
@@ -889,7 +889,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => array( intval ($id) ),
+            'id' => array( intval($id) ),
         );
         $orders = $this->fetch_open_orders($symbol, null, null, array_merge($request, $params));
         $order = $this->safe_value($orders, 0);
@@ -901,7 +901,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => array( intval ($id) ),
+            'id' => array( intval($id) ),
         );
         $orders = $this->fetch_closed_orders($symbol, null, null, array_merge($request, $params));
         $order = $this->safe_value($orders, 0);
@@ -954,7 +954,7 @@ class bitfinex2 extends bitfinex {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $orderId = intval ($id);
+        $orderId = intval($id);
         $request = array(
             'id' => $orderId,
             'symbol' => $market['id'],

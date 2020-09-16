@@ -20,18 +20,25 @@ module.exports = class fcoin extends Exchange {
             'accountsById': undefined,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'withdraw': false,
-                'fetchCurrencies': false,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -441,6 +448,17 @@ module.exports = class fcoin extends Exchange {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetServerTime (params);
+        //
+        //     {
+        //         "status": 0,
+        //         "data": 1523430502977
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {

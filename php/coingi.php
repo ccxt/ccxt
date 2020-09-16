@@ -17,8 +17,15 @@ class coingi extends Exchange {
             'rateLimit' => 1000,
             'countries' => array( 'PA', 'BG', 'CN', 'US' ), // Panama, Bulgaria, China, US
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'referral' => 'https://www.coingi.com/?r=XTPPMC',
@@ -228,7 +235,7 @@ class coingi extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

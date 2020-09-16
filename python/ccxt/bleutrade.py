@@ -23,23 +23,29 @@ class bleutrade(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'cancelOrder': False,  # todo
-                'createLimitOrder': False,  # todo
-                'createMarketOrder': False,  # todo
-                'createOrder': False,  # todo
-                'editOrder': False,  # todo
-                'withdraw': False,  # todo
-                'fetchTrades': False,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOrders': False,
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchWithdrawals': True,
-                'fetchOrderTrades': False,
-                'fetchLedger': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
+                'fetchWithdrawals': True,
+                'withdraw': False,
             },
             'timeframes': {
                 '1h': '1h',
@@ -55,7 +61,7 @@ class bleutrade(Exchange):
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],

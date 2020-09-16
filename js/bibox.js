@@ -15,21 +15,27 @@ module.exports = class bibox extends Exchange {
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'publicAPI': false,
+                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder': true,
                 'fetchBalance': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchWithdrawals': true,
+                'publicAPI': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -272,7 +278,8 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.publicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
-        return this.indexBy (tickers, 'symbol');
+        const result = this.indexBy (tickers, 'symbol');
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -315,7 +322,7 @@ module.exports = class bibox extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': -feeCost,
                 'currency': feeCurrency,
                 'rate': feeRate,
             };
@@ -421,6 +428,52 @@ module.exports = class bibox extends Exchange {
             'body': {},
         };
         const response = await this.privatePostTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "result":[
+        //                     {
+        //                         "totalBalance":"14.57582269",
+        //                         "balance":"14.57582269",
+        //                         "freeze":"0.00000000",
+        //                         "id":60,
+        //                         "symbol":"USDT",
+        //                         "icon_url":"/appimg/USDT_icon.png",
+        //                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        //                         "name":"USDT",
+        //                         "enable_withdraw":1,
+        //                         "enable_deposit":1,
+        //                         "enable_transfer":1,
+        //                         "confirm_count":2,
+        //                         "is_erc20":1,
+        //                         "forbid_info":null,
+        //                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        //                         "total_amount":4776930644,
+        //                         "supply_amount":4642367414,
+        //                         "price":"--",
+        //                         "contract_father":"OMNI",
+        //                         "supply_time":"--",
+        //                         "comment":null,
+        //                         "contract":"31",
+        //                         "original_decimals":8,
+        //                         "deposit_type":0,
+        //                         "hasCobo":0,
+        //                         "BTCValue":"0.00126358",
+        //                         "CNYValue":"100.93381445",
+        //                         "USDValue":"14.57524654",
+        //                         "children":[
+        //                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        //                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        //                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
+        //                         ]
+        //                     },
+        //                 ],
+        //                 "cmd":"transfer/coinList"
+        //             }
+        //         ]
+        //     }
+        //
         const currencies = this.safeValue (response, 'result');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {

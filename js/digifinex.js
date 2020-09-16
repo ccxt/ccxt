@@ -16,14 +16,23 @@ module.exports = class digifinex extends Exchange {
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
             'has': {
+                'cancelOrder': true,
                 'cancelOrders': true,
-                'fetchOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchMyTrades': true,
-                'fetchLedger': true,
+                'fetchTime': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -37,7 +46,7 @@ module.exports = class digifinex extends Exchange {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
                 'api': 'https://openapi.digifinex.com',
                 'www': 'https://www.digifinex.com',
                 'doc': [
@@ -64,6 +73,7 @@ module.exports = class digifinex extends Exchange {
                         'spot/symbols',
                         'time',
                         'trades',
+                        'trades/symbols',
                     ],
                 },
                 'private': {
@@ -150,30 +160,35 @@ module.exports = class digifinex extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type, params = {}) {
-        const method = 'publicGet' + this.capitalize (type) + 'Symbols';
-        const response = await this[method] (params);
+    async fetchMarkets (params = {}) {
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const method = this.safeString (options, 'method', 'fetch_markets_v2');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsV2 (params = {}) {
+        const response = await this.publicGetTradesSymbols (params);
         //
         //     {
-        //         "symbol_list": [
+        //         "symbol_list":[
         //             {
         //                 "order_types":["LIMIT","MARKET"],
         //                 "quote_asset":"USDT",
         //                 "minimum_value":2,
         //                 "amount_precision":4,
         //                 "status":"TRADING",
-        //                 "minimum_amount":0.001,
-        //                 "symbol":"LTC_USDT",
-        //                 "margin_rate":0.3,
+        //                 "minimum_amount":0.0001,
+        //                 "symbol":"BTC_USDT",
+        //                 "is_allow":1,
         //                 "zone":"MAIN",
-        //                 "base_asset":"LTC",
+        //                 "base_asset":"BTC",
         //                 "price_precision":2
-        //             },
+        //             }
         //         ],
         //         "code":0
         //     }
         //
-        const markets = this.safeValue (response, 'symbols_list', []);
+        const markets = this.safeValue (response, 'symbol_list', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -211,7 +226,9 @@ module.exports = class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            const active = undefined;
+            const isAllowed = this.safeValue (market, 'is_allow', 1);
+            const active = isAllowed ? true : false;
+            const type = 'spot';
             const spot = (type === 'spot');
             const margin = (type === 'margin');
             result.push ({
@@ -233,7 +250,7 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarketsV1 (params = {}) {
         const response = await this.publicGetMarkets (params);
         //
         //     {
@@ -407,7 +424,7 @@ module.exports = class digifinex extends Exchange {
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -539,7 +556,7 @@ module.exports = class digifinex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[market];
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
@@ -579,6 +596,32 @@ module.exports = class digifinex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "server_time": 1589873762,
+        //         "code": 0
+        //     }
+        //
+        return this.safeTimestamp (response, 'server_time');
+    }
+
+    async fetchStatus (params = {}) {
+        await this.publicGetPing (params);
+        //
+        //     {
+        //         "msg": "pong",
+        //         "code": 0
+        //     }
+        //
+        this.status = this.extend (this.status, {
+            'status': 'ok',
+            'updated': this.milliseconds (),
+        });
+        return this.status;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,11 +18,19 @@ module.exports = class bitstamp extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -37,6 +45,20 @@ module.exports = class bitstamp extends Exchange {
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
+            },
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -45,6 +67,7 @@ module.exports = class bitstamp extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -76,6 +99,8 @@ module.exports = class bitstamp extends Exchange {
                         'eth_address/',
                         'xrp_withdrawal/',
                         'xrp_address/',
+                        'xlm_withdrawal/',
+                        'xlm_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -528,6 +553,71 @@ module.exports = class bitstamp extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "high": "9064.77",
+        //         "timestamp": "1593961440",
+        //         "volume": "18.49436608",
+        //         "low": "9040.87",
+        //         "close": "9064.77",
+        //         "open": "9040.87"
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'step': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+            } else {
+                limit = 1000;
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+                request['limit'] = limit;
+            }
+        } else {
+            if (since !== undefined) {
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+            }
+            request['limit'] = Math.min (limit, 1000); // min 1, max 1000
+        }
+        const response = await this.publicGetOhlcPair (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "pair": "BTC/USD",
+        //             "ohlc": [
+        //                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        //                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        //                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ohlc = this.safeValue (data, 'ohlc', []);
+        return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -1074,10 +1164,8 @@ module.exports = class bitstamp extends Exchange {
         const v1 = (code === 'BTC');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
-        if (code === 'XRP') {
-            if (tag !== undefined) {
-                request['destination_tag'] = tag;
-            }
+        if (tag !== undefined) {
+            request['destination_tag'] = tag;
         }
         const response = await this[method] (this.extend (request, params));
         return {

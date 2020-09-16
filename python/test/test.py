@@ -19,6 +19,10 @@ sys.path.append(root)
 # ------------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
+from test_trade import test_trade  # noqa: E402
+from test_order import test_order  # noqa: E402
+from test_ohlcv import test_ohlcv  # noqa: E402
+from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -134,7 +138,7 @@ def test_order_book(exchange, symbol):
 # ------------------------------------------------------------------------------
 
 
-def test_ohlcv(exchange, symbol):
+def test_ohlcvs(exchange, symbol):
     ignored_exchanges = [
         'cex',  # CEX can return historical candles for a certain date only
         'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
@@ -151,6 +155,8 @@ def test_ohlcv(exchange, symbol):
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000
         ohlcvs = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+        for ohlcv in ohlcvs:
+            test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
@@ -223,15 +229,87 @@ def test_trades(exchange, symbol):
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = exchange.fetch_trades(symbol)
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
+        if trades:
+            test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
     else:
         dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
 
 # ------------------------------------------------------------------------------
 
 
-def test_symbol(exchange, symbol):
+def test_orders(exchange, symbol):
+    if exchange.has['fetchOrders']:
+        skipped_exchanges = [
+            'bitmart',
+            'rightbtc',
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), 'fetch_orders() skipped')
+            return
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_orders(symbol)
+        for order in orders:
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_closed_orders(exchange, symbol):
+    if exchange.has['fetchClosedOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_closed_orders(symbol)
+        for order in orders:
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'closed' or order['status'] == 'canceled'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_open_orders(exchange, symbol):
+    if exchange.has['fetchOpenOrders']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+        orders = exchange.fetch_open_orders(symbol)
+        for order in orders:
+            test_order(exchange, order, symbol, int(time.time() * 1000))
+            assert order['status'] == 'open'
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
+    else:
+        dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_transactions(exchange, code):
+    if exchange.has['fetchTransactions']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+
+        transactions = exchange.fetch_transactions(code)
+        for transaction in transactions:
+            test_transaction(exchange, transaction, code, int(time.time() * 1000))
+        dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
+    else:
+        dump(green(exchange.id), green(code), 'fetch_transactions() not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
+    dump(green('CODE: ' + code))
     test_ticker(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
@@ -240,9 +318,14 @@ def test_symbol(exchange, symbol):
     else:
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
+        if exchange.apiKey:
+            test_orders(exchange, symbol)
+            test_open_orders(exchange, symbol)
+            test_closed_orders(exchange, symbol)
+            test_transactions(exchange, code)
 
     test_tickers(exchange, symbol)
-    test_ohlcv(exchange, symbol)
+    test_ohlcvs(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -251,7 +334,7 @@ def load_exchange(exchange):
     exchange.load_markets()
 
 
-def test_exchange(exchange):
+def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
     # delay = 2
@@ -260,26 +343,66 @@ def test_exchange(exchange):
     # ..........................................................................
     # public API
 
-    symbol = keys[0]
-    symbols = [
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'BTC/JPY',
-        'LTC/BTC',
-        'USD/SLL',
+    codes = [
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
     ]
 
-    for s in symbols:
-        if s in keys:
-            symbol = s
-            break
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+
+    if not symbol:
+        symbol = keys[0]
+        symbols = [
+            'BTC/USD',
+            'BTC/USDT',
+            'BTC/CNY',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'ETH/USDT',
+            'BTC/JPY',
+            'LTC/BTC',
+            'USD/SLL',
+        ]
+
+        for s in symbols:
+            if s in keys:
+                symbol = s
+                break
 
     if symbol.find('.d') < 0:
-        test_symbol(exchange, symbol)
+        test_symbol(exchange, symbol, code)
 
     # ..........................................................................
     # private API
@@ -295,15 +418,6 @@ def test_exchange(exchange):
     dump(green(exchange.id), 'fetched balance')
 
     time.sleep(exchange.rateLimit / 1000)
-
-    if exchange.has['fetchOrders']:
-        try:
-            orders = exchange.fetch_orders(symbol)
-            dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
-        except (ccxt.ExchangeError, ccxt.NotSupported) as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), e.args)
-        # except ccxt.NotSupported as e:
-        #     dump(yellow(type(e).__name__), e.args)
 
     # time.sleep(delay)
 

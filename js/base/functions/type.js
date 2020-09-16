@@ -6,9 +6,10 @@ const isNumber          = Number.isFinite
     , isInteger         = Number.isInteger
     , isArray           = Array.isArray
     , hasProps          = o => ((o !== undefined) && (o !== null))
-    , isString          = s =>                 (typeof s === 'string')
+    , isString          = s =>                  (typeof s === 'string')
     , isObject          = o => ((o !== null) && (typeof o === 'object'))
-    , isDictionary      = o => (isObject (o) && !isArray (o))
+    , isRegExp          = o => (o instanceof RegExp)
+    , isDictionary      = o => (isObject (o) && !isArray (o) && !isRegExp (o))
     , isStringCoercible = x => ((hasProps (x) && x.toString) || isNumber (x))
 
 /*  .............................................   */

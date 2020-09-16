@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
@@ -19,21 +19,22 @@ module.exports = class phemex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'fetchMarkets': true,
+                'cancelAllOrders': true, // swap contracts only
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchOrderBook': true,
+                'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -354,8 +355,11 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
-        const baseId = this.safeString (market, 'baseCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const type = this.safeStringLower (market, 'type');
         let taker = undefined;
         let maker = undefined;
@@ -377,8 +381,12 @@ module.exports = class phemex extends Exchange {
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
         const takerFeeRateEr = this.safeFloat (market, 'takerFeeRateEr');
-        maker = this.fromEn (makerFeeRateEr, ratioScale, 0.00000001);
-        taker = this.fromEn (takerFeeRateEr, ratioScale, 0.00000001);
+        if (makerFeeRateEr !== undefined) {
+            maker = this.fromEn (makerFeeRateEr, ratioScale, 0.00000001);
+        }
+        if (takerFeeRateEr !== undefined) {
+            taker = this.fromEn (takerFeeRateEr, ratioScale, 0.00000001);
+        }
         const limits = {
             'amount': {
                 'min': precision['amount'],
@@ -393,9 +401,6 @@ module.exports = class phemex extends Exchange {
                 'max': this.parseSafeFloat (this.safeString (market, 'maxOrderQty')),
             },
         };
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
         const active = undefined;
         return {
             'id': id,
@@ -953,9 +958,7 @@ module.exports = class phemex extends Exchange {
         const baseVolume = this.fromEv (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
         let vwap = undefined;
         if ((market !== undefined) && (market['spot'])) {
-            if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume > 0)) {
-                vwap = quoteVolume / baseVolume;
-            }
+            vwap = this.vwap (baseVolume, quoteVolume);
         }
         let change = undefined;
         let percentage = undefined;
@@ -1891,6 +1894,24 @@ module.exports = class phemex extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
+            // 'text': 'up to 40 characters max',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (!market['swap']) {
+                throw new NotSupported (this.id + ' cancelAllOrders() supports swap market type orders only');
+            }
+            request['symbol'] = market['id'];
+        }
+        return await this.privateDeleteOrdersAll (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

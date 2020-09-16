@@ -19,18 +19,25 @@ class yobit extends Exchange {
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createDepositAddress' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrders' => 'emulated',
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => false,
                 'withdraw' => true,
@@ -182,8 +189,11 @@ class yobit extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'invalid key' => '\\ccxt\\AuthenticationError',
                     'invalid nonce' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"invalid nonce (has already been used)")'
+                    'Total order amount is less than minimal amount' => '\\ccxt\\InvalidOrder',
+                    'Rate Limited' => '\\ccxt\\RateLimitExceeded',
                 ),
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -412,7 +422,7 @@ class yobit extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -516,8 +526,8 @@ class yobit extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $price = floatval ($price);
-        $amount = floatval ($amount);
+        $price = floatval($price);
+        $amount = floatval($amount);
         $response = $this->privatePostTrade (array_merge($request, $params));
         $id = null;
         $status = 'open';
@@ -561,7 +571,7 @@ class yobit extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostCancelOrder (array_merge($request, $params));
         if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
@@ -656,7 +666,7 @@ class yobit extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
         $id = (string) $id;
@@ -758,10 +768,10 @@ class yobit extends Exchange {
             'pair' => $market['id'],
         );
         if ($limit !== null) {
-            $request['count'] = intval ($limit);
+            $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
         $trades = $this->safe_value($response, 'return', array());
@@ -834,7 +844,7 @@ class yobit extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         if ($side === 'sell') {
             $cost *= $price;
         } else {

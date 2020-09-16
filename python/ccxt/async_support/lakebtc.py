@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,9 +29,16 @@ class lakebtc(Exchange):
             'version': 'api_v2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -170,7 +176,7 @@ class lakebtc(Exchange):
                 market = self.markets_by_id[symbol]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -284,7 +290,7 @@ class lakebtc(Exchange):
             query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
-            signature64 = self.decode(base64.b64encode(auth))
+            signature64 = self.decode(self.string_to_base64(auth))
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,
                 'Authorization': 'Basic ' + signature64,

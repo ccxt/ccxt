@@ -101,6 +101,10 @@ const implodeParams = (string, params) => {
     return string
 }
 
+function vwap (baseVolume, quoteVolume) {
+    return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
@@ -126,7 +130,9 @@ module.exports = {
     ROUND_DOWN,
 
     implodeParams,
-    extractParams
+    extractParams,
+
+    vwap,
 }
 
 /*  ------------------------------------------------------------------------ */

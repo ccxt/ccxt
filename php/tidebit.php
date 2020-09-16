@@ -20,10 +20,17 @@ class tidebit extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'fetchDepositAddress' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -40,7 +47,7 @@ class tidebit extends Exchange {
                 '1w' => '10080',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
                 'api' => 'https://www.tidebit.com',
                 'www' => 'https://www.tidebit.com',
                 'doc' => array(
@@ -248,7 +255,7 @@ class tidebit extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -331,7 +338,7 @@ class tidebit extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         } else {
             $request['timestamp'] = 1800000;
         }

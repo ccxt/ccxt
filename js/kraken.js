@@ -19,25 +19,32 @@ module.exports = class kraken extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'cancelOrder': true,
+                'CORS': false,
                 'createDepositAddress': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchLedgerEntry': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderTrades': 'emulated',
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'CORS': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
                 'fetchWithdrawals': true,
-                'fetchDeposits': true,
                 'withdraw': true,
-                'fetchLedgerEntry': true,
-                'fetchLedger': true,
-                'fetchOrderTrades': 'emulated',
-                'fetchTime': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -222,6 +229,8 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Order minimum not met': InvalidOrder,
             },
         });
     }
@@ -539,8 +548,8 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         symbols = (symbols === undefined) ? this.symbols : symbols;
         const marketIds = [];
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.markets[symbol];
             if (market['active'] && !market['darkpool']) {
                 marketIds.push (market['id']);
@@ -558,11 +567,9 @@ module.exports = class kraken extends Exchange {
             const market = this.markets_by_id[id];
             const symbol = market['symbol'];
             const ticker = tickers[id];
-            if (this.inArray (symbol, symbols)) {
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -979,8 +986,8 @@ module.exports = class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': undefined,
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,

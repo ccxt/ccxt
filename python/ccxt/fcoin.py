@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -33,18 +32,25 @@ class fcoin(Exchange):
             'accountsById': None,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingLimits': False,
                 'withdraw': False,
-                'fetchCurrencies': False,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -432,6 +438,16 @@ class fcoin(Exchange):
             'fee': fee,
         }
 
+    def fetch_time(self, params={}):
+        response = self.publicGetServerTime(params)
+        #
+        #     {
+        #         "status": 0,
+        #         "data": 1523430502977
+        #     }
+        #
+        return self.safe_integer(response, 'data')
+
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -657,9 +673,9 @@ class fcoin(Exchange):
                 if query:
                     body = self.json(query)
                     auth += self.urlencode(query)
-            payload = base64.b64encode(self.encode(auth))
+            payload = self.string_to_base64(self.encode(auth))
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha1, 'binary')
-            signature = self.decode(base64.b64encode(signature))
+            signature = self.decode(self.string_to_base64(signature))
             headers = {
                 'FC-ACCESS-KEY': self.apiKey,
                 'FC-ACCESS-SIGNATURE': signature,

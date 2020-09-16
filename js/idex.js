@@ -16,20 +16,22 @@ module.exports = class idex extends Exchange {
             'rateLimit': 1500,
             'certified': true,
             'requiresWeb3': true,
+            'version': 'v1',
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchMarkets': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchOpenOrders': true,
-                'fetchTransactions': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
+                'fetchTransactions': true,
                 'withdraw': true,
-                'fetchOHLCV': false,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -102,6 +104,7 @@ module.exports = class idex extends Exchange {
                 'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
+                'FTT': 'FarmaTrust',
             },
         });
     }
@@ -703,30 +706,34 @@ module.exports = class idex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // { filled: '0',
-        //   initialAmount: '210',
-        //   timestamp: 1564041428,
-        //   orderHash:
-        //    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
-        //   orderNumber: 1562323021,
-        //   market: 'ETH_LIT',
-        //   type: 'buy',
-        //   params:
-        //    { tokenBuy: '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
-        //      buySymbol: 'LIT',
-        //      buyPrecision: 18,
-        //      amountBuy: '210000000000000000000',
-        //      tokenSell: '0x0000000000000000000000000000000000000000',
-        //      sellSymbol: 'ETH',
-        //      sellPrecision: 18,
-        //      amountSell: '153300000000000000',
-        //      expires: 100000,
-        //      nonce: 1,
-        //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' },
-        //   price: '0.00073',
-        //   amount: '210',
-        //   status: 'open',
-        //   total: '0.1533' }
+        //
+        //     {
+        //         "filled": "0",
+        //         "initialAmount": "210",
+        //         "timestamp": 1564041428,
+        //         "orderHash": "0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4",
+        //         "orderNumber": 1562323021,
+        //         "market": "ETH_LIT",
+        //         "type": "buy",
+        //         "params": {
+        //             "tokenBuy": "0x763fa6806e1acf68130d2d0f0df754c93cc546b2",
+        //             "buySymbol": "LIT",
+        //             "buyPrecision": 18,
+        //             "amountBuy": "210000000000000000000",
+        //             "tokenSell": "0x0000000000000000000000000000000000000000",
+        //             "sellSymbol": "ETH",
+        //             "sellPrecision": 18,
+        //             "amountSell": "153300000000000000",
+        //             "expires": 100000,
+        //             "nonce": 1,
+        //             "user": "0x0ab991497116f7f5532a4c2f4f7b1784488628e1"
+        //         },
+        //         "price": "0.00073",
+        //         "amount": "210",
+        //         "status": "open",
+        //         "total": "0.1533"
+        //     }
+        //
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const side = this.safeString (order, 'type');
         let symbol = undefined;
@@ -741,7 +748,7 @@ module.exports = class idex extends Exchange {
         const filled = this.safeFloat (order, 'filled');
         const price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'total');
-        if ((cost !== undefined) && (filled !== undefined) && !cost) {
+        if ((cost === undefined) && (filled !== undefined) && (price !== undefined)) {
             cost = filled * price;
         }
         if ('market' in order) {

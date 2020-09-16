@@ -22,20 +22,22 @@ class idex(Exchange):
             'rateLimit': 1500,
             'certified': True,
             'requiresWeb3': True,
+            'version': 'v1',
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchMarkets': True,
-                'fetchBalance': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'fetchOpenOrders': True,
-                'fetchTransactions': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
+                'fetchTransactions': True,
                 'withdraw': True,
-                'fetchOHLCV': False,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -108,6 +110,7 @@ class idex(Exchange):
                 'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
+                'FTT': 'FarmaTrust',
             },
         })
 
@@ -672,30 +675,34 @@ class idex(Exchange):
         return self.parse_order(response, market)
 
     def parse_order(self, order, market=None):
-        # {filled: '0',
-        #   initialAmount: '210',
-        #   timestamp: 1564041428,
-        #   orderHash:
-        #    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
-        #   orderNumber: 1562323021,
-        #   market: 'ETH_LIT',
-        #   type: 'buy',
-        #   params:
-        #    {tokenBuy: '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
-        #      buySymbol: 'LIT',
-        #      buyPrecision: 18,
-        #      amountBuy: '210000000000000000000',
-        #      tokenSell: '0x0000000000000000000000000000000000000000',
-        #      sellSymbol: 'ETH',
-        #      sellPrecision: 18,
-        #      amountSell: '153300000000000000',
-        #      expires: 100000,
-        #      nonce: 1,
-        #      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1'},
-        #   price: '0.00073',
-        #   amount: '210',
-        #   status: 'open',
-        #   total: '0.1533'}
+        #
+        #     {
+        #         "filled": "0",
+        #         "initialAmount": "210",
+        #         "timestamp": 1564041428,
+        #         "orderHash": "0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4",
+        #         "orderNumber": 1562323021,
+        #         "market": "ETH_LIT",
+        #         "type": "buy",
+        #         "params": {
+        #             "tokenBuy": "0x763fa6806e1acf68130d2d0f0df754c93cc546b2",
+        #             "buySymbol": "LIT",
+        #             "buyPrecision": 18,
+        #             "amountBuy": "210000000000000000000",
+        #             "tokenSell": "0x0000000000000000000000000000000000000000",
+        #             "sellSymbol": "ETH",
+        #             "sellPrecision": 18,
+        #             "amountSell": "153300000000000000",
+        #             "expires": 100000,
+        #             "nonce": 1,
+        #             "user": "0x0ab991497116f7f5532a4c2f4f7b1784488628e1"
+        #         },
+        #         "price": "0.00073",
+        #         "amount": "210",
+        #         "status": "open",
+        #         "total": "0.1533"
+        #     }
+        #
         timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         symbol = None
@@ -709,7 +716,7 @@ class idex(Exchange):
         filled = self.safe_float(order, 'filled')
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total')
-        if (cost is not None) and (filled is not None) and not cost:
+        if (cost is None) and (filled is not None) and (price is not None):
             cost = filled * price
         if 'market' in order:
             marketId = order['market']

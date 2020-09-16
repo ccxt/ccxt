@@ -28,23 +28,30 @@ class gateio(Exchange):
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'createMarketOrder': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': True,
                 'createDepositAddress': True,
-                'fetchDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrderTrades': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -295,7 +302,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': 8,
+                'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {
@@ -462,7 +469,7 @@ class gateio(Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
             result[symbol] = self.parse_ticker(response[id], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

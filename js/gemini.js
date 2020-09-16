@@ -16,22 +16,29 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddress': false,
-                'createDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchBidsAsks': false,
-                'fetchTickers': false,
-                'fetchMyTrades': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
+                'createDepositAddress': true,
                 'createMarketOrder': false,
-                'withdraw': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchBidsAsks': false,
+                'fetchClosedOrders': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
-                'fetchDeposits': false,
-                'fetchOHLCV': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -65,6 +72,7 @@ module.exports = class gemini extends Exchange {
                 'public': {
                     'get': [
                         'v1/symbols',
+                        'v1/pricefeed',
                         'v1/pubticker/{symbol}',
                         'v1/book/{symbol}',
                         'v1/trades/{symbol}',
@@ -158,6 +166,7 @@ module.exports = class gemini extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
             },
         });
     }
@@ -167,7 +176,7 @@ module.exports = class gemini extends Exchange {
         return await this[method] (params);
     }
 
-    async fetchMarketsFromWeb (symbols = undefined, params = {}) {
+    async fetchMarketsFromWeb (params = {}) {
         const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
@@ -232,10 +241,10 @@ module.exports = class gemini extends Exchange {
                 if (!(symbol in indexedSymbols)) {
                     continue;
                 }
-                const id = baseId + quoteId;
+                const marketId = baseId + quoteId;
                 const active = undefined;
                 result.push ({
-                    'id': id,
+                    'id': marketId,
                     'info': row,
                     'symbol': symbol,
                     'base': base,
@@ -332,39 +341,213 @@ module.exports = class gemini extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTickerV1 (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
-        const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
-        const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
-        const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
-        const last = this.safeFloat (ticker, 'last');
+        const response = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "bid":"9117.95",
+        //         "ask":"9117.96",
+        //         "volume":{
+        //             "BTC":"1615.46861748",
+        //             "USD":"14727307.57545006088",
+        //             "timestamp":1594982700000
+        //         },
+        //         "last":"9115.23"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTickerV2 (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV2TickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "symbol":"BTCUSD",
+        //         "open":"9080.58",
+        //         "high":"9184.53",
+        //         "low":"9063.56",
+        //         "close":"9116.08",
+        //         // Hourly prices descending for past 24 hours
+        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        //         "bid":"9115.86",
+        //         "ask":"9115.87"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTickerV1AndV2 (symbol, params = {}) {
+        const tickerA = await this.fetchTickerV1 (symbol, params);
+        const tickerB = await this.fetchTickerV2 (symbol, params);
+        return this.deepExtend (tickerA, {
+            'open': tickerB['open'],
+            'high': tickerB['high'],
+            'low': tickerB['low'],
+            'change': tickerB['change'],
+            'percentage': tickerB['percentage'],
+            'average': tickerB['average'],
+            'info': tickerB['info'],
+        });
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        return await this[method] (symbol, params);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTickers
+        //
+        //     {
+        //         "pair": "BATUSD",
+        //         "price": "0.20687",
+        //         "percentChange24h": "0.0146"
+        //     }
+        //
+        // fetchTickerV1
+        //
+        //     {
+        //         "bid":"9117.95",
+        //         "ask":"9117.96",
+        //         "volume":{
+        //             "BTC":"1615.46861748",
+        //             "USD":"14727307.57545006088",
+        //             "timestamp":1594982700000
+        //         },
+        //         "last":"9115.23"
+        //     }
+        //
+        // fetchTickerV2
+        //
+        //     {
+        //         "symbol":"BTCUSD",
+        //         "open":"9080.58",
+        //         "high":"9184.53",
+        //         "low":"9063.56",
+        //         "close":"9116.08",
+        //         // Hourly prices descending for past 24 hours
+        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        //         "bid":"9115.86",
+        //         "ask":"9115.87"
+        //     }
+        //
+        const volume = this.safeValue (ticker, 'volume', {});
+        const timestamp = this.safeInteger (volume, 'timestamp');
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'pair');
+        let baseId = undefined;
+        let quoteId = undefined;
+        let base = undefined;
+        let quote = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const idLength = marketId.length - 0;
+                if (idLength === 7) {
+                    baseId = marketId.slice (0, 4);
+                    quoteId = marketId.slice (4, 7);
+                } else {
+                    baseId = marketId.slice (0, 3);
+                    quoteId = marketId.slice (3, 6);
+                }
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+            baseId = market['baseId'].toUpperCase ();
+            quoteId = market['quoteId'].toUpperCase ();
+            base = market['base'];
+            quote = market['quote'];
+        }
+        const price = this.safeFloat (ticker, 'price');
+        const last = this.safeFloat2 (ticker, 'last', 'close', price);
+        let percentage = this.safeFloat (ticker, 'percentChange24h');
+        let change = undefined;
+        let open = this.safeFloat (ticker, 'open');
+        let average = undefined;
+        if (last !== undefined) {
+            if (open !== undefined) {
+                change = last - open;
+                if (open !== 0) {
+                    percentage = change / open * 100;
+                }
+                average = this.sum (last, open) / 2;
+            } else if (percentage !== undefined) {
+                change = last * percentage;
+                if (open === undefined) {
+                    open = last - change;
+                }
+                average = this.sum (last, open) / 2;
+            }
+        }
+        const baseVolume = this.safeFloat (volume, baseId);
+        const quoteVolume = this.safeFloat (volume, quoteId);
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker['volume'], baseCurrency),
-            'quoteVolume': this.safeFloat (ticker['volume'], quoteCurrency),
+            'previousClose': undefined, // previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetV1Pricefeed (params);
+        //
+        //     [
+        //         {
+        //             "pair": "BATUSD",
+        //             "price": "0.20687",
+        //             "percentChange24h": "0.0146"
+        //         },
+        //         {
+        //             "pair": "LINKETH",
+        //             "price": "0.018",
+        //             "percentChange24h": "0.0000"
+        //         },
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     parseTrade (trade, market = undefined) {

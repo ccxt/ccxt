@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -29,27 +28,29 @@ class bybit(Exchange):
             'userAgent': None,
             'rateLimit': 100,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'fetchMarkets': True,
-                'fetchBalance': True,
-                'fetchOHLCV': True,
+                'cancelAllOrders': True,
+                'createOrder': True,
                 'editOrder': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchOrderTrades': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
                 'fetchTime': True,
-                'fetchWithdrawals': True,
-                'fetchDeposits': False,
+                'fetchTrades': True,
                 'fetchTransactions': False,
-                'fetchLedger': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -153,9 +154,11 @@ class bybit(Exchange):
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
                         'position/set-leverage',
@@ -270,6 +273,7 @@ class bybit(Exchange):
                 },
                 'broad': {
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
+                    'invalid api_key': AuthenticationError,  # {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -513,9 +517,7 @@ class bybit(Exchange):
             average = self.sum(open, last) / 2
         baseVolume = self.safe_float(ticker, 'turnover_24h')
         quoteVolume = self.safe_float(ticker, 'volume_24h')
-        vwap = None
-        if quoteVolume is not None and baseVolume is not None:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -998,13 +1000,48 @@ class bybit(Exchange):
         #         "order_id" : "dd2504b9-0157-406a-99e1-efa522373944"
         #     }
         #
+        # conditional order
+        #
+        #     {
+        #         "user_id":##,
+        #         "symbol":"BTCUSD",
+        #         "side":"Buy",
+        #         "order_type":"Market",
+        #         "price":0,
+        #         "qty":10,
+        #         "time_in_force":"GoodTillCancel",
+        #         "stop_order_type":"Stop",
+        #         "trigger_by":"LastPrice",
+        #         "base_price":11833,
+        #         "order_status":"Untriggered",
+        #         "ext_fields":{
+        #             "stop_order_type":"Stop",
+        #             "trigger_by":"LastPrice",
+        #             "base_price":11833,
+        #             "expected_direction":"Rising",
+        #             "trigger_price":12400,
+        #             "close_on_trigger":true,
+        #             "op_from":"api",
+        #             "remark":"145.53.159.48",
+        #             "o_req_num":0
+        #         },
+        #         "leaves_qty":10,
+        #         "leaves_value":0.00080645,
+        #         "reject_reason":null,
+        #         "cross_seq":-1,
+        #         "created_at":"2020-08-21T09:18:48.000Z",
+        #         "updated_at":"2020-08-21T09:18:48.000Z",
+        #         "stop_px":12400,
+        #         "stop_order_id":"3f3b54b1-3379-42c7-8510-44f4d9915be0"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         symbol = None
         base = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        id = self.safe_string(order, 'order_id')
+        id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
         amount = self.safe_float(order, 'qty')
@@ -1025,7 +1062,7 @@ class bybit(Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-        status = self.parse_order_status(self.safe_string(order, 'order_status'))
+        status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
         fee = None
@@ -1155,13 +1192,18 @@ class bybit(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        qty = self.amount_to_precision(symbol, amount)
+        if market['inverse']:
+            qty = int(qty)
+        else:
+            qty = float(qty)
         request = {
             # orders ---------------------------------------------------------
             'side': self.capitalize(side),
             'symbol': market['id'],
             'order_type': self.capitalize(type),
-            'qty': self.amount_to_precision(symbol, amount),  # order quantity in USD, integer only
-            # 'price': self.price_to_precision(symbol, price),  # required for limit orders
+            'qty': qty,  # order quantity in USD, integer only
+            # 'price': float(self.price_to_precision(symbol, price)),  # required for limit orders
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stop_loss': 123.45,  # stop loss price, only take effect upon opening the position
@@ -1184,7 +1226,7 @@ class bybit(Exchange):
             priceIsRequired = True
         if priceIsRequired:
             if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
+                request['price'] = float(self.price_to_precision(symbol, price))
             else:
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
         stopPx = self.safe_value(params, 'stop_px')
@@ -1197,8 +1239,8 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
                 method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'openapiPostStopOrderCreate'
-                request['stop_px'] = self.price_to_precision(symbol, stopPx)
-                request['base_price'] = self.price_to_precision(symbol, basePrice)
+                request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
+                request['base_price'] = float(self.price_to_precision(symbol, basePrice))
                 params = self.omit(params, ['stop_px', 'base_price'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
@@ -1288,8 +1330,6 @@ class bybit(Exchange):
             raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
-        if marketType == 'linear':
-            raise NotSupported(self.id + ' does not support editOrder for ' + marketType + ' ' + symbol + ' market type')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1302,18 +1342,18 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
+        method = 'privateLinearPostOrderReplace' if (marketType == 'linear') else 'openapiPostOrderReplace'
         stopOrderId = self.safe_string(params, 'stop_order_id')
-        method = 'openapiPostOrderReplace'
         if stopOrderId is not None:
-            method = 'openapiPostStopOrderReplace'
+            method = 'privateLinearPostStopOrderReplace' if (marketType == 'linear') else 'openapiPostStopOrderReplace'
             request['stop_order_id'] = stopOrderId
             params = self.omit(params, ['stop_order_id'])
         else:
             request['order_id'] = id
         if amount is not None:
-            request['p_r_qty'] = self.amount_to_precision(symbol, amount)
+            request['p_r_qty'] = int(self.amount_to_precision(symbol, amount))
         if price is not None:
-            request['p_r_price'] = self.price_to_precision(symbol, price)
+            request['p_r_price'] = float(self.price_to_precision(symbol, price))
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1351,7 +1391,7 @@ class bybit(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

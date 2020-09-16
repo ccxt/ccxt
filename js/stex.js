@@ -17,25 +17,30 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createDepositAddress': true,
                 'createMarketOrder': false, // limit orders only
-                'fetchCurrencies': true,
-                'fetchMarkets': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingFees': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchMyTrades': true,
+                'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'fetchDeposits': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
-                'fetchFundingFees': true,
             },
             'version': 'v3',
             'urls': {
@@ -409,6 +414,26 @@ module.exports = class stex extends Exchange {
         //
         const ticker = this.safeValue (response, 'data', {});
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "server_datetime": {
+        //                 "date": "2019-01-22 15:13:34.233796",
+        //                 "timezone_type": 3,
+        //                 "timezone": "UTC"
+        //             },
+        //             "server_timestamp": 1548170014
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const serverDatetime = this.safeValue (data, 'server_datetime', {});
+        return this.parse8601 (this.safeString (serverDatetime, 'date'));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

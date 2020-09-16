@@ -35,27 +35,32 @@ class hbtc(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTime': True,
+                'createOrder': True,
+                'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchBidAsk': True,
                 'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchDepositAddress': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchTradingLimits': True,
+                'fetchCurrencies': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'withdraw': True,
-                'fetchCurrencies': False,
-                'fetchDeposits': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
-                'fetchAccounts': True,
-                'fetchLedger': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1594,9 +1599,7 @@ class hbtc(Exchange):
                 percentage = (change / open) * 100
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         baseVolume = self.safe_float(ticker, 'volume')
-        vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

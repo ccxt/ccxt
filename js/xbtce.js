@@ -16,10 +16,17 @@ module.exports = class xbtce extends Exchange {
             'rateLimit': 2000, // responses are cached every 2 seconds
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': false,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -236,7 +243,7 @@ module.exports = class xbtce extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

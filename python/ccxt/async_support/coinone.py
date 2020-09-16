@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -25,8 +24,11 @@ class coinone(Exchange):
             'rateLimit': 667,
             'version': 'v2',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchCurrencies': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -179,7 +181,7 @@ class coinone(Exchange):
                 ticker = response[id]
                 result[symbol] = self.parse_ticker(ticker, market)
                 result[symbol]['timestamp'] = timestamp
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -601,7 +603,7 @@ class coinone(Exchange):
                 'access_token': self.apiKey,
                 'nonce': nonce,
             }, params))
-            payload = base64.b64encode(self.encode(json))
+            payload = self.string_to_base64(self.encode(json))
             body = self.decode(payload)
             secret = self.secret.upper()
             signature = self.hmac(payload, self.encode(secret), hashlib.sha512)

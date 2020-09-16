@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -38,19 +37,26 @@ class coinbasepro(Exchange):
             'pro': True,
             'has': {
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': True,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'deposit': True,
                 'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'createDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTime': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -89,6 +95,7 @@ class coinbasepro(Exchange):
                     'get': [
                         'currencies',
                         'products',
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
@@ -109,13 +116,28 @@ class coinbasepro(Exchange):
                         'fills',
                         'funding',
                         'fees',
+                        'margin/profile_information',
+                        'margin/buying_power',
+                        'margin/withdrawal_power',
+                        'margin/withdrawal_power_all',
+                        'margin/exit_plan',
+                        'margin/liquidation_history',
+                        'margin/position_refresh_amounts',
+                        'margin/status',
+                        'oracle',
                         'orders',
                         'orders/{id}',
+                        'orders/client:{client_oid}',
                         'otc/orders',
                         'payment-methods',
                         'position',
-                        'reports/{id}',
+                        'profiles',
+                        'profiles/{id}',
+                        'reports/{report_id}',
+                        'transfers',
+                        'transfers/{transfer_id}',
                         'users/self/trailing-volume',
+                        'users/self/exchange-limits',
                     ],
                     'post': [
                         'conversions',
@@ -126,13 +148,16 @@ class coinbasepro(Exchange):
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'profiles/transfer',
                         'reports',
                         'withdrawals/coinbase',
+                        'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
                     ],
                     'delete': [
                         'orders',
+                        'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
                 },
@@ -840,7 +865,7 @@ class coinbasepro(Exchange):
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,

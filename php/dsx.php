@@ -19,19 +19,26 @@ class dsx extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'createMarketOrder' => false,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
-                'fetchOrderBooks' => true,
                 'createDepositAddress' => true,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => false,
                 'fetchDepositAddress' => true,
-                'fetchTransactions' => true,
-                'fetchTickers' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -120,6 +127,7 @@ class dsx extends Exchange {
                     'data unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'external service unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'nonce is invalid' => '\\ccxt\\InvalidNonce', // array("success":0,"error":"Parameter => nonce is invalid")
+                    'Incorrect volume' => '\\ccxt\\InvalidOrder', // array("success" => 0,"error":"Order was rejected. Incorrect volume.")
                 ),
             ),
             'options' => array(
@@ -415,7 +423,7 @@ class dsx extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
         if ($side === 'sell') {
             $cost *= $price;
         } else {
@@ -542,7 +550,7 @@ class dsx extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -608,13 +616,13 @@ class dsx extends Exchange {
             // in their docs they expect milliseconds
             // but it returns empty arrays with milliseconds
             // however, it does work properly with seconds
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
             if ($limit === null) {
                 $request['end'] = $this->seconds();
             } else {
                 $duration = $this->parse_timeframe($timeframe) * 1000;
                 $end = $this->sum($since, $duration * $limit);
-                $request['end'] = intval ($end / 1000);
+                $request['end'] = intval($end / 1000);
             }
         }
         $response = $this->$method (array_merge($request, $params));
@@ -657,8 +665,8 @@ class dsx extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
             'orderType' => $type,
         );
-        $price = floatval ($price);
-        $amount = floatval ($amount);
+        $price = floatval($price);
+        $amount = floatval($amount);
         $response = $this->privatePostOrderNew (array_merge($request, $params));
         //
         //     {
@@ -849,7 +857,7 @@ class dsx extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'orderId' => intval ($id),
+            'orderId' => intval($id),
         );
         $response = $this->privatePostOrderStatus (array_merge($request, $params));
         //
@@ -964,9 +972,6 @@ class dsx extends Exchange {
             'orderId' => $id,
         );
         $response = $this->privatePostOrderCancel (array_merge($request, $params));
-        if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-            $this->orders[$id]['status'] = 'canceled';
-        }
         return $response;
     }
 
@@ -1009,10 +1014,10 @@ class dsx extends Exchange {
             $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['count'] = intval ($limit);
+            $request['count'] = intval($limit);
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->privatePostHistoryTrades (array_merge($request, $params));
         $trades = array();
@@ -1151,7 +1156,7 @@ class dsx extends Exchange {
         $params = $this->omit($params, $commission);
         $request = array(
             'currency' => $currency['id'],
-            'amount' => floatval ($amount),
+            'amount' => floatval($amount),
             'address' => $address,
             'commission' => $commission,
         );

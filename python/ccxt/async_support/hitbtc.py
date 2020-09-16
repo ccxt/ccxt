@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -31,24 +30,32 @@ class hitbtc(Exchange):
             'version': '2',
             'pro': True,
             'has': {
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'editOrder': True,
-                'fetchCurrencies': True,
-                'fetchOHLCV': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
-                'fetchOrderTrades': False,  # not implemented yet
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': False,
-                'fetchWithdrawals': False,
-                'fetchTransactions': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': False,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -167,6 +174,7 @@ class hitbtc(Exchange):
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
+                'PNT': 'Penta',
             },
             'exceptions': {
                 '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -179,6 +187,7 @@ class hitbtc(Exchange):
                 '20002': OrderNotFound,  # canceling non-existent order
                 '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -254,17 +263,19 @@ class hitbtc(Exchange):
         #
         #     [
         #         {
-        #             "id":"DDF",
-        #             "fullName":"DDF",
+        #             "id":"XPNT",
+        #             "fullName":"pToken",
         #             "crypto":true,
-        #             "payinEnabled":false,
+        #             "payinEnabled":true,
         #             "payinPaymentId":false,
-        #             "payinConfirmations":20,
+        #             "payinConfirmations":9,
         #             "payoutEnabled":true,
         #             "payoutIsPaymentId":false,
         #             "transferEnabled":true,
         #             "delisted":false,
-        #             "payoutFee":"646.000000000000"
+        #             "payoutFee":"26.510000000000",
+        #             "precisionPayout":18,
+        #             "precisionTransfer":8
         #         }
         #     ]
         #
@@ -275,7 +286,8 @@ class hitbtc(Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            precision = 8  # default precision, todo: fix "magic constants"
+            decimals = self.safe_integer(currency, 'precisionTransfer', 8)
+            precision = 1 / math.pow(10, decimals)
             code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
@@ -302,12 +314,12 @@ class hitbtc(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': 1 / math.pow(10, decimals),
+                        'max': math.pow(10, decimals),
                     },
                     'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': 1 / math.pow(10, decimals),
+                        'max': math.pow(10, decimals),
                     },
                     'cost': {
                         'min': None,
@@ -426,11 +438,7 @@ class hitbtc(Exchange):
             average = self.sum(last, open) / 2
             if open > 0:
                 percentage = change / open * 100
-        vwap = None
-        if quoteVolume is not None:
-            if baseVolume is not None:
-                if baseVolume > 0:
-                    vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -468,7 +476,7 @@ class hitbtc(Exchange):
                     result[symbol] = self.parse_ticker(ticker, market)
                 else:
                     result[marketId] = self.parse_ticker(ticker)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -1041,7 +1049,7 @@ class hitbtc(Exchange):
             elif query:
                 body = self.json(query)
             payload = self.encode(self.apiKey + ':' + self.secret)
-            auth = base64.b64encode(payload)
+            auth = self.string_to_base64(payload)
             headers = {
                 'Authorization': 'Basic ' + self.decode(auth),
                 'Content-Type': 'application/json',

@@ -18,21 +18,28 @@ module.exports = class crex24 extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
                 'editOrder': true,
+                'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
                 'fetchTransactions': true,
@@ -148,6 +155,7 @@ module.exports = class crex24 extends Exchange {
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'Mandatory parameter': BadRequest, // {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
         });
@@ -1247,6 +1255,7 @@ module.exports = class crex24 extends Exchange {
             // true - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address
             // false - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee]
             // 'includeFee': false, // the default value is false
+            'feeCurrency': currency['id'], // https://github.com/ccxt/ccxt/issues/7544
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;

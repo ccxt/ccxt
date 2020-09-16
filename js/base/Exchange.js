@@ -30,7 +30,7 @@ const {
     , defaultFetch
 } = functions
 
-const {
+const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
@@ -41,7 +41,7 @@ const {
     , ExchangeNotAvailable
     , RateLimitExceeded } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 
@@ -200,6 +200,7 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'paddingMode': NO_PADDING,
             'limits': {
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
@@ -261,7 +262,7 @@ module.exports = class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
-        this.orders       = {}
+        this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
@@ -290,22 +291,27 @@ module.exports = class Exchange {
         }
         unCamelCaseProperties ()
 
-        // merge configs
-        const config = deepExtend (this.describe (), userConfig)
-
         // merge to this
-        const configEntries = Object.entries (config)
+        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
-            this[property] = deepExtend (this[property], value)
+            if (value && Object.getPrototypeOf (value) === Object.prototype) {
+                this[property] = deepExtend (this[property], value)
+            } else {
+                this[property] = value
+            }
+        }
+
+        const agentOptions = {
+            'keepAlive': true,
         }
 
         if (!this.httpAgent && defaultFetch.http && isNode) {
-            this.httpAgent = new defaultFetch.http.Agent ({ 'keepAlive': true })
+            this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
 
         if (!this.httpsAgent && defaultFetch.https && isNode) {
-            this.httpsAgent = new defaultFetch.https.Agent ({ 'keepAlive': true })
+            this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
 
         // generate old metainfo interface
@@ -391,7 +397,6 @@ module.exports = class Exchange {
             const params = { method, headers, body, timeout: this.timeout }
 
             if (this.agent) {
-                this.agent.keepAlive = true
                 params['agent'] = this.agent
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
                 params['agent'] = this.httpAgent
@@ -440,46 +445,31 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
-
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
-
-                let paths = api[type][httpMethod]
-                for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ()
-                    let splitPath = path.split (/[^a-zA-Z0-9]/)
-
-                    let uppercaseMethod  = httpMethod.toUpperCase ()
-                    let lowercaseMethod  = httpMethod.toLowerCase ()
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod)
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes']) {
-                            camelcase += options['suffixes']['camelcase']
-                        }
-                        if ('underscore' in options.suffixes) {
-                            underscore += options['suffixes']['underscore']
-                        }
-                    }
-
-                    if ('underscore_suffix' in options) {
-                        underscore += options.underscoreSuffix;
-                    }
-                    if ('camelcase_suffix' in options) {
-                        camelcase += options.camelcaseSuffix;
-                    }
-
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
-
+    defineRestApi (api, methodName, paths = []) {
+        const keys = Object.keys (api)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            const value = api[key]
+            if (Array.isArray (value)) {
+                const uppercaseMethod = key.toUpperCase ()
+                const lowercaseMethod = key.toLowerCase ()
+                const camelcaseMethod = this.capitalize (lowercaseMethod)
+                for (let k = 0; k < value.length; k++) {
+                    const path = value[k].trim ()
+                    const splitPath = path.split (/[^a-zA-Z0-9]/)
+                    const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+                    const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
+                    const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+                    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
+                    const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+                    const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+                    const typeArgument = (paths.length > 1) ? paths : paths[0]
+                    const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
                     this[camelcase]  = partial
                     this[underscore] = partial
                 }
+            } else {
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
@@ -581,35 +571,10 @@ module.exports = class Exchange {
         if ((code >= 200) && (code <= 299)) {
             return
         }
-        let details = body
         const codeAsString = code.toString ()
-        let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
-            ErrorClass = this.httpExceptions[codeAsString]
-        }
-        if (response === undefined) {
-            const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
-            if (maintenance) {
-                ErrorClass = ExchangeNotAvailable
-                details += ' offline, on maintenance, or unreachable from this location at the moment'
-            }
-            if (ddosProtection) {
-                ErrorClass = DDoSProtection
-            }
-        }
-        if (ErrorClass === ExchangeNotAvailable) {
-            details += ' (possible reasons: ' + [
-                'invalid API keys',
-                'bad or old nonce',
-                'exchange is down or offline',
-                'on maintenance',
-                'DDoS protection',
-                'rate-limiting',
-            ].join (', ') + ')'
-        }
-        if (ErrorClass !== undefined) {
-            throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+            const ErrorClass = this.httpExceptions[codeAsString]
+            throw new ErrorClass ([ this.id, method, url, code, reason, body ].join (' '))
         }
     }
 
@@ -635,11 +600,11 @@ module.exports = class Exchange {
             }
 
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_http_response = responseBody
             }
 
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_json_response = json
             }
 
             if (this.verbose) {
@@ -814,10 +779,12 @@ module.exports = class Exchange {
     }
 
     purgeCachedOrders (before) {
-        const orders = Object
-            .values (this.orders)
-            .filter ((order) => (order.status === 'open') || (order.timestamp >= before))
-        this.orders = indexBy (orders, 'id')
+        if (this.orders) {
+            const orders = Object
+                .values (this.orders)
+                .filter ((order) => (order.status === 'open') || (order.timestamp >= before))
+            this.orders = indexBy (orders, 'id')
+        }
         return this.orders
     }
 
@@ -1283,23 +1250,23 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
+        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1334,7 +1301,7 @@ module.exports = class Exchange {
             if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
                 encoded.push (this.numberToBE (this.numberToString (value), 32))
             } else {
-                const noPrefix = Exchange.remove0xPrefix (value)
+                const noPrefix = this.remove0xPrefix (value)
                 if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
                     encoded.push (this.base16ToBinary (noPrefix))
                 } else {
@@ -1346,108 +1313,7 @@ module.exports = class Exchange {
         return '0x' + this.hash (concated, 'keccak', 'hex')
     }
 
-    getZeroExOrderHash (order) {
-        return this.soliditySha3 ([
-            order['exchangeContractAddress'], // address
-            order['maker'], // address
-            order['taker'], // address
-            order['makerTokenAddress'], // address
-            order['takerTokenAddress'], // address
-            order['feeRecipient'], // address
-            order['makerTokenAmount'], // uint256
-            order['takerTokenAmount'], // uint256
-            order['makerFee'], // uint256
-            order['takerFee'], // uint256
-            order['expirationUnixTimestampSec'], // uint256
-            order['salt'], // uint256
-        ]);
-    }
-
-    getZeroExOrderHashV2 (order) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        const addressPadding = '000000000000000000000000';
-        const header = '1901';
-        const domainStructHeader = '91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766f0f24618f4c4be1e62e026fb039a20ef96f4495294817d1027ffaa6d1f70e61ead7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
-        const orderSchemaHash = '770501f88a26ede5c04a20ef877969e961eb11fc13b78aaf414b633da0d4f86f';
-
-        const domainStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address'
-            ],
-            [
-                Buffer.from (domainStructHeader, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['exchangeAddress']
-            ]
-        );
-        const orderStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'string',
-                'string'
-            ],
-            [
-                Buffer.from (orderSchemaHash, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['makerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['takerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['feeRecipientAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['senderAddress'],
-                order['makerAssetAmount'],
-                order['takerAssetAmount'],
-                order['makerFee'],
-                order['takerFee'],
-                order['expirationTimeSeconds'],
-                order['salt'],
-                ethUtil.keccak (Buffer.from (order['makerAssetData'].slice (2), 'hex')),
-                ethUtil.keccak (Buffer.from (order['takerAssetData'].slice (2), 'hex')),
-            ]
-        );
-        return '0x' + ethUtil.keccak (Buffer.concat ([
-            Buffer.from (header, 'hex'),
-            domainStructHash,
-            orderStructHash
-        ])).toString ('hex');
-    }
-
-    signZeroExOrderV2 (order, privateKey) {
-        const orderHash = this.getZeroExOrderHashV2 (order);
-        const signature = this.signMessage (orderHash, privateKey);
-        return this.extend (order, {
-            'orderHash': orderHash,
-            'signature': this.convertECSignatureToSignatureHex (signature),
-        })
-    }
-
-    convertECSignatureToSignatureHex (signature) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
-        let v = signature.v;
-        if (v !== 27 && v !== 28) {
-            v = v + 27;
-        }
-        return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
-    }
-
-    static remove0xPrefix (hexData) {
+    remove0xPrefix (hexData) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2)
         } else {
@@ -1457,7 +1323,7 @@ module.exports = class Exchange {
 
     hashMessage (message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (Exchange.remove0xPrefix (message))
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
@@ -1473,6 +1339,13 @@ module.exports = class Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    signMessageString (message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage (message, privateKey)
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']));
     }
 
     oath () {

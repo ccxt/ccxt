@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -19,22 +18,29 @@ class luno(Exchange):
             'rateLimit': 1000,
             'version': '1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
                 'fetchAccounts': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
                 'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.mybitx.com/api',
+                'api': 'https://api.luno.com/api',
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -69,6 +75,7 @@ class luno(Exchange):
                     ],
                     'post': [
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -302,7 +309,7 @@ class luno(Exchange):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -564,7 +571,7 @@ class luno(Exchange):
         if api == 'private':
             self.check_required_credentials()
             auth = self.encode(self.apiKey + ':' + self.secret)
-            auth = base64.b64encode(auth)
+            auth = self.string_to_base64(auth)
             headers = {'Authorization': 'Basic ' + self.decode(auth)}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

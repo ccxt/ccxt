@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -43,25 +42,32 @@ class kraken(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchLedgerEntry': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': 'emulated',
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
                 'fetchWithdrawals': True,
-                'fetchDeposits': True,
                 'withdraw': True,
-                'fetchLedgerEntry': True,
-                'fetchLedger': True,
-                'fetchOrderTrades': 'emulated',
-                'fetchTime': True,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -246,6 +252,8 @@ class kraken(Exchange):
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Order minimum not met': InvalidOrder,
             },
         })
 
@@ -538,8 +546,8 @@ class kraken(Exchange):
         self.load_markets()
         symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.markets[symbol]
             if market['active'] and not market['darkpool']:
                 marketIds.append(market['id'])
@@ -555,9 +563,8 @@ class kraken(Exchange):
             market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = tickers[id]
-            if self.in_array(symbol, symbols):
-                result[symbol] = self.parse_ticker(ticker, market)
-        return result
+            result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -937,8 +944,8 @@ class kraken(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': None,
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': None,
@@ -1519,7 +1526,7 @@ class kraken(Exchange):
             hash = self.hash(auth, 'sha256', 'binary')
             binary = self.encode(url)
             binhash = self.binary_concat(binary, hash)
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             signature = self.hmac(binhash, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,

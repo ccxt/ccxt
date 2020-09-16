@@ -21,20 +21,24 @@ class ice3x(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchMyTrades': True,
                 'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460809-1dd06c00-c616-11ea-98ad-7d5e1cb7fcdd.jpg',
                 'api': 'https://ice3x.com/api',
-                'www': [
-                    'https://ice3x.com',
-                    'https://ice3x.co.za',
-                ],
+                'www': 'https://ice3x.com',  # 'https://ice3x.co.za',
                 'doc': 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
                 'fees': [
                     'https://help.ice3.com/support/solutions/articles/11000033293-trading-fees',
@@ -204,7 +208,7 @@ class ice3x(Exchange):
             if market is not None:
                 symbol = market['symbol']
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -351,8 +355,6 @@ class ice3x(Exchange):
             'remaining': amount,
             'info': response,
         }, market)
-        id = order['id']
-        self.orders[id] = order
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -367,14 +369,19 @@ class ice3x(Exchange):
             'order _id': id,
         }
         response = await self.privatePostOrderInfo(self.extend(request, params))
-        order = self.safe_value(response['response'], 'entity')
+        data = self.safe_value(response, 'response', {})
+        order = self.safe_value(data, 'entity')
         return self.parse_order(order)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrderList(params)
-        orders = self.safe_value(response['response'], 'entities')
-        return self.parse_orders(orders, None, since, limit)
+        data = self.safe_value(response, 'response', {})
+        orders = self.safe_value(data, 'entities', [])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -387,7 +394,8 @@ class ice3x(Exchange):
         if since is not None:
             request['date_from'] = int(since / 1000)
         response = await self.privatePostTradeList(self.extend(request, params))
-        trades = self.safe_value(response['response'], 'entities')
+        data = self.safe_value(response, 'response', {})
+        trades = self.safe_value(data, 'entities', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
@@ -397,7 +405,8 @@ class ice3x(Exchange):
             'currency_id': currency['id'],
         }
         response = await self.privatePostBalanceInfo(self.extend(request, params))
-        balance = self.safe_value(response['response'], 'entity')
+        data = self.safe_value(response, 'response', {})
+        balance = self.safe_value(data, 'entity', {})
         address = self.safe_string(balance, 'address')
         status = 'ok' if address else 'none'
         return {
