@@ -1393,6 +1393,17 @@ class Transpiler {
 
     // ============================================================================
 
+    transpileTests () {
+
+        this.transpilePrecisionTests ()
+        this.transpileDateTimeTests ()
+        this.transpileCryptoTests ()
+
+        this.transpileExchangeTests ()
+    }
+
+    // ============================================================================
+
     transpileEverything () {
 
         // default pattern is '.js'
@@ -1423,11 +1434,7 @@ class Transpiler {
 
         this.transpileErrorHierarchy ()
 
-        this.transpilePrecisionTests ()
-        this.transpileDateTimeTests ()
-        this.transpileCryptoTests ()
-
-        this.transpileExchangeTests ()
+        this.transpileTests ()
 
         this.transpilePythonAsyncToSync ()
 
@@ -1441,7 +1448,12 @@ class Transpiler {
 if (require.main === module) { // called directly like `node module`
 
     const transpiler = new Transpiler ()
-    transpiler.transpileEverything ()
+    const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    if (test) {
+        transpiler.transpileTests ()
+    } else {
+        transpiler.transpileEverything ()
+    }
 
 } else { // if required as a module
 

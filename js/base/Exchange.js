@@ -46,22 +46,6 @@ const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConst
 const BN = require ('../static_dependencies/BN/bn')
 
 // ----------------------------------------------------------------------------
-// web3 / 0x imports
-
-let ethAbi = undefined
-    , ethUtil = undefined
-
-try {
-    const requireFunction = require;
-    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
-    // we prefer bignumber.js over BN.js
-    // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
-} catch (e) {
-    // nothing
-}
-
-// ----------------------------------------------------------------------------
 
 module.exports = class Exchange {
 
@@ -1281,16 +1265,8 @@ module.exports = class Exchange {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // web3 / 0x methods
-    static hasWeb3 () {
-        return ethUtil && ethAbi
-    }
-
     checkRequiredDependencies () {
-        if (this.requiresWeb3 && !Exchange.hasWeb3 ()) {
-            throw new ExchangeError ('Required dependencies missing: \nnpm i ethereumjs-util ethereumjs-abi --no-save');
-        }
+        return
     }
 
     soliditySha3 (array) {
@@ -1311,107 +1287,6 @@ module.exports = class Exchange {
         }
         const concated = this.binaryConcatArray (encoded)
         return '0x' + this.hash (concated, 'keccak', 'hex')
-    }
-
-    getZeroExOrderHash (order) {
-        return this.soliditySha3 ([
-            order['exchangeContractAddress'], // address
-            order['maker'], // address
-            order['taker'], // address
-            order['makerTokenAddress'], // address
-            order['takerTokenAddress'], // address
-            order['feeRecipient'], // address
-            order['makerTokenAmount'], // uint256
-            order['takerTokenAmount'], // uint256
-            order['makerFee'], // uint256
-            order['takerFee'], // uint256
-            order['expirationUnixTimestampSec'], // uint256
-            order['salt'], // uint256
-        ]);
-    }
-
-    getZeroExOrderHashV2 (order) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        const addressPadding = '000000000000000000000000';
-        const header = '1901';
-        const domainStructHeader = '91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766f0f24618f4c4be1e62e026fb039a20ef96f4495294817d1027ffaa6d1f70e61ead7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
-        const orderSchemaHash = '770501f88a26ede5c04a20ef877969e961eb11fc13b78aaf414b633da0d4f86f';
-
-        const domainStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address'
-            ],
-            [
-                Buffer.from (domainStructHeader, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['exchangeAddress']
-            ]
-        );
-        const orderStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'string',
-                'string'
-            ],
-            [
-                Buffer.from (orderSchemaHash, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['makerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['takerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['feeRecipientAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['senderAddress'],
-                order['makerAssetAmount'],
-                order['takerAssetAmount'],
-                order['makerFee'],
-                order['takerFee'],
-                order['expirationTimeSeconds'],
-                order['salt'],
-                ethUtil.keccak (Buffer.from (order['makerAssetData'].slice (2), 'hex')),
-                ethUtil.keccak (Buffer.from (order['takerAssetData'].slice (2), 'hex')),
-            ]
-        );
-        return '0x' + ethUtil.keccak (Buffer.concat ([
-            Buffer.from (header, 'hex'),
-            domainStructHash,
-            orderStructHash
-        ])).toString ('hex');
-    }
-
-    signZeroExOrderV2 (order, privateKey) {
-        const orderHash = this.getZeroExOrderHashV2 (order);
-        const signature = this.signMessage (orderHash, privateKey);
-        return this.extend (order, {
-            'orderHash': orderHash,
-            'signature': this.convertECSignatureToSignatureHex (signature),
-        })
-    }
-
-    convertECSignatureToSignatureHex (signature) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
-        let v = signature.v;
-        if (v !== 27 && v !== 28) {
-            v = v + 27;
-        }
-        return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
     }
 
     remove0xPrefix (hexData) {

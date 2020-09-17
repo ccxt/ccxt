@@ -16,6 +16,7 @@ module.exports = class idex extends Exchange {
             'rateLimit': 1500,
             'certified': true,
             'requiresWeb3': true,
+            'version': 'v1',
             'has': {
                 'cancelOrder': true,
                 'createOrder': true,

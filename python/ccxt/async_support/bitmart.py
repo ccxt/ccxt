@@ -700,9 +700,8 @@ class bitmart(Exchange):
         percentage = self.safe_float(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
-        # bitmart base/quote reversed
-        baseVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'base_coin_volume')
-        quoteVolume = self.safe_float_2(ticker, 'base_volume_24h', 'quote_coin_volume')
+        baseVolume = self.safe_float_2(ticker, 'base_volume_24h', 'base_coin_volume')
+        quoteVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
         vwap = None
         if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
             vwap = quoteVolume / baseVolume

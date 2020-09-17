@@ -696,9 +696,8 @@ class bitmart extends Exchange {
         if ($percentage !== null) {
             $percentage *= 100;
         }
-        // bitmart base/quote reversed
-        $baseVolume = $this->safe_float_2($ticker, 'quote_volume_24h', 'base_coin_volume');
-        $quoteVolume = $this->safe_float_2($ticker, 'base_volume_24h', 'quote_coin_volume');
+        $baseVolume = $this->safe_float_2($ticker, 'base_volume_24h', 'base_coin_volume');
+        $quoteVolume = $this->safe_float_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
         $vwap = null;
         if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
             $vwap = $quoteVolume / $baseVolume;

@@ -691,9 +691,8 @@ module.exports = class bitmart extends Exchange {
         if (percentage !== undefined) {
             percentage *= 100;
         }
-        // bitmart base/quote reversed
-        const baseVolume = this.safeFloat2 (ticker, 'quote_volume_24h', 'base_coin_volume');
-        const quoteVolume = this.safeFloat2 (ticker, 'base_volume_24h', 'quote_coin_volume');
+        const baseVolume = this.safeFloat2 (ticker, 'base_volume_24h', 'base_coin_volume');
+        const quoteVolume = this.safeFloat2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
         let vwap = undefined;
         if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
             vwap = quoteVolume / baseVolume;
