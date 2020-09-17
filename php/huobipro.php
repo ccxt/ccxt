@@ -88,11 +88,27 @@ class huobipro extends Exchange {
                     'get' => array(
                         'account/ledger',
                         'account/withdraw/quota',
+                        'account/withdraw/address', // 提币地址查询(限母用户可用)
                         'account/deposit/address',
                         'reference/transact-fee-rate',
+                        'account/asset-valuation', // 获取账户资产估值
+                        'point/account', // 点卡余额查询
+                        'sub-user/user-list', // 获取子用户列表
+                        'sub-user/user-state', // 获取特定子用户的用户状态
+                        'sub-user/account-list', // 获取特定子用户的账户列表
+                        'sub-user/deposit-address', // 子用户充币地址查询
+                        'sub-user/query-deposit', // 子用户充币记录查询
+                        'user/api-key', // 母子用户API key信息查询
                     ),
                     'post' => array(
-                        'sub-user/management',
+                        'point/transfer', // 点卡划转
+                        'sub-user/management', // 冻结/解冻子用户
+                        'sub-user/creation', // 子用户创建
+                        'sub-user/tradable-market', // 设置子用户交易权限
+                        'sub-user/transferability', // 设置子用户资产转出权限
+                        'sub-user/api-key-generation', // 子用户API key创建
+                        'sub-user/api-key-modification', // 修改子用户API key
+                        'sub-user/api-key-deletion', // 删除子用户API key
                     ),
                 ),
                 'market' => array(
@@ -122,6 +138,7 @@ class huobipro extends Exchange {
                         'account/accounts/{sub-uid}',
                         'account/history',
                         'cross-margin/loan-info',
+                        'margin/loan-info', // 查询借币币息率及额度
                         'fee/fee-rate/get',
                         'order/openOrders',
                         'order/orders',
@@ -130,11 +147,13 @@ class huobipro extends Exchange {
                         'order/orders/getClientOrder',
                         'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
-                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
                         'query/deposit-withdraw',
                         'margin/loan-info',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'cross-margin/loan-orders', // 查询借币订单
+                        'cross-margin/accounts/balance', // 借币账户详情
                         'points/actions',
                         'points/orders',
                         'subuser/aggregate-balance',
@@ -142,6 +161,7 @@ class huobipro extends Exchange {
                         'stable-coin/quote',
                     ),
                     'post' => array(
+                        'account/transfer', // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer',
                         'order/batch-orders',
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -154,12 +174,16 @@ class huobipro extends Exchange {
                         'dw/balance/transfer', // 资产划转
                         'dw/withdraw/api/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
                         'dw/transfer-in/margin', // 现货账户划入至借贷账户
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'cross-margin/transfer-in', // 资产划转
+                        'cross-margin/transfer-out', // 资产划转
+                        'cross-margin/orders', // 申请借币
+                        'cross-margin/orders/{id}/repay', // 归还借币
                         'stable-coin/exchange',
                         'subuser/transfer',
                     ),
