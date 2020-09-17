@@ -134,6 +134,7 @@ class Exchange {
         'ftx',
         'gateio',
         'gemini',
+        'gooplex',
         'hbtc',
         'hitbtc',
         'hollaex',

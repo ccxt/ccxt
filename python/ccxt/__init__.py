@@ -140,6 +140,7 @@ from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
+from ccxt.gooplex import gooplex                            # noqa: F401
 from ccxt.hbtc import hbtc                                  # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
@@ -266,6 +267,7 @@ exchanges = [
     'ftx',
     'gateio',
     'gemini',
+    'gooplex',
     'hbtc',
     'hitbtc',
     'hollaex',
