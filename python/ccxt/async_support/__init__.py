@@ -122,6 +122,7 @@ from ccxt.async_support.foxbit import foxbit                              # noqa
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
+from ccxt.async_support.gooplex import gooplex                            # noqa: F401
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
@@ -247,6 +248,7 @@ exchanges = [
     'ftx',
     'gateio',
     'gemini',
+    'gooplex',
     'hbtc',
     'hitbtc',
     'hollaex',
