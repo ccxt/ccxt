@@ -288,9 +288,6 @@ module.exports = class idex2 extends ccxt.idex2 {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client, message) {
-    }
-
     handleSubscribeMessage (client, message) {
         // {
         //   "type": "subscriptions",
@@ -651,8 +648,6 @@ module.exports = class idex2 extends ccxt.idex2 {
         if (type in methods) {
             const method = methods[type];
             method.call (this, client, message);
-        } else {
-            this.handleErrorMessage (client, message);
         }
     }
 };
