@@ -2185,7 +2185,7 @@ module.exports = class phemex extends Exchange {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
         let queryString = '';
-        if ((method === 'GET') || (method === 'DELETE')) {
+        if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT')) {
             if (Object.keys (query).length) {
                 queryString = this.urlencodeWithArrayRepeat (query);
                 url += '?' + queryString;
@@ -2202,7 +2202,7 @@ module.exports = class phemex extends Exchange {
                 'x-phemex-request-expiry': expiryString,
             };
             let payload = '';
-            if ((method === 'POST') || (method === 'PUT')) {
+            if (method === 'POST') {
                 payload = this.json (params);
                 body = payload;
                 headers['Content-Type'] = 'application/json';
