@@ -42,11 +42,12 @@ module.exports = class novadax extends Exchange {
                     'public': 'https://api.novadax.com',
                     'private': 'https://api.novadax.com',
                 },
-                'www': 'https://www.novadax.com',
+                'www': 'https://www.novadax.com.br',
                 'doc': [
                     'https://doc.novadax.com/en-US/',
                 ],
                 'fees': 'https://www.novadax.com/en/fees-and-limits',
+                'referral': 'https://www.novadax.com.br/?s=ccxt',
             },
             'api': {
                 'public': {
