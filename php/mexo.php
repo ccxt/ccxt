@@ -77,7 +77,7 @@ class mexo extends Exchange {
                 ),
                 'www' => 'https://www.mexo.io', // Homepage
                 'referral' => 'https://www.mexo.io/register/dKgecw', // Invitation link
-                'doc' => 'https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc', // API Doc
+                'doc' => 'https://github.com/mexo-tech/Mexo-OpenApi', // API Doc
                 'fees' => 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule', // Fees rate introduction
             ),
             'api' => array(
