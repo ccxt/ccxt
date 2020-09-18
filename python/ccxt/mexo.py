@@ -80,7 +80,6 @@ class mexo(Exchange):
                 '1M': '1M',
             },
             'urls': {
-                #todo
                 'logo': 'https://github.com/mexo-tech/Mexo-OpenApi/blob/master/mexo.png',  # Exchange logo
                 'api': {
                     'quote': 'https://api.mexo.io/openapi/quote',  # Markets API endpoint

@@ -172,7 +172,7 @@ module.exports = class mexo extends Exchange {
                         'userDataStream',
                     ],
                     'delete': [
-                        'order', // 取消订单
+                        'order', //  Cancel order
                         'userDataStream',
                     ],
                 },
