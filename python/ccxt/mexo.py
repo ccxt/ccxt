@@ -89,11 +89,11 @@ class mexo(Exchange):
                     'private': 'https://api.mexo.io/openapi',  # Privacy API endpoint
                     'zendesk': 'https://mexo.zendesk.com/hc/en-us',
                 },
-                # Homepage
-                'www': 'https://www.mexo.io',
+                'www': 'https://www.mexo.io',  # Homepage
                 'referral': 'https://www.mxo.io/register/dKgecw',  # Invitation link
                 'doc': 'https://github.com/mexo-tech/Mexo-OpenApi',  # API Doc
-                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',  # Fees rate introduction
+                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',
+                # Fees rate introduction
             },
             'api': {
                 'public': {
@@ -191,8 +191,7 @@ class mexo(Exchange):
                         'userDataStream',
                     ],
                     'delete': [
-                        # Cancel order
-                        'order',
+                        'order',  # Cancel order
                         'userDataStream',
                     ],
                 },
@@ -211,12 +210,15 @@ class mexo(Exchange):
                     # general server or network errors
                     '-1000': ExchangeError,  # An unknown error occured while processing the request
                     '-1001': ExchangeError,  # Internal error, unable to process your request. Please try again
-                    '-1002': AuthenticationError,  # You are not authorized to execute self request. Request need API Key included in. We suggest that API Key be included in any request
+                    '-1002': AuthenticationError,
+                    # You are not authorized to execute self request. Request need API Key included in. We suggest that API Key be included in any request
                     '-1003': RateLimitExceeded,  # Too many requests, please use the websocket for live updates
                     '-1004': BadRequest,
                     '-1005': PermissionDenied,
-                    '-1006': BadResponse,  # An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request.Please report to Customer service
-                    '-1007': RequestTimeout,  # Timeout waiting for response from backend server. Send status unknown, execution status unknown
+                    '-1006': BadResponse,
+                    # An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request.Please report to Customer service
+                    '-1007': RequestTimeout,
+                    # Timeout waiting for response from backend server. Send status unknown, execution status unknown
                     '-1014': InvalidOrder,  # Unsupported order combination
                     '-1015': RateLimitExceeded,  # Reach the rate limit.Please slow down your request speed
                     '-1016': ExchangeNotAvailable,  # This service is no longer available
@@ -826,7 +828,8 @@ class mexo(Exchange):
                 method = 'optionGetMyTrades'
             else:
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets')
+                    raise ArgumentsRequired(
+                        self.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets')
                 market = self.market(symbol)
                 request['symbol'] = market['id']
                 # spot only?
@@ -877,16 +880,21 @@ class mexo(Exchange):
         query = params
         method = 'privatePostOrder'
         if market['type'] == 'future':
-            if (orderSide != 'BUY_OPEN') and (orderSide != 'SELL_OPEN') and (orderSide != 'BUY_CLOSE') and (orderSide != 'SELL_CLOSE'):
-                raise NotSupported(self.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported')
+            if (orderSide != 'BUY_OPEN') and (orderSide != 'SELL_OPEN') and (orderSide != 'BUY_CLOSE') and (
+                    orderSide != 'SELL_CLOSE'):
+                raise NotSupported(self.id + ' createOrder() does not support order side ' + side + ' for ' + market[
+                    'type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported')
             if (orderType != 'LIMIT') and (orderType != 'STOP'):
-                raise NotSupported(self.id + ' createOrder() does not support order type ' + type + ' for ' + market['type'] + ' markets, only LIMIT and STOP are supported')
+                raise NotSupported(self.id + ' createOrder() does not support order type ' + type + ' for ' + market[
+                    'type'] + ' markets, only LIMIT and STOP are supported')
             clientOrderId = self.safe_value(params, 'clientOrderId')
             if clientOrderId is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a clientOrderId parameter for ' + market['type'] + ' markets, supply clientOrderId in the params argument')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a clientOrderId parameter for ' + market[
+                    'type'] + ' markets, supply clientOrderId in the params argument')
             leverage = self.safe_value(params, 'leverage')
             if leverage is None and (orderSide == 'BUY_OPEN' or orderSide == 'SELL_OPEN'):
-                raise NotSupported(self.id + ' createOrder() requires a leverage parameter for ' + market['type'] + ' markets if orderSide is BUY_OPEN or SELL_OPEN')
+                raise NotSupported(self.id + ' createOrder() requires a leverage parameter for ' + market[
+                    'type'] + ' markets if orderSide is BUY_OPEN or SELL_OPEN')
             method = 'contractPostOrder'
             priceType = self.safe_string(params, 'priceType')
             if priceType is None:
@@ -916,12 +924,14 @@ class mexo(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options,
+                                                                        'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
                             amount = amount * price
                         else:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument(the exchange-specific behaviour)")
+                            raise InvalidOrder(
+                                self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument(the exchange-specific behaviour)")
                     precision = market['precision']['price']
                     request['quantity'] = self.decimal_to_precision(amount, TRUNCATE, precision, self.precisionMode)
                 else:
@@ -990,7 +1000,8 @@ class mexo(Exchange):
         if type == 'future':
             method = 'contractDeleteOrderCancel'
             if orderType is None:
-                raise ArgumentsRequired(self.id + " cancelOrder() requires an orderType parameter, pass the {'orderType': 'LIMIT'} or {'orderType': 'STOP'} in params argument")
+                raise ArgumentsRequired(
+                    self.id + " cancelOrder() requires an orderType parameter, pass the {'orderType': 'LIMIT'} or {'orderType': 'STOP'} in params argument")
             request['orderType'] = orderType
         else:
             if type == 'option':
