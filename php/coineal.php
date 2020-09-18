@@ -611,9 +611,9 @@ class coineal extends Exchange {
         $filled = $this->safe_float($order, 'deal_volume');
         $remaining = $this->safe_float($order, 'remain_volume');
         $amount = $this->safe_float($order, 'volume');
-        if ($filled !== null) {
-            if ($remaining !== null) {
-                $amount = $this->amount_to_precision($symbol, $filled . $remaining);
+        if ($amount !== null) {
+            if ($filled !== null && $remaining !== null) {
+                $amount = floatval ($this->amount_to_precision($symbol, $filled . $remaining));
             }
         }
         $id = $this->safe_string($order, 'order_id');
@@ -694,6 +694,9 @@ class coineal extends Exchange {
     }
 
     public function fetch_common_orders ($symbol, $limit, $params) {
+        if ($limit === null) {
+            $limit = 100;
+        }
         $request = array(
             'symbol' => $symbol,
             'time' => $this->milliseconds (),

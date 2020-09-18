@@ -603,9 +603,9 @@ module.exports = class coineal extends Exchange {
         const filled = this.safeFloat (order, 'deal_volume');
         const remaining = this.safeFloat (order, 'remain_volume');
         let amount = this.safeFloat (order, 'volume');
-        if (filled !== undefined) {
-            if (remaining !== undefined) {
-                amount = this.amountToPrecision (symbol, filled + remaining);
+        if (amount !== undefined) {
+            if (filled !== undefined && remaining !== undefined) {
+                amount = parseFloat (this.amountToPrecision (symbol, filled + remaining));
             }
         }
         let id = this.safeString (order, 'order_id');
@@ -686,6 +686,9 @@ module.exports = class coineal extends Exchange {
     }
 
     async fetchCommonOrders (symbol, limit, params) {
+        if (limit === undefined) {
+            limit = 100;
+        }
         const request = {
             'symbol': symbol,
             'time': this.milliseconds (),
