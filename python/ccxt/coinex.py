@@ -372,6 +372,8 @@ class coinex(Exchange):
             'market': market['id'],
             'type': self.timeframes[timeframe],
         }
+        if limit is not None:
+            request['limit'] = limit
         response = self.publicGetMarketKline(self.extend(request, params))
         #
         #     {

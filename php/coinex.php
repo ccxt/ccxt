@@ -387,6 +387,9 @@ class coinex extends Exchange {
             'market' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetMarketKline (array_merge($request, $params));
         //
         //     {
