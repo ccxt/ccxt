@@ -98,7 +98,10 @@ module.exports = class idex2 extends Exchange {
                     ],
                 },
             },
-            'options': {},
+            'options': {
+                'defaultTimeInForce': 'gtc',
+                'defaultSelfTradePrevention': 'cn',
+            },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
@@ -720,7 +723,11 @@ module.exports = class idex2 extends Exchange {
     }
 
     parseOrderStatus (status) {
+        // https://docs.idex.io/#order-states-amp-lifecycle
         const statuses = {
+            'active': 'open',
+            'partiallyFilled': 'open',
+            'rejected': 'canceled',
             'filled': 'closed',
         };
         return this.safeString (statuses, status, status);
@@ -869,10 +876,39 @@ module.exports = class idex2 extends Exchange {
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const orderVersion = 1;
         const amountString = this.amountToPrecision (symbol, amount);
-        const timeInForceEnum = 0;  // Good-til-canceled
-        const timeInForce = 'gtc';
-        const selfTradePrevention = 'cn';
-        const selfTradePreventionEnum = 2;  // Cancel newest
+        // https://docs.idex.io/#time-in-force
+        const timeInForceEnums = {
+            'gtc': 0,
+            'ioc': 2,
+            'fok': 3,
+        };
+        const defaultTimeInForce = this.safeString (this.options, 'defaultTimeInForce', 'gtc');
+        const timeInForce = this.safeString (params, 'timeInForce', defaultTimeInForce);
+        let timeInForceEnum = undefined;
+        if (timeInForce in timeInForceEnums) {
+            timeInForceEnum = timeInForceEnums[timeInForce];
+        } else {
+            const allOptions = Object.keys (timeInForceEnum);
+            const asString = allOptions.join (', ');
+            throw new BadRequest (this.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose on of ' + asString);
+        }
+        // https://docs.idex.io/#self-trade-prevention
+        const selfTradePreventionEnums = {
+            'dc': 0,
+            'co': 1,
+            'cn': 2,
+            'cb': 3,
+        };
+        const defaultSelfTradePrevention = this.safeString (this.options, 'defaultSelfTradePrevention', 'cn');
+        const selfTradePrevention = this.safeString (params, 'selfTradePrevention', defaultSelfTradePrevention);
+        let selfTradePreventionEnum = undefined;
+        if (selfTradePrevention in selfTradePreventionEnums) {
+            selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention];
+        } else {
+            const allOptions = Object.keys (selfTradePreventionEnums);
+            const asString = allOptions.join (', ');
+            throw new BadRequest (this.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose on of ' + asString);
+        }
         const byteArray = [
             this.numberToBE (orderVersion, 1),
             this.base16ToBinary (nonce),
@@ -941,7 +977,8 @@ module.exports = class idex2 extends Exchange {
         //   ],
         //   avgExecutionPrice: '0.09905990'
         // }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        // we don't use extend here because it is a signed endpoint
+        const response = await this.privatePostOrders (request);
         return this.parseOrder (response, market);
     }
 
@@ -965,7 +1002,7 @@ module.exports = class idex2 extends Exchange {
         const request = {
             'parameters': {
                 'nonce': nonce,
-                'wallet': this.walletAddress,
+                'wallet': address,
                 'asset': currency['id'],
                 'quantity': amountString,
             },
@@ -981,7 +1018,7 @@ module.exports = class idex2 extends Exchange {
         //   txStatus: 'pending',
         //   txId: null
         // }
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (request);
         const id = this.safeString (response, 'withdrawalId');
         return {
             'info': response,
