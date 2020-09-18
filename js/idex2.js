@@ -888,9 +888,9 @@ module.exports = class idex2 extends Exchange {
         if (timeInForce in timeInForceEnums) {
             timeInForceEnum = timeInForceEnums[timeInForce];
         } else {
-            const allOptions = Object.keys (timeInForceEnum);
+            const allOptions = Object.keys (timeInForceEnums);
             const asString = allOptions.join (', ');
-            throw new BadRequest (this.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose on of ' + asString);
+            throw new BadRequest (this.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString);
         }
         // https://docs.idex.io/#self-trade-prevention
         const selfTradePreventionEnums = {
@@ -907,7 +907,7 @@ module.exports = class idex2 extends Exchange {
         } else {
             const allOptions = Object.keys (selfTradePreventionEnums);
             const asString = allOptions.join (', ');
-            throw new BadRequest (this.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose on of ' + asString);
+            throw new BadRequest (this.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose one of ' + asString);
         }
         const byteArray = [
             this.numberToBE (orderVersion, 1),
