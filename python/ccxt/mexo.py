@@ -30,7 +30,7 @@ class mexo(Exchange):
     def describe(self):
         return self.deep_extend(super(mexo, self).describe(), {
             'id': 'mexo',
-            'name': 'mexo',
+            'name': 'MEXO',
             'countries': ['MX'],
             'rateLimit': 2000,
             'version': 'v1',
@@ -80,46 +80,44 @@ class mexo(Exchange):
                 '1M': '1M',
             },
             'urls': {
-                #todo needs replace logo
-                'logo': 'https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg',  # 交易所LOGO
+                #todo
+                'logo': 'https://github.com/mexo-tech/Mexo-OpenApi/blob/master/mexo.png',  # Exchange logo
                 'api': {
-                    'quote': 'https://api.mexo.io/openapi/quote',  # 市场API数据端点
-                    'contract': 'https://api.mexo.io/openapi/contract',  # 合约API数据端点
-                    'option': 'https://api.mexo.io/openapi/option',  # 合约API数据端点
-                    'public': 'https://api.mexo.io/openapi',  # 公共API数据端点
-                    'private': 'https://api.mexo.io/openapi',  # 私有API数据端点
+                    'quote': 'https://api.mexo.io/openapi/quote',  # Markets API endpoint
+                    'contract': 'https://api.mexo.io/openapi/contract',  # Contract API endpoint
+                    'option': 'https://api.mexo.io/openapi/option',  # Option API endpoint
+                    'public': 'https://api.mexo.io/openapi',  # Publick API endpoint
+                    'private': 'https://api.mexo.io/openapi',  # Privacy API endpoint
                     'zendesk': 'https://mexo.zendesk.com/hc/en-us',
                 },
-                'www': 'https://www.mexo.io',  # 公司主页
-                # todo needs to replace
-                'referral': 'https://www.hbtc.com/register/O2S8NS',  # 邀请链接
-                'doc': 'https://github.com/mexo-tech/Mexo-OpenApi',  # openapi文档地址
-                #todo needs to replace
-                'fees': 'https://hbtc.zendesk.com/hc/zh-cn/articles/360009274694',  # 费率介绍
+                'www': 'https://www.mexo.io',  # Homepage
+                'referral': 'https://www.hbtc.com/register/dKgecw',  # Invitation link
+                'doc': 'https://github.com/mexo-tech/Mexo-OpenApi',  # API Doc
+                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',  # Fees rate introduction
             },
             'api': {
                 'public': {
                     'get': [
                         'ping',
                         'time',
-                        'brokerInfo',  # 查询当前broker交易规则和symbol信息
+                        'brokerInfo',  # Inquire trading rules and symbol inforamtiion of current broker
                         'getOptions',
                     ],
                 },
                 'quote': {
                     'get': [
-                        'depth',  # 获取深度
+                        'depth',  # Obtain trading depth
                         'depth/merged',
-                        'trades',  # 获取当前最新成交
-                        'klines',  # 获取K线数据
-                        'ticker/24hr',  # 获取24小时价格变化数据
+                        'trades',  # Obtain the latest transactions
+                        'klines',  # Obtain K line inforamtion
+                        'ticker/24hr',  # Obtain 24h price change data
                         'ticker/price',
                         'ticker/bookTicker',
-                        'contract/index',  # 获取合约标的指数价格
-                        'contract/depth',  # 获取合约深度
+                        'contract/index',  # Obtain contract underline index price
+                        'contract/depth',  # Obtain contract depth
                         'contract/depth/merged',
-                        'contract/trades',  # 获取合约最近成交,
-                        'contract/klines',  # 获取合约的K线数据
+                        'contract/trades',  # Obtain the latest contract transactions
+                        'contract/klines',  # Obtain contract K line inforamtio
                         'contract/ticker/24hr',
                         'option/index',
                         'option/depth',
@@ -133,21 +131,21 @@ class mexo(Exchange):
                     'get': [
                         # public
                         'insurance',
-                        'fundingRate',  # 获取资金费率信息
+                        'fundingRate',  # Obtain funding rate
                         # private
-                        'openOrders',  # 查询合约当前委托
-                        'historyOrders',  # 查询合约历史委托
-                        'getOrder',  # 查询合约订单详情
-                        'myTrades',  # 查询合约历史成交
-                        'positions',  # 查询合约当前持仓
-                        'account',  # 查询合约账户信息
+                        'openOrders',  # Inquire contract open orders
+                        'historyOrders',  # Inquire contract history orders
+                        'getOrder',  # Inquire contract order details
+                        'myTrades',  # Inquire contract history trades
+                        'positions',  # Inquire contract positions
+                        'account',  # Inquire contract acccount details
                     ],
                     'post': [
-                        'order',  # 创建合约订单
-                        'modifyMargin',  # 修改保证金
+                        'order',  # Create contract order
+                        'modifyMargin',  # Modify Margin
                     ],
                     'delete': [
-                        'order/cancel',  # 取消合约订单
+                        'order/cancel',  # Cancel contract order
                         'order/batchCancel',
                     ],
                 },
@@ -170,18 +168,18 @@ class mexo(Exchange):
                 },
                 'private': {
                     'get': [
-                        'order',  # 查询订单
-                        'openOrders',  # 查询当前委托
-                        'historyOrders',  # 查询历史委托
-                        'account',  # 获取当前账户信息
-                        'myTrades',  # 查询历史成交
+                        'order',  # Inquire orders details
+                        'openOrders',  # Inquire current open orders
+                        'historyOrders',  # Inquire history orders
+                        'account',  # Obtain current account details
+                        'myTrades',  # Inquire history trades
                         'depositOrders',
                         'withdrawalOrders',
                         'withdraw/detail',
                         'balance_flow',
                     ],
                     'post': [
-                        'order',  # 创建新订单
+                        'order',  # Create new order
                         'order/test',
                         'userDataStream',
                         'subAccount/query',
@@ -193,7 +191,7 @@ class mexo(Exchange):
                         'userDataStream',
                     ],
                     'delete': [
-                        'order',  # 取消订单
+                        'order',  # Cancel order
                         'userDataStream',
                     ],
                 },

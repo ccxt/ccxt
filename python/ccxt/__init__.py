@@ -289,6 +289,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mixcoins',
+    'mexo',
     'oceanex',
     'okcoin',
     'okex',
