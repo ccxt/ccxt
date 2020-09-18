@@ -2189,7 +2189,7 @@ class phemex extends Exchange {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $requestPath;
         $queryString = '';
-        if (($method === 'GET') || ($method === 'DELETE')) {
+        if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT')) {
             if ($query) {
                 $queryString = $this->urlencode_with_array_repeat($query);
                 $url .= '?' . $queryString;
@@ -2206,7 +2206,7 @@ class phemex extends Exchange {
                 'x-phemex-request-expiry' => $expiryString,
             );
             $payload = '';
-            if (($method === 'POST') || ($method === 'PUT')) {
+            if ($method === 'POST') {
                 $payload = $this->json($params);
                 $body = $payload;
                 $headers['Content-Type'] = 'application/json';

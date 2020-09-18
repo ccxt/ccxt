@@ -2083,7 +2083,7 @@ class phemex(Exchange):
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
         queryString = ''
-        if (method == 'GET') or (method == 'DELETE'):
+        if (method == 'GET') or (method == 'DELETE') or (method == 'PUT'):
             if query:
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString
@@ -2098,7 +2098,7 @@ class phemex(Exchange):
                 'x-phemex-request-expiry': expiryString,
             }
             payload = ''
-            if (method == 'POST') or (method == 'PUT'):
+            if method == 'POST':
                 payload = self.json(params)
                 body = payload
                 headers['Content-Type'] = 'application/json'
