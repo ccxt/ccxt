@@ -384,6 +384,9 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
             'type': this.timeframes[timeframe],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetMarketKline (this.extend (request, params));
         //
         //     {
