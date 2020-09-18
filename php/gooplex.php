@@ -6,8 +6,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ArgumentsRequired;
+use \ccxt\NotSupported;
 
-class gooplex extends binance {
+class gooplex extends Exchange {
 
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
@@ -17,30 +19,248 @@ class gooplex extends binance {
             'certified' => false,
             'pro' => false,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/228850/93481157-a0a2cb00-f8d4-11ea-8608-d56dd916a9ed.jpg',
-                'api' => array(
-                    'web' => 'https://www.gooplex.com.br',
-                    'public' => 'https://www.gooplex.com.br/api/v1',
-                    'private' => 'https://www.gooplex.com.br/api/v3',
-                    'v3' => 'https://www.gooplex.com.br/api/v3',
-                    'v1' => 'https://www.gooplex.com.br/api/v1',
-                ),
-                'www' => 'https://www.gooplex.com.br',
-                'referral' => 'https://www.gooplex.com.br/account/signup?ref=H8QQ57WT',
                 'doc' => 'https://www.gooplex.com.br/apidocs/#api-document-description',
                 'fees' => 'https://gooplex.zendesk.com/hc/pt/articles/360049326131-O-que-s%C3%A3o-taxas-de-negocia%C3%A7%C3%A3o-',
+                'logo' => 'https://user-images.githubusercontent.com/228850/93481157-a0a2cb00-f8d4-11ea-8608-d56dd916a9ed.jpg',
+                'referral' => 'https://www.gooplex.com.br/account/signup?ref=H8QQ57WT',
+                'www' => 'https://www.gooplex.com.br',
+                // API
+                'api' => array(
+                    'open' => 'https://www.gooplex.com.br/open/v1',
+                    'signed' => 'https://www.gooplex.com.br/open/v1',
+                    'api' => 'https://api.binance.com/api',
+                ),
+            ),
+            'api' => array(
+                'open' => array(               // public
+                    'get' => array(
+                        'common/time',
+                        'common/symbols',
+                    ),
+                ),
+                'signed' => array(             // private
+                    'get' => array(
+                        'orders',
+                        'orders/detail',
+                        'orders/trades',
+                        'account/spot',
+                    ),
+                    'post' => array(
+                        'orders',
+                        'orders/cancel',
+                    ),
+                ),
+                'api' => array(
+                    'get' => array(
+                        'v3/depth',
+                        'v3/trades',
+                        'v3/aggTrades',
+                    ),
+                ),
+            ),
+            'orderlimits' => array(
+                5,
+                10,
+                20,
+                50,
+                100,
+                500,
+            ),
+            'sides' => array(
+                'BUY' => 0,
+                'SELL' => 1,
+            ),
+            'types' => array(
+                'LIMIT' => 1,
+                'MARKET' => 2,
+                'STOP_LOSS' => 3,
+                'STOP_LOSS_LIMIT' => 4,
+                'TAKE_PROFIT' => 5,
+                'TAKE_PROFIT_LIMIT' => 6,
+                'LIMIT_MAKER' => 7,
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => true,
-                    'percentage' => true,
                     'taker' => 0.0022, // 0.22% trading fee
                     'maker' => 0.0022, // 0.22% trading fee
                 ),
             ),
-            'options' => array(
-                'quoteOrderQty' => false,
-            ),
         ));
+    }
+
+    public function sign($path, $api = 'open', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        }
+        $url = $this->urls['api'][$api];
+        $url .= '/' . $path;
+        if ($api === 'signed') {
+            $this->check_required_credentials();
+            $headers = array(
+                'X-MBX-APIKEY' => $this->apiKey,
+            );
+            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
+            $query = null;
+            $query = $this->urlencode_with_array_repeat(array_merge(array(
+                'timestamp' => $this->nonce(),
+                'recvWindow' => $recvWindow,
+            ), $params));
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $query .= '&$signature=' . $signature;
+            $url .= '?' . $query;
+        } else {
+            if ($method === 'GET') {
+                if ($params) {
+                    $url .= '?' . $this->urlencode($params);
+                }
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_time($params = array ()) {
+        $method = 'openGetCommonTime';
+        $response = $this->$method ($params);
+        return $this->safe_integer($response, 'timestamp');
+    }
+
+    public function fetch_symbols($params = array ()) {
+        $method = 'openGetCommonSymbols';
+        $response = $this->$method ($params);
+        return $response;
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        $method = 'apiGetV3Depth';
+        $request = array(
+            'symbol' => str_replace('_', '', $symbol),           // market[$symbol]
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;                // map
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired('fetchOrders requires a $symbol argument');
+        }
+        $method = 'signedGetOrders';
+        $request = array(
+            'symbol' => $symbol,          // market[$symbol]
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;                // map
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $requestSide = null;
+        $requestType = null;
+        if (is_array($this->sides) && array_key_exists($side, $this->sides)) {
+            $requestSide = $this->sides[$side];
+        } else {
+            throw new NotSupported('Side ' . $side . ' not supported');
+        }
+        if (is_array($this->types) && array_key_exists($type, $this->types)) {
+            $requestType = $this->types[$type];
+        } else {
+            throw new NotSupported('Type ' . $type . ' not supported.');
+        }
+        $method = 'signedPostOrders';
+        $request = array(
+            'symbol' => $symbol,           // market[$symbol]
+            'side' => $requestSide,
+            'type' => $requestType,
+            'quantity' => $amount,
+        );
+        if ($price !== null) {
+            $request['price'] = $price;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        $method = 'signedGetOrdersDetail';
+        $request = array(
+            'orderId' => $id,
+        );
+        $response = $this->$method (array_merge($request, $params));
+        return $response;
+    }
+
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        $method = 'signedPostOrdersCancel';
+        $request = array(
+            'orderId' => $id,
+        );
+        $response = $this->$method (array_merge($request, $params));
+        return $response;                        // map
+    }
+
+    public function fetch_balance($params = array ()) {
+        $method = 'signedGetAccountSpot';
+        $response = $this->$method ($params);
+        return $response;
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        $method = 'apiGetV3Trades';
+        $request = array(
+            'symbol' => str_replace('_', '', $symbol),         // market[$symbol]
+        );
+        if ($since !== null) {
+            $request['fromId'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired('fetchOrders requires a $symbol argument');
+        }
+        $method = 'signedGetOrdersTrades';
+        $request = array(
+            'symbol' => $symbol,                   // market[$symbol]
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;
+    }
+
+    public function fetch_l2_order_book($symbol, $limit = null, $params = array ()) {
+        $method = 'apiGetV3aggTrades';
+        $request = array(
+            'symbol' => str_replace('_', '', $symbol),         // market[$symbol]
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        return $response;                // map
+        //    "a" => 26129,         // Aggregate tradeId
+        //    "p" => "0.01633102",  // Price
+        //    "q" => "4.70443515",  // Quantity
+        //    "f" => 27781,         // First tradeId
+        //    "l" => 27781,         // Last tradeId
+        //    "T" => 1498793709153, // Timestamp
+        //    "m" => true,          // Was the buyer the maker?
+        //    "M" => true           // Was the trade the best price match?
     }
 }
