@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\BadRequest;
 
 class idex2 extends Exchange {
 
@@ -99,7 +100,10 @@ class idex2 extends Exchange {
                     ),
                 ),
             ),
-            'options' => array(),
+            'options' => array(
+                'defaultTimeInForce' => 'gtc',
+                'defaultSelfTradePrevention' => 'cn',
+            ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
                 'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
@@ -721,7 +725,11 @@ class idex2 extends Exchange {
     }
 
     public function parse_order_status($status) {
+        // https://docs.idex.io/#order-states-amp-lifecycle
         $statuses = array(
+            'active' => 'open',
+            'partiallyFilled' => 'open',
+            'rejected' => 'canceled',
             'filled' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -870,10 +878,39 @@ class idex2 extends Exchange {
         $walletBytes = $this->remove0x_prefix($this->walletAddress);
         $orderVersion = 1;
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $timeInForceEnum = 0;  // Good-til-canceled
-        $timeInForce = 'gtc';
-        $selfTradePrevention = 'cn';
-        $selfTradePreventionEnum = 2;  // Cancel newest
+        // https://docs.idex.io/#time-in-force
+        $timeInForceEnums = array(
+            'gtc' => 0,
+            'ioc' => 2,
+            'fok' => 3,
+        );
+        $defaultTimeInForce = $this->safe_string($this->options, 'defaultTimeInForce', 'gtc');
+        $timeInForce = $this->safe_string($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForceEnum = null;
+        if (is_array($timeInForceEnums) && array_key_exists($timeInForce, $timeInForceEnums)) {
+            $timeInForceEnum = $timeInForceEnums[$timeInForce];
+        } else {
+            $allOptions = is_array($timeInForceEnums) ? array_keys($timeInForceEnums) : array();
+            $asString = implode(', ', $allOptions);
+            throw new BadRequest($this->id . ' ' . $timeInForce . ' is not a valid $timeInForce, please choose one of ' . $asString);
+        }
+        // https://docs.idex.io/#self-trade-prevention
+        $selfTradePreventionEnums = array(
+            'dc' => 0,
+            'co' => 1,
+            'cn' => 2,
+            'cb' => 3,
+        );
+        $defaultSelfTradePrevention = $this->safe_string($this->options, 'defaultSelfTradePrevention', 'cn');
+        $selfTradePrevention = $this->safe_string($params, 'selfTradePrevention', $defaultSelfTradePrevention);
+        $selfTradePreventionEnum = null;
+        if (is_array($selfTradePreventionEnums) && array_key_exists($selfTradePrevention, $selfTradePreventionEnums)) {
+            $selfTradePreventionEnum = $selfTradePreventionEnums[$selfTradePrevention];
+        } else {
+            $allOptions = is_array($selfTradePreventionEnums) ? array_keys($selfTradePreventionEnums) : array();
+            $asString = implode(', ', $allOptions);
+            throw new BadRequest($this->id . ' ' . $selfTradePrevention . ' is not a valid $selfTradePrevention, please choose one of ' . $asString);
+        }
         $byteArray = [
             $this->number_to_be($orderVersion, 1),
             $this->base16_to_binary($nonce),
@@ -942,7 +979,8 @@ class idex2 extends Exchange {
         //   ),
         //   avgExecutionPrice => '0.09905990'
         // }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        // we don't use extend here because it is a signed endpoint
+        $response = $this->privatePostOrders ($request);
         return $this->parse_order($response, $market);
     }
 
@@ -966,7 +1004,7 @@ class idex2 extends Exchange {
         $request = array(
             'parameters' => array(
                 'nonce' => $nonce,
-                'wallet' => $this->walletAddress,
+                'wallet' => $address,
                 'asset' => $currency['id'],
                 'quantity' => $amountString,
             ),
@@ -982,7 +1020,7 @@ class idex2 extends Exchange {
         //   txStatus => 'pending',
         //   txId => null
         // }
-        $response = $this->privatePostWithdrawals (array_merge($request, $params));
+        $response = $this->privatePostWithdrawals ($request);
         $id = $this->safe_string($response, 'withdrawalId');
         return array(
             'info' => $response,

@@ -106,7 +106,10 @@ class idex2(Exchange):
                     ],
                 },
             },
-            'options': {},
+            'options': {
+                'defaultTimeInForce': 'gtc',
+                'defaultSelfTradePrevention': 'cn',
+            },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
@@ -686,7 +689,11 @@ class idex2(Exchange):
             return self.parse_order(response, market)
 
     def parse_order_status(self, status):
+        # https://docs.idex.io/#order-states-amp-lifecycle
         statuses = {
+            'active': 'open',
+            'partiallyFilled': 'open',
+            'rejected': 'canceled',
             'filled': 'closed',
         }
         return self.safe_string(statuses, status, status)
@@ -825,10 +832,37 @@ class idex2(Exchange):
         walletBytes = self.remove0x_prefix(self.walletAddress)
         orderVersion = 1
         amountString = self.amount_to_precision(symbol, amount)
-        timeInForceEnum = 0  # Good-til-canceled
-        timeInForce = 'gtc'
-        selfTradePrevention = 'cn'
-        selfTradePreventionEnum = 2  # Cancel newest
+        # https://docs.idex.io/#time-in-force
+        timeInForceEnums = {
+            'gtc': 0,
+            'ioc': 2,
+            'fok': 3,
+        }
+        defaultTimeInForce = self.safe_string(self.options, 'defaultTimeInForce', 'gtc')
+        timeInForce = self.safe_string(params, 'timeInForce', defaultTimeInForce)
+        timeInForceEnum = None
+        if timeInForce in timeInForceEnums:
+            timeInForceEnum = timeInForceEnums[timeInForce]
+        else:
+            allOptions = list(timeInForceEnums.keys())
+            asString = ', '.join(allOptions)
+            raise BadRequest(self.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString)
+        # https://docs.idex.io/#self-trade-prevention
+        selfTradePreventionEnums = {
+            'dc': 0,
+            'co': 1,
+            'cn': 2,
+            'cb': 3,
+        }
+        defaultSelfTradePrevention = self.safe_string(self.options, 'defaultSelfTradePrevention', 'cn')
+        selfTradePrevention = self.safe_string(params, 'selfTradePrevention', defaultSelfTradePrevention)
+        selfTradePreventionEnum = None
+        if selfTradePrevention in selfTradePreventionEnums:
+            selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention]
+        else:
+            allOptions = list(selfTradePreventionEnums.keys())
+            asString = ', '.join(allOptions)
+            raise BadRequest(self.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose one of ' + asString)
         byteArray = [
             self.number_to_be(orderVersion, 1),
             self.base16_to_binary(nonce),
@@ -895,7 +929,8 @@ class idex2(Exchange):
         #   ],
         #   avgExecutionPrice: '0.09905990'
         # }
-        response = await self.privatePostOrders(self.extend(request, params))
+        # we don't use self.extend here because it is a signed endpoint
+        response = await self.privatePostOrders(request)
         return self.parse_order(response, market)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
@@ -918,7 +953,7 @@ class idex2(Exchange):
         request = {
             'parameters': {
                 'nonce': nonce,
-                'wallet': self.walletAddress,
+                'wallet': address,
                 'asset': currency['id'],
                 'quantity': amountString,
             },
@@ -934,7 +969,7 @@ class idex2(Exchange):
         #   txStatus: 'pending',
         #   txId: null
         # }
-        response = await self.privatePostWithdrawals(self.extend(request, params))
+        response = await self.privatePostWithdrawals(request)
         id = self.safe_string(response, 'withdrawalId')
         return {
             'info': response,
