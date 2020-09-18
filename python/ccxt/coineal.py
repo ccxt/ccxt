@@ -571,9 +571,9 @@ class coineal(Exchange):
         filled = self.safe_float(order, 'deal_volume')
         remaining = self.safe_float(order, 'remain_volume')
         amount = self.safe_float(order, 'volume')
-        if filled is not None:
-            if remaining is not None:
-                amount = self.amount_to_precision(symbol, filled + remaining)
+        if amount is not None:
+            if filled is not None and remaining is not None:
+                amount = float(self.amount_to_precision(symbol, filled + remaining))
         id = self.safe_string(order, 'order_id')
         if id is None:
             id = self.safe_string(order, 'id')
@@ -637,6 +637,8 @@ class coineal(Exchange):
         }
 
     def fetch_common_orders(self, symbol, limit, params):
+        if limit is None:
+            limit = 100
         request = {
             'symbol': symbol,
             'time': self.milliseconds(),
