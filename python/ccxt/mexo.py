@@ -80,43 +80,43 @@ class mexo(Exchange):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/mexo-tech/Mexo-OpenApi/blob/master/mexo.png',  # Exchange logo
+                'logo': 'https://user-images.githubusercontent.com/51840849/80134449-70663300-85a7-11ea-8942-e204cdeaab5d.jpg',  # 交易所LOGO
                 'api': {
-                    'quote': 'https://api.mexo.io/openapi/quote',  # Markets API endpoint
-                    'contract': 'https://api.mexo.io/openapi/contract',  # Contract API endpoint
-                    'option': 'https://api.mexo.io/openapi/option',  # Option API endpoint
-                    'public': 'https://api.mexo.io/openapi',  # Publick API endpoint
-                    'private': 'https://api.mexo.io/openapi',  # Privacy API endpoint
-                    'zendesk': 'https://mexo.zendesk.com/hc/en-us',
+                    'quote': 'https://api.hbtc.com/openapi/quote',  # 市场API数据端点
+                    'contract': 'https://api.hbtc.com/openapi/contract',  # 合约API数据端点
+                    'option': 'https://api.hbtc.com/openapi/option',  # 合约API数据端点
+                    'public': 'https://api.hbtc.com/openapi',  # 公共API数据端点
+                    'private': 'https://api.hbtc.com/openapi',  # 私有API数据端点
+                    'zendesk': 'https://hbtc.zendesk.com/hc/en-us',
                 },
-                'www': 'https://www.mexo.io',  # Homepage
-                'referral': 'https://www.mxo.io/register/dKgecw',  # Invitation link
-                'doc': 'https://github.com/mexo-tech/Mexo-OpenApi',  # API Doc
-                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',  # Fees rate introduction
+                'www': 'https://www.hbtc.com',  # 公司主页
+                'referral': 'https://www.hbtc.com/register/O2S8NS',  # 邀请链接
+                'doc': 'https://github.com/bhexopen/BHEX-OpenApi/tree/master/doc',  # openapi文档地址
+                'fees': 'https://hbtc.zendesk.com/hc/zh-cn/articles/360009274694',  # 费率介绍
             },
             'api': {
                 'public': {
                     'get': [
                         'ping',
                         'time',
-                        'brokerInfo',  # Inquire trading rules and symbol inforamtiion of current broker
+                        'brokerInfo',  # 查询当前broker交易规则和symbol信息
                         'getOptions',
                     ],
                 },
                 'quote': {
                     'get': [
-                        'depth',  # Obtain trading depth
+                        'depth',  # 获取深度
                         'depth/merged',
-                        'trades',  # Obtain the latest transactions
-                        'klines',  # Obtain K line inforamtion
-                        'ticker/24hr',  # Obtain 24h price change data
+                        'trades',  # 获取当前最新成交
+                        'klines',  # 获取K线数据
+                        'ticker/24hr',  # 获取24小时价格变化数据
                         'ticker/price',
                         'ticker/bookTicker',
-                        'contract/index',  # Obtain contract underline index price
-                        'contract/depth',  # Obtain contract depth
+                        'contract/index',  # 获取合约标的指数价格
+                        'contract/depth',  # 获取合约深度
                         'contract/depth/merged',
-                        'contract/trades',  # Obtain the latest contract transactions
-                        'contract/klines',  # Obtain contract K line inforamtio
+                        'contract/trades',  # 获取合约最近成交,
+                        'contract/klines',  # 获取合约的K线数据
                         'contract/ticker/24hr',
                         'option/index',
                         'option/depth',
@@ -130,21 +130,21 @@ class mexo(Exchange):
                     'get': [
                         # public
                         'insurance',
-                        'fundingRate',  # Obtain funding rate
+                        'fundingRate',  # 获取资金费率信息
                         # private
-                        'openOrders',  # Inquire contract open orders
-                        'historyOrders',  # Inquire contract history orders
-                        'getOrder',  # Inquire contract order details
-                        'myTrades',  # Inquire contract history trades
-                        'positions',  # Inquire contract positions
-                        'account',  # Inquire contract acccount details
+                        'openOrders',  # 查询合约当前委托
+                        'historyOrders',  # 查询合约历史委托
+                        'getOrder',  # 查询合约订单详情
+                        'myTrades',  # 查询合约历史成交
+                        'positions',  # 查询合约当前持仓
+                        'account',  # 查询合约账户信息
                     ],
                     'post': [
-                        'order',  # Create contract order
-                        'modifyMargin',  # Modify Margin
+                        'order',  # 创建合约订单
+                        'modifyMargin',  # 修改保证金
                     ],
                     'delete': [
-                        'order/cancel',  # Cancel contract order
+                        'order/cancel',  # 取消合约订单
                         'order/batchCancel',
                     ],
                 },
@@ -167,18 +167,18 @@ class mexo(Exchange):
                 },
                 'private': {
                     'get': [
-                        'order',  # Inquire orders details
-                        'openOrders',  # Inquire current open orders
-                        'historyOrders',  # Inquire history orders
-                        'account',  # Obtain current account details
-                        'myTrades',  # Inquire history trades
+                        'order',  # 查询订单
+                        'openOrders',  # 查询当前委托
+                        'historyOrders',  # 查询历史委托
+                        'account',  # 获取当前账户信息
+                        'myTrades',  # 查询历史成交
                         'depositOrders',
                         'withdrawalOrders',
                         'withdraw/detail',
                         'balance_flow',
                     ],
                     'post': [
-                        'order',  # Create new order
+                        'order',  # 创建新订单
                         'order/test',
                         'userDataStream',
                         'subAccount/query',
@@ -190,7 +190,7 @@ class mexo(Exchange):
                         'userDataStream',
                     ],
                     'delete': [
-                        'order',  # Cancel order
+                        'order',  # 取消订单
                         'userDataStream',
                     ],
                 },
@@ -209,15 +209,12 @@ class mexo(Exchange):
                     # general server or network errors
                     '-1000': ExchangeError,  # An unknown error occured while processing the request
                     '-1001': ExchangeError,  # Internal error, unable to process your request. Please try again
-                    '-1002': AuthenticationError,
-                    # You are not authorized to execute self request. Request need API Key included in. We suggest that API Key be included in any request
+                    '-1002': AuthenticationError,  # You are not authorized to execute self request. Request need API Key included in. We suggest that API Key be included in any request
                     '-1003': RateLimitExceeded,  # Too many requests, please use the websocket for live updates
                     '-1004': BadRequest,
                     '-1005': PermissionDenied,
-                    '-1006': BadResponse,
-                    # An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request.Please report to Customer service
-                    '-1007': RequestTimeout,
-                    # Timeout waiting for response from backend server. Send status unknown, execution status unknown
+                    '-1006': BadResponse,  # An unexpected response was received from the message bus. Execution status unknown. OPEN API server find some exception in execute request.Please report to Customer service
+                    '-1007': RequestTimeout,  # Timeout waiting for response from backend server. Send status unknown, execution status unknown
                     '-1014': InvalidOrder,  # Unsupported order combination
                     '-1015': RateLimitExceeded,  # Reach the rate limit.Please slow down your request speed
                     '-1016': ExchangeNotAvailable,  # This service is no longer available
@@ -827,8 +824,7 @@ class mexo(Exchange):
                 method = 'optionGetMyTrades'
             else:
                 if symbol is None:
-                    raise ArgumentsRequired(
-                        self.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets')
+                    raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets')
                 market = self.market(symbol)
                 request['symbol'] = market['id']
                 # spot only?
@@ -879,21 +875,16 @@ class mexo(Exchange):
         query = params
         method = 'privatePostOrder'
         if market['type'] == 'future':
-            if (orderSide != 'BUY_OPEN') and (orderSide != 'SELL_OPEN') and (orderSide != 'BUY_CLOSE') and (
-                    orderSide != 'SELL_CLOSE'):
-                raise NotSupported(self.id + ' createOrder() does not support order side ' + side + ' for ' + market[
-                    'type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported')
+            if (orderSide != 'BUY_OPEN') and (orderSide != 'SELL_OPEN') and (orderSide != 'BUY_CLOSE') and (orderSide != 'SELL_CLOSE'):
+                raise NotSupported(self.id + ' createOrder() does not support order side ' + side + ' for ' + market['type'] + ' markets, only BUY_OPEN, SELL_OPEN, BUY_CLOSE and SELL_CLOSE are supported')
             if (orderType != 'LIMIT') and (orderType != 'STOP'):
-                raise NotSupported(self.id + ' createOrder() does not support order type ' + type + ' for ' + market[
-                    'type'] + ' markets, only LIMIT and STOP are supported')
+                raise NotSupported(self.id + ' createOrder() does not support order type ' + type + ' for ' + market['type'] + ' markets, only LIMIT and STOP are supported')
             clientOrderId = self.safe_value(params, 'clientOrderId')
             if clientOrderId is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a clientOrderId parameter for ' + market[
-                    'type'] + ' markets, supply clientOrderId in the params argument')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a clientOrderId parameter for ' + market['type'] + ' markets, supply clientOrderId in the params argument')
             leverage = self.safe_value(params, 'leverage')
             if leverage is None and (orderSide == 'BUY_OPEN' or orderSide == 'SELL_OPEN'):
-                raise NotSupported(self.id + ' createOrder() requires a leverage parameter for ' + market[
-                    'type'] + ' markets if orderSide is BUY_OPEN or SELL_OPEN')
+                raise NotSupported(self.id + ' createOrder() requires a leverage parameter for ' + market['type'] + ' markets if orderSide is BUY_OPEN or SELL_OPEN')
             method = 'contractPostOrder'
             priceType = self.safe_string(params, 'priceType')
             if priceType is None:
@@ -923,14 +914,12 @@ class mexo(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options,
-                                                                        'createMarketBuyOrderRequiresPrice', True)
+                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
                             amount = amount * price
                         else:
-                            raise InvalidOrder(
-                                self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument(the exchange-specific behaviour)")
+                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument(the exchange-specific behaviour)")
                     precision = market['precision']['price']
                     request['quantity'] = self.decimal_to_precision(amount, TRUNCATE, precision, self.precisionMode)
                 else:
@@ -999,8 +988,7 @@ class mexo(Exchange):
         if type == 'future':
             method = 'contractDeleteOrderCancel'
             if orderType is None:
-                raise ArgumentsRequired(
-                    self.id + " cancelOrder() requires an orderType parameter, pass the {'orderType': 'LIMIT'} or {'orderType': 'STOP'} in params argument")
+                raise ArgumentsRequired(self.id + " cancelOrder() requires an orderType parameter, pass the {'orderType': 'LIMIT'} or {'orderType': 'STOP'} in params argument")
             request['orderType'] = orderType
         else:
             if type == 'option':
