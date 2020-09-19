@@ -92,8 +92,7 @@ class mexo(Exchange):
                 'www': 'https://www.mexo.io',  # Homepage
                 'referral': 'https://www.mxo.io/register/dKgecw',  # Invitation link
                 'doc': 'https://github.com/mexo-tech/Mexo-OpenApi',  # API Doc
-                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',
-                # Fees rate introduction
+                'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule',  # Fees rate introduction
             },
             'api': {
                 'public': {
