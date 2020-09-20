@@ -442,8 +442,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
-                'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
-                'fetchTickersMethod' => 'publicGetTicker24hr',
+                // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
@@ -1112,11 +1111,13 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        $method = 'publicGetTickerBookTicker';
+        $method = null;
         if ($type === 'future') {
             $method = 'fapiPublicGetTickerBookTicker';
         } else if ($type === 'delivery') {
             $method = 'dapiPublicGetTickerBookTicker';
+        } else {
+            $method = 'publicGetTickerBookTicker';
         }
         $response = $this->$method ($query);
         return $this->parse_tickers($response, $symbols);
@@ -1124,8 +1125,19 @@ class binance extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $method = $this->options['fetchTickersMethod'];
-        $response = $this->$method ($params);
+        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
+        $defaultMethod = null;
+        if ($type === 'future') {
+            $defaultMethod = 'fapiPublicGetTicker24hr';
+        } else if ($type === 'delivery') {
+            $defaultMethod = 'dapiPublicGetTicker24hr';
+        } else {
+            $defaultMethod = 'publicGetTicker24hr';
+        }
+        $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
+        $response = $this->$method ($query);
         return $this->parse_tickers($response, $symbols);
     }
 
@@ -1326,11 +1338,13 @@ class binance extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchTrades', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
-        $defaultMethod = 'publicGetTrades';
+        $defaultMethod = null;
         if ($type === 'future') {
-            $defaultMethod = 'fapiPublicGetTrades';
+            $defaultMethod = 'fapiPublicGetAggTrades';
         } else if ($type === 'delivery') {
-            $defaultMethod = 'dapiPublicGetTrades';
+            $defaultMethod = 'dapiPublicGetAggTrades';
+        } else {
+            $defaultMethod = 'publicGetAggTrades';
         }
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
         if ($method === 'publicGetAggTrades') {

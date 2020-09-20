@@ -454,8 +454,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
-                'fetchTickersMethod': 'publicGetTicker24hr',
+                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -1088,18 +1087,30 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        method = 'publicGetTickerBookTicker'
+        method = None
         if type == 'future':
             method = 'fapiPublicGetTickerBookTicker'
         elif type == 'delivery':
             method = 'dapiPublicGetTickerBookTicker'
+        else:
+            method = 'publicGetTickerBookTicker'
         response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        method = self.options['fetchTickersMethod']
-        response = await getattr(self, method)(params)
+        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        defaultMethod = None
+        if type == 'future':
+            defaultMethod = 'fapiPublicGetTicker24hr'
+        elif type == 'delivery':
+            defaultMethod = 'dapiPublicGetTicker24hr'
+        else:
+            defaultMethod = 'publicGetTicker24hr'
+        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
+        response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1285,11 +1296,13 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        defaultMethod = 'publicGetTrades'
+        defaultMethod = None
         if type == 'future':
-            defaultMethod = 'fapiPublicGetTrades'
+            defaultMethod = 'fapiPublicGetAggTrades'
         elif type == 'delivery':
-            defaultMethod = 'dapiPublicGetTrades'
+            defaultMethod = 'dapiPublicGetAggTrades'
+        else:
+            defaultMethod = 'publicGetAggTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
         if method == 'publicGetAggTrades':
             if since is not None:
