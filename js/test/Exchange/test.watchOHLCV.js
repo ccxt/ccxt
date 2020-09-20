@@ -44,9 +44,11 @@ module.exports = async (exchange, symbol) => {
 
             response = await exchange[method] (symbol, timeframe)
 
+
             now = Date.now ()
 
             assert (response instanceof Array)
+
             // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
             for (let i = 0; i < response.length; i++) {
                 const current = response[i]
@@ -55,8 +57,7 @@ module.exports = async (exchange, symbol) => {
                     const previous = response[i - 1]
                     if (current[0] && previous[0]) {
                         assert (current[0] >= previous[0],
-                            'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString () + "\n"
-                            + asTable (response.map ((o) => [ exchange.iso8601 (o[0]), ... o.slice (1) ])))
+                            'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString ())
                     }
                 }
             }
@@ -75,6 +76,8 @@ module.exports = async (exchange, symbol) => {
             }
 
         } catch (e) {
+
+            log (e)
 
             if (!(e instanceof errors.NetworkError)) {
                 throw e
