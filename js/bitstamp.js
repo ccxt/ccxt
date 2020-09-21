@@ -329,10 +329,10 @@ module.exports = class bitstamp extends Exchange {
             const [ baseDescription, quoteDescription ] = description.split (' / ');
             const parts = market['minimum_order'].split (' ');
             const cost = parts[0];
-            if (!result[base]) {
+            if (result[base] === undefined) {
                 result[base] = this.constructCurrencyObject (baseId, base, baseDescription, market['base_decimals'], undefined, market);
             }
-            if (!result[quote]) {
+            if (result[quote] === undefined) {
                 result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, market['counter_decimals'], parseFloat (cost), market);
             }
         }
