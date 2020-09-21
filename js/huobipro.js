@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -318,7 +318,7 @@ module.exports = class huobipro extends Exchange {
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+            throw new NetworkError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
