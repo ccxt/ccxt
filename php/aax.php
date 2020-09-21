@@ -628,7 +628,11 @@ class aax extends Exchange {
         if ($timestamp === null && $time !== null) {
             $timestamp = $time;
         } else {
-            $timestamp = $this->parse8601 ($timestamp);
+            if (strlen($timestamp) !== 13) {
+                $timestamp = $this->parse8601 ($timestamp);
+            } else {
+                $timestamp = intval ($timestamp);
+            }
         }
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
