@@ -933,8 +933,7 @@ module.exports = class novadax extends Exchange {
                 queryString = this.urlencode (this.keysort (query));
             }
             const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers['X-Nova-Signature'] = signature;
+            headers['X-Nova-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
