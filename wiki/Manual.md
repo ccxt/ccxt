@@ -3663,6 +3663,8 @@ Below is an outline of exception inheritance hierarchy:
 |   +---+ ArgumentsRequired
 |   |
 |   +---+ BadRequest
+|   |   |
+|   |   +---+ BadSymbol
 |   |
 |   +---+ BadResponse
 |   |   |
