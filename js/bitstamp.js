@@ -281,6 +281,7 @@ module.exports = class bitstamp extends Exchange {
 
     constructCurrencyObject (id, code, name, precision, minCost, originalPayload) {
         let currencyType = 'crypto';
+        const description = this.describe ();
         if (this.isFiat (code)) {
             currencyType = 'fiat';
         }
@@ -291,7 +292,7 @@ module.exports = class bitstamp extends Exchange {
             'type': currencyType,
             'name': name,
             'active': true,
-            'fee': this.safeFloat (this.describe ().fees.funding.withdraw, code),
+            'fee': this.safeFloat (description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
                 'amount': {
@@ -329,10 +330,10 @@ module.exports = class bitstamp extends Exchange {
             const [ baseDescription, quoteDescription ] = description.split (' / ');
             const parts = market['minimum_order'].split (' ');
             const cost = parts[0];
-            if (result[base] === undefined) {
+            if (!(base in result)) {
                 result[base] = this.constructCurrencyObject (baseId, base, baseDescription, market['base_decimals'], undefined, market);
             }
-            if (result[quote] === undefined) {
+            if (!(quote in result)) {
                 result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, market['counter_decimals'], parseFloat (cost), market);
             }
         }
