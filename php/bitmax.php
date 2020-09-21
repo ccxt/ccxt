@@ -1694,12 +1694,12 @@ class bitmax extends Exchange {
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $auth = $timestamp . '+' . $request;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $payload = $timestamp . '+' . $request;
+            $hmac = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
-                'x-$auth-key' => $this->apiKey,
-                'x-$auth-timestamp' => $timestamp,
-                'x-$auth-signature' => $this->decode($signature),
+                'x-auth-key' => $this->apiKey,
+                'x-auth-timestamp' => $timestamp,
+                'x-auth-signature' => $this->decode($hmac),
             );
             if ($method === 'GET') {
                 if ($query) {

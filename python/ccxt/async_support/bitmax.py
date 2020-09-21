@@ -1617,12 +1617,12 @@ class bitmax(Exchange):
         else:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            auth = timestamp + '+' + request
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            payload = timestamp + '+' + request
+            hmac = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {
                 'x-auth-key': self.apiKey,
                 'x-auth-timestamp': timestamp,
-                'x-auth-signature': self.decode(signature),
+                'x-auth-signature': self.decode(hmac),
             }
             if method == 'GET':
                 if query:
