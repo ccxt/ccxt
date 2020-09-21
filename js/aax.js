@@ -621,7 +621,11 @@ module.exports = class aax extends Exchange {
         if (timestamp === undefined && time !== undefined) {
             timestamp = time;
         } else {
-            timestamp = this.parse8601 (timestamp);
+            if (timestamp.length !== 13) {
+                timestamp = this.parse8601 (timestamp);
+            } else {
+                timestamp = parseInt (timestamp);
+            }
         }
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');

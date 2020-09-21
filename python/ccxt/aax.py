@@ -591,7 +591,10 @@ class aax(Exchange):
         if timestamp is None and time is not None:
             timestamp = time
         else:
-            timestamp = self.parse8601(timestamp)
+            if len(timestamp) != 13:
+                timestamp = self.parse8601(timestamp)
+            else:
+                timestamp = int(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         cost = None
