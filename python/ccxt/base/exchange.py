@@ -600,7 +600,7 @@ class Exchange(object):
 
         except RequestException as e:  # base exception class
             error_string = str(e)
-            if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.']):
+            if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
                 raise NetworkError(method + ' ' + url + ' ' + error_string)
             else:
                 raise ExchangeError(method + ' ' + url + ' ' + error_string)
