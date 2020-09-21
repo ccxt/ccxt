@@ -71,7 +71,7 @@ from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
-from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
+from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
 # import socket
 from ssl import SSLError
 # import sys
@@ -597,6 +597,9 @@ class Exchange(object):
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
             raise ExchangeError(method + ' ' + url)
+
+        except requestsConnectionError as e:
+            raise NetworkError(method + ' ' + url + ' ' + str(e))
 
         except RequestException as e:  # base exception class
             error_string = str(e)
