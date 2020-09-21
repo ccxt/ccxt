@@ -1454,6 +1454,7 @@ module.exports = class bitstamp extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        await this.loadMarkets ();
         this.checkAddress (address);
         const request = {
             'amount': amount,
@@ -1472,8 +1473,9 @@ module.exports = class bitstamp extends Exchange {
             request['address'] = address;
         } else {
             method = 'privatePostWithdrawalOpen';
+            const currency = this.currency (code);
             request['iban'] = address;
-            request['account_currency'] = code;
+            request['account_currency'] = currency['id'];
         }
         const response = await this[method] (this.extend (request, params));
         return {
