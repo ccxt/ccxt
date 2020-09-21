@@ -542,10 +542,10 @@ module.exports = class okex extends Exchange {
                     '35019': InvalidOrder, // { "code": 35019, "message": "Order size too large" }
                     '35020': InvalidOrder, // { "code": 35020, "message": "Order price too high" }
                     '35021': InvalidOrder, // { "code": 35021, "message": "Order size exceeded current tier limit" }
-                    '35022': ExchangeError, // { "code": 35022, "message": "Contract status error" }
-                    '35024': ExchangeError, // { "code": 35024, "message": "Contract not initialized" }
+                    '35022': BadRequest, // { "code": 35022, "message": "Contract status error" }
+                    '35024': BadRequest, // { "code": 35024, "message": "Contract not initialized" }
                     '35025': InsufficientFunds, // { "code": 35025, "message": "No account balance" }
-                    '35026': ExchangeError, // { "code": 35026, "message": "Contract settings not initialized" }
+                    '35026': BadRequest, // { "code": 35026, "message": "Contract settings not initialized" }
                     '35029': OrderNotFound, // { "code": 35029, "message": "Order does not exist" }
                     '35030': InvalidOrder, // { "code": 35030, "message": "Order size too large" }
                     '35031': InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
