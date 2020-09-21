@@ -46,9 +46,9 @@ class novadax extends Exchange {
                 ),
                 'www' => 'https://www.novadax.com.br',
                 'doc' => array(
-                    'https://doc.novadax.com/en-US/',
+                    'https://doc.novadax.com/pt-BR/',
                 ),
-                'fees' => 'https://www.novadax.com/en/fees-and-limits',
+                'fees' => 'https://www.novadax.com.br/fees-and-limits',
                 'referral' => 'https://www.novadax.com.br/?s=ccxt',
             ),
             'api' => array(
@@ -675,14 +675,14 @@ class novadax extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED',
+            'status' => 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'status' => 'CANCELING,FILLED,CANCELED,REJECTED',
+            'status' => 'FILLED,CANCELED,REJECTED',
         );
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
@@ -725,7 +725,7 @@ class novadax extends Exchange {
             'SUBMITTED' => 'open',
             'PROCESSING' => 'open',
             'PARTIAL_FILLED' => 'open',
-            'CANCELING' => 'canceled',
+            'CANCELING' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'REJECTED' => 'rejected',
@@ -919,10 +919,15 @@ class novadax extends Exchange {
         } else if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
+            $headers = array(
+                'X-Nova-Access-Key' => $this->apiKey,
+                'X-Nova-Timestamp' => $timestamp,
+            );
             $queryString = null;
             if ($method === 'POST') {
                 $body = $this->json($query);
                 $queryString = $this->hash($body, 'md5');
+                $headers['Content-Type'] = 'application/json';
             } else {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
@@ -930,12 +935,7 @@ class novadax extends Exchange {
                 $queryString = $this->urlencode($this->keysort($query));
             }
             $auth = $method . "\n" . $request . "\n" . $queryString . "\n" . $timestamp; // eslint-disable-line quotes
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-            $headers = array(
-                'X-Nova-Access-Key' => $this->apiKey,
-                'X-Nova-Signature' => $signature,
-                'X-Nova-Timestamp' => $timestamp,
-            );
+            $headers['X-Nova-Signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

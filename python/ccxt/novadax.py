@@ -56,9 +56,9 @@ class novadax(Exchange):
                 },
                 'www': 'https://www.novadax.com.br',
                 'doc': [
-                    'https://doc.novadax.com/en-US/',
+                    'https://doc.novadax.com/pt-BR/',
                 ],
-                'fees': 'https://www.novadax.com/en/fees-and-limits',
+                'fees': 'https://www.novadax.com.br/fees-and-limits',
                 'referral': 'https://www.novadax.com.br/?s=ccxt',
             },
             'api': {
@@ -649,13 +649,13 @@ class novadax(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED',
+            'status': 'SUBMITTED,PROCESSING,PARTIAL_FILLED,CANCELING',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'status': 'CANCELING,FILLED,CANCELED,REJECTED',
+            'status': 'FILLED,CANCELED,REJECTED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -695,7 +695,7 @@ class novadax(Exchange):
             'SUBMITTED': 'open',
             'PROCESSING': 'open',
             'PARTIAL_FILLED': 'open',
-            'CANCELING': 'canceled',
+            'CANCELING': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'REJECTED': 'rejected',
@@ -875,21 +875,21 @@ class novadax(Exchange):
         elif api == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
+            headers = {
+                'X-Nova-Access-Key': self.apiKey,
+                'X-Nova-Timestamp': timestamp,
+            }
             queryString = None
             if method == 'POST':
                 body = self.json(query)
                 queryString = self.hash(body, 'md5')
+                headers['Content-Type'] = 'application/json'
             else:
                 if query:
                     url += '?' + self.urlencode(query)
                 queryString = self.urlencode(self.keysort(query))
             auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp  # eslint-disable-line quotes
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            headers = {
-                'X-Nova-Access-Key': self.apiKey,
-                'X-Nova-Signature': signature,
-                'X-Nova-Timestamp': timestamp,
-            }
+            headers['X-Nova-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
