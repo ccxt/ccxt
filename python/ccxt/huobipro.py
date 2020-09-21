@@ -1078,12 +1078,13 @@ class huobipro(Exchange):
                 else:
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
-                    # more about it here: https://github.com/ccxt/ccxt/pull/4395
-                    # we use priceToPrecision instead of amountToPrecision here
-                    # because in self case the amount is in the quote currency
-                    request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                    # more about it here:
+                    # https://github.com/ccxt/ccxt/pull/4395
+                    # https://github.com/ccxt/ccxt/issues/7611
+                    # we use amountToPrecision here because the exchange requires cost in base precision
+                    request['amount'] = self.amount_to_precision(symbol, float(amount) * float(price))
             else:
-                request['amount'] = self.cost_to_precision(symbol, amount)
+                request['amount'] = self.amount_to_precision(symbol, amount)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker':
