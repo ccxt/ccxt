@@ -360,7 +360,7 @@ module.exports = class okex extends Exchange {
                     '30027': AuthenticationError, // { "code": 30027, "message": "login failure" }
                     '30028': PermissionDenied, // { "code": 30028, "message": "unauthorized execution" }
                     '30029': AccountSuspended, // { "code": 30029, "message": "account suspended" }
-                    '30030': ExchangeError, // { "code": 30030, "message": "endpoint request failed. Please try again" }
+                    '30030': ExchangeNotAvailable, // { "code": 30030, "message": "endpoint request failed. Please try again" }
                     '30031': BadRequest, // { "code": 30031, "message": "token does not exist" }
                     '30032': BadSymbol, // { "code": 30032, "message": "pair does not exist" }
                     '30033': BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
