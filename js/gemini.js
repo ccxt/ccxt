@@ -115,7 +115,7 @@ module.exports = class gemini extends Exchange {
                 '406': InsufficientFunds, // Insufficient Funds
                 '429': RateLimitExceeded, // Rate Limiting was applied
                 '500': ExchangeError, // The server encountered an error
-                '502': ExchangeError, // Technical issues are preventing the request from being satisfied
+                '502': ExchangeNotAvailable, // Technical issues are preventing the request from being satisfied
                 '503': OnMaintenance, // The exchange is down for maintenance
             },
             'timeframes': {
