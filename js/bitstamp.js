@@ -614,7 +614,7 @@ module.exports = class bitstamp extends Exchange {
 
     parseTradingFee (balances, symbol) {
         const market = this.market (symbol);
-        const tradeFee = this.safeFloat (balances, market.id + '_fee');
+        const tradeFee = this.safeFloat (balances, market['id'] + '_fee');
         return {
             'symbol': symbol,
             'maker': tradeFee,
@@ -775,7 +775,7 @@ module.exports = class bitstamp extends Exchange {
         const ids = Object.keys (balance);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (id.includes ('_withdrawal_fee')) {
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
                 const currencyId = id.split ('_')[0];
                 const code = this.safeCurrencyCode (currencyId);
                 withdraw[code] = this.safeFloat (balance, id);
@@ -1321,23 +1321,23 @@ module.exports = class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade (item);
             }
-            const direction = parsedTrade.side === 'buy' ? 'in' : 'out';
+            const direction = parsedTrade['side'] === 'buy' ? 'in' : 'out';
             return {
-                'id': parsedTrade.id,
+                'id': parsedTrade['id'],
                 'info': item,
-                'timestamp': parsedTrade.timestamp,
-                'datetime': parsedTrade.datetime,
+                'timestamp': parsedTrade['timestamp'],
+                'datetime': parsedTrade['datetime'],
                 'direction': direction,
                 'account': undefined,
-                'referenceId': parsedTrade.order,
+                'referenceId': parsedTrade['order'],
                 'referenceAccount': undefined,
                 'type': type,
                 'currency': market['base'],
-                'amount': parsedTrade.amount,
+                'amount': parsedTrade['amount'],
                 'before': undefined,
                 'after': undefined,
                 'status': 'ok',
-                'fee': parsedTrade.fee,
+                'fee': parsedTrade['fee'],
             };
         } else {
             const parsedTransaction = this.parseTransaction (item);
@@ -1345,27 +1345,27 @@ module.exports = class bitstamp extends Exchange {
             if ('amount' in item) {
                 const amount = this.safeFloat (item, 'amount');
                 direction = amount > 0 ? 'in' : 'out';
-            } else if (parsedTransaction.currency !== undefined) {
-                const currencyId = this.currencyId (parsedTransaction.currency);
+            } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
+                const currencyId = this.currencyId (parsedTransaction['currency']);
                 const amount = this.safeFloat (item, currencyId);
                 direction = amount > 0 ? 'in' : 'out';
             }
             return {
-                'id': parsedTransaction.id,
+                'id': parsedTransaction['id'],
                 'info': item,
-                'timestamp': parsedTransaction.timestamp,
-                'datetime': parsedTransaction.datetime,
+                'timestamp': parsedTransaction['timestamp'],
+                'datetime': parsedTransaction['datetime'],
                 'direction': direction,
                 'account': undefined,
-                'referenceId': parsedTransaction.txid,
+                'referenceId': parsedTransaction['txid'],
                 'referenceAccount': undefined,
                 'type': type,
-                'currency': parsedTransaction.currency,
-                'amount': parsedTransaction.amount,
+                'currency': parsedTransaction['currency'],
+                'amount': parsedTransaction['amount'],
                 'before': undefined,
                 'after': undefined,
-                'status': parsedTransaction.status,
-                'fee': parsedTransaction.fee,
+                'status': parsedTransaction['status'],
+                'fee': parsedTransaction['fee'],
             };
         }
     }
