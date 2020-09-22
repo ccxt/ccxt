@@ -74,6 +74,7 @@ module.exports = class digifinex extends Exchange {
                         'time',
                         'trades',
                         'trades/symbols',
+                        'ticker',
                     ],
                 },
                 'private': {
@@ -411,7 +412,7 @@ module.exports = class digifinex extends Exchange {
                 'date': date,
             }, tickers[reversedMarketId]);
             const [ quoteId, baseId ] = reversedMarketId.split ('_');
-            const marketId = baseId + '_' + quoteId;
+            const marketId = baseId.toUpperCase () + '_' + quoteId.toUpperCase ();
             let market = undefined;
             let symbol = undefined;
             if (marketId in this.markets_by_id) {
@@ -435,7 +436,7 @@ module.exports = class digifinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // reversed base/quote in v2
-        const marketId = market['quoteId'] + '_' + market['baseId'];
+        const marketId = market['quoteId'].toLowerCase () + '_' + market['baseId'].toLowerCase ();
         const request = {
             'symbol': marketId,
             'apiKey': apiKey,
