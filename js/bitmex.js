@@ -1323,14 +1323,19 @@ module.exports = class bitmex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderType = this.capitalize (type);
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': amount,
-            'ordType': this.capitalize (type),
+            'ordType': orderType,
         };
         if (price !== undefined) {
-            request['price'] = price;
+            if (orderType === 'Stop') {
+                request['stopPx'] = price;
+            } else {
+                request['price'] = price;
+            }
         }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
