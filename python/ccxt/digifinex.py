@@ -87,6 +87,7 @@ class digifinex(Exchange):
                         'time',
                         'trades',
                         'trades/symbols',
+                        'ticker',
                     ],
                 },
                 'private': {
@@ -413,7 +414,7 @@ class digifinex(Exchange):
                 'date': date,
             }, tickers[reversedMarketId])
             quoteId, baseId = reversedMarketId.split('_')
-            marketId = baseId + '_' + quoteId
+            marketId = baseId.upper() + '_' + quoteId.upper()
             market = None
             symbol = None
             if marketId in self.markets_by_id:
@@ -433,7 +434,7 @@ class digifinex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         # reversed base/quote in v2
-        marketId = market['quoteId'] + '_' + market['baseId']
+        marketId = market['quoteId'].lower() + '_' + market['baseId'].lower()
         request = {
             'symbol': marketId,
             'apiKey': apiKey,
