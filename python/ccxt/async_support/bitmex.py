@@ -1249,14 +1249,15 @@ class bitmex(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        orderType = self.capitalize(type)
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': amount,
-            'ordType': self.capitalize(type),
+            'ordType': orderType,
         }
         if price is not None:
-            if type.lower() == 'stop':
+            if orderType == 'Stop':
                 request['stopPx'] = price
             else:
                 request['price'] = price

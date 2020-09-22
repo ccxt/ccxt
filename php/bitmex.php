@@ -1327,14 +1327,19 @@ class bitmex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $orderType = $this->capitalize($type);
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
             'orderQty' => $amount,
-            'ordType' => $this->capitalize($type),
+            'ordType' => $orderType,
         );
         if ($price !== null) {
-            $request['price'] = $price;
+            if ($orderType === 'Stop') {
+                $request['stopPx'] = $price;
+            } else {
+                $request['price'] = $price;
+            }
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
