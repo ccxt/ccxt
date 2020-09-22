@@ -1256,7 +1256,10 @@ class bitmex(Exchange):
             'ordType': self.capitalize(type),
         }
         if price is not None:
-            request['price'] = price
+            if type.lower() == 'stop':
+                request['stopPx'] = price
+            else:
+                request['price'] = price
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
