@@ -71,7 +71,7 @@ module.exports = class mexo extends Exchange {
                     'private': 'https://api.mexo.io/openapi', // Privacy API endpoint
                     'zendesk': 'https://mexo.zendesk.com/hc/en-us',
                 },
-                'www': 'https://www.mexo.io', //  Homepage
+                'www': 'https://www.mexo.io', // Homepage
                 'referral': 'https://www.mexo.io/register/dKgecw', // Invitation link
                 'doc': 'https://github.com/mexo-tech/Mexo-OpenApi', // API Doc
                 'fees': 'https://mexo.zendesk.com/hc/en-us/articles/360037484011-Fee-Schedule', // Fees rate introduction
@@ -172,7 +172,7 @@ module.exports = class mexo extends Exchange {
                         'userDataStream',
                     ],
                     'delete': [
-                        'order', //  Cancel order
+                        'order', // Cancel order
                         'userDataStream',
                     ],
                 },
