@@ -477,9 +477,25 @@ class idex2(Exchange):
         # }
         response = await self.publicGetOrderbook(self.extend(request, params))
         nonce = self.safe_integer(response, 'sequence')
-        book = self.parse_order_book(response, None, 'bids', 'asks', 0, 1)
-        book['nonce'] = nonce
-        return book
+        return {
+            'timestamp': None,
+            'datetime': None,
+            'nonce': nonce,
+            'bids': self.parse_side(response, 'bids'),
+            'asks': self.parse_side(response, 'asks'),
+        }
+
+    def parse_side(self, book, side):
+        bookSide = self.safe_value(book, side, [])
+        result = []
+        for i in range(0, len(bookSide)):
+            order = bookSide[i]
+            price = self.safe_float(order, 0)
+            amount = self.safe_float(order, 1)
+            orderCount = self.safe_integer(order, 2)
+            result.append([price, amount, orderCount])
+        descending = side == 'bids'
+        return self.sort_by(result, 0, descending)
 
     async def fetch_currencies(self, params={}):
         # [

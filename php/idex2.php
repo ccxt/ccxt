@@ -496,9 +496,27 @@ class idex2 extends Exchange {
         // }
         $response = $this->publicGetOrderbook (array_merge($request, $params));
         $nonce = $this->safe_integer($response, 'sequence');
-        $book = $this->parse_order_book($response, null, 'bids', 'asks', 0, 1);
-        $book['nonce'] = $nonce;
-        return $book;
+        return array(
+            'timestamp' => null,
+            'datetime' => null,
+            'nonce' => $nonce,
+            'bids' => $this->parse_side($response, 'bids'),
+            'asks' => $this->parse_side($response, 'asks'),
+        );
+    }
+
+    public function parse_side($book, $side) {
+        $bookSide = $this->safe_value($book, $side, array());
+        $result = array();
+        for ($i = 0; $i < count($bookSide); $i++) {
+            $order = $bookSide[$i];
+            $price = $this->safe_float($order, 0);
+            $amount = $this->safe_float($order, 1);
+            $orderCount = $this->safe_integer($order, 2);
+            $result[] = array( $price, $amount, $orderCount );
+        }
+        $descending = $side === 'bids';
+        return $this->sort_by($result, 0, $descending);
     }
 
     public function fetch_currencies($params = array ()) {
