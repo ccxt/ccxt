@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, NetworkError, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ module.exports = class poloniex extends Exchange {
                     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
-                    'Error pulling ': NetworkError, // {"error":"Error pulling order book"}
+                    'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
                 },
             },
             'orders': {}, // orders cache / emulation
