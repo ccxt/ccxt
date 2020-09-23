@@ -599,7 +599,11 @@ class Exchange(object):
             raise ExchangeError(method + ' ' + url)
 
         except requestsConnectionError as e:
-            raise NetworkError(method + ' ' + url + ' ' + str(e))
+            error_string = str(e)
+            if 'Read timed out' in error_string:
+                raise RequestTimeout(method + ' ' + url + ' ' + error_string)
+            else:
+                raise NetworkError(method + ' ' + url + ' ' + error_string)
 
         except RequestException as e:  # base exception class
             error_string = str(e)
