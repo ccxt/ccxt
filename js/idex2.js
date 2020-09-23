@@ -494,9 +494,26 @@ module.exports = class idex2 extends Exchange {
         // }
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const nonce = this.safeInteger (response, 'sequence');
-        const book = this.parseOrderBook (response, undefined, 'bids', 'asks', 0, 1);
-        book['nonce'] = nonce;
-        return book;
+        return {
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': nonce,
+            'bids': this.parseSide (response, 'bids'),
+            'asks': this.parseSide (response, 'asks'),
+        };
+    }
+
+    parseSide (book, side) {
+        const bookSide = this.safeValue (book, side, []);
+        const result = [];
+        for (let i = 0; i < bookSide.length; i++) {
+            const order = bookSide[i];
+            const price = this.safeFloat (order, 0);
+            const amount = this.safeFloat (order, 1);
+            const count = this.safeInteger (order, 2);
+            result.push ([ price, amount, count ]);
+        }
+        return this.sortBy (result, 0, (side === 'bids'));
     }
 
     async fetchCurrencies (params = {}) {
