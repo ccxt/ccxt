@@ -221,6 +221,7 @@ class Transpiler {
             [ /else\s*[\n]/g, "else:\n" ],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
+            [ /while\s+\(([\s\S]+)\)\s*{/g, 'while $1:'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
             [ /\!([^\='"])/g, 'not $1'],
@@ -261,7 +262,7 @@ class Transpiler {
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
-            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /([^:+=\/\*\s-]+)(?<!while) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
             [ /\snot\(/g, ' not (' ],
