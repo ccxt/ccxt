@@ -513,7 +513,8 @@ module.exports = class idex2 extends Exchange {
             const count = this.safeInteger (order, 2);
             result.push ([ price, amount, count ]);
         }
-        return this.sortBy (result, 0, (side === 'bids'));
+        const descending = side === 'bids';
+        return this.sortBy (result, 0, descending);
     }
 
     async fetchCurrencies (params = {}) {
