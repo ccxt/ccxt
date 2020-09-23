@@ -510,8 +510,8 @@ module.exports = class idex2 extends Exchange {
             const order = bookSide[i];
             const price = this.safeFloat (order, 0);
             const amount = this.safeFloat (order, 1);
-            const count = this.safeInteger (order, 2);
-            result.push ([ price, amount, count ]);
+            const orderCount = this.safeInteger (order, 2);
+            result.push ([ price, amount, orderCount ]);
         }
         const descending = side === 'bids';
         return this.sortBy (result, 0, descending);
