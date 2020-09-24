@@ -121,7 +121,7 @@ module.exports = class gooplex extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchMarket (params = {}) {
+    async fetchMarkets (params = {}) {
         const method = 'openGetCommonSymbols';
         const feesKey = 'fees';
         const fees = this[feesKey];
