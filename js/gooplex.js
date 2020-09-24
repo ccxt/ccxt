@@ -128,24 +128,28 @@ module.exports = class gooplex extends Exchange {
         const trading_fees = this.safeValue (fees, 'trading');
         const response = await this[method] (params);
         const data = this.safeValue (response, 'data');
-        const symbols = this.safeValue (data, 'list');
+        const markets = this.safeValue (data, 'list');
         const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const symbol = this.safeString (market, 'symbol');
+            const id = symbol.replace ('_', '/');
+            const id2 = symbol.replace ('_', '');
             const entry = {
-                'id': this.safeString (symbol, 'symbol'),
-                'symbol': this.safeString (symbol, 'symbol'),
-                'base': this.safeCurrencyCode (symbol, 'baseAsset'),
-                'quote': this.safeCurrencyCode (symbol, 'quoteAsset'),
+                'id': symbol,
+                'symbol': id,
+                'symbol2': id2,
+                'base': this.safeCurrencyCode (market, 'baseAsset'),
+                'quote': this.safeCurrencyCode (market, 'quoteAsset'),
                 'active': true,
                 'taker': this.safeFloat (trading_fees, 'taker'),
                 'maker': this.safeFloat (trading_fees, 'maker'),
                 'percetage': true,
                 'tierBase': false,
                 'precision': {
-                    'price': this.safeInteger (symbol, 'quotePrecision'),
-                    'amount': this.safeInteger (symbol, 'basePrecision'),
-                    'cost': this.safeInteger (symbol, 'basePrecision'),
+                    'price': this.safeInteger (market, 'quotePrecision'),
+                    'amount': this.safeInteger (market, 'basePrecision'),
+                    'cost': this.safeInteger (market, 'basePrecision'),
                 },
                 'limits': {
                     'amount': {
@@ -161,7 +165,7 @@ module.exports = class gooplex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': symbol,
+                'info': market,
             };
             result.push (entry);
         }
@@ -171,7 +175,7 @@ module.exports = class gooplex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3Depth';
         const request = {
-            'symbol': symbol.replace ('_', ''),           // market[symbol]
+            'symbol': this.markets[symbol].id2,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -186,7 +190,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedGetOrders';
         const request = {
-            'symbol': symbol,          // market[symbol]
+            'symbol': this.markets[symbol].id,
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -213,7 +217,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedPostOrders';
         const request = {
-            'symbol': symbol,           // market[symbol]
+            'symbol': this.markets[symbol].id,
             'side': requestSide,
             'type': requestType,
             'quantity': amount,
@@ -252,7 +256,7 @@ module.exports = class gooplex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const method = 'apiGetV3Trades';
         const request = {
-            'symbol': symbol.replace ('_', ''),         // market[symbol]
+            'symbol': this.markets[symbol].id2,
         };
         if (since !== undefined) {
             request['fromId'] = since;
@@ -270,7 +274,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedGetOrdersTrades';
         const request = {
-            'symbol': symbol,                   // market[symbol]
+            'symbol': this.markets[symbol].id,
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -285,7 +289,7 @@ module.exports = class gooplex extends Exchange {
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3aggTrades';
         const request = {
-            'symbol': symbol.replace ('_', ''),         // market[symbol]
+            'symbol': this.market[symbol].id2,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
