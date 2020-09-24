@@ -119,7 +119,7 @@ class gemini extends Exchange {
                 '406' => '\\ccxt\\InsufficientFunds', // Insufficient Funds
                 '429' => '\\ccxt\\RateLimitExceeded', // Rate Limiting was applied
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
-                '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
+                '502' => '\\ccxt\\ExchangeNotAvailable', // Technical issues are preventing the request from being satisfied
                 '503' => '\\ccxt\\OnMaintenance', // The exchange is down for maintenance
             ),
             'timeframes' => array(
@@ -166,6 +166,7 @@ class gemini extends Exchange {
                 ),
                 'broad' => array(
                     'The Gemini Exchange is currently undergoing maintenance.' => '\\ccxt\\OnMaintenance', // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.' => '\\ccxt\\ExchangeNotAvailable', // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 ),
             ),
             'options' => array(

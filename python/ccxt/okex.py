@@ -345,11 +345,15 @@ class okex(Exchange):
                 # 401 Unauthorized — Invalid API Key
                 # 403 Forbidden — You do not have access to the requested resource
                 # 404 Not Found
+                # 429 Client Error: Too Many Requests for url
                 # 500 Internal Server Error — We had a problem with our server
                 'exact': {
                     '1': ExchangeError,  # {"code": 1, "message": "System error"}
                     # undocumented
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # {"message": "failure to get a peer from the ring-balancer"}
+                    'Server is busy, please try again': ExchangeNotAvailable,  # {"message": "Server is busy, please try again."}
+                    'An unexpected error occurred': ExchangeError,  # {"message": "An unexpected error occurred"}
+                    'System error': ExchangeError,  # {"error_message":"System error","message":"System error"}
                     '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     # common
                     # '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
@@ -385,7 +389,7 @@ class okex(Exchange):
                     '30027': AuthenticationError,  # {"code": 30027, "message": "login failure"}
                     '30028': PermissionDenied,  # {"code": 30028, "message": "unauthorized execution"}
                     '30029': AccountSuspended,  # {"code": 30029, "message": "account suspended"}
-                    '30030': ExchangeError,  # {"code": 30030, "message": "endpoint request failed. Please try again"}
+                    '30030': ExchangeNotAvailable,  # {"code": 30030, "message": "endpoint request failed. Please try again"}
                     '30031': BadRequest,  # {"code": 30031, "message": "token does not exist"}
                     '30032': BadSymbol,  # {"code": 30032, "message": "pair does not exist"}
                     '30033': BadRequest,  # {"code": 30033, "message": "exchange domain does not exist"}
@@ -567,10 +571,10 @@ class okex(Exchange):
                     '35019': InvalidOrder,  # {"code": 35019, "message": "Order size too large"}
                     '35020': InvalidOrder,  # {"code": 35020, "message": "Order price too high"}
                     '35021': InvalidOrder,  # {"code": 35021, "message": "Order size exceeded current tier limit"}
-                    '35022': ExchangeError,  # {"code": 35022, "message": "Contract status error"}
-                    '35024': ExchangeError,  # {"code": 35024, "message": "Contract not initialized"}
+                    '35022': BadRequest,  # {"code": 35022, "message": "Contract status error"}
+                    '35024': BadRequest,  # {"code": 35024, "message": "Contract not initialized"}
                     '35025': InsufficientFunds,  # {"code": 35025, "message": "No account balance"}
-                    '35026': ExchangeError,  # {"code": 35026, "message": "Contract settings not initialized"}
+                    '35026': BadRequest,  # {"code": 35026, "message": "Contract settings not initialized"}
                     '35029': OrderNotFound,  # {"code": 35029, "message": "Order does not exist"}
                     '35030': InvalidOrder,  # {"code": 35030, "message": "Order size too large"}
                     '35031': InvalidOrder,  # {"code": 35031, "message": "Cancel order size too large"}

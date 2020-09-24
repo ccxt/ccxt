@@ -324,11 +324,15 @@ class okex extends Exchange {
                 // 401 Unauthorized — Invalid API Key
                 // 403 Forbidden — You do not have access to the requested resource
                 // 404 Not Found
+                // 429 Client Error => Too Many Requests for url
                 // 500 Internal Server Error — We had a problem with our server
                 'exact' => array(
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
+                    'Server is busy, please try again' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "Server is busy, please try again." )
+                    'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array( "message" => "An unexpected error occurred" )
+                    'System error' => '\\ccxt\\ExchangeError', // array("error_message":"System error","message":"System error")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
                     // '0' => '\\ccxt\\ExchangeError', // 200 successful,when the order placement / cancellation / operation is successful
@@ -364,7 +368,7 @@ class okex extends Exchange {
                     '30027' => '\\ccxt\\AuthenticationError', // array( "code" => 30027, "message" => "login failure" )
                     '30028' => '\\ccxt\\PermissionDenied', // array( "code" => 30028, "message" => "unauthorized execution" )
                     '30029' => '\\ccxt\\AccountSuspended', // array( "code" => 30029, "message" => "account suspended" )
-                    '30030' => '\\ccxt\\ExchangeError', // array( "code" => 30030, "message" => "endpoint request failed. Please try again" )
+                    '30030' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30030, "message" => "endpoint request failed. Please try again" )
                     '30031' => '\\ccxt\\BadRequest', // array( "code" => 30031, "message" => "token does not exist" )
                     '30032' => '\\ccxt\\BadSymbol', // array( "code" => 30032, "message" => "pair does not exist" )
                     '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
@@ -546,10 +550,10 @@ class okex extends Exchange {
                     '35019' => '\\ccxt\\InvalidOrder', // array( "code" => 35019, "message" => "Order size too large" )
                     '35020' => '\\ccxt\\InvalidOrder', // array( "code" => 35020, "message" => "Order price too high" )
                     '35021' => '\\ccxt\\InvalidOrder', // array( "code" => 35021, "message" => "Order size exceeded current tier limit" )
-                    '35022' => '\\ccxt\\ExchangeError', // array( "code" => 35022, "message" => "Contract status error" )
-                    '35024' => '\\ccxt\\ExchangeError', // array( "code" => 35024, "message" => "Contract not initialized" )
+                    '35022' => '\\ccxt\\BadRequest', // array( "code" => 35022, "message" => "Contract status error" )
+                    '35024' => '\\ccxt\\BadRequest', // array( "code" => 35024, "message" => "Contract not initialized" )
                     '35025' => '\\ccxt\\InsufficientFunds', // array( "code" => 35025, "message" => "No account balance" )
-                    '35026' => '\\ccxt\\ExchangeError', // array( "code" => 35026, "message" => "Contract settings not initialized" )
+                    '35026' => '\\ccxt\\BadRequest', // array( "code" => 35026, "message" => "Contract settings not initialized" )
                     '35029' => '\\ccxt\\OrderNotFound', // array( "code" => 35029, "message" => "Order does not exist" )
                     '35030' => '\\ccxt\\InvalidOrder', // array( "code" => 35030, "message" => "Order size too large" )
                     '35031' => '\\ccxt\\InvalidOrder', // array( "code" => 35031, "message" => "Cancel order size too large" )
