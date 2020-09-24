@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -193,6 +193,7 @@ module.exports = class poloniex extends Exchange {
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
                     'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
+                    'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
@@ -202,6 +203,7 @@ module.exports = class poloniex extends Exchange {
                     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
                     'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
+                    'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
                 },
             },
             'orders': {}, // orders cache / emulation

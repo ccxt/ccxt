@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -192,6 +192,7 @@ module.exports = class bitstamp extends Exchange {
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
+                    'Bitstamp.net is under scheduled maintenance.': OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.

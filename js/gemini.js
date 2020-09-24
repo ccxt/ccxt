@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ module.exports = class gemini extends Exchange {
                 '406': InsufficientFunds, // Insufficient Funds
                 '429': RateLimitExceeded, // Rate Limiting was applied
                 '500': ExchangeError, // The server encountered an error
-                '502': ExchangeError, // Technical issues are preventing the request from being satisfied
+                '502': ExchangeNotAvailable, // Technical issues are preventing the request from being satisfied
                 '503': OnMaintenance, // The exchange is down for maintenance
             },
             'timeframes': {
@@ -162,6 +162,7 @@ module.exports = class gemini extends Exchange {
                 },
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': ExchangeNotAvailable, // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 },
             },
             'options': {
