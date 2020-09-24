@@ -126,9 +126,10 @@ module.exports = class crex24 extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'YOYO': 'YOYOW',
-                'BULL': 'BuySell',
                 'BCC': 'BCH',
+                'BULL': 'BuySell',
+                'CREDIT': 'TerraCredit',
+                'YOYO': 'YOYOW',
             },
             // exchange-specific options
             'options': {

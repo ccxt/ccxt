@@ -222,6 +222,7 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CREDIT': 'TerraCredit',
                 'UOS': 'UOS Network',
             },
             'exceptions': {

@@ -98,6 +98,7 @@ module.exports = class coinmarketcap extends Exchange {
             'ACChain': 'ACChain',
             'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'BigONE Token': 'BigONE Token', // conflict with Harmony (ONE)
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
@@ -129,6 +130,7 @@ module.exports = class coinmarketcap extends Exchange {
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
+            'Menlo One': 'Menlo One', // conflict with Harmony (ONE)
             'Monarch': 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
@@ -142,9 +144,8 @@ module.exports = class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'TerraCredit': 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
-            'Menlo One': 'Menlo One', // conflict with Harmony (ONE)
-            'BigONE Token': 'BigONE Token', // conflict with Harmony (ONE)
         };
         return this.safeValue (currencies, name, base);
     }
