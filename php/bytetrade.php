@@ -111,6 +111,7 @@ class bytetrade extends Exchange {
             'commonCurrencies' => array(
                 '44' => 'ByteHub',
                 '48' => 'Blocktonic',
+                '133' => 'TerraCredit',
             ),
             'exceptions' => array(
                 'vertify error' => '\\ccxt\\AuthenticationError', // typo on the exchange side, 'vertify'

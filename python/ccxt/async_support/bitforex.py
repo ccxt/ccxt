@@ -234,6 +234,7 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CREDIT': 'TerraCredit',
                 'UOS': 'UOS Network',
             },
             'exceptions': {

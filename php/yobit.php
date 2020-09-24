@@ -104,6 +104,7 @@ class yobit extends Exchange {
                 'COV' => 'Coven Coin',
                 'COVX' => 'COV',
                 'CPC' => 'Capricoin',
+                'CREDIT' => 'Creditbit',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DFT' => 'DraftCoin',
