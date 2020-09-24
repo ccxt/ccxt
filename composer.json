@@ -2,6 +2,41 @@
     "name": "ccxt/ccxtpro",
     "type": "library",
     "description": "A professional tool for algorithmic cryptocurrency trading",
+    "homepage": "https://ccxt.pro",
+    "license": "See LICENSE.txt",
+    "authors": [{
+        "name": "Igor Kroitor",
+        "email": "igor.kroitor@gmail.com",
+        "homepage": "https://github.com/kroitor",
+        "role": "Developer"
+    }, {
+        "name": "Carlo Revelli",
+        "email": "carlo.revelli@berkeley.edu",
+        "homepage": "https://github.com/frosty00",
+        "role": "Junior Developer"
+    }],
+    "autoload": {
+        "psr-4": {
+            "ccxtpro\\" : "php/"
+        },
+        "files": [ "ccxtpro.php", "php/base/functions.php" ]
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "ccxt/ccxt": ">=1.34.47",
+        "ratchet/pawl": "^0.3.4",
+        "ext-ds": "*"
+    },
+    "archive": {
+        "exclude": [
+            "/build",
+            "/dist",
+            "/doc",
+            "/js",
+            "/python",
+            "/wiki"
+        ]
+    },
     "keywords": [
         "algorithmic",
         "algotrading",
@@ -204,40 +239,5 @@
         "yobit.net",
         "YUNBI",
         "Zaif"
-    ],
-    "homepage": "https://ccxt.pro",
-    "license": "See LICENSE.txt",
-    "authors": [{
-        "name": "Igor Kroitor",
-        "email": "igor.kroitor@gmail.com",
-        "homepage": "https://github.com/kroitor",
-        "role": "Developer"
-    }, {
-        "name": "Carlo Revelli",
-        "email": "carlo.revelli@berkeley.edu",
-        "homepage": "https://github.com/frosty00",
-        "role": "Junior Developer"
-    }],
-    "autoload": {
-        "psr-4": {
-            "ccxtpro\\" : "php/"
-        },
-        "files": [ "ccxtpro.php", "php/base/functions.php" ]
-    },
-    "require": {
-        "php": ">=5.4.0",
-        "ccxt/ccxt": ">=1.34.39",
-        "ratchet/pawl": "^0.3.4",
-        "ext-ds": "*"
-    },
-    "archive": {
-        "exclude": [
-            "/build",
-            "/dist",
-            "/doc",
-            "/js",
-            "/python",
-            "/wiki"
-        ]
-    }
+    ]
 }
