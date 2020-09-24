@@ -121,10 +121,51 @@ module.exports = class gooplex extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchSymbols (params = {}) {
+    async fetchMarket (params = {}) {
         const method = 'openGetCommonSymbols';
+        const feesKey = 'fees';
+        const fees = this[feesKey];
+        const trading_fees = this.safeValue (fees, 'trading');
         const response = await this[method] (params);
-        return response;
+        const data = this.safeValue (response, 'data');
+        const symbols = this.safeValue (data, 'list');
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const entry = {
+                'id': this.safeString (symbol, 'symbol'),
+                'symbol': this.safeString (symbol, 'symbol'),
+                'base': this.safeCurrencyCode (symbol, 'baseAsset'),
+                'quote': this.safeCurrencyCode (symbol, 'quoteAsset'),
+                'active': true,
+                'taker': this.safeFloat (trading_fees, 'taker'),
+                'maker': this.safeFloat (trading_fees, 'maker'),
+                'percetage': true,
+                'tierBase': false,
+                'precision': {
+                    'price': this.safeInteger (symbol, 'quotePrecision'),
+                    'amount': this.safeInteger (symbol, 'basePrecision'),
+                    'cost': this.safeInteger (symbol, 'basePrecision'),
+                },
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': symbol,
+            };
+            result.push (entry);
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
