@@ -71,7 +71,7 @@ from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
-from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
+from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
 # import socket
 from ssl import SSLError
 # import sys
@@ -598,9 +598,16 @@ class Exchange(object):
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
             raise ExchangeError(method + ' ' + url)
 
+        except requestsConnectionError as e:
+            error_string = str(e)
+            if 'Read timed out' in error_string:
+                raise RequestTimeout(method + ' ' + url + ' ' + error_string)
+            else:
+                raise NetworkError(method + ' ' + url + ' ' + error_string)
+
         except RequestException as e:  # base exception class
             error_string = str(e)
-            if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
+            if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
                 raise NetworkError(method + ' ' + url + ' ' + error_string)
             else:
                 raise ExchangeError(method + ' ' + url + ' ' + error_string)
