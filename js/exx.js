@@ -90,6 +90,7 @@ module.exports = class exx extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'DOS': 'DEMOS',
                 'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
