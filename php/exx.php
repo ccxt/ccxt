@@ -93,6 +93,7 @@ class exx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'DOS' => 'DEMOS',
                 'TV' => 'TIV', // Ti-Value
             ),
             'exceptions' => array(

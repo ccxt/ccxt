@@ -95,6 +95,7 @@ class exx(Exchange):
                 },
             },
             'commonCurrencies': {
+                'DOS': 'DEMOS',
                 'TV': 'TIV',  # Ti-Value
             },
             'exceptions': {
