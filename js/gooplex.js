@@ -121,52 +121,61 @@ module.exports = class gooplex extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    async fetchMarkets (params = {}) {
-        const method = 'openGetCommonSymbols';
+    getFees () {
         const feesKey = 'fees';
         const fees = this[feesKey];
-        const trading_fees = this.safeValue (fees, 'trading');
+        return this.safeValue (fees, 'trading');
+    }
+
+    convertSymbol (market) {
+        const trading_fees = this.getFees ();
+        const symbol = this.safeString (market, 'symbol');
+        const id = symbol.replace ('_', '/');
+        const id2 = symbol.replace ('_', '');
+        const entry = {
+            'id': symbol,
+            'symbol': id,
+            'symbol2': id2,
+            'base': this.safeCurrencyCode (market, 'baseAsset'),
+            'quote': this.safeCurrencyCode (market, 'quoteAsset'),
+            'active': true,
+            'taker': this.safeFloat (trading_fees, 'taker'),
+            'maker': this.safeFloat (trading_fees, 'maker'),
+            'percetage': true,
+            'tierBase': false,
+            'precision': {
+                'price': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'basePrecision'),
+                'cost': this.safeInteger (market, 'basePrecision'),
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+        };
+        return entry;
+    }
+
+    async fetchMarkets (params = {}) {
+        const method = 'openGetCommonSymbols';
         const response = await this[method] (params);
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'list');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const symbol = this.safeString (market, 'symbol');
-            const id = symbol.replace ('_', '/');
-            const id2 = symbol.replace ('_', '');
-            const entry = {
-                'id': symbol,
-                'symbol': id,
-                'symbol2': id2,
-                'base': this.safeCurrencyCode (market, 'baseAsset'),
-                'quote': this.safeCurrencyCode (market, 'quoteAsset'),
-                'active': true,
-                'taker': this.safeFloat (trading_fees, 'taker'),
-                'maker': this.safeFloat (trading_fees, 'maker'),
-                'percetage': true,
-                'tierBase': false,
-                'precision': {
-                    'price': this.safeInteger (market, 'quotePrecision'),
-                    'amount': this.safeInteger (market, 'basePrecision'),
-                    'cost': this.safeInteger (market, 'basePrecision'),
-                },
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            };
+            const entry = this.convertSymbol (market);
             result.push (entry);
         }
         return result;
@@ -175,7 +184,7 @@ module.exports = class gooplex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3Depth';
         const request = {
-            'symbol': this.markets[symbol].id2,
+            'symbol': this.markets[symbol]['symbol2'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -190,7 +199,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedGetOrders';
         const request = {
-            'symbol': this.markets[symbol].id,
+            'symbol': this.markets[symbol]['id'],
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -217,7 +226,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedPostOrders';
         const request = {
-            'symbol': this.markets[symbol].id,
+            'symbol': this.markets[symbol]['id'],
             'side': requestSide,
             'type': requestType,
             'quantity': amount,
@@ -256,7 +265,7 @@ module.exports = class gooplex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const method = 'apiGetV3Trades';
         const request = {
-            'symbol': this.markets[symbol].id2,
+            'symbol': this.markets[symbol]['symbol2'],
         };
         if (since !== undefined) {
             request['fromId'] = since;
@@ -274,7 +283,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedGetOrdersTrades';
         const request = {
-            'symbol': this.markets[symbol].id,
+            'symbol': this.markets[symbol]['id'],
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -286,24 +295,34 @@ module.exports = class gooplex extends Exchange {
         return response;
     }
 
+    parseL2 (entry) {
+        return {
+            'tradeId': this.safeInteger (entry, 'a'),
+            'price': this.safeFloat (entry, 'p'),
+            'quantity': this.safeFloat (entry, 'q'),
+            'firstTradeId': this.safeInteger (entry, 'f'),
+            'lastTradeId': this.safeInteger (entry, 'l'),
+            'timestamp': this.safeTimestamp (entry, 'T'),
+            'maker': this.safeValue (entry, 'm'),
+            'bestPriceMatch': this.safeValue (entry, 'M'),
+        };
+    }
+
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
-        const method = 'apiGetV3aggTrades';
+        const method = 'apiGetV3AggTrades';
+        await this.loadMarkets ();
         const request = {
-            'symbol': this.market[symbol].id2,
+            'symbol': this.markets[symbol]['symbol2'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;                // map
-        //    "a": 26129,         // Aggregate tradeId
-        //    "p": "0.01633102",  // Price
-        //    "q": "4.70443515",  // Quantity
-        //    "f": 27781,         // First tradeId
-        //    "l": 27781,         // Last tradeId
-        //    "T": 1498793709153, // Timestamp
-        //    "m": true,          // Was the buyer the maker?
-        //    "M": true           // Was the trade the best price match?
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.parseL2 (response[i]));
+        }
+        return result;
     }
 };
 
