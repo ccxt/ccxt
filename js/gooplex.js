@@ -183,6 +183,7 @@ module.exports = class gooplex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3Depth';
+        await this.loadMarkets ();
         const request = {
             'symbol': this.markets[symbol]['symbol2'],
         };
@@ -198,6 +199,7 @@ module.exports = class gooplex extends Exchange {
             throw new ArgumentsRequired ('fetchOrders requires a symbol argument');
         }
         const method = 'signedGetOrders';
+        await this.loadMarkets ();
         const request = {
             'symbol': this.markets[symbol]['id'],
         };
@@ -225,6 +227,7 @@ module.exports = class gooplex extends Exchange {
             throw new NotSupported ('Type ' + type + ' not supported.');
         }
         const method = 'signedPostOrders';
+        await this.loadMarkets ();
         const request = {
             'symbol': this.markets[symbol]['id'],
             'side': requestSide,
@@ -264,6 +267,7 @@ module.exports = class gooplex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const method = 'apiGetV3Trades';
+        await this.loadMarkets ();
         const request = {
             'symbol': this.markets[symbol]['symbol2'],
         };
@@ -282,6 +286,7 @@ module.exports = class gooplex extends Exchange {
             throw new ArgumentsRequired ('fetchOrders requires a symbol argument');
         }
         const method = 'signedGetOrdersTrades';
+        await this.loadMarkets ();
         const request = {
             'symbol': this.markets[symbol]['id'],
         };
