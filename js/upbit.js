@@ -155,6 +155,9 @@ module.exports = class upbit extends Exchange {
                     'KRW': 0.0005,
                 },
             },
+            'commonCurrencies': {
+                'TON': 'Tokamak Network',
+            },
         });
     }
 
