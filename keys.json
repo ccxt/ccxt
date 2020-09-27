@@ -15,7 +15,6 @@
     "bitmarket":     { "skip": true },
     "bitmart":       { "skip": true },
     "bitso":         { "skip": true },
-    "bittrex":       { "skip": true },
     "bitz":          { "skip": true },
     "bl3p":          { "skip": true },
     "bleutrade":     { "skip": true },
