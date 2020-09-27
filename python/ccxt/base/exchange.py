@@ -1072,7 +1072,7 @@ class Exchange(object):
         except (TypeError, OverflowError, OSError, ValueError):
             return None
 
-    @staticmethod 
+    @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
             binary = bytes(Exchange.web3.sha3(request))
