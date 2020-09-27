@@ -1080,19 +1080,20 @@ class Exchange(object):
             h = hashlib.new(algorithm, request)
             binary = h.digest()
         if digest == 'base64':
-            return Exchange.encode(Exchange.binary_to_base64(binary))
+            return Exchange.binary_to_base64(binary)
         elif digest == 'hex':
-            return Exchange.binary_to_base16(binary).lower()
+            return Exchange.binary_to_base16(binary)
         return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
         h = hmac.new(secret, request, algorithm)
+        binary = h.digest()
         if digest == 'hex':
-            return h.hexdigest()
+            return Exchange.binary_to_base16(binary)
         elif digest == 'base64':
-            return Exchange.encode(Exchange.binary_to_base64(h.digest()))
-        return h.digest()
+            return Exchange.binary_to_base64(binary)
+        return binary
 
     @staticmethod
     def binary_concat(*args):
@@ -1988,7 +1989,7 @@ class Exchange(object):
 
     @staticmethod
     def binary_to_base16(s):
-        return Exchange.decode(base64.b16encode(s))
+        return Exchange.decode(base64.b16encode(s)).lower()
 
     # python supports arbitrarily big integers
     @staticmethod

@@ -1015,7 +1015,7 @@ module.exports = class btcmarkets extends Exchange {
                 'Content-Type': 'application/json',
                 'BM-AUTH-APIKEY': this.apiKey,
                 'BM-AUTH-TIMESTAMP': nonce,
-                'BM-AUTH-SIGNATURE': this.decode (signature),
+                'BM-AUTH-SIGNATURE': signature,
             };
         } else if (api === 'public') {
             if (Object.keys (query).length) {

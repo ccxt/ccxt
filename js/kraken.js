@@ -1638,7 +1638,7 @@ module.exports = class kraken extends Exchange {
             const signature = this.hmac (binhash, secret, 'sha512', 'base64');
             headers = {
                 'API-Key': this.apiKey,
-                'API-Sign': this.decode (signature),
+                'API-Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         } else {
