@@ -10,6 +10,7 @@ function test_watch_trades($exchange, $symbol) {
         'bitvavo',
         'dsx',
         'currencycom',
+        'idex2', // rinkeby testnet, trades too rare
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

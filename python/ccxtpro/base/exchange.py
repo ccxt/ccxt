@@ -165,3 +165,8 @@ class Exchange(BaseExchange):
 
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
+
+    def find_timeframe(self, timeframe):
+        for key, value in self.timeframes.items():
+            if value == timeframe:
+                return key

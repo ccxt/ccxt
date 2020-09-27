@@ -179,4 +179,14 @@ module.exports = class Exchange extends ccxt.Exchange {
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
         return orderbook.limit (limit);
     }
+
+    findTimeframe (timeframe) {
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+    }
 }
