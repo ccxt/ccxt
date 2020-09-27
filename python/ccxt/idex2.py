@@ -25,6 +25,7 @@ class idex2(Exchange):
             'rateLimit': 1500,
             'version': 'v2',
             'certified': False,
+            'pro': True,
             'requiresWeb3': True,
             'has': {
                 'cancelOrder': True,
