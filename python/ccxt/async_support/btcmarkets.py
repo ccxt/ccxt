@@ -943,7 +943,7 @@ class btcmarkets(Exchange):
                 'Content-Type': 'application/json',
                 'BM-AUTH-APIKEY': self.apiKey,
                 'BM-AUTH-TIMESTAMP': nonce,
-                'BM-AUTH-SIGNATURE': self.decode(signature),
+                'BM-AUTH-SIGNATURE': signature,
             }
         elif api == 'public':
             if query:

@@ -408,7 +408,7 @@ class bit2c(Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.decode(signature),
+                'sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

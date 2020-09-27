@@ -2760,7 +2760,7 @@ class bitget extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $this->decode($signature),
+                'ACCESS-SIGN' => $signature,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-PASSPHRASE' => $this->password,
             );

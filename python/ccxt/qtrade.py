@@ -1475,7 +1475,7 @@ class qtrade(Exchange):
             key = self.apiKey
             if not isinstance(key, basestring):
                 key = str(key)
-            signature = 'HMAC-SHA256 ' + key + ':' + self.decode(hash)
+            signature = 'HMAC-SHA256 ' + key + ':' + hash
             headers = {
                 'Authorization': signature,
                 'HMAC-Timestamp': timestamp,

@@ -1530,7 +1530,7 @@ class kraken(Exchange):
             signature = self.hmac(binhash, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
-                'API-Sign': self.decode(signature),
+                'API-Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         else:

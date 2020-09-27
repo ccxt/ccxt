@@ -1056,8 +1056,7 @@ class eterbase(Exchange):
                 digest = 'SHA-256=' + self.hash(payload, 'sha256', 'base64')
                 message += "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
                 headersCSV += ' ' + 'digest'
-            signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
-            signature = self.decode(signature64)
+            signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"'
             httpHeaders = {
                 'Date': date,

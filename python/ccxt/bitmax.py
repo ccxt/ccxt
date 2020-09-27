@@ -1622,7 +1622,7 @@ class bitmax(Exchange):
             headers = {
                 'x-auth-key': self.apiKey,
                 'x-auth-timestamp': timestamp,
-                'x-auth-signature': self.decode(hmac),
+                'x-auth-signature': hmac,
             }
             if method == 'GET':
                 if query:

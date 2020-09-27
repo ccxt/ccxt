@@ -2633,7 +2633,7 @@ class bitget(Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-SIGN': self.decode(signature),
+                'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
             }

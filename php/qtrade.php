@@ -1541,7 +1541,7 @@ class qtrade extends Exchange {
             if (gettype($key) !== 'string') {
                 $key = (string) $key;
             }
-            $signature = 'HMAC-SHA256 ' . $key . ':' . $this->decode($hash);
+            $signature = 'HMAC-SHA256 ' . $key . ':' . $hash;
             $headers = array(
                 'Authorization' => $signature,
                 'HMAC-Timestamp' => $timestamp,

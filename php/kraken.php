@@ -1647,7 +1647,7 @@ class kraken extends Exchange {
             $signature = $this->hmac($binhash, $secret, 'sha512', 'base64');
             $headers = array(
                 'API-Key' => $this->apiKey,
-                'API-Sign' => $this->decode($signature),
+                'API-Sign' => $signature,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         } else {
