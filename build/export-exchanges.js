@@ -235,8 +235,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         }
     }
 
-    /*
-
     if (proExchangesPaths) {
 
         const proExchanges = arrayOfExchanges.filter (exchange => exchange.pro)
@@ -263,8 +261,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             logExportExchanges (path, certifiedExchangesRegex, certifiedExchangesReplacement)
         }
     }
-
-    */
 
     if (exchangesByCountriesPaths) {
 
