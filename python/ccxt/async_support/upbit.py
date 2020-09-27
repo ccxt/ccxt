@@ -164,6 +164,9 @@ class upbit(Exchange):
                     'KRW': 0.0005,
                 },
             },
+            'commonCurrencies': {
+                'TON': 'Tokamak Network',
+            },
         })
 
     async def fetch_currency(self, code, params={}):

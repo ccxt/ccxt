@@ -159,6 +159,9 @@ class upbit extends Exchange {
                     'KRW' => 0.0005,
                 ),
             ),
+            'commonCurrencies' => array(
+                'TON' => 'Tokamak Network',
+            ),
         ));
     }
 
