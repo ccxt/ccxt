@@ -348,11 +348,6 @@ class hitbtc extends \ccxt\hitbtc {
         return $message;
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
-    }
-
     public function handle_notification($client, $message) {
         //
         //     array( jsonrpc => '2.0', result => true, id => null )

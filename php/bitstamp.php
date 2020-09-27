@@ -296,11 +296,6 @@ class bitstamp extends \ccxt\bitstamp {
         $client->resolve ($array, $channel);
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
-    }
-
     public function handle_order_book_subscription($client, $message, $subscription) {
         $type = $this->safe_string($subscription, 'type');
         $symbol = $this->safe_string($subscription, 'symbol');

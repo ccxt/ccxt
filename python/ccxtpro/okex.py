@@ -466,10 +466,6 @@ class okex(Exchange, ccxt.okex):
         client.resolve(message, 'authenticated')
         return message
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # okex uses login requests instead of message signing
-        return message
-
     def ping(self, client):
         # okex does not support built-in ws protocol-level ping-pong
         # instead it requires custom text-based ping-pong

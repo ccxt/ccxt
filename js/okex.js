@@ -512,11 +512,6 @@ module.exports = class okex extends ccxt.okex {
         return message;
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // okex uses login requests instead of message signing
-        return message;
-    }
-
     ping (client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong

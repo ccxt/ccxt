@@ -1072,11 +1072,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage() if needed
-        return message;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (api === 'signalr') {
             let url = this.implodeParams (this.urls['api'][api], {

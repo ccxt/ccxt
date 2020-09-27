@@ -75,11 +75,6 @@ module.exports = class gateio extends ccxt.gateio {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);

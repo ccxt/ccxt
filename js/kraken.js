@@ -504,11 +504,6 @@ module.exports = class kraken extends ccxt.kraken {
         return true;
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: signMessage not implemented yet
-        return message;
-    }
-
     handleMessage (client, message) {
         if (Array.isArray (message)) {
             const channelId = message[0].toString ();

@@ -393,11 +393,6 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
-    }
-
     public function authenticate() {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);

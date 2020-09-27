@@ -119,10 +119,6 @@ class ftx extends \ccxt\ftx {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function sign_message($client, $messageHash, $message) {
-        return $message;
-    }
-
     public function handle_partial($client, $message) {
         $methods = array(
             'orderbook' => array($this, 'handle_order_book_snapshot'),

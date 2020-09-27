@@ -837,11 +837,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         return await this.watch (url, event);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo bitmex signMessage not implemented yet
-        return message;
-    }
-
     handleOrderBook (client, message) {
         //
         // first snapshot

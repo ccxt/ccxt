@@ -649,11 +649,6 @@ class bitvavo extends \ccxt\bitvavo {
         }
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
-    }
-
     public function handle_message($client, $message) {
         //
         //     {

@@ -803,10 +803,6 @@ class bitmex(Exchange, ccxt.bitmex):
         url = self.urls['api']['ws']
         return await self.watch(url, event)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo bitmex signMessage not implemented yet
-        return message
-
     def handle_order_book(self, client, message):
         #
         # first snapshot

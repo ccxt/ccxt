@@ -452,11 +452,6 @@ class currencycom extends \ccxt\currencycom {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
-    }
-
     public function handle_message($client, $message) {
         //
         //     {
