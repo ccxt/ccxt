@@ -2756,7 +2756,7 @@ module.exports = class bitget extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-SIGN': this.decode (signature),
+                'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
             };

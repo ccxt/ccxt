@@ -1696,7 +1696,7 @@ module.exports = class bitmax extends Exchange {
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,
-                'x-auth-signature': this.decode (hmac),
+                'x-auth-signature': hmac,
             };
             if (method === 'GET') {
                 if (Object.keys (query).length) {
