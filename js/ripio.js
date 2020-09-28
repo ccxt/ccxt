@@ -370,21 +370,17 @@ module.exports = class ripio extends Exchange {
         const response = await this.publicGetOrderbookPair (this.extend (request, params));
         //
         //     {
-        //         "code":"A10000",
-        //         "data":{
-        //             "asks":[
-        //                 ["0.037159","0.3741"],
-        //                 ["0.037215","0.2706"],
-        //                 ["0.037222","1.8459"],
-        //             ],
-        //             "bids":[
-        //                 ["0.037053","0.3857"],
-        //                 ["0.036969","0.8101"],
-        //                 ["0.036953","1.5226"],
-        //             ],
-        //             "timestamp":1599280414448
-        //         },
-        //         "message":"Success"
+        //         "buy":[
+        //             {"amount":"0.00230","total":"24.95","price":"10850.02"},
+        //             {"amount":"0.07920","total":"858.52","price":"10840.00"},
+        //             {"amount":"0.00277","total":"30.00","price":"10833.03"},
+        //         ],
+        //         "sell":[
+        //             {"amount":"0.03193","total":"348.16","price":"10904.00"},
+        //             {"amount":"0.00210","total":"22.90","price":"10905.70"},
+        //             {"amount":"0.00300","total":"32.72","price":"10907.98"},
+        //         ],
+        //         "updated_id":47225
         //     }
         //
         const orderbook = this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
