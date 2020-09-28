@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { AuthenticationError, ExchangeError, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -87,6 +88,7 @@ module.exports = class ripio extends Exchange {
                 'exact': {
                 },
                 'broad': {
+                    'Invalid pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
                 },
             },
             'commonCurrencies': {
@@ -552,5 +554,27 @@ module.exports = class ripio extends Exchange {
             // };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        //      {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
+        //
+        const errors = this.safeValue (response, 'errors');
+        if (errors !== undefined) {
+            const feedback = this.id + ' ' + body;
+            const keys = Object.keys (errors);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const error = this.safeValue (errors, key, []);
+                const message = this.safeString (error, 0);
+                // this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
