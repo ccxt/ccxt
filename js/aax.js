@@ -35,6 +35,9 @@ module.exports = class aax extends Exchange {
                 '8h': 480,
                 '1d': 1440,
             },
+            'headers': {
+                'Content-Type': 'application/json',
+            },
             'urls': {
                 'api': 'https://api.aax.com',
                 'www': 'https://www.aax.com/',
