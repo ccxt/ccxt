@@ -48,6 +48,9 @@ class aax(Exchange):
                 '8h': 480,
                 '1d': 1440,
             },
+            'headers': {
+                'Content-Type': 'application/json',
+            },
             'urls': {
                 'api': 'https://api.aax.com',
                 'www': 'https://www.aax.com/',
@@ -155,10 +158,9 @@ class aax(Exchange):
         if api == 'private':
             nonce = str(self.milliseconds())
             signature = nonce + ':' + method + queryParams
-            if method == 'POST':
-                if query:
-                    body = self.json(query)
-                    signature += body
+            if method != 'GET' and method != 'HEAD':
+                body = self.json(query)
+                signature += body
             encodedHEX = self.hmac(self.encode(signature), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-ACCESS-KEY': self.apiKey,

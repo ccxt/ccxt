@@ -35,6 +35,9 @@ module.exports = class aax extends Exchange {
                 '8h': 480,
                 '1d': 1440,
             },
+            'headers': {
+                'Content-Type': 'application/json',
+            },
             'urls': {
                 'api': 'https://api.aax.com',
                 'www': 'https://www.aax.com/',
@@ -145,11 +148,9 @@ module.exports = class aax extends Exchange {
         if (api === 'private') {
             const nonce = this.milliseconds ().toString ();
             let signature = nonce + ':' + method + queryParams;
-            if (method === 'POST') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    signature += body;
-                }
+            if (method !== 'GET' && method !== 'HEAD') {
+                body = this.json (query);
+                signature += body;
             }
             const encodedHEX = this.hmac (this.encode (signature), this.encode (this.secret), 'sha256');
             headers = {
