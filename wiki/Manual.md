@@ -1751,7 +1751,7 @@ fetchTicker ('ETH/BTC')
 fetchTicker ('BTC/USDT')
 ```
 
-### Multiple Tickers For All Or Many Symmbols
+### Multiple Tickers For All Or Many Symbols
 
 ```JavaScript
 // multiple tickers
