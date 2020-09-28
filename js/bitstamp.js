@@ -766,7 +766,7 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance ();
+        const balance = await this.privatePostBalance (params);
         return this.praseTradingFees (balance);
     }
 
@@ -790,13 +790,13 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance ();
+        const balance = await this.privatePostBalance (params);
         return this.parseFundingFees (balance);
     }
 
     async fetchFees (params = {}) {
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance ();
+        const balance = await this.privatePostBalance (params);
         const tradingFees = this.praseTradingFees (balance);
         delete tradingFees['info'];
         const fundingFees = this.parseFundingFees (balance);
