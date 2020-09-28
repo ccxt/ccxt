@@ -42,6 +42,9 @@ class aax extends Exchange {
                 '8h' => 480,
                 '1d' => 1440,
             ),
+            'headers' => array(
+                'Content-Type' => 'application/json',
+            ),
             'urls' => array(
                 'api' => 'https://api.aax.com',
                 'www' => 'https://www.aax.com/',
@@ -152,11 +155,9 @@ class aax extends Exchange {
         if ($api === 'private') {
             $nonce = (string) $this->milliseconds ();
             $signature = $nonce . ':' . $method . $queryParams;
-            if ($method === 'POST') {
-                if ($query) {
-                    $body = $this->json ($query);
-                    $signature .= $body;
-                }
+            if ($method !== 'GET' && $method !== 'HEAD') {
+                $body = $this->json ($query);
+                $signature .= $body;
             }
             $encodedHEX = $this->hmac ($this->encode ($signature), $this->encode ($this->secret), 'sha256');
             $headers = array(
