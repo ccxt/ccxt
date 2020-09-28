@@ -147,7 +147,6 @@ class Exchange(BaseExchange):
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-        self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
