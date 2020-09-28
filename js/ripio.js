@@ -18,6 +18,7 @@ module.exports = class ripio extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -389,8 +390,6 @@ module.exports = class ripio extends Exchange {
         return orderbook;
     }
 
-
-
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
@@ -492,6 +491,35 @@ module.exports = class ripio extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalancesExchangeBalances (params);
+        //
+        //     [
+        //         {
+        //             "id": 10,
+        //             "currency": "Argentine Peso",
+        //             "symbol": "ARS",
+        //             "available": "0",
+        //             "locked": "0",
+        //             "code": "exchange",
+        //             "balance_type": "fiat"
+        //         },
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'locked');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
