@@ -23,6 +23,7 @@ module.exports = class ripio extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -386,6 +387,111 @@ module.exports = class ripio extends Exchange {
         const orderbook = this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
         orderbook['nonce'] = this.safeInteger (response, 'updated_id');
         return orderbook;
+    }
+
+
+
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "created_at":1601322501,
+        //         "amount":"0.00276",
+        //         "price":"10850.020000",
+        //         "side":"SELL",
+        //         "pair":"BTC_USDC",
+        //         "taker_fee":"0",
+        //         "taker_side":"SELL",
+        //         "maker_fee":"0",
+        //         "taker":2577953,
+        //         "maker":2577937
+        //     }
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeTimestamp (trade, 'created_at');
+        let side = this.safeString (trade, 'side');
+        const takerSide = this.safeString (trade, 'taker_side');
+        const takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
+        side = side.toLowerCase ();
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if ((amount !== undefined) && (price !== undefined)) {
+            cost = amount * price;
+        }
+        const marketId = this.safeString (trade, 'pair');
+        let symbol = undefined;
+        let base = undefined;
+        let quote = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+                base = market['base'];
+                quote = market['quote'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((market !== undefined) && (symbol === undefined)) {
+            symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
+        }
+        const feeCost = this.safeFloat (trade, takerOrMaker + '_fee');
+        const orderId = this.safeString (trade, takerOrMaker);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': (side === 'buy') ? base : quote,
+            };
+        }
+        return {
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
+            'info': trade,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetTradehistoryPair (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "created_at":1601322501,
+        //             "amount":"0.00276",
+        //             "price":"10850.020000",
+        //             "side":"SELL",
+        //             "pair":"BTC_USDC",
+        //             "taker_fee":"0",
+        //             "taker_side":"SELL",
+        //             "maker_fee":"0",
+        //             "taker":2577953,
+        //             "maker":2577937
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
