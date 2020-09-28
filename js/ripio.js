@@ -21,6 +21,7 @@ module.exports = class ripio extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -324,6 +325,40 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetRateAll (params);
+        //
+        //     [
+        //         {
+        //             "pair":"BTC_USDC",
+        //             "last_price":"10850.02",
+        //             "low":"10720.03",
+        //             "high":"10909.99",
+        //             "variation":"1.21",
+        //             "volume":"0.83868",
+        //             "base":"BTC",
+        //             "base_name":"Bitcoin",
+        //             "quote":"USDC",
+        //             "quote_name":"USD Coin",
+        //             "bid":"10811.00",
+        //             "ask":"10720.03",
+        //             "avg":"10851.47",
+        //             "ask_volume":"0.00140",
+        //             "bid_volume":"0.00185",
+        //             "created_at":"2020-09-28 21:44:51.228920+00:00"
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
