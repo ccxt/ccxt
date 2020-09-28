@@ -18,7 +18,9 @@ module.exports = class ripio extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchTicker': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -165,6 +167,163 @@ module.exports = class ripio extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrency (params);
+        //
+        //     {
+        //         "next":null,
+        //         "previous":null,
+        //         "results":[
+        //             {
+        //                 "name":"Argentine Peso",
+        //                 "symbol":"$",
+        //                 "currency":"ARS",
+        //                 "country":"AR",
+        //                 "decimal_places":"2",
+        //                 "enabled":true
+        //             },
+        //             {
+        //                 "name":"Bitcoin Cash",
+        //                 "symbol":"BCH",
+        //                 "currency":"BCH",
+        //                 "country":"AR",
+        //                 "decimal_places":"8",
+        //                 "enabled":true
+        //             },
+        //             {
+        //                 "name":"Bitcoin",
+        //                 "symbol":"BTC",
+        //                 "currency":"BTC",
+        //                 "country":"AR",
+        //                 "decimal_places":"8",
+        //                 "enabled":true
+        //             }
+        //         ]
+        //     }
+        //
+        const results = this.safeValue (response, 'results', []);
+        const result = {};
+        for (let i = 0; i < results.length; i++) {
+            const currency = results[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const active = this.safeValue (currency, 'enabled', true);
+            const precision = this.safeInteger (currency, 'decimal_places');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'info': currency, // the original payload
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
+        }
+        return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "pair":"BTC_USDC",
+        //         "last_price":"10850.02",
+        //         "low":"10720.03",
+        //         "high":"10909.99",
+        //         "variation":"1.21",
+        //         "volume":"0.83868",
+        //         "base":"BTC",
+        //         "base_name":"Bitcoin",
+        //         "quote":"USDC",
+        //         "quote_name":"USD Coin",
+        //         "bid":"10811.00",
+        //         "ask":"10720.03",
+        //         "avg":"10851.47",
+        //         "ask_volume":"0.00140",
+        //         "bid_volume":"0.00185",
+        //         "created_at":"2020-09-28 21:44:51.228920+00:00"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
+        const marketId = this.safeString (ticker, 'pair');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last_price');
+        const average = this.safeFloat (ticker, 'avg');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': this.safeFloat (ticker, 'bid_volume'),
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': this.safeFloat (ticker, 'ask_volume'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': average,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetRatePair (this.extend (request, params));
+        //
+        //     {
+        //         "pair":"BTC_USDC",
+        //         "last_price":"10850.02",
+        //         "low":"10720.03",
+        //         "high":"10909.99",
+        //         "variation":"1.21",
+        //         "volume":"0.83868",
+        //         "base":"BTC",
+        //         "base_name":"Bitcoin",
+        //         "quote":"USDC",
+        //         "quote_name":"USD Coin",
+        //         "bid":"10811.00",
+        //         "ask":"10720.03",
+        //         "avg":"10851.47",
+        //         "ask_volume":"0.00140",
+        //         "bid_volume":"0.00185",
+        //         "created_at":"2020-09-28 21:44:51.228920+00:00"
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
