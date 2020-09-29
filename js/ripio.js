@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, BadSymbol, InvalidOrder, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, BadSymbol, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -92,6 +92,7 @@ module.exports = class ripio extends Exchange {
                     'Authentication credentials were not provided': AuthenticationError, // {"detail":"Authentication credentials were not provided."}
                     'Invalid order type': InvalidOrder, // {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
                     'not found': OrderNotFound, // {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
+                    'Your balance is not enough': InsufficientFunds, // {"status_code":400,"errors":{"non_field_errors":["Your balance is not enough for this order: You have 0 BTC but you need 1 BTC"]},"message":"An error has occurred, please check the form."}
                 },
             },
         });
