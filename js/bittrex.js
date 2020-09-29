@@ -1152,9 +1152,7 @@ module.exports = class bittrex extends Exchange {
                 const code = this.safeString (response, 'code');
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                    if (code !== undefined) { // todo: ???
-                        this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
-                    }
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
                 return;
