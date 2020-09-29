@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.34.62'
+__version__ = '1.34.63'
 
 # ----------------------------------------------------------------------------
 
@@ -174,6 +174,7 @@ from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
+from ccxt.ripio import ripio                                # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
@@ -300,6 +301,7 @@ exchanges = [
     'probit',
     'qtrade',
     'rightbtc',
+    'ripio',
     'southxchange',
     'stex',
     'stronghold',
