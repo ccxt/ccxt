@@ -788,7 +788,7 @@ module.exports = class ripio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetTradehistoryPair (this.extend (request, params));
+        const response = await this.privateGetTradePair (this.extend (request, params));
         //
         //     {
         //         "next": "https://api.exchange.ripio.com/api/v1/trade/<pair>/?limit=20&offset=20",
