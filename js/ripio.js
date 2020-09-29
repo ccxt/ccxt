@@ -49,19 +49,18 @@ module.exports = class ripio extends Exchange {
                     'get': [
                         'rate/all/',
                         'rate/{pair}/',
-                        'rate/all/', // ?country={country_code}
                         'orderbook/{pair}/',
                         'tradehistory/{pair}/',
                         'pair/',
                         'currency/',
-                        'orderbook/{pair}/depth/', // ?amount=1.4
+                        'orderbook/{pair}/depth/',
                     ],
                 },
                 'private': {
                     'get': [
                         'balances/exchange_balances/',
                         'order/{pair}/{order_id}/',
-                        'order/{pair}/', // ?status=OPEN,PART
+                        'order/{pair}/',
                         'trade/{pair}/',
                     ],
                     'post': [
@@ -90,7 +89,7 @@ module.exports = class ripio extends Exchange {
                     'Invalid pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
                     'Disabled pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid/Disabled pair BTC_ARS"]},"message":"An error has occurred, please check the form."}
                     'Authentication credentials were not provided': AuthenticationError, // {"detail":"Authentication credentials were not provided."}
-                    'Invalid order type': InvalidOrder, //  {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
+                    'Invalid order type': InvalidOrder, // {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
                     'not found': OrderNotFound, // {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
                 },
             },
@@ -690,6 +689,17 @@ module.exports = class ripio extends Exchange {
             'status': 'CLOS,CANC,COMP',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'PART': 'open',
+            'CLOS': 'canceled',
+            'CANC': 'canceled',
+            'COMP': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
