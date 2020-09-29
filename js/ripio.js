@@ -26,6 +26,7 @@ module.exports = class ripio extends Exchange {
                 'fetchMarkets': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -58,14 +59,8 @@ module.exports = class ripio extends Exchange {
                 'private': {
                     'get': [
                         'balances/exchange_balances/',
-                        'order/{pair}/',
                         'order/{pair}/{order_id}/',
                         'order/{pair}/', // ?status=OPEN,PART
-                        // - OPEN: Open order available to be fill in the orderbook.
-                        // - PART: Partially filled order, the remaining amount to fill remains in the orderbook.
-                        // - CLOS: Order was cancelled before be fully filled but the amount already filled amount is traded.
-                        // - CANC: Order was cancelled before any fill.
-                        // - COMP: Order was fully filled.
                         'trade/{pair}/',
                     ],
                     'post': [
@@ -541,7 +536,7 @@ module.exports = class ripio extends Exchange {
         };
         if (uppercaseType === 'LIMIT') {
             request['limit_price'] = this.priceToPrecision (symbol, price);
-        };
+        }
         const response = await this.privatePostOrderPair (this.extend (request, params));
         //
         //     {
@@ -626,6 +621,60 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            // OPEN: Open order available to be fill in the orderbook.
+            // PART: Partially filled order, the remaining amount to fill remains in the orderbook.
+            // CLOS: Order was cancelled before be fully filled but the amount already filled amount is traded.
+            // CANC: Order was cancelled before any fill.
+            // COMP: Order was fully filled.
+            // 'status': 'OPEN,PART,CLOS,CANC,COMP', // SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
+            // 'page_size': limit, // default 25
+            // 'offset': 20,
+            // 'limit': 20,
+            // 'page': 1,
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit; // default 100, max 100
+        }
+        const response = await this.privateGetOrderPair (this.extend (request, params));
+        //
+        //     {
+        //         "next": "https://api.exchange.ripio.com/api/v1/order/BTC_ARS/?limit=20&offset=20&page=1&page_size=25&status=OPEN%2CPART",
+        //         "previous": null,
+        //         "results": {
+        //             "data": [
+        //                 {
+        //                     "order_id": "ca74280b-6966-4b73-a720-68709078922b",
+        //                     "pair": "BTC_ARS",
+        //                     "side": "SELL",
+        //                     "amount": "0.00100",
+        //                     "notional": null,
+        //                     "fill_or_kill": false,
+        //                     "all_or_none": false,
+        //                     "order_type": "LIMIT",
+        //                     "status": "OPEN",
+        //                     "created_at": 1578340134,
+        //                     "filled": "0.00000",
+        //                     "limit_price": "665000.00",
+        //                     "stop_price": null,
+        //                     "distance": null
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const results = this.safeValue (response, 'results', {});
+        const data = this.safeValue (results, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
