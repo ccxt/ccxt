@@ -56,7 +56,7 @@ class idex2 extends Exchange {
                     'public' => 'https://api-sandbox.idex.io',
                     'private' => 'https://api-sandbox.idex.io',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api' => array(
                     'public' => 'https://api-sandbox.idex.io',
                     'private' => 'https://api-sandbox.idex.io',
