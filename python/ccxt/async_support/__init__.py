@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.34.62'
+__version__ = '1.34.63'
 
 # -----------------------------------------------------------------------------
 
@@ -156,6 +156,7 @@ from ccxt.async_support.poloniex import poloniex                          # noqa
 from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
+from ccxt.async_support.ripio import ripio                                # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
@@ -282,6 +283,7 @@ exchanges = [
     'probit',
     'qtrade',
     'rightbtc',
+    'ripio',
     'southxchange',
     'stex',
     'stronghold',
