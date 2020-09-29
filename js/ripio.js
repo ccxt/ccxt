@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, BadSymbol } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, BadSymbol, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -19,6 +19,7 @@ module.exports = class ripio extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -66,7 +67,7 @@ module.exports = class ripio extends Exchange {
                         'trade/{pair}',
                     ],
                     'post': [
-                        'order/{pair}',
+                        'order/{pair}/',
                         'order/{pair}/{order_id}/cancel',
                     ],
                 },
@@ -90,9 +91,8 @@ module.exports = class ripio extends Exchange {
                 'broad': {
                     'Invalid pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
                     'Authentication credentials were not provided': AuthenticationError, // {"detail":"Authentication credentials were not provided."}
+                    'Invalid order type': InvalidOrder, //  {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
                 },
-            },
-            'commonCurrencies': {
             },
         });
     }
@@ -135,9 +135,8 @@ module.exports = class ripio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'amountPrecision'),
+                'amount': this.safeFloat (market, 'min_amount'),
                 'price': this.safeFloat (market, 'price_tick'),
-                'cost': this.safeInteger (market, 'valuePrecision'),
             };
             const limits = {
                 'amount': {
@@ -525,6 +524,42 @@ module.exports = class ripio extends Exchange {
         return this.parseBalance (result);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const uppercaseSide = side.toUpperCase ();
+        const request = {
+            'pair': market['id'],
+            'order_type': uppercaseType, // LIMIT, MARKET
+            'side': uppercaseSide, // BUY or SELL
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        if (uppercaseType === 'LIMIT') {
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+        };
+        const response = await this.privatePostOrderPair (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "160f523c-f6ef-4cd1-a7c9-1a8ede1468d8",
+        //         "pair": "BTC_ARS",
+        //         "side": "BUY",
+        //         "amount": "0.00400",
+        //         "notional": null,
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "LIMIT",
+        //         "status": "OPEN",
+        //         "created_at": 1578413945,
+        //         "filled": "0.00000",
+        //         "limit_price": "10.00",
+        //         "stop_price": null,
+        //         "distance": null
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
@@ -557,6 +592,8 @@ module.exports = class ripio extends Exchange {
         //
         //      {"detail":"Authentication credentials were not provided."}
         //      {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
+        //      {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
+        //      {"status_code":400,"errors":{"non_field_errors":"Something unexpected ocurred!"},"message":"Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists."}
         //
         const detail = this.safeString (response, 'detail');
         if (detail !== undefined) {
