@@ -702,6 +702,84 @@ module.exports = class ripio extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder, cancelOrder, fetchOpenOrders, fetchClosedOrders, fetchOrders, fetchOrder
+        //
+        //
+        //     {
+        //         "order_id": "286e560e-b8a2-464b-8b84-15a7e2a67eab",
+        //         "pair": "BTC_ARS",
+        //         "side": "SELL",
+        //         "amount": "0.00100",
+        //         "notional": null,
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "LIMIT",
+        //         "status": "CANC",
+        //         "created_at": 1575472707,
+        //         "filled": "0.00000",
+        //         "limit_price": "681000.00",
+        //         "stop_price": null,
+        //         "distance": null
+        //     }
+        //
+        const id = this.safeString (order, 'order_id');
+        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeFloat (order, 'limit_price');
+        let cost = this.safeFloat (order, 'notional');
+        const type = this.safeStringLower (order, 'order_type');
+        const side = this.safeStringLower (order, 'side');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const average = this.safeFloat (order, 'created_at');
+        const filled = this.safeFloat (order, 'filled');
+        let remaining = undefined;
+        if (filled !== undefined) {
+            if ((cost === undefined) && (price !== undefined)) {
+                cost = price * filled;
+            }
+            if (amount !== undefined) {
+                remaining = Math.max (0, amount - filled);
+            }
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'pair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        return {
+            'id': id,
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
