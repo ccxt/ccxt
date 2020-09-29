@@ -34,7 +34,7 @@ module.exports = class ripio extends Exchange {
                 'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
                 'api': {
                     'public': 'https://api.exchange.ripio.com/api',
                     'private': 'https://api.exchange.ripio.com/api',
