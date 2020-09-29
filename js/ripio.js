@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, BadSymbol, InvalidOrder, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -19,6 +19,7 @@ module.exports = class ripio extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
@@ -43,32 +44,32 @@ module.exports = class ripio extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'rate/all',
-                        'rate/{pair}',
-                        'rate/all', // ?country={country_code}
-                        'orderbook/{pair}',
-                        'tradehistory/{pair}',
+                        'rate/all/',
+                        'rate/{pair}/',
+                        'rate/all/', // ?country={country_code}
+                        'orderbook/{pair}/',
+                        'tradehistory/{pair}/',
                         'pair/',
                         'currency/',
-                        'orderbook/{pair}/depth', // ?amount=1.4
+                        'orderbook/{pair}/depth/', // ?amount=1.4
                     ],
                 },
                 'private': {
                     'get': [
-                        'balances/exchange_balances',
-                        'order/{pair}',
-                        'order/{pair}/{order_id}',
-                        'order/{pair}', // ?status=OPEN,PART
+                        'balances/exchange_balances/',
+                        'order/{pair}/',
+                        'order/{pair}/{order_id}/',
+                        'order/{pair}/', // ?status=OPEN,PART
                         // - OPEN: Open order available to be fill in the orderbook.
                         // - PART: Partially filled order, the remaining amount to fill remains in the orderbook.
                         // - CLOS: Order was cancelled before be fully filled but the amount already filled amount is traded.
                         // - CANC: Order was cancelled before any fill.
                         // - COMP: Order was fully filled.
-                        'trade/{pair}',
+                        'trade/{pair}/',
                     ],
                     'post': [
                         'order/{pair}/',
-                        'order/{pair}/{order_id}/cancel',
+                        'order/{pair}/{order_id}/cancel/',
                     ],
                 },
             },
@@ -90,8 +91,10 @@ module.exports = class ripio extends Exchange {
                 },
                 'broad': {
                     'Invalid pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
+                    'Disabled pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid/Disabled pair BTC_ARS"]},"message":"An error has occurred, please check the form."}
                     'Authentication credentials were not provided': AuthenticationError, // {"detail":"Authentication credentials were not provided."}
                     'Invalid order type': InvalidOrder, //  {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
+                    'not found': OrderNotFound, // {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
                 },
             },
         });
@@ -560,6 +563,38 @@ module.exports = class ripio extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'order_id': id,
+        };
+        const response = await this.privatePostOrderPairOrderIdCancel (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "286e560e-b8a2-464b-8b84-15a7e2a67eab",
+        //         "pair": "BTC_ARS",
+        //         "side": "SELL",
+        //         "amount": "0.00100",
+        //         "notional": null,
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "LIMIT",
+        //         "status": "CANC",
+        //         "created_at": 1575472707,
+        //         "filled": "0.00000",
+        //         "limit_price": "681000.00",
+        //         "stop_price": null,
+        //         "distance": null
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
@@ -594,6 +629,7 @@ module.exports = class ripio extends Exchange {
         //      {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
         //      {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
         //      {"status_code":400,"errors":{"non_field_errors":"Something unexpected ocurred!"},"message":"Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists."}
+        //      {"status_code":400,"errors":{"pair":["Invalid/Disabled pair BTC_ARS"]},"message":"An error has occurred, please check the form."}
         //
         const detail = this.safeString (response, 'detail');
         if (detail !== undefined) {
