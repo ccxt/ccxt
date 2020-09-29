@@ -502,13 +502,13 @@ module.exports = class ripio extends Exchange {
         //
         //     [
         //         {
-        //             "id": 10,
-        //             "currency": "Argentine Peso",
-        //             "symbol": "ARS",
-        //             "available": "0",
-        //             "locked": "0",
-        //             "code": "exchange",
-        //             "balance_type": "fiat"
+        //             "id":603794,
+        //             "currency":"USD Coin",
+        //             "symbol":"USDC",
+        //             "available":"0",
+        //             "locked":"0",
+        //             "code":"exchange",
+        //             "balance_type":"crypto"
         //         },
         //     ]
         //
