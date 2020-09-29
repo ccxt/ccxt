@@ -535,24 +535,17 @@ module.exports = class ripio extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            // const timestamp = this.milliseconds ().toString ();
-            // let queryString = undefined;
-            // if (method === 'POST') {
-            //     body = this.json (query);
-            //     queryString = this.hash (body, 'md5');
-            // } else {
-            //     if (Object.keys (query).length) {
-            //         url += '?' + this.urlencode (query);
-            //     }
-            //     queryString = this.urlencode (this.keysort (query));
-            // }
-            // const auth = method + "\n" + request + "\n" + queryString + "\n" + timestamp; // eslint-disable-line quotes
-            // const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            // headers = {
-            //     'X-Nova-Access-Key': this.apiKey,
-            //     'X-Nova-Signature': signature,
-            //     'X-Nova-Timestamp': timestamp,
-            // };
+            if (method === 'POST') {
+                body = this.json (query);
+            } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.apiKey,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
