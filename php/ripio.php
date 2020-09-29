@@ -94,6 +94,7 @@ class ripio extends Exchange {
                     'Authentication credentials were not provided' => '\\ccxt\\AuthenticationError', // array("detail":"Authentication credentials were not provided.")
                     'Invalid order type' => '\\ccxt\\InvalidOrder', // array("status_code":400,"errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"message":"An error has occurred, please check the form.")
                     'not found' => '\\ccxt\\OrderNotFound', // array("status_code":404,"errors":array("order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]),"message":"An error has occurred, please check the form.")
+                    'Your balance is not enough' => '\\ccxt\\InsufficientFunds', // array("status_code":400,"errors":array("non_field_errors":["Your balance is not enough for this order => You have 0 BTC but you need 1 BTC"]),"message":"An error has occurred, please check the form.")
                 ),
             ),
         ));

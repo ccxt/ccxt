@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -98,6 +99,7 @@ class ripio(Exchange):
                     'Authentication credentials were not provided': AuthenticationError,  # {"detail":"Authentication credentials were not provided."}
                     'Invalid order type': InvalidOrder,  # {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
                     'not found': OrderNotFound,  # {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
+                    'Your balance is not enough': InsufficientFunds,  # {"status_code":400,"errors":{"non_field_errors":["Your balance is not enough for self order: You have 0 BTC but you need 1 BTC"]},"message":"An error has occurred, please check the form."}
                 },
             },
         })
