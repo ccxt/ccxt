@@ -157,7 +157,6 @@ class gateio extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
@@ -570,7 +569,12 @@ class gateio extends Exchange {
         $request = array(
             'id' => $market['id'],
         );
-        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        $method = null;
+        if (is_array($params) && array_key_exists('tid', $params)) {
+            $method = 'publicGetTradeHistoryIdTid';
+        } else {
+            $method = 'publicGetTradeHistoryId';
+        }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
