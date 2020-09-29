@@ -507,12 +507,7 @@ module.exports = class bittrex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (trade['executedAt']);
-        let side = undefined;
-        if (trade['takerSide'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['takerSide'] === 'SELL') {
-            side = 'sell';
-        }
+        const side = this.safeStringLower (trade, 'takerSide');
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
