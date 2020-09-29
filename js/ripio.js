@@ -394,7 +394,7 @@ module.exports = class ripio extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // public fetchTrades
+        // public fetchTrades, private fetchMyTrades
         //
         //     {
         //         "created_at":1601322501,
