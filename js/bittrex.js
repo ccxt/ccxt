@@ -1245,7 +1245,7 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
-    async request (path, api = 'v3', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return await this.fetch2 (path, api, method, params, headers, body);
     }
 };
