@@ -24,6 +24,7 @@ module.exports = class ripio extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -631,19 +632,12 @@ module.exports = class ripio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            // OPEN: Open order available to be fill in the orderbook.
-            // PART: Partially filled order, the remaining amount to fill remains in the orderbook.
-            // CLOS: Order was cancelled before be fully filled but the amount already filled amount is traded.
-            // CANC: Order was cancelled before any fill.
-            // COMP: Order was fully filled.
-            // 'status': 'OPEN,PART,CLOS,CANC,COMP', // SUBMITTED, PROCESSING, PARTIAL_FILLED, CANCELING, FILLED, CANCELED, REJECTED
-            // 'page_size': limit, // default 25
-            // 'offset': 20,
-            // 'limit': 20,
-            // 'page': 1,
+            // 'status': 'OPEN,PART,CLOS,CANC,COMP',
+            // 'offset': 0,
+            // 'limit': limit,
         };
         if (limit !== undefined) {
-            request['page_size'] = limit; // default 100, max 100
+            request['offset'] = limit;
         }
         const response = await this.privateGetOrderPair (this.extend (request, params));
         //
@@ -778,6 +772,48 @@ module.exports = class ripio extends Exchange {
             'fee': undefined,
             'trades': undefined,
         };
+    }
+
+    async fetchMyTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            // 'offset': 0,
+            // 'limit': limit,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetTradehistoryPair (this.extend (request, params));
+        //
+        //     {
+        //         "next": "https://api.exchange.ripio.com/api/v1/trade/<pair>/?limit=20&offset=20",
+        //         "previous": null,
+        //         "results": {
+        //             "data": [
+        //                 {
+        //                     "created_at": 1578414028,
+        //                     "amount": "0.00100",
+        //                     "price": "665000.00",
+        //                     "side": "BUY",
+        //                     "taker_fee": "0",
+        //                     "taker_side": "BUY",
+        //                     "match_price": "66500000",
+        //                     "maker_fee": "0",
+        //                     "taker": 4892,
+        //                     "maker": 4889
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const results = this.safeValue (response, 'results', {});
+        const data = this.safeValue (results, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
