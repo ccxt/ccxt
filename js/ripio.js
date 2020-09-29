@@ -22,8 +22,8 @@ module.exports = class ripio extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -681,6 +681,13 @@ module.exports = class ripio extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'status': 'OPEN,PART',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'CLOS,CANC,COMP',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
