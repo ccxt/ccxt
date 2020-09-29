@@ -24,6 +24,7 @@ module.exports = class ripio extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -588,6 +589,38 @@ module.exports = class ripio extends Exchange {
         //         "created_at": 1575472707,
         //         "filled": "0.00000",
         //         "limit_price": "681000.00",
+        //         "stop_price": null,
+        //         "distance": null
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'order_id': id,
+        };
+        const response = await this.privateGetOrderPairOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "0b4ff48e-cfd6-42db-8d8c-3b536da447af",
+        //         "pair": "BTC_ARS",
+        //         "side": "BUY",
+        //         "amount": "0.00100",
+        //         "notional": null,
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "LIMIT",
+        //         "status": "OPEN",
+        //         "created_at": 1575472944,
+        //         "filled": "0.00000",
+        //         "limit_price": "661000.00",
         //         "stop_price": null,
         //         "distance": null
         //     }
