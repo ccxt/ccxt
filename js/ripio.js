@@ -24,6 +24,7 @@ module.exports = class ripio extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -675,6 +676,13 @@ module.exports = class ripio extends Exchange {
         const results = this.safeValue (response, 'results', {});
         const data = this.safeValue (results, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'OPEN,PART',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
