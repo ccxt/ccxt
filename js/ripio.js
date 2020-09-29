@@ -89,6 +89,7 @@ module.exports = class ripio extends Exchange {
                 },
                 'broad': {
                     'Invalid pair': BadSymbol, // {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
+                    'Authentication credentials were not provided': AuthenticationError, // {"detail":"Authentication credentials were not provided."}
                 },
             },
             'commonCurrencies': {
@@ -561,8 +562,15 @@ module.exports = class ripio extends Exchange {
             return;
         }
         //
+        //      {"detail":"Authentication credentials were not provided."}
         //      {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
         //
+        const detail = this.safeString (response, 'detail');
+        if (detail !== undefined) {
+            const feedback = this.id + ' ' + body;
+            // this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], detail, feedback);
+        }
         const errors = this.safeValue (response, 'errors');
         if (errors !== undefined) {
             const feedback = this.id + ' ' + body;
