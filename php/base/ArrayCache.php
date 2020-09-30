@@ -17,7 +17,7 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
     }
 
     public function getIterator() {
-        return $this->deque->getIterator();
+        return $this->deque;
     }
 
     public function JsonSerialize () {
