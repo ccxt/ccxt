@@ -6,6 +6,7 @@
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
 from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.errors import InvalidNonce
 
 
 class idex2(Exchange, ccxt.idex2):
@@ -42,10 +43,11 @@ class idex2(Exchange, ccxt.idex2):
                 'watchOrderBookLimit': 1000,  # default limit
                 'orderBookSubscriptions': {},
                 'token': None,
+                'fetchOrderBookSnapshotMaxAttempts': 3,
             },
         })
 
-    async def subscribe(self, subscribeObject, messageHash):
+    async def subscribe(self, subscribeObject, messageHash, subscription=True):
         url = self.urls['test']['ws']
         request = {
             'method': 'subscribe',
@@ -53,7 +55,7 @@ class idex2(Exchange, ccxt.idex2):
                 subscribeObject,
             ],
         }
-        return await self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def subscribe_private(self, subscribeObject, messageHash):
         token = await self.authenticate()
@@ -307,30 +309,44 @@ class idex2(Exchange, ccxt.idex2):
         orderbook = self.orderbooks[symbol]
         market = self.market(symbol)
         messageHash = 'l2orderbook' + ':' + market['id']
-        firstBuffered = self.safe_value(orderbook.cache, 0)
-        firstData = self.safe_value(firstBuffered, 'data')
-        firstNonce = self.safe_integer(firstData, 'u')
-        # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-        book = await self.fetch_order_book(symbol, 0)
-        while (firstNonce is None) or (book['nonce'] < firstNonce):
-            # 4. If the sequence in the order book snapshot is less than the sequence of the
-            #    first buffered order book update message, discard the order book snapshot and retry step 3.
-            book = await self.fetch_order_book(symbol, 0)
+        subscription = client.subscriptions[messageHash]
+        maxAttempts = self.safe_integer(self.options, 'fetchOrderBookSnapshotMaxAttempts', 3)
+        subscription['fetchingOrderBookSnapshot'] = True
+        try:
+            limit = self.safe_integer(subscription, 'limit', 0)
+            # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
+            snapshot = await self.fetch_order_book(symbol, limit)
             firstBuffered = self.safe_value(orderbook.cache, 0)
             firstData = self.safe_value(firstBuffered, 'data')
             firstNonce = self.safe_integer(firstData, 'u')
-        orderbook.reset(book)
-        nonce = self.safe_integer(orderbook, 'nonce')
-        # unroll buffered messages
-        for i in range(0, len(orderbook.cache)):
-            message = orderbook.cache[i]
-            data = self.safe_value(message, 'data')
-            u = self.safe_integer(data, 'u')
-            if u > nonce:
-                # 5. Discard all order book update messages with sequence numbers less than or equal to the snapshot sequence number.
-                # 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book snapshot.
-                self.handle_order_book_message(client, message, orderbook)
-        client.resolve(orderbook, messageHash)
+            length = len(orderbook.cache)
+            lastBuffered = self.safe_value(orderbook.cache, length - 1)
+            lastData = self.safe_value(lastBuffered, 'data')
+            lastNonce = self.safe_integer(lastData, 'u')
+            # ensure the snapshot is inside the range of our cached messages
+            if (snapshot['nonce'] > firstNonce) and (snapshot['nonce'] < lastNonce):
+                orderbook.reset(snapshot)
+                for i in range(0, len(orderbook.cache)):
+                    message = orderbook.cache[i]
+                    data = self.safe_value(message, 'data')
+                    u = self.safe_integer(data, 'u')
+                    if u > orderbook['nonce']:
+                        # 5. Discard all order book update messages with sequence numbers less than or equal to the snapshot sequence number.
+                        # 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book snapshot.
+                        self.handle_order_book_message(client, message, orderbook)
+                subscription['fetchingOrderBookSnapshot'] = False
+                client.resolve(orderbook, messageHash)
+            else:
+                # 4. If the sequence in the order book snapshot is less than the sequence of the
+                #    first buffered order book update message, discard the order book snapshot and retry step 3.
+                subscription['numAttempts'] = subscription['numAttempts'] + 1
+                if subscription['numAttempts'] < maxAttempts:
+                    self.delay(self.rateLimit, self.fetch_order_book_snapshot, client, symbol)
+                else:
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+        except Exception as e:
+            subscription['fetchingOrderBookSnapshot'] = False
+            client.reject(e, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -341,8 +357,13 @@ class idex2(Exchange, ccxt.idex2):
             'markets': [market['id']],
         }
         messageHash = name + ':' + market['id']
+        subscription = {
+            'fetchingOrderBookSnapshot': False,
+            'numAttempts': 0,
+            'limit': 0,  # get the complete order book snapshot
+        }
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        future = self.subscribe(subscribeObject, messageHash)
+        future = self.subscribe(subscribeObject, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit)
 
     def handle_order_book(self, client, message):

@@ -6,6 +6,7 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\InvalidNonce;
 
 class idex2 extends \ccxt\idex2 {
 
@@ -43,11 +44,12 @@ class idex2 extends \ccxt\idex2 {
                 'watchOrderBookLimit' => 1000, // default limit
                 'orderBookSubscriptions' => array(),
                 'token' => null,
+                'fetchOrderBookSnapshotMaxAttempts' => 3,
             ),
         ));
     }
 
-    public function subscribe($subscribeObject, $messageHash) {
+    public function subscribe($subscribeObject, $messageHash, $subscription = true) {
         $url = $this->urls['test']['ws'];
         $request = array(
             'method' => 'subscribe',
@@ -55,7 +57,7 @@ class idex2 extends \ccxt\idex2 {
                 $subscribeObject,
             ),
         );
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function subscribe_private($subscribeObject, $messageHash) {
@@ -331,33 +333,49 @@ class idex2 extends \ccxt\idex2 {
         $orderbook = $this->orderbooks[$symbol];
         $market = $this->market($symbol);
         $messageHash = 'l2orderbook' . ':' . $market['id'];
-        $firstBuffered = $this->safe_value($orderbook->cache, 0);
-        $firstData = $this->safe_value($firstBuffered, 'data');
-        $firstNonce = $this->safe_integer($firstData, 'u');
-        // 3. Request a level-2 order $book snapshot for the $market from the REST API Order Books endpoint with limit set to 0.
-        $book = $this->fetch_order_book($symbol, 0);
-        while (($firstNonce === null) || ($book['nonce'] < $firstNonce)) {
-            // 4. If the sequence in the order $book snapshot is less than the sequence of the
-            //    first buffered order $book update $message, discard the order $book snapshot and retry step 3.
-            $book = $this->fetch_order_book($symbol, 0);
+        $subscription = $client->subscriptions[$messageHash];
+        $maxAttempts = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxAttempts', 3);
+        $subscription['fetchingOrderBookSnapshot'] = true;
+        try {
+            $limit = $this->safe_integer($subscription, 'limit', 0);
+            // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
+            $snapshot = $this->fetch_order_book($symbol, $limit);
             $firstBuffered = $this->safe_value($orderbook->cache, 0);
             $firstData = $this->safe_value($firstBuffered, 'data');
             $firstNonce = $this->safe_integer($firstData, 'u');
-        }
-        $orderbook->reset ($book);
-        $nonce = $this->safe_integer($orderbook, 'nonce');
-        // unroll buffered messages
-        for ($i = 0; $i < count($orderbook->cache); $i++) {
-            $message = $orderbook->cache[$i];
-            $data = $this->safe_value($message, 'data');
-            $u = $this->safe_integer($data, 'u');
-            if ($u > $nonce) {
-                // 5. Discard all order $book update messages with sequence numbers less than or equal to the snapshot sequence number.
-                // 6. Apply the remaining buffered order $book update messages and any incoming order $book update messages to the order $book snapshot.
-                $this->handle_order_book_message($client, $message, $orderbook);
+            $length = is_array($orderbook->cache) ? count($orderbook->cache) : 0;
+            $lastBuffered = $this->safe_value($orderbook->cache, $length - 1);
+            $lastData = $this->safe_value($lastBuffered, 'data');
+            $lastNonce = $this->safe_integer($lastData, 'u');
+            // ensure the $snapshot is inside the range of our cached messages
+            if (($snapshot['nonce'] > $firstNonce) && ($snapshot['nonce'] < $lastNonce)) {
+                $orderbook->reset ($snapshot);
+                for ($i = 0; $i < count($orderbook->cache); $i++) {
+                    $message = $orderbook->cache[$i];
+                    $data = $this->safe_value($message, 'data');
+                    $u = $this->safe_integer($data, 'u');
+                    if ($u > $orderbook['nonce']) {
+                        // 5. Discard all order book update messages with sequence numbers less than or equal to the $snapshot sequence number.
+                        // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book $snapshot->
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                    }
+                }
+                $subscription['fetchingOrderBookSnapshot'] = false;
+                $client->resolve ($orderbook, $messageHash);
+            } else {
+                // 4. If the sequence in the order book $snapshot is less than the sequence of the
+                //    first buffered order book update $message, discard the order book $snapshot and retry step 3.
+                $subscription['numAttempts'] = $subscription['numAttempts'] + 1;
+                if ($subscription['numAttempts'] < $maxAttempts) {
+                    $this->delay($this->rateLimit, array($this, 'fetch_order_book_snapshot'), $client, $symbol);
+                } else {
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                }
             }
+        } catch (Exception $e) {
+            $subscription['fetchingOrderBookSnapshot'] = false;
+            $client->reject ($e, $messageHash);
         }
-        $client->resolve ($orderbook, $messageHash);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -369,8 +387,13 @@ class idex2 extends \ccxt\idex2 {
             'markets' => [ $market['id'] ],
         );
         $messageHash = $name . ':' . $market['id'];
+        $subscription = array(
+            'fetchingOrderBookSnapshot' => false,
+            'numAttempts' => 0,
+            'limit' => 0,  // get the complete order book snapshot
+        );
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
-        $future = $this->subscribe($subscribeObject, $messageHash);
+        $future = $this->subscribe($subscribeObject, $messageHash, $subscription);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit);
     }
 
