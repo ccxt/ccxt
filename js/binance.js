@@ -753,7 +753,7 @@ module.exports = class binance extends ccxt.binance {
             const market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeString (message, 'O');
+        const timestamp = this.safeInteger (message, 'O');
         const lastTradeTimestamp = this.safeString (message, 'T');
         const feeAmount = this.safeFloat (message, 'n');
         const feeCurrency = this.safeCurrencyCode (this.safeString (message, 'N'));
