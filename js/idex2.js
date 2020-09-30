@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -40,11 +41,12 @@ module.exports = class idex2 extends ccxt.idex2 {
                 'watchOrderBookLimit': 1000, // default limit
                 'orderBookSubscriptions': {},
                 'token': undefined,
+                'fetchOrderBookSnapshotMaxAttempts': 3,
             },
         });
     }
 
-    async subscribe (subscribeObject, messageHash) {
+    async subscribe (subscribeObject, messageHash, subscription = true) {
         const url = this.urls['test']['ws'];
         const request = {
             'method': 'subscribe',
@@ -52,7 +54,7 @@ module.exports = class idex2 extends ccxt.idex2 {
                 subscribeObject,
             ],
         };
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (subscribeObject, messageHash) {
@@ -328,33 +330,49 @@ module.exports = class idex2 extends ccxt.idex2 {
         const orderbook = this.orderbooks[symbol];
         const market = this.market (symbol);
         const messageHash = 'l2orderbook' + ':' + market['id'];
-        let firstBuffered = this.safeValue (orderbook.cache, 0);
-        let firstData = this.safeValue (firstBuffered, 'data');
-        let firstNonce = this.safeInteger (firstData, 'u');
-        // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-        let book = await this.fetchOrderBook (symbol, 0);
-        while ((firstNonce === undefined) || (book['nonce'] < firstNonce)) {
-            // 4. If the sequence in the order book snapshot is less than the sequence of the
-            //    first buffered order book update message, discard the order book snapshot and retry step 3.
-            book = await this.fetchOrderBook (symbol, 0);
-            firstBuffered = this.safeValue (orderbook.cache, 0);
-            firstData = this.safeValue (firstBuffered, 'data');
-            firstNonce = this.safeInteger (firstData, 'u');
-        }
-        orderbook.reset (book);
-        const nonce = this.safeInteger (orderbook, 'nonce');
-        // unroll buffered messages
-        for (let i = 0; i < orderbook.cache.length; i++) {
-            const message = orderbook.cache[i];
-            const data = this.safeValue (message, 'data');
-            const u = this.safeInteger (data, 'u');
-            if (u > nonce) {
-                // 5. Discard all order book update messages with sequence numbers less than or equal to the snapshot sequence number.
-                // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book snapshot.
-                this.handleOrderBookMessage (client, message, orderbook);
+        const subscription = client.subscriptions[messageHash];
+        const maxAttempts = this.safeInteger (this.options, 'fetchOrderBookSnapshotMaxAttempts', 3);
+        subscription['fetchingOrderBookSnapshot'] = true;
+        try {
+            const limit = this.safeInteger (subscription, 'limit', 0);
+            // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const firstBuffered = this.safeValue (orderbook.cache, 0);
+            const firstData = this.safeValue (firstBuffered, 'data');
+            const firstNonce = this.safeInteger (firstData, 'u');
+            const length = orderbook.cache.length;
+            const lastBuffered = this.safeValue (orderbook.cache, length - 1);
+            const lastData = this.safeValue (lastBuffered, 'data');
+            const lastNonce = this.safeInteger (lastData, 'u');
+            // ensure the snapshot is inside the range of our cached messages
+            if ((snapshot['nonce'] > firstNonce) && (snapshot['nonce'] < lastNonce)) {
+                orderbook.reset (snapshot);
+                for (let i = 0; i < orderbook.cache.length; i++) {
+                    const message = orderbook.cache[i];
+                    const data = this.safeValue (message, 'data');
+                    const u = this.safeInteger (data, 'u');
+                    if (u > orderbook['nonce']) {
+                        // 5. Discard all order book update messages with sequence numbers less than or equal to the snapshot sequence number.
+                        // 6. Apply the remaining buffered order book update messages and any incoming order book update messages to the order book snapshot.
+                        this.handleOrderBookMessage (client, message, orderbook);
+                    }
+                }
+                subscription['fetchingOrderBookSnapshot'] = false;
+                client.resolve (orderbook, messageHash);
+            } else {
+                // 4. If the sequence in the order book snapshot is less than the sequence of the
+                //    first buffered order book update message, discard the order book snapshot and retry step 3.
+                subscription['numAttempts'] = subscription['numAttempts'] + 1;
+                if (subscription['numAttempts'] < maxAttempts) {
+                    this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
+                } else {
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
             }
+        } catch (e) {
+            subscription['fetchingOrderBookSnapshot'] = false;
+            client.reject (e, messageHash);
         }
-        client.resolve (orderbook, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -366,8 +384,13 @@ module.exports = class idex2 extends ccxt.idex2 {
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
+        const subscription = {
+            'fetchingOrderBookSnapshot': false,
+            'numAttempts': 0,
+            'limit': 0,  // get the complete order book snapshot
+        };
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        const future = this.subscribe (subscribeObject, messageHash);
+        const future = this.subscribe (subscribeObject, messageHash, subscription);
         return await this.after (future, this.limitOrderBook, symbol, limit);
     }
 
