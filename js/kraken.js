@@ -969,33 +969,12 @@ module.exports = class kraken extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostAddOrder (this.extend (request, query));
-        let id = this.safeValue (response['result'], 'txid');
-        if (id !== undefined) {
-            if (Array.isArray (id)) {
-                const length = id.length;
-                id = (length > 1) ? id : id[0];
-            }
-        }
-        return {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-        };
+        // { error: [],
+        //   result:
+        //    { descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //      txid: [ 'OEKVV2-IH52O-TPL6GZ' ] } }
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
     }
 
     findMarketByAltnameOrId (id) {
@@ -1057,9 +1036,11 @@ module.exports = class kraken extends Exchange {
 
     parseOrder (order, market = undefined) {
         const description = this.safeValue (order, 'descr', {});
-        const side = this.safeString (description, 'type');
-        const type = this.safeString (description, 'ordertype');
-        const marketId = this.safeString (description, 'pair');
+        const orderDescription = this.safeString (description, 'order');
+        const parsedDescription = this.parseDescription (orderDescription);
+        const side = this.safeString (description, 'type', parsedDescription['side']);
+        const type = this.safeString (description, 'ordertype', parsedDescription['type']);
+        const marketId = this.safeString (description, 'pair', parsedDescription['marketId']);
         const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
         if (foundMarket !== undefined) {
@@ -1069,12 +1050,15 @@ module.exports = class kraken extends Exchange {
             market = this.getDelistedMarketById (marketId);
         }
         const timestamp = this.safeTimestamp (order, 'opentm');
-        const amount = this.safeFloat (order, 'vol');
+        const amount = this.safeFloat (order, 'vol', parsedDescription['amount']);
         const filled = this.safeFloat (order, 'vol_exec');
-        const remaining = amount - filled;
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
         let fee = undefined;
         const cost = this.safeFloat (order, 'cost');
-        let price = this.safeFloat (description, 'price');
+        let price = this.safeFloat (description, 'price', parsedDescription['price']);
         if ((price === undefined) || (price === 0)) {
             price = this.safeFloat (description, 'price2');
         }
@@ -1099,7 +1083,11 @@ module.exports = class kraken extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'id');
+        let id = this.safeString (order, 'id');
+        if (id === undefined) {
+            const txid = this.safeValue (order, 'txid');
+            id = this.safeString (txid, 0);
+        }
         const clientOrderId = this.safeString (order, 'userref');
         const rawTrades = this.safeValue (order, 'trades');
         let trades = undefined;
@@ -1125,6 +1113,19 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             'trades': trades,
+        };
+    }
+
+    parseDescription (description) {
+        // "buy 0.02100000 ETHUSDT @ limit 330.00"
+        // sometimes this is the only way to get the above data
+        const tokens = description.split (' ');
+        return {
+            'side': this.safeString (tokens, 0),
+            'amount': this.safeFloat (tokens, 1),
+            'marketId': this.safeString (tokens, 2),
+            'type': this.safeString (tokens, 4),
+            'price': this.safeFloat (tokens, 5),
         };
     }
 
