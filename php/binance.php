@@ -756,7 +756,7 @@ class binance extends \ccxt\binance {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_string($message, 'O');
+        $timestamp = $this->safe_integer($message, 'O');
         $lastTradeTimestamp = $this->safe_string($message, 'T');
         $feeAmount = $this->safe_float($message, 'n');
         $feeCurrency = $this->safe_currency_code($this->safe_string($message, 'N'));

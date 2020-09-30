@@ -690,7 +690,7 @@ class binance(Exchange, ccxt.binance):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        timestamp = self.safe_string(message, 'O')
+        timestamp = self.safe_integer(message, 'O')
         lastTradeTimestamp = self.safe_string(message, 'T')
         feeAmount = self.safe_float(message, 'n')
         feeCurrency = self.safe_currency_code(self.safe_string(message, 'N'))
