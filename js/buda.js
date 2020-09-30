@@ -761,7 +761,7 @@ module.exports = class buda extends Exchange {
             const nonce = this.nonce ().toString ();
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
-                const base64Body = this.stringToBase64 (this.encode (body));
+                const base64Body = this.stringToBase64 (body);
                 components.push (this.decode (base64Body));
             }
             components.push (nonce);

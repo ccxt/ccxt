@@ -761,13 +761,12 @@ module.exports = class bithumb extends Exchange {
             }, query));
             const nonce = this.nonce ().toString ();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            const signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
+            const signature64 = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': signature64.toString (),
+                'Api-Sign': signature64,
                 'Api-Nonce': nonce,
             };
         }
