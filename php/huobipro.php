@@ -74,10 +74,10 @@ class huobipro extends Exchange {
                     'v2Public' => 'https://{hostname}',
                     'v2Private' => 'https://{hostname}',
                 ),
-                'www' => 'https://www.huobi.pro',
-                'referral' => 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
+                'www' => 'https://www.huobi.com',
+                'referral' => 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://huobiapi.github.io/docs/spot/v1/cn/',
-                'fees' => 'https://www.huobi.pro/about/fee/',
+                'fees' => 'https://www.huobi.com/about/fee/',
             ),
             'api' => array(
                 'v2Public' => array(
