@@ -497,20 +497,7 @@ module.exports = class bitpanda extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'instrument_code');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeFloat (ticker, 'last_price');
         const percentage = this.safeFloat (ticker, 'price_change_percentage');
         const change = this.safeFloat (ticker, 'price_change');
@@ -810,21 +797,7 @@ module.exports = class bitpanda extends Exchange {
             cost = amount * price;
         }
         const marketId = this.safeString (trade, 'instrument_code');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((market !== undefined) && (symbol === undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const feeCost = this.safeFloat (feeInfo, 'fee_amount');
         let takerOrMaker = undefined;
         let fee = undefined;
@@ -1228,21 +1201,8 @@ module.exports = class bitpanda extends Exchange {
         const clientOrderId = this.safeString (order, 'client_id');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_code');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         let cost = undefined;
