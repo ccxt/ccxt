@@ -1170,16 +1170,8 @@ module.exports = class bitmex extends Exchange {
         if (fee !== undefined) {
             takerOrMaker = (fee['cost'] < 0) ? 'maker' : 'taker';
         }
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const type = this.safeStringLower (trade, 'ordType');
         return {
             'info': trade,
@@ -1218,16 +1210,8 @@ module.exports = class bitmex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeFloat (order, 'price');
