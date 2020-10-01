@@ -254,24 +254,9 @@ module.exports = class bigone extends Exchange {
         //         "daily_change":"-0.000182"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'asset_pair_name');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        const timestamp = this.milliseconds ();
+        const marketId = this.safeString (ticker, 'asset_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const timestamp = undefined;
         const close = this.safeFloat (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
@@ -461,20 +446,7 @@ module.exports = class bigone extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const marketId = this.safeString (trade, 'asset_pair_name');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -713,23 +685,8 @@ module.exports = class bigone extends Exchange {
         //    }
         //
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'asset_pair_name');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'asset_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
