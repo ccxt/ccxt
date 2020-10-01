@@ -1030,15 +1030,30 @@ module.exports = class binance extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // { symbol: 'ETHBTC',
+        //   priceChange: '0.00068700',
+        //   priceChangePercent: '2.075',
+        //   weightedAvgPrice: '0.03342681',
+        //   prevClosePrice: '0.03310300',
+        //   lastPrice: '0.03378900',
+        //   lastQty: '0.07700000',
+        //   bidPrice: '0.03378900',
+        //   bidQty: '7.16800000',
+        //   askPrice: '0.03379000',
+        //   askQty: '24.00000000',
+        //   openPrice: '0.03310200',
+        //   highPrice: '0.03388900',
+        //   lowPrice: '0.03306900',
+        //   volume: '205478.41000000',
+        //   quoteVolume: '6868.48826294',
+        //   openTime: 1601469986932,
+        //   closeTime: 1601556386932,
+        //   firstId: 196098772,
+        //   lastId: 196186315,
+        //   count: 87544 }
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
@@ -1291,14 +1306,8 @@ module.exports = class binance extends Exchange {
         if ('isMaker' in trade) {
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -1461,14 +1470,8 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let timestamp = undefined;
         if ('time' in order) {
             timestamp = this.safeInteger (order, 'time');
