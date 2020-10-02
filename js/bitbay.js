@@ -341,22 +341,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'market');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
         const amount = this.safeFloat (order, 'startAmount');
         const remaining = this.safeFloat (order, 'currentAmount');
