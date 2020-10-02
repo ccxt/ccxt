@@ -438,18 +438,8 @@ class coinbasepro(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
-        symbol = None
         marketId = self.safe_string(trade, 'product_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         feeRate = None
         feeCurrency = None
         takerOrMaker = None
