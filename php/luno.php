@@ -203,13 +203,7 @@ class luno extends Exchange {
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $price = $this->safe_float($order, 'limit_price');
         $amount = $this->safe_float($order, 'limit_volume');
         $quoteFee = $this->safe_float($order, 'fee_counter');
