@@ -545,6 +545,19 @@ module.exports = class gemini extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "timestamp":1601617445,
+        //         "timestampms":1601617445144,
+        //         "tid":14122489752,
+        //         "price":"0.46476",
+        //         "amount":"28.407209",
+        //         "exchange":"gemini",
+        //         "type":"buy"
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 'timestampms');
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'order_id');
@@ -564,10 +577,7 @@ module.exports = class gemini extends Exchange {
         }
         const type = undefined;
         const side = this.safeStringLower (trade, 'type');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         return {
             'id': id,
             'order': orderId,
@@ -592,6 +602,19 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetV1TradesSymbol (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp":1601617445,
+        //             "timestampms":1601617445144,
+        //             "tid":14122489752,
+        //             "price":"0.46476",
+        //             "amount":"28.407209",
+        //             "exchange":"gemini",
+        //             "type":"buy"
+        //         },
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -640,16 +663,8 @@ module.exports = class gemini extends Exchange {
             type = order['type'];
         }
         const fee = undefined;
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
