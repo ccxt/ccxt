@@ -429,21 +429,8 @@ module.exports = class coinbasepro extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         let feeRate = undefined;
         let feeCurrency = undefined;
         let takerOrMaker = undefined;
