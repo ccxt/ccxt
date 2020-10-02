@@ -184,18 +184,7 @@ module.exports = class coincheck extends Exchange {
         }
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -264,30 +253,7 @@ module.exports = class coincheck extends Exchange {
         const id = this.safeString (trade, 'id');
         const price = this.safeFloat (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                baseId = market['baseId'];
-                quoteId = market['quoteId'];
-                symbol = market['symbol'];
-            } else {
-                const ids = marketId.split ('_');
-                baseId = ids[0];
-                quoteId = ids[1];
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         let takerOrMaker = undefined;
         let amount = undefined;
         let cost = undefined;
