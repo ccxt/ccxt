@@ -435,16 +435,8 @@ class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));

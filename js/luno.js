@@ -200,13 +200,7 @@ module.exports = class luno extends Exchange {
         const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const price = this.safeFloat (order, 'limit_price');
         const amount = this.safeFloat (order, 'limit_volume');
         const quoteFee = this.safeFloat (order, 'fee_counter');

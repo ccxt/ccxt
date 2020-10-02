@@ -430,16 +430,8 @@ module.exports = class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));

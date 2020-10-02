@@ -1023,13 +1023,34 @@ class binance(Exchange):
         return orderbook
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         symbol: 'ETHBTC',
+        #         priceChange: '0.00068700',
+        #         priceChangePercent: '2.075',
+        #         weightedAvgPrice: '0.03342681',
+        #         prevClosePrice: '0.03310300',
+        #         lastPrice: '0.03378900',
+        #         lastQty: '0.07700000',
+        #         bidPrice: '0.03378900',
+        #         bidQty: '7.16800000',
+        #         askPrice: '0.03379000',
+        #         askQty: '24.00000000',
+        #         openPrice: '0.03310200',
+        #         highPrice: '0.03388900',
+        #         lowPrice: '0.03306900',
+        #         volume: '205478.41000000',
+        #         quoteVolume: '6868.48826294',
+        #         openTime: 1601469986932,
+        #         closeTime: 1601556386932,
+        #         firstId: 196098772,
+        #         lastId: 196186315,
+        #         count: 87544
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'closeTime')
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
@@ -1261,12 +1282,8 @@ class binance(Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
@@ -1419,12 +1436,8 @@ class binance(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = None
         if 'time' in order:
             timestamp = self.safe_integer(order, 'time')

@@ -430,18 +430,8 @@ class bitvavo(Exchange):
         #         "timestamp":1590381666900
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -604,17 +594,7 @@ class bitvavo(Exchange):
         side = self.safe_string(trade, 'side')
         id = self.safe_string_2(trade, 'id', 'fillId')
         marketId = self.safe_integer(trade, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:

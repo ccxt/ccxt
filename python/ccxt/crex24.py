@@ -387,16 +387,8 @@ class crex24(Exchange):
         #             timestamp: "2018-10-31T09:21:25Z"}   ]
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'instrument')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            symbol = market['symbol']
-        elif marketId is not None:
-            baseId, quoteId = marketId.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+        symbol = self.safe_symbol(marketId, market, '-')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -521,11 +513,8 @@ class crex24(Exchange):
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')
-        symbol = None
         marketId = self.safe_string(trade, 'instrument')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         fee = None
         feeCurrencyId = self.safe_string(trade, 'feeCurrency')
         feeCode = self.safe_currency_code(feeCurrencyId)
@@ -652,18 +641,8 @@ class crex24(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'instrument')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')

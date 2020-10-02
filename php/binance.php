@@ -1037,15 +1037,34 @@ class binance extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         $symbol => 'ETHBTC',
+        //         priceChange => '0.00068700',
+        //         priceChangePercent => '2.075',
+        //         weightedAvgPrice => '0.03342681',
+        //         prevClosePrice => '0.03310300',
+        //         lastPrice => '0.03378900',
+        //         lastQty => '0.07700000',
+        //         bidPrice => '0.03378900',
+        //         bidQty => '7.16800000',
+        //         askPrice => '0.03379000',
+        //         askQty => '24.00000000',
+        //         openPrice => '0.03310200',
+        //         highPrice => '0.03388900',
+        //         lowPrice => '0.03306900',
+        //         volume => '205478.41000000',
+        //         quoteVolume => '6868.48826294',
+        //         openTime => 1601469986932,
+        //         closeTime => 1601556386932,
+        //         firstId => 196098772,
+        //         lastId => 196186315,
+        //         count => 87544
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'lastPrice');
         return array(
             'symbol' => $symbol,
@@ -1298,14 +1317,8 @@ class binance extends Exchange {
         if (is_array($trade) && array_key_exists('isMaker', $trade)) {
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
@@ -1468,14 +1481,8 @@ class binance extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');

@@ -369,12 +369,8 @@ class bitz(Exchange):
         #                    krw: "318655.82"   }
         #
         timestamp = None
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float(ticker, 'now')
         open = self.safe_float(ticker, 'open')
         change = None
