@@ -362,14 +362,8 @@ module.exports = class bitz extends Exchange {
         //                    krw: "318655.82"   }
         //
         const timestamp = undefined;
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'now');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
