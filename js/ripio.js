@@ -727,8 +727,7 @@ module.exports = class ripio extends Exchange {
         const type = this.safeStringLower (order, 'order_type');
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeTimestamp (order, 'timestamp');
-        const average = this.safeFloat (order, 'created_at');
+        const timestamp = this.safeTimestamp (order, 'created_at');
         const filled = this.safeFloat (order, 'filled');
         let remaining = undefined;
         if (filled !== undefined) {
@@ -767,7 +766,7 @@ module.exports = class ripio extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
