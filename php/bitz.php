@@ -365,14 +365,8 @@ class bitz extends Exchange {
         //                    krw => "318655.82"   }
         //
         $timestamp = null;
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float($ticker, 'now');
         $open = $this->safe_float($ticker, 'open');
         $change = null;
