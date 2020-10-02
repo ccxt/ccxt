@@ -1905,9 +1905,6 @@ module.exports = class hbtc extends Exchange {
             average = undefined;
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const result = {
             'info': order,
             'id': id,
