@@ -331,13 +331,8 @@ class acx extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $marketId = $this->safe_string($order, 'market');
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $type = $this->safe_string($order, 'type');
