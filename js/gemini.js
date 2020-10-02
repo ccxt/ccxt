@@ -284,15 +284,8 @@ module.exports = class gemini extends Exchange {
             const id = response[i];
             const market = id;
             const idLength = id.length - 0;
-            let baseId = undefined;
-            let quoteId = undefined;
-            if (idLength === 7) {
-                baseId = id.slice (0, 4);
-                quoteId = id.slice (4, 7);
-            } else {
-                baseId = id.slice (0, 3);
-                quoteId = id.slice (3, 6);
-            }
+            const baseId = id.slice (0, idLength - 3);
+            const quoteId = id.slice (idLength - 3, idLength);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
