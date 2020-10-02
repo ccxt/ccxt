@@ -601,9 +601,11 @@ module.exports = class livecoin extends Exchange {
         if (cost !== undefined && feeRate !== undefined) {
             feeCost = cost * feeRate;
         }
+        if ((market === undefined) && (symbol in this.markets)) {
+            market = this.markets[symbol];
+        }
         let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
         return {
