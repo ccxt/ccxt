@@ -229,13 +229,8 @@ class bitso(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'book')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'book')
+        symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string_2(trade, 'side', 'maker_side')
         amount = self.safe_float_2(trade, 'amount', 'major')
         if amount is not None:
@@ -340,19 +335,8 @@ class bitso(Exchange):
         id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'book')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         orderType = self.safe_string(order, 'type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
