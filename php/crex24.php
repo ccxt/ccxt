@@ -393,17 +393,8 @@ class crex24 extends Exchange {
         //             $timestamp => "2018-10-31T09:21:25Z" }   ]
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'instrument');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else if ($marketId !== null) {
-            list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
@@ -537,12 +528,8 @@ class crex24 extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $fee = null;
         $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
         $feeCode = $this->safe_currency_code($feeCurrencyId);
@@ -677,21 +664,8 @@ class crex24 extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'instrument');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
