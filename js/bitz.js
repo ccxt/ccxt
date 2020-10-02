@@ -363,7 +363,7 @@ module.exports = class bitz extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeFloat (ticker, 'now');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
