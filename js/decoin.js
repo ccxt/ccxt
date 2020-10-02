@@ -514,7 +514,7 @@ module.exports = class decoin extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const orderId = this.safeString (trade, 'clientOrderId');
+        const orderId = this.safeString (trade, 'OrderId');
         const price = this.safeFloat (trade, 'Rate');
         const amount = this.safeFloat (trade, 'Amount');
         const cost = price * amount;
@@ -525,6 +525,14 @@ module.exports = class decoin extends Exchange {
             side = 'buy';
         }
         const id = this.safeString (trade, 'Id');
+        let takerOrMaker = this.safeString (trade, 'IsMaker');
+        if (takerOrMaker === 'false') {
+            takerOrMaker = 'taker';
+        } else if (takerOrMaker === 'true') {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = undefined;
+        }
         return {
             'info': trade,
             'id': id,
@@ -534,7 +542,7 @@ module.exports = class decoin extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -552,7 +560,7 @@ module.exports = class decoin extends Exchange {
             request['Currency'] = currency['name'];
         }
         if (since !== undefined) {
-            request['Date'] = since.toString ();
+            request['Date'] = since;
         }
         if (limit !== undefined) {
             request['Limit'] = limit;
@@ -587,7 +595,7 @@ module.exports = class decoin extends Exchange {
             request['Currency'] = currency['name'];
         }
         if (since !== undefined) {
-            request['Date'] = since.toString ();
+            request['Date'] = since;
         }
         if (limit !== undefined) {
             request['Limit'] = limit;
@@ -680,8 +688,7 @@ module.exports = class decoin extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['sort'] = 'ASC';
-            request['from'] = this.iso8601 (since);
+            request['Lastdate'] = since;
         }
         const response = await this.publicGetMarketGetMarketHistorySymbol (
             this.extend (request, params)
@@ -867,7 +874,7 @@ module.exports = class decoin extends Exchange {
             'PairName': market['id'],
         };
         if (since !== undefined) {
-            request['Date'] = since.toString ();
+            request['Date'] = since;
         }
         if (limit !== undefined) {
             request['Limit'] = limit;
@@ -875,9 +882,12 @@ module.exports = class decoin extends Exchange {
         const response = await this.privateGetOrderGetall (
             this.extend (request, params)
         );
+        if ('Message' in response && !response['Status']) {
+            throw new ExchangeError (response['Message']);
+        }
         const numOrders = response.length;
         if (numOrders > 0) {
-            return this.parseOrders (response, market, since, limit);
+            return this.parseOrders (response, market);
         }
         throw new OrderNotFound (this.id + ' orders not found');
     }
@@ -916,12 +926,21 @@ module.exports = class decoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['PairName'] = market['id'];
-            request['Status'] = 'Open';
         }
+        if (since !== undefined) {
+            request['Date'] = since;
+        }
+        if (limit !== undefined) {
+            request['Limit'] = limit;
+        }
+        request['Status'] = 'Open';
         const response = await this.privateGetOrderGetall (
             this.extend (request, params)
         );
-        return this.parseOrders (response, market, since, limit);
+        if ('Message' in response && !response['Status']) {
+            throw new ExchangeError (response['Message']);
+        }
+        return this.parseOrders (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -936,7 +955,7 @@ module.exports = class decoin extends Exchange {
             request['Id'] = market['base'] + '-' + market['quote'];
         }
         if (since !== undefined) {
-            request['Lastdate'] = this.iso8601 (since);
+            request['Lastdate'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
