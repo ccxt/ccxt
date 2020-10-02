@@ -500,20 +500,7 @@ class bitpanda extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'instrument_code');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float($ticker, 'last_price');
         $percentage = $this->safe_float($ticker, 'price_change_percentage');
         $change = $this->safe_float($ticker, 'price_change');
@@ -813,21 +800,7 @@ class bitpanda extends Exchange {
             $cost = $amount * $price;
         }
         $marketId = $this->safe_string($trade, 'instrument_code');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($market !== null) && ($symbol === null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCost = $this->safe_float($feeInfo, 'fee_amount');
         $takerOrMaker = null;
         $fee = null;
@@ -1231,21 +1204,8 @@ class bitpanda extends Exchange {
         $clientOrderId = $this->safe_string($order, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'instrument_code');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $cost = null;
