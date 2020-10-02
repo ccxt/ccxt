@@ -288,15 +288,8 @@ class gemini extends Exchange {
             $id = $response[$i];
             $market = $id;
             $idLength = strlen($id) - 0;
-            $baseId = null;
-            $quoteId = null;
-            if ($idLength === 7) {
-                $baseId = mb_substr($id, 0, 4 - 0);
-                $quoteId = mb_substr($id, 4, 7 - 4);
-            } else {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-            }
+            $baseId = mb_substr($id, 0, $idLength - 3 - 0);
+            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -556,6 +549,19 @@ class gemini extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "$timestamp":1601617445,
+        //         "timestampms":1601617445144,
+        //         "tid":14122489752,
+        //         "$price":"0.46476",
+        //         "$amount":"28.407209",
+        //         "exchange":"gemini",
+        //         "$type":"buy"
+        //     }
+        //
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -575,10 +581,7 @@ class gemini extends Exchange {
         }
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         return array(
             'id' => $id,
             'order' => $orderId,
@@ -603,6 +606,19 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV1TradesSymbol (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "timestamp":1601617445,
+        //             "timestampms":1601617445144,
+        //             "tid":14122489752,
+        //             "price":"0.46476",
+        //             "amount":"28.407209",
+        //             "exchange":"gemini",
+        //             "type":"buy"
+        //         ),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -651,16 +667,8 @@ class gemini extends Exchange {
             $type = $order['type'];
         }
         $fee = null;
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
