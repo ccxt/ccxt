@@ -963,17 +963,7 @@ class bitmax(Exchange):
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         price = self.safe_float(order, 'price')
