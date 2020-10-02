@@ -546,7 +546,7 @@ module.exports = class gemini extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // public fetchTrades
         //
         //     {
         //         "timestamp":1601617445,
