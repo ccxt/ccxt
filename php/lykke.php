@@ -181,14 +181,8 @@ class lykke extends Exchange {
         //         Price => 9847.427,
         //         Fee => array( Amount => null, Type => 'Unknown', FeeAssetId => null )
         //     ),
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'AssetPairId');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'AssetPairId');
+        $symbol = $this->safe_symbol($marketId, $market);
         $id = $this->safe_string_2($trade, 'id', 'Id');
         $orderId = $this->safe_string($trade, 'OrderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'dateTime', 'DateTime'));
@@ -475,14 +469,8 @@ class lykke extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'AssetPairId');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'AssetPairId');
+        $symbol = $this->safe_symbol($marketId, $market);
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
         if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
