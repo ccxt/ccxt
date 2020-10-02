@@ -505,6 +505,7 @@ class okex extends Exchange {
                     '33063' => '\\ccxt\\ExchangeError', // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
                     '33064' => '\\ccxt\\ExchangeError', // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
                     '33065' => '\\ccxt\\ExchangeError', // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
+                    '33085' => '\\ccxt\\InvalidOrder', // The value of the position and buying order has reached the position limit, and no further buying is allowed.
                     // account
                     '21009' => '\\ccxt\\ExchangeError', // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
                     '34001' => '\\ccxt\\PermissionDenied', // array( "code" => 34001, "message" => "withdrawal suspended" )
