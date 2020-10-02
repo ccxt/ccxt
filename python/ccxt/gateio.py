@@ -456,17 +456,10 @@ class gateio(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.safe_currency_code(base)
-            quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
+            symbol = self.safe_symbol(id, None, '_')
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -636,12 +629,8 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string_2(order, 'orderNumber', 'id')
-        symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'ctime')
         lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
         status = self.parse_order_status(self.safe_string(order, 'status'))

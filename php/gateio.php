@@ -468,18 +468,10 @@ class gateio extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            list($baseId, $quoteId) = explode('_', $id);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
+            $symbol = $this->safe_symbol($id, null, '_');
             $market = null;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 $market = $this->markets[$symbol];
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
@@ -665,14 +657,8 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($order, 'orderNumber', 'id');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
