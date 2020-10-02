@@ -448,21 +448,8 @@ module.exports = class livecoin extends Exchange {
                 cost = amount * price;
             }
         }
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         return {
             'id': id,
             'info': trade,
@@ -587,14 +574,8 @@ module.exports = class livecoin extends Exchange {
         // let trades = this.parseTrades (order['trades'], market, since, limit);
         const trades = undefined;
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'currencyPair');
-            marketId = this.safeString (order, 'symbol', marketId);
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString2 (order, 'currencyPair', 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '/');
         let type = this.safeStringLower (order, 'type');
         let side = undefined;
         if (type !== undefined) {
