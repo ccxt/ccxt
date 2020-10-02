@@ -685,17 +685,7 @@ class bitmart(Exchange):
         #
         timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float_2(ticker, 'close_24h', 'last_price')
         percentage = self.safe_float(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
@@ -1019,19 +1009,7 @@ class bitmart(Exchange):
             cost = amount * price
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         feeCost = self.safe_float(trade, 'fees')
         fee = None
         if feeCost is not None:

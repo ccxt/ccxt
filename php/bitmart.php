@@ -677,20 +677,7 @@ class bitmart extends Exchange {
         //
         $timestamp = $this->safe_timestamp($ticker, 'timestamp', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float_2($ticker, 'close_24h', 'last_price');
         $percentage = $this->safe_float($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
@@ -1034,23 +1021,7 @@ class bitmart extends Exchange {
         }
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCost = $this->safe_float($trade, 'fees');
         $fee = null;
         if ($feeCost !== null) {
