@@ -258,20 +258,9 @@ class bigone(Exchange):
         #         "daily_change":"-0.000182"
         #     }
         #
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'asset_pair_name')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        timestamp = self.milliseconds()
+        marketId = self.safe_string(ticker, 'asset_pair_name')
+        symbol = self.safe_symbol(marketId, market, '-')
+        timestamp = None
         close = self.safe_float(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
@@ -453,17 +442,7 @@ class bigone(Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         marketId = self.safe_string(trade, 'asset_pair_name')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         cost = None
         if amount is not None:
             if price is not None:
@@ -680,19 +659,8 @@ class bigone(Exchange):
         #    }
         #
         id = self.safe_string(order, 'id')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'asset_pair_name')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'asset_pair_name')
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')

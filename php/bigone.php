@@ -257,24 +257,9 @@ class bigone extends Exchange {
         //         "daily_change":"-0.000182"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'asset_pair_name');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $timestamp = $this->milliseconds();
+        $marketId = $this->safe_string($ticker, 'asset_pair_name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $timestamp = null;
         $close = $this->safe_float($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
@@ -464,20 +449,7 @@ class bigone extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -716,23 +688,8 @@ class bigone extends Exchange {
         //    }
         //
         $id = $this->safe_string($order, 'id');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'asset_pair_name');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'asset_pair_name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
