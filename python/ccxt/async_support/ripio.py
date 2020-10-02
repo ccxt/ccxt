@@ -100,6 +100,7 @@ class ripio(Exchange):
                     'Invalid order type': InvalidOrder,  # {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
                     'not found': OrderNotFound,  # {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
                     'Your balance is not enough': InsufficientFunds,  # {"status_code":400,"errors":{"non_field_errors":["Your balance is not enough for self order: You have 0 BTC but you need 1 BTC"]},"message":"An error has occurred, please check the form."}
+                    'Total must be at least': InvalidOrder,  # {"status_code":400,"errors":{"non_field_errors":["Total must be at least 10."]},"message":"An error has occurred, please check the form."}
                 },
             },
         })
@@ -699,8 +700,7 @@ class ripio(Exchange):
         type = self.safe_string_lower(order, 'order_type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_timestamp(order, 'timestamp')
-        average = self.safe_float(order, 'created_at')
+        timestamp = self.safe_timestamp(order, 'created_at')
         filled = self.safe_float(order, 'filled')
         remaining = None
         if filled is not None:
@@ -733,7 +733,7 @@ class ripio(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
