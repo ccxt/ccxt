@@ -52,7 +52,6 @@
     "flowbtc":       { "skip": true },
     "foxbit":        { "skip": true },
     "fybse":         { "skip": true },
-    "gemini":        { "skip": true },
     "hadax":         { "skip": true },
     "hitbtc":        { "skip": true },
     "hitbtc2":       { "skip": true },
