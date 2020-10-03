@@ -89,13 +89,24 @@ class ripio extends Exchange {
                 'exact' => array(
                 ),
                 'broad' => array(
-                    'Invalid pair' => '\\ccxt\\BadSymbol', // array("status_code":400,"errors":array("pair":["Invalid pair FOOBAR"]),"message":"An error has occurred, please check the form.")
-                    'Disabled pair' => '\\ccxt\\BadSymbol', // array("status_code":400,"errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"message":"An error has occurred, please check the form.")
                     'Authentication credentials were not provided' => '\\ccxt\\AuthenticationError', // array("detail":"Authentication credentials were not provided.")
+                    'Disabled pair' => '\\ccxt\\BadSymbol', // array("status_code":400,"errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"message":"An error has occurred, please check the form.")
                     'Invalid order type' => '\\ccxt\\InvalidOrder', // array("status_code":400,"errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"message":"An error has occurred, please check the form.")
-                    'not found' => '\\ccxt\\OrderNotFound', // array("status_code":404,"errors":array("order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]),"message":"An error has occurred, please check the form.")
                     'Your balance is not enough' => '\\ccxt\\InsufficientFunds', // array("status_code":400,"errors":array("non_field_errors":["Your balance is not enough for this order => You have 0 BTC but you need 1 BTC"]),"message":"An error has occurred, please check the form.")
+                    "Order couldn't be created" => '\\ccxt\\ExchangeError', // array('status_code' => 400,'errors' => array('non_field_errors' => _("Order couldn't be created")), 'message' => _('Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists.') )
+                    // array("status_code":404,"errors":array("order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]),"message":"An error has occurred, please check the form.")
+                    // array("status_code":404,"errors":array("trade":["Trade <trade_id> not found."]),"message":"An error has occurred, please check the form.")
+                    'not found' => '\\ccxt\\OrderNotFound',
+                    'Invalid pair' => '\\ccxt\\BadSymbol', // array("status_code":400,"errors":array("pair":["Invalid pair FOOBAR"]),"message":"An error has occurred, please check the form.")
+                    'amount must be a number' => '\\ccxt\\BadRequest', // array("status_code":400,"errors":array("amount":["amount must be a number"]),"message":"An error has occurred, please check the form.")
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("status_code":400,"errors":array("non_field_errors":["Total must be at least 10."]),"message":"An error has occurred, please check the form.")
+                    'Account not found' => '\\ccxt\\BadRequest', // array("error_description" => "Account not found."), "status" => 404
+                    'Wrong password provided' => '\\ccxt\\AuthenticationError', // array('error' => "Wrong password provided."), “status_code” => 400
+                    'User tokens limit' => '\\ccxt\\DDoSProtection', // array('error' => "User tokens limit. Can't create more than 10 tokens."), “status_code” => 400
+                    'Something unexpected ocurred' => '\\ccxt\\ExchangeError', // array('status_code' => 400, 'errors' => array('non_field_errors' => 'Something unexpected ocurred!'), 'message' => 'Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists.')
+                    // array('status_code' => 404, 'errors' => array('account_balance' => ['Exchange balance <currency>not found.']),'message' => 'An error has occurred, please check the form.')
+                    // array('status_code' => 404, 'errors' => array('account_balance' => ['Account balance <id> not found.']),'message' => 'An error has occurred, please check the form.')
+                    'account_balance' => '\\ccxt\\BadRequest',
                 ),
             ),
         ));
