@@ -569,6 +569,7 @@ module.exports = class bittrex extends Exchange {
                 'currency': quote,
             };
         }
+        const side = this.safeStringLower (trade, 'takerSide');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -577,7 +578,8 @@ module.exports = class bittrex extends Exchange {
             'id': id,
             'order': order,
             'takerOrMaker': takerOrMaker,
-            'side': undefined,
+            'type': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
