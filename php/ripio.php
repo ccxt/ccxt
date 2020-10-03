@@ -424,14 +424,28 @@ class ripio extends Exchange {
         //         "maker":2577937
         //     }
         //
+        // createOrder fills
+        //
+        //     {
+        //         "pair":"BTC_USDC",
+        //         "exchanged":0.002,
+        //         "match_price":10593.99,
+        //         "maker_fee":0.0,
+        //         "taker_fee":0.0,
+        //         "$timestamp":1601730306942
+        //     }
+        //
         $id = $this->safe_string($trade, 'id');
-        $timestamp = $this->safe_timestamp($trade, 'created_at');
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        $timestamp = $this->safe_timestamp($trade, 'created_at', $timestamp);
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = ($takerSide === $side) ? 'taker' : 'maker';
-        $side = strtolower($side);
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
+        $price = $this->safe_float_2($trade, 'price', 'match_price');
+        $amount = $this->safe_float_2($trade, 'amount', 'exchanged');
         $cost = null;
         if (($amount !== null) && ($price !== null)) {
             $cost = $amount * $price;
@@ -570,6 +584,38 @@ class ripio extends Exchange {
         //         "limit_price" => "10.00",
         //         "stop_price" => null,
         //         "distance" => null
+        //     }
+        //
+        // createOrder $market $type
+        //
+        //     {
+        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair":"BTC_USDC",
+        //         "$side":"BUY",
+        //         "$amount":"0.00200",
+        //         "notional":"50",
+        //         "fill_or_kill":false,
+        //         "all_or_none":false,
+        //         "order_type":"MARKET",
+        //         "status":"OPEN",
+        //         "created_at":1601730306,
+        //         "filled":"0.00000",
+        //         "fill_price":10593.99,
+        //         "fee":0.0,
+        //         "fills":array(
+        //             {
+        //                 "pair":"BTC_USDC",
+        //                 "exchanged":0.002,
+        //                 "match_price":10593.99,
+        //                 "maker_fee":0.0,
+        //                 "taker_fee":0.0,
+        //                 "timestamp":1601730306942
+        //             }
+        //         ),
+        //         "filled_at":"2020-10-03T13:05:06.942186Z",
+        //         "limit_price":"0.000000",
+        //         "stop_price":null,
+        //         "distance":null
         //     }
         //
         return $this->parse_order($response, $market);
@@ -715,7 +761,6 @@ class ripio extends Exchange {
         //
         // createOrder, cancelOrder, fetchOpenOrders, fetchClosedOrders, fetchOrders, fetchOrder
         //
-        //
         //     {
         //         "order_id" => "286e560e-b8a2-464b-8b84-15a7e2a67eab",
         //         "pair" => "BTC_ARS",
@@ -733,16 +778,71 @@ class ripio extends Exchange {
         //         "distance" => null
         //     }
         //
+        //     {
+        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair":"BTC_USDC",
+        //         "$side":"BUY",
+        //         "$amount":"0.00200",
+        //         "notional":"50",
+        //         "fill_or_kill":false,
+        //         "all_or_none":false,
+        //         "order_type":"MARKET",
+        //         "$status":"OPEN",
+        //         "created_at":1601730306,
+        //         "$filled":"0.00000",
+        //         "fill_price":10593.99,
+        //         "fee":0.0,
+        //         "$fills":array(
+        //             {
+        //                 "pair":"BTC_USDC",
+        //                 "exchanged":0.002,
+        //                 "match_price":10593.99,
+        //                 "maker_fee":0.0,
+        //                 "taker_fee":0.0,
+        //                 "$timestamp":1601730306942
+        //             }
+        //         ),
+        //         "filled_at":"2020-10-03T13:05:06.942186Z",
+        //         "limit_price":"0.000000",
+        //         "stop_price":null,
+        //         "distance":null
+        //     }
+        //
         $id = $this->safe_string($order, 'order_id');
         $amount = $this->safe_float($order, 'amount');
-        $price = $this->safe_float($order, 'limit_price');
         $cost = $this->safe_float($order, 'notional');
         $type = $this->safe_string_lower($order, 'order_type');
+        $priceField = ($type === 'market') ? 'fill_price' : 'limit_price';
+        $price = $this->safe_float($order, $priceField);
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'created_at');
+        $average = $this->safe_value($order, 'fill_price');
         $filled = $this->safe_float($order, 'filled');
         $remaining = null;
+        $fills = $this->safe_value($order, 'fills');
+        $trades = null;
+        $lastTradeTimestamp = null;
+        if ($fills !== null) {
+            $numFills = is_array($fills) ? count($fills) : 0;
+            if ($numFills > 0) {
+                $filled = 0;
+                $cost = 0;
+                $trades = $this->parse_trades($fills, $market, null, null, array(
+                    'order' => $id,
+                    'side' => $side,
+                ));
+                for ($i = 0; $i < count($trades); $i++) {
+                    $trade = $trades[$i];
+                    $filled = $this->sum($trade['amount'], $filled);
+                    $cost = $this->sum($trade['cost'], $cost);
+                    $lastTradeTimestamp = $trade['timestamp'];
+                }
+                if (($average === null) && ($filled > 0)) {
+                    $average = $cost / $filled;
+                }
+            }
+        }
         if ($filled !== null) {
             if (($cost === null) && ($price !== null)) {
                 $cost = $price * $filled;
@@ -751,40 +851,27 @@ class ripio extends Exchange {
                 $remaining = max (0, $amount - $filled);
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'pair');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
-            'trades' => null,
+            'trades' => $trades,
         );
     }
 
