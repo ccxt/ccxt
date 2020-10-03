@@ -1061,7 +1061,7 @@ module.exports = class kraken extends Exchange {
             amount = this.safeFloat (parts, 1);
             marketId = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            price = this.safeFloat (parts, 5)
+            price = this.safeFloat (parts, 5);
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
