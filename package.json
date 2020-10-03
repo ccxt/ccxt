@@ -40,7 +40,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.35.6",
+    "ccxt": "^1.35.8",
     "ws": "^7.2.1"
   },
   "devDependencies": {
@@ -486,6 +486,8 @@
     "currency.com",
     "Currency.com",
     "idex.io",
-    "huobi.com"
+    "huobi.com",
+    "exchange.ripio.com",
+    "Ripio"
   ]
 }
