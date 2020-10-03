@@ -507,16 +507,16 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //   {
-        //     "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
-        //     "marketSymbol": "OMG-BTC",
-        //     "executedAt": "2020-10-02T16:00:30.3Z",
-        //     "quantity": "7.52710000",
-        //     "rate": "0.00034907",
-        //     "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
-        //     "commission": "0.00000525",
-        //     "isTaker": false
-        //   }
+        //     {
+        //         "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
+        //         "marketSymbol": "OMG-BTC",
+        //         "executedAt": "2020-10-02T16:00:30.3Z",
+        //         "quantity": "7.52710000",
+        //         "rate": "0.00034907",
+        //         "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
+        //         "commission": "0.00000525",
+        //         "isTaker": false
+        //     }
         const timestamp = this.parse8601 (trade['executedAt']);
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
