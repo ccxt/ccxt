@@ -39,6 +39,7 @@ class bittrex extends Exchange {
                 'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrderBook' => true,
                 'fetchOpenOrders' => true,
                 'fetchTicker' => true,
@@ -512,12 +513,46 @@ class bittrex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $timestamp = $this->parse8601($trade['executedAt']);
-        $side = $this->safe_string_lower($trade, 'takerSide');
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "$id":"9c5589db-42fb-436c-b105-5e2edcb95673",
+        //         "executedAt":"2020-10-03T11:48:43.38Z",
+        //         "quantity":"0.17939626",
+        //         "rate":"0.03297952",
+        //         "takerSide":"BUY"
+        //     }
+        //
+        // private fetchOrderTrades
+        //
+        //     {
+        //         "$id" => "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
+        //         "marketSymbol" => "OMG-BTC",
+        //         "executedAt" => "2020-10-02T16:00:30.3Z",
+        //         "quantity" => "7.52710000",
+        //         "rate" => "0.00034907",
+        //         "orderId" => "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
+        //         "commission" => "0.00000525",
+        //         "$isTaker" => false
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string($trade, 'executedAt'));
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        $order = $this->safe_string($trade, 'orderId');
+        $marketId = $this->safe_string($trade, 'marketSymbol');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $quote = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                $market = $this->safe_value($this->markets, $symbol, $market);
+                $quote = $market['quote'];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
         }
         $cost = null;
         $price = $this->safe_float($trade, 'rate');
@@ -527,20 +562,34 @@ class bittrex extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $takerOrMaker = null;
+        $isTaker = $this->safe_value($trade, 'isTaker');
+        if ($isTaker !== null) {
+            $takerOrMaker = $isTaker ? 'taker' : 'maker';
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'commission');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $quote,
+            );
+        }
+        $side = $this->safe_string_lower($trade, 'takerSide');
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
-            'order' => null,
-            'type' => 'limit',
-            'takerOrMaker' => null,
+            'order' => $order,
+            'takerOrMaker' => $takerOrMaker,
+            'type' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -561,6 +610,17 @@ class bittrex extends Exchange {
             'marketSymbol' => $this->market_id($symbol),
         );
         $response = $this->publicGetMarketsMarketSymbolTrades (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
+        //             "executedAt":"2020-10-03T11:48:43.38Z",
+        //             "quantity":"0.17939626",
+        //             "rate":"0.03297952",
+        //             "takerSide":"BUY"
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -649,6 +709,19 @@ class bittrex extends Exchange {
         $response = $this->privateGetOrdersOpen (array_merge($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
         return $this->filter_by_symbol($orders, $symbol);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'orderId' => $id,
+        );
+        $response = $this->privateGetOrdersOrderIdExecutions (array_merge($request, $params));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -896,7 +969,6 @@ class bittrex extends Exchange {
         $fillQuantity = $this->safe_float($order, 'fillQuantity');
         $commission = $this->safe_float($order, 'commission');
         $proceeds = $this->safe_float($order, 'proceeds');
-        $status = $this->safe_string_lower($order, 'status');
         $average = null;
         $remaining = null;
         if ($fillQuantity !== null) {
@@ -910,6 +982,10 @@ class bittrex extends Exchange {
             if ($quantity !== null) {
                 $remaining = $quantity - $fillQuantity;
             }
+        }
+        $status = $this->safe_string_lower($order, 'status');
+        if (($status === 'closed') && ($remaining !== null) && ($remaining > 0)) {
+            $status = 'canceled';
         }
         return array(
             'id' => $this->safe_string($order, 'id'),
