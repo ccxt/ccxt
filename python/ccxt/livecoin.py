@@ -434,18 +434,8 @@ class livecoin(Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         return {
             'id': id,
             'info': trade,
@@ -560,12 +550,8 @@ class livecoin(Exchange):
         # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
         status = self.parse_order_status(self.safe_string_2(order, 'status', 'orderStatus'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'currencyPair')
-            marketId = self.safe_string(order, 'symbol', marketId)
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string_2(order, 'symbol', 'currencyPair')
+        symbol = self.safe_symbol(marketId, market, '/')
         type = self.safe_string_lower(order, 'type')
         side = None
         if type is not None:
@@ -587,9 +573,10 @@ class livecoin(Exchange):
         feeCost = None
         if cost is not None and feeRate is not None:
             feeCost = cost * feeRate
+        if (market is None) and (symbol in self.markets):
+            market = self.markets[symbol]
         feeCurrency = None
         if market is not None:
-            symbol = market['symbol']
             feeCurrency = market['quote']
         return {
             'info': order,

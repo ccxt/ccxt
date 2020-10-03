@@ -453,21 +453,8 @@ class livecoin extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('/', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         return array(
             'id' => $id,
             'info' => $trade,
@@ -592,14 +579,8 @@ class livecoin extends Exchange {
         // $trades = $this->parse_trades($order['trades'], $market, since, limit);
         $trades = null;
         $status = $this->parse_order_status($this->safe_string_2($order, 'status', 'orderStatus'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'currencyPair');
-            $marketId = $this->safe_string($order, 'symbol', $marketId);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
+        $marketId = $this->safe_string_2($order, 'symbol', 'currencyPair');
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $type = $this->safe_string_lower($order, 'type');
         $side = null;
         if ($type !== null) {
@@ -625,9 +606,11 @@ class livecoin extends Exchange {
         if ($cost !== null && $feeRate !== null) {
             $feeCost = $cost * $feeRate;
         }
+        if (($market === null) && (is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
+            $market = $this->markets[$symbol];
+        }
         $feeCurrency = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
         return array(
