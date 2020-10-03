@@ -947,7 +947,6 @@ module.exports = class bittrex extends Exchange {
         const fillQuantity = this.safeFloat (order, 'fillQuantity');
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
-        const status = this.safeStringLower (order, 'status');
         let average = undefined;
         let remaining = undefined;
         if (fillQuantity !== undefined) {
@@ -961,6 +960,10 @@ module.exports = class bittrex extends Exchange {
             if (quantity !== undefined) {
                 remaining = quantity - fillQuantity;
             }
+        }
+        let status = this.safeStringLower (order, 'status');
+        if (status === 'closed' && remaining > 0) {
+            status = 'canceled';
         }
         return {
             'id': this.safeString (order, 'id'),
