@@ -25,6 +25,7 @@ class ripio(Exchange):
             'countries': ['AR'],  # Argentina
             'rateLimit': 50,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': False,

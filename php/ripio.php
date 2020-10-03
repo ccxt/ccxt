@@ -18,6 +18,7 @@ class ripio extends Exchange {
             'countries' => array( 'AR' ), // Argentina
             'rateLimit' => 50,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => false,
