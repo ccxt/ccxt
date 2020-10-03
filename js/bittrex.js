@@ -709,7 +709,11 @@ module.exports = class bittrex extends Exchange {
             'orderId': id,
         };
         const response = await this.privateGetOrdersOrderIdExecutions (this.extend (request, params));
-        return this.parseTrades (response);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
