@@ -969,10 +969,15 @@ module.exports = class kraken extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostAddOrder (this.extend (request, query));
-        // { error: [],
-        //   result:
-        //    { descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //      txid: [ 'OEKVV2-IH52O-TPL6GZ' ] } }
+        //
+        //     {
+        //         error: [],
+        //         result: {
+        //             descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result);
     }
@@ -1035,12 +1040,32 @@ module.exports = class kraken extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //     }
+        //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
-        const parsedDescription = this.parseDescription (orderDescription);
-        const side = this.safeString (description, 'type', parsedDescription['side']);
-        const type = this.safeString (description, 'ordertype', parsedDescription['type']);
-        const marketId = this.safeString (description, 'pair', parsedDescription['marketId']);
+        let side = undefined;
+        let type = undefined;
+        let marketId = undefined;
+        let price = undefined;
+        let amount = undefined;
+        if (orderDescription !== undefined) {
+            const parts = orderDescription.split (' ');
+            side = this.safeString (parts, 0);
+            amount = this.safeFloat (parts, 1);
+            marketId = this.safeString (parts, 2);
+            type = this.safeString (parts, 4);
+            price = this.safeFloat (parts, 5)
+        }
+        side = this.safeString (description, 'type', side);
+        type = this.safeString (description, 'ordertype', type);
+        marketId = this.safeString (description, 'pair', marketId);
         const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
         if (foundMarket !== undefined) {
@@ -1050,7 +1075,7 @@ module.exports = class kraken extends Exchange {
             market = this.getDelistedMarketById (marketId);
         }
         const timestamp = this.safeTimestamp (order, 'opentm');
-        const amount = this.safeFloat (order, 'vol', parsedDescription['amount']);
+        amount = this.safeFloat (order, 'vol', amount);
         const filled = this.safeFloat (order, 'vol_exec');
         let remaining = undefined;
         if ((amount !== undefined) && (filled !== undefined)) {
@@ -1058,7 +1083,7 @@ module.exports = class kraken extends Exchange {
         }
         let fee = undefined;
         const cost = this.safeFloat (order, 'cost');
-        let price = this.safeFloat (description, 'price', parsedDescription['price']);
+        price = this.safeFloat (description, 'price', price);
         if ((price === undefined) || (price === 0)) {
             price = this.safeFloat (description, 'price2');
         }
@@ -1113,19 +1138,6 @@ module.exports = class kraken extends Exchange {
             'remaining': remaining,
             'fee': fee,
             'trades': trades,
-        };
-    }
-
-    parseDescription (description) {
-        // "buy 0.02100000 ETHUSDT @ limit 330.00"
-        // sometimes this is the only way to get the above data
-        const tokens = description.split (' ');
-        return {
-            'side': this.safeString (tokens, 0),
-            'amount': this.safeFloat (tokens, 1),
-            'marketId': this.safeString (tokens, 2),
-            'type': this.safeString (tokens, 4),
-            'price': this.safeFloat (tokens, 5),
         };
     }
 
