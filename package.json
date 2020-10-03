@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.3.87",
+  "version": "0.3.88",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -485,6 +485,7 @@
     "Huobi Japan",
     "currency.com",
     "Currency.com",
-    "idex.io"
+    "idex.io",
+    "huobi.com"
   ]
 }
