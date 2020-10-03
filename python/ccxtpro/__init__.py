@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.3.89'
+__version__ = '0.3.90'
 
 # -----------------------------------------------------------------------------
 
@@ -139,7 +139,6 @@ from ccxt.async_support.paymium import paymium                            # noqa
 from ccxt.async_support.probit import probit                              # noqa: F401
 from ccxt.async_support.qtrade import qtrade                              # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
-from ccxt.async_support.ripio import ripio                                # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
 from ccxt.async_support.stronghold import stronghold                      # noqa: F401
@@ -185,6 +184,7 @@ from ccxtpro.okcoin import okcoin                                         # noqa
 from ccxtpro.okex import okex                                             # noqa: F401
 from ccxtpro.phemex import phemex                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
+from ccxtpro.ripio import ripio                                           # noqa: F401
 from ccxtpro.upbit import upbit                                           # noqa: F401
 
 __all__ = ccxt.__all__ + ['exchanges']

@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '0.3.89'
+const version = '0.3.90'
 
 // Exchange.ccxtVersion = version
 
@@ -43,6 +43,7 @@ const exchanges = {
     'okex':                    require ('./js/okex.js'),
     'phemex':                  require ('./js/phemex.js'),
     'poloniex':                require ('./js/poloniex.js'),
+    'ripio':                   require ('./js/ripio.js'),
     'upbit':                   require ('./js/upbit.js'),    
 }
 
