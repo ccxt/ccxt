@@ -1580,12 +1580,8 @@ class hbtc(Exchange):
         #         "askQty": "9.00000000"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'time')
         open = self.safe_float(ticker, 'openPrice')
         close = self.safe_float(ticker, 'lastPrice')
@@ -1776,13 +1772,8 @@ class hbtc(Exchange):
         timestamp = self.safe_integer(order, 'time')
         if timestamp is None:
             timestamp = self.safe_integer(order, 'transactTime')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId is not None:
-                marketId = marketId.upper()
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         price = self.safe_float(order, 'price')
@@ -1811,8 +1802,6 @@ class hbtc(Exchange):
         if average == 0.0:
             average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if market is not None:
-            symbol = market['symbol']
         result = {
             'info': order,
             'id': id,

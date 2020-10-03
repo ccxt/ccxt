@@ -1668,14 +1668,8 @@ class hbtc extends Exchange {
         //         "askQty" => "9.00000000"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
         $open = $this->safe_float($ticker, 'openPrice');
         $close = $this->safe_float($ticker, 'lastPrice');
@@ -1877,16 +1871,8 @@ class hbtc extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'transactTime');
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
-            if ($marketId !== null) {
-                $marketId = strtoupper($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $price = $this->safe_float($order, 'price');
@@ -1923,9 +1909,6 @@ class hbtc extends Exchange {
             $average = null;
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         $result = array(
             'info' => $order,
             'id' => $id,
