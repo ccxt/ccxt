@@ -418,14 +418,27 @@ class ripio(Exchange):
         #         "maker":2577937
         #     }
         #
+        # createOrder fills
+        #
+        #     {
+        #         "pair":"BTC_USDC",
+        #         "exchanged":0.002,
+        #         "match_price":10593.99,
+        #         "maker_fee":0.0,
+        #         "taker_fee":0.0,
+        #         "timestamp":1601730306942
+        #     }
+        #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_timestamp(trade, 'created_at')
+        timestamp = self.safe_integer(trade, 'timestamp')
+        timestamp = self.safe_timestamp(trade, 'created_at', timestamp)
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
         takerOrMaker = 'taker' if (takerSide == side) else 'maker'
-        side = side.lower()
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        if side is not None:
+            side = side.lower()
+        price = self.safe_float_2(trade, 'price', 'match_price')
+        amount = self.safe_float_2(trade, 'amount', 'exchanged')
         cost = None
         if (amount is not None) and (price is not None):
             cost = amount * price
@@ -554,6 +567,38 @@ class ripio(Exchange):
         #         "limit_price": "10.00",
         #         "stop_price": null,
         #         "distance": null
+        #     }
+        #
+        # createOrder market type
+        #
+        #     {
+        #         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        #         "pair":"BTC_USDC",
+        #         "side":"BUY",
+        #         "amount":"0.00200",
+        #         "notional":"50",
+        #         "fill_or_kill":false,
+        #         "all_or_none":false,
+        #         "order_type":"MARKET",
+        #         "status":"OPEN",
+        #         "created_at":1601730306,
+        #         "filled":"0.00000",
+        #         "fill_price":10593.99,
+        #         "fee":0.0,
+        #         "fills":[
+        #             {
+        #                 "pair":"BTC_USDC",
+        #                 "exchanged":0.002,
+        #                 "match_price":10593.99,
+        #                 "maker_fee":0.0,
+        #                 "taker_fee":0.0,
+        #                 "timestamp":1601730306942
+        #             }
+        #         ],
+        #         "filled_at":"2020-10-03T13:05:06.942186Z",
+        #         "limit_price":"0.000000",
+        #         "stop_price":null,
+        #         "distance":null
         #     }
         #
         return self.parse_order(response, market)
@@ -688,7 +733,6 @@ class ripio(Exchange):
         #
         # createOrder, cancelOrder, fetchOpenOrders, fetchClosedOrders, fetchOrders, fetchOrder
         #
-        #
         #     {
         #         "order_id": "286e560e-b8a2-464b-8b84-15a7e2a67eab",
         #         "pair": "BTC_ARS",
@@ -706,52 +750,93 @@ class ripio(Exchange):
         #         "distance": null
         #     }
         #
+        #     {
+        #         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        #         "pair":"BTC_USDC",
+        #         "side":"BUY",
+        #         "amount":"0.00200",
+        #         "notional":"50",
+        #         "fill_or_kill":false,
+        #         "all_or_none":false,
+        #         "order_type":"MARKET",
+        #         "status":"OPEN",
+        #         "created_at":1601730306,
+        #         "filled":"0.00000",
+        #         "fill_price":10593.99,
+        #         "fee":0.0,
+        #         "fills":[
+        #             {
+        #                 "pair":"BTC_USDC",
+        #                 "exchanged":0.002,
+        #                 "match_price":10593.99,
+        #                 "maker_fee":0.0,
+        #                 "taker_fee":0.0,
+        #                 "timestamp":1601730306942
+        #             }
+        #         ],
+        #         "filled_at":"2020-10-03T13:05:06.942186Z",
+        #         "limit_price":"0.000000",
+        #         "stop_price":null,
+        #         "distance":null
+        #     }
+        #
         id = self.safe_string(order, 'order_id')
         amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'limit_price')
         cost = self.safe_float(order, 'notional')
         type = self.safe_string_lower(order, 'order_type')
+        priceField = 'fill_price' if (type == 'market') else 'limit_price'
+        price = self.safe_float(order, priceField)
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'created_at')
+        average = self.safe_value(order, 'fill_price')
         filled = self.safe_float(order, 'filled')
         remaining = None
+        fills = self.safe_value(order, 'fills')
+        trades = None
+        lastTradeTimestamp = None
+        if fills is not None:
+            numFills = len(fills)
+            if numFills > 0:
+                filled = 0
+                cost = 0
+                trades = self.parse_trades(fills, market, None, None, {
+                    'order': id,
+                    'side': side,
+                })
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    filled = self.sum(trade['amount'], filled)
+                    cost = self.sum(trade['cost'], cost)
+                    lastTradeTimestamp = trade['timestamp']
+                if (average is None) and (filled > 0):
+                    average = cost / filled
         if filled is not None:
             if (cost is None) and (price is not None):
                 cost = price * filled
             if amount is not None:
                 remaining = max(0, amount - filled)
-        symbol = None
         marketId = self.safe_string(order, 'pair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
             'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
-            'trades': None,
+            'trades': trades,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
