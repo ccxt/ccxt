@@ -1046,7 +1046,11 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $order = $this->safe_value($data, 0);
+        if ($order === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() $order ' . $id . ' not found');
+        }
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
