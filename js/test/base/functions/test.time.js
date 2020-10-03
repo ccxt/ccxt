@@ -9,10 +9,12 @@ const { setTimeout_safe, timeout, now, isWindows } = require ('../../../../ccxt'
         x.then (() => { throw new Error ('not rejected!') })
          .catch ((e) => { equal (e.message, msg) })
 
+// these tests break Travis 80% of the time
+// TODO: make a more robust test that is not failing on certain machines under certain conditions
+
 // ----------------------------------------------------------------------------
 
 // it ('setTimeout_safe is working', (done) => {
-//     // TODO: make a more robust test that is not failing on certain machines under certain conditions
 //     if (isWindows) {
 //         // temporarily skip this test with appveyor
 //         // todo: refix timer functions for windows properly
