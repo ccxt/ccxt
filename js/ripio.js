@@ -16,6 +16,7 @@ module.exports = class ripio extends Exchange {
             'countries': [ 'AR' ], // Argentina
             'rateLimit': 50,
             'version': 'v1',
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': false,
