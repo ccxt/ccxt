@@ -543,7 +543,7 @@ module.exports = class bittrex extends Exchange {
                 if (quote) {
                     quoteSymbol = quote.id;
                 }
-                symbol = `${baseSymbol}/${quoteSymbol}`;
+                symbol = baseSymbol + '/' + quoteSymbol;
             }
         }
         let cost = undefined;
