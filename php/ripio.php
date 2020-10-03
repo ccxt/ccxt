@@ -263,9 +263,9 @@ class ripio extends Exchange {
         //         "high":"10909.99",
         //         "variation":"1.21",
         //         "volume":"0.83868",
-        //         "$base":"BTC",
+        //         "base":"BTC",
         //         "base_name":"Bitcoin",
-        //         "$quote":"USDC",
+        //         "quote":"USDC",
         //         "quote_name":"USD Coin",
         //         "bid":"10811.00",
         //         "ask":"10720.03",
@@ -277,20 +277,7 @@ class ripio extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'last_price');
         $average = $this->safe_float($ticker, 'avg');
         return array(

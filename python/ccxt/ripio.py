@@ -279,17 +279,7 @@ class ripio(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         marketId = self.safe_string(ticker, 'pair')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'last_price')
         average = self.safe_float(ticker, 'avg')
         return {
