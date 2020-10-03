@@ -14,6 +14,16 @@ module.exports = async (exchange, symbol) => {
 
     const method = 'watchOrderBook'
 
+    // we have to skip some exchanges here due to the frequency of trading
+    const skippedExchanges = [
+        'ripio',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, method, 'test skipped')
+        return
+    }
+
     if (!exchange.has[method]) {
         log (exchange.id, 'does not support', method + '() method')
         return
