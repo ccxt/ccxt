@@ -61,7 +61,6 @@
     "indodax":       { "skip": true },
     "jubi":          { "skip": true },
     "kkex":          { "skip": true },
-    "kucoin":        { "skip": true },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
     "lbank":         { "skip": true },
@@ -93,7 +92,6 @@
     "vbtc":          { "skip": true },
     "whitebit":      { "skip": true },
     "xbtce":         { "skip": true },
-    "yobit":         { "skip": true },
     "yunbi":         { "skip": true },
     "zaif":          { "skip": true },
     "zb":            { "skip": true }
