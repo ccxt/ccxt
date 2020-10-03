@@ -33,6 +33,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOrderBook': true,
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
@@ -506,12 +507,44 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //   {
+        //     "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
+        //     "marketSymbol": "OMG-BTC",
+        //     "executedAt": "2020-10-02T16:00:30.3Z",
+        //     "quantity": "7.52710000",
+        //     "rate": "0.00034907",
+        //     "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
+        //     "commission": "0.00000525",
+        //     "isTaker": false
+        //   }
         const timestamp = this.parse8601 (trade['executedAt']);
-        const side = this.safeStringLower (trade, 'takerSide');
         const id = this.safeString (trade, 'id');
+        const order = this.safeString (trade, 'orderId');
         let symbol = undefined;
+        let quoteSymbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            quoteSymbol = market.quote;
+        } else {
+            const marketId = this.safeString (trade, 'marketSymbol');
+            market = this.markets_by_id[marketId];
+            if (market) {
+                symbol = market['symbol'];
+                quoteSymbol = market.quote;
+            } else {
+                const [baseId, quoteId] = marketId.split ('-');
+                const base = this.currencies_by_id[baseId];
+                const quote = this.currencies_by_id[quoteId];
+                let baseSymbol = baseId;
+                if (base) {
+                    baseSymbol = base.code;
+                }
+                quoteSymbol = quoteId;
+                if (quote) {
+                    quoteSymbol = quote.id;
+                }
+                symbol = `${baseSymbol}/${quoteSymbol}`;
+            }
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'rate');
@@ -521,20 +554,35 @@ module.exports = class bittrex extends Exchange {
                 cost = price * amount;
             }
         }
+        let takerOrMaker = undefined;
+        if ('isTaker' in trade) {
+            if (trade['isTaker'] === true) {
+                takerOrMaker = 'taker';
+            } else {
+                takerOrMaker = 'maker';
+            }
+        }
+        let fee = undefined;
+        if (trade['commission']) {
+            const commission = this.safeFloat (trade, 'commission');
+            fee = {
+                'cost': commission,
+                'currency': quoteSymbol,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
-            'type': 'limit',
-            'takerOrMaker': undefined,
-            'side': side,
+            'order': order,
+            'takerOrMaker': takerOrMaker,
+            'side': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -643,6 +691,15 @@ module.exports = class bittrex extends Exchange {
         const response = await this.privateGetOrdersOpen (this.extend (request, params));
         const orders = this.parseOrders (response, market, since, limit);
         return this.filterBySymbol (orders, symbol);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetOrdersOrderIdExecutions (this.extend (request, params));
+        return this.parseTrades (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
