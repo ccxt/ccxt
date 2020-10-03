@@ -7,10 +7,12 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -94,13 +96,24 @@ class ripio(Exchange):
                 'exact': {
                 },
                 'broad': {
-                    'Invalid pair': BadSymbol,  # {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
-                    'Disabled pair': BadSymbol,  # {"status_code":400,"errors":{"pair":["Invalid/Disabled pair BTC_ARS"]},"message":"An error has occurred, please check the form."}
                     'Authentication credentials were not provided': AuthenticationError,  # {"detail":"Authentication credentials were not provided."}
+                    'Disabled pair': BadSymbol,  # {"status_code":400,"errors":{"pair":["Invalid/Disabled pair BTC_ARS"]},"message":"An error has occurred, please check the form."}
                     'Invalid order type': InvalidOrder,  # {"status_code":400,"errors":{"order_type":["Invalid order type. Valid options: ['MARKET', 'LIMIT']"]},"message":"An error has occurred, please check the form."}
-                    'not found': OrderNotFound,  # {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
                     'Your balance is not enough': InsufficientFunds,  # {"status_code":400,"errors":{"non_field_errors":["Your balance is not enough for self order: You have 0 BTC but you need 1 BTC"]},"message":"An error has occurred, please check the form."}
+                    "Order couldn't be created": ExchangeError,  # {'status_code': 400,'errors': {'non_field_errors': _("Order couldn't be created")}, 'message': _('Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists.')}
+                    # {"status_code":404,"errors":{"order":["Order 286e560e-b8a2-464b-8b84-15a7e2a67eab not found."]},"message":"An error has occurred, please check the form."}
+                    # {"status_code":404,"errors":{"trade":["Trade <trade_id> not found."]},"message":"An error has occurred, please check the form."}
+                    'not found': OrderNotFound,
+                    'Invalid pair': BadSymbol,  # {"status_code":400,"errors":{"pair":["Invalid pair FOOBAR"]},"message":"An error has occurred, please check the form."}
+                    'amount must be a number': BadRequest,  # {"status_code":400,"errors":{"amount":["amount must be a number"]},"message":"An error has occurred, please check the form."}
                     'Total must be at least': InvalidOrder,  # {"status_code":400,"errors":{"non_field_errors":["Total must be at least 10."]},"message":"An error has occurred, please check the form."}
+                    'Account not found': BadRequest,  # {"error_description": "Account not found."}, "status": 404
+                    'Wrong password provided': AuthenticationError,  # {'error': "Wrong password provided."}, “status_code”: 400
+                    'User tokens limit': DDoSProtection,  # {'error': "User tokens limit. Can't create more than 10 tokens."}, “status_code”: 400
+                    'Something unexpected ocurred': ExchangeError,  # {'status_code': 400, 'errors': {'non_field_errors': 'Something unexpected ocurred!'}, 'message': 'Seems like an unexpected error occurred. Please try again later or write us to support@ripio.com if the problem persists.'}
+                    # {'status_code': 404, 'errors': {'account_balance': ['Exchange balance <currency>not found.']},'message': 'An error has occurred, please check the form.'}
+                    # {'status_code': 404, 'errors': {'account_balance': ['Account balance <id> not found.']},'message': 'An error has occurred, please check the form.'}
+                    'account_balance': BadRequest,
                 },
             },
         })
