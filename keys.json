@@ -64,7 +64,6 @@
     "kucoin":        { "skip": true },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
-    "latoken":       { "skip": true },
     "lbank":         { "skip": true },
     "liquid":        { "skip": true },
     "luno":          { "skip": true },
