@@ -929,31 +929,17 @@ class kraken(Exchange):
         if shouldIncludePrice:
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostAddOrder(self.extend(request, query))
-        id = self.safe_value(response['result'], 'txid')
-        if id is not None:
-            if isinstance(id, list):
-                length = len(id)
-                id = id if (length > 1) else id[0]
-        return {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': None,
-            'amount': None,
-            'cost': None,
-            'average': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
-            'fee': None,
-            'trades': None,
-        }
+        #
+        #     {
+        #         error: [],
+        #         result: {
+        #             descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #             txid: ['OEKVV2-IH52O-TPL6GZ']
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
         if id in self.marketsByAltname:
@@ -1006,10 +992,31 @@ class kraken(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #         txid: ['OEKVV2-IH52O-TPL6GZ']
+        #     }
+        #
         description = self.safe_value(order, 'descr', {})
-        side = self.safe_string(description, 'type')
-        type = self.safe_string(description, 'ordertype')
-        marketId = self.safe_string(description, 'pair')
+        orderDescription = self.safe_string(description, 'order')
+        side = None
+        type = None
+        marketId = None
+        price = None
+        amount = None
+        if orderDescription is not None:
+            parts = orderDescription.split(' ')
+            side = self.safe_string(parts, 0)
+            amount = self.safe_float(parts, 1)
+            marketId = self.safe_string(parts, 2)
+            type = self.safe_string(parts, 4)
+            price = self.safe_float(parts, 5)
+        side = self.safe_string(description, 'type', side)
+        type = self.safe_string(description, 'ordertype', type)
+        marketId = self.safe_string(description, 'pair', marketId)
         foundMarket = self.find_market_by_altname_or_id(marketId)
         symbol = None
         if foundMarket is not None:
@@ -1018,12 +1025,14 @@ class kraken(Exchange):
             # delisted market ids go here
             market = self.get_delisted_market_by_id(marketId)
         timestamp = self.safe_timestamp(order, 'opentm')
-        amount = self.safe_float(order, 'vol')
+        amount = self.safe_float(order, 'vol', amount)
         filled = self.safe_float(order, 'vol_exec')
-        remaining = amount - filled
+        remaining = None
+        if (amount is not None) and (filled is not None):
+            remaining = amount - filled
         fee = None
         cost = self.safe_float(order, 'cost')
-        price = self.safe_float(description, 'price')
+        price = self.safe_float(description, 'price', price)
         if (price is None) or (price == 0):
             price = self.safe_float(description, 'price2')
         if (price is None) or (price == 0):
@@ -1044,6 +1053,9 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        if id is None:
+            txid = self.safe_value(order, 'txid')
+            id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
         trades = None

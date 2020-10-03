@@ -978,33 +978,17 @@ class kraken extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostAddOrder (array_merge($request, $query));
-        $id = $this->safe_value($response['result'], 'txid');
-        if ($id !== null) {
-            if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
-                $length = is_array($id) ? count($id) : 0;
-                $id = ($length > 1) ? $id : $id[0];
-            }
-        }
-        return array(
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
-            'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
-            'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => null,
-            'amount' => null,
-            'cost' => null,
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
-            'fee' => null,
-            'trades' => null,
-        );
+        //
+        //     {
+        //         error => array(),
+        //         $result => {
+        //             descr => array( order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //             txid => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_order($result);
     }
 
     public function find_market_by_altname_or_id($id) {
@@ -1065,10 +1049,32 @@ class kraken extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //     }
+        //
         $description = $this->safe_value($order, 'descr', array());
-        $side = $this->safe_string($description, 'type');
-        $type = $this->safe_string($description, 'ordertype');
-        $marketId = $this->safe_string($description, 'pair');
+        $orderDescription = $this->safe_string($description, 'order');
+        $side = null;
+        $type = null;
+        $marketId = null;
+        $price = null;
+        $amount = null;
+        if ($orderDescription !== null) {
+            $parts = explode(' ', $orderDescription);
+            $side = $this->safe_string($parts, 0);
+            $amount = $this->safe_float($parts, 1);
+            $marketId = $this->safe_string($parts, 2);
+            $type = $this->safe_string($parts, 4);
+            $price = $this->safe_float($parts, 5);
+        }
+        $side = $this->safe_string($description, 'type', $side);
+        $type = $this->safe_string($description, 'ordertype', $type);
+        $marketId = $this->safe_string($description, 'pair', $marketId);
         $foundMarket = $this->find_market_by_altname_or_id($marketId);
         $symbol = null;
         if ($foundMarket !== null) {
@@ -1078,12 +1084,15 @@ class kraken extends Exchange {
             $market = $this->get_delisted_market_by_id($marketId);
         }
         $timestamp = $this->safe_timestamp($order, 'opentm');
-        $amount = $this->safe_float($order, 'vol');
+        $amount = $this->safe_float($order, 'vol', $amount);
         $filled = $this->safe_float($order, 'vol_exec');
-        $remaining = $amount - $filled;
+        $remaining = null;
+        if (($amount !== null) && ($filled !== null)) {
+            $remaining = $amount - $filled;
+        }
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
-        $price = $this->safe_float($description, 'price');
+        $price = $this->safe_float($description, 'price', $price);
         if (($price === null) || ($price === 0)) {
             $price = $this->safe_float($description, 'price2');
         }
@@ -1109,6 +1118,10 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
+        if ($id === null) {
+            $txid = $this->safe_value($order, 'txid');
+            $id = $this->safe_string($txid, 0);
+        }
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
         $trades = null;
