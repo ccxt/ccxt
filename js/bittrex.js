@@ -531,7 +531,7 @@ module.exports = class bittrex extends Exchange {
         //         "isTaker": false
         //     }
         //
-        const timestamp = this.parse8601 (trade['executedAt']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'marketSymbol');
