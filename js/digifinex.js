@@ -1041,8 +1041,12 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+        }
+        return this.parseOrder (order, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
