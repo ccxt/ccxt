@@ -976,7 +976,7 @@ module.exports = class bittrex extends Exchange {
             }
         }
         let status = this.safeStringLower (order, 'status');
-        if (status === 'closed' && remaining > 0) {
+        if ((status === 'closed') && (remaining > 0)) {
             status = 'canceled';
         }
         return {
