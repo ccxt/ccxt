@@ -33,6 +33,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOrderBook': true,
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
@@ -506,12 +507,46 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.parse8601 (trade['executedAt']);
-        const side = this.safeStringLower (trade, 'takerSide');
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
+        //         "executedAt":"2020-10-03T11:48:43.38Z",
+        //         "quantity":"0.17939626",
+        //         "rate":"0.03297952",
+        //         "takerSide":"BUY"
+        //     }
+        //
+        // private fetchOrderTrades
+        //
+        //     {
+        //         "id": "aaa3e9bd-5b86-4a21-8b3d-1275c1d30b8e",
+        //         "marketSymbol": "OMG-BTC",
+        //         "executedAt": "2020-10-02T16:00:30.3Z",
+        //         "quantity": "7.52710000",
+        //         "rate": "0.00034907",
+        //         "orderId": "3a3dbd33-3a30-4ae5-a41d-68d3c1ac537e",
+        //         "commission": "0.00000525",
+        //         "isTaker": false
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const order = this.safeString (trade, 'orderId');
+        const marketId = this.safeString (trade, 'marketSymbol');
+        let symbol = this.safeSymbol (marketId, market, '-');
+        let quote = undefined;
+        if (marketId !== undefined) {
+            if (symbol in this.markets) {
+                market = this.safeValue (this.markets, symbol, market);
+                quote = market['quote'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'rate');
@@ -521,20 +556,34 @@ module.exports = class bittrex extends Exchange {
                 cost = price * amount;
             }
         }
+        let takerOrMaker = undefined;
+        const isTaker = this.safeValue (trade, 'isTaker');
+        if (isTaker !== undefined) {
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            };
+        }
+        const side = this.safeStringLower (trade, 'takerSide');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
-            'type': 'limit',
-            'takerOrMaker': undefined,
+            'order': order,
+            'takerOrMaker': takerOrMaker,
+            'type': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -555,6 +604,17 @@ module.exports = class bittrex extends Exchange {
             'marketSymbol': this.marketId (symbol),
         };
         const response = await this.publicGetMarketsMarketSymbolTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"9c5589db-42fb-436c-b105-5e2edcb95673",
+        //             "executedAt":"2020-10-03T11:48:43.38Z",
+        //             "quantity":"0.17939626",
+        //             "rate":"0.03297952",
+        //             "takerSide":"BUY"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -643,6 +703,19 @@ module.exports = class bittrex extends Exchange {
         const response = await this.privateGetOrdersOpen (this.extend (request, params));
         const orders = this.parseOrders (response, market, since, limit);
         return this.filterBySymbol (orders, symbol);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetOrdersOrderIdExecutions (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -890,7 +963,6 @@ module.exports = class bittrex extends Exchange {
         const fillQuantity = this.safeFloat (order, 'fillQuantity');
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
-        const status = this.safeStringLower (order, 'status');
         let average = undefined;
         let remaining = undefined;
         if (fillQuantity !== undefined) {
@@ -904,6 +976,10 @@ module.exports = class bittrex extends Exchange {
             if (quantity !== undefined) {
                 remaining = quantity - fillQuantity;
             }
+        }
+        let status = this.safeStringLower (order, 'status');
+        if ((status === 'closed') && (remaining !== undefined) && (remaining > 0)) {
+            status = 'canceled';
         }
         return {
             'id': this.safeString (order, 'id'),
