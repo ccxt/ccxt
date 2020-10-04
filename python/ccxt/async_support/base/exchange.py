@@ -243,12 +243,19 @@ class Exchange(BaseExchange):
         orderbook = await self.perform_order_book_request(market, limit, params)
         return self.parse_order_book(orderbook, market, limit, params)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported('fetch_ohlcv() not implemented yet')
         await self.load_markets()
         trades = await self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcv(trades, timeframe, since, limit)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        ohlcvs = await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+        return [ohlcv[0:-1] for ohlcv in ohlcvs]
 
     async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)

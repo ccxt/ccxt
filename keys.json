@@ -12,7 +12,6 @@
     "btcturk":       { "skip": true },
     "buda":          { "skip": true },
     "bytetrade":     { "skip": true },
-    "cex":           { "skip": true },
     "chilebit":      { "skip": true },
     "coinbase":      { "skip": true },
     "coinegg":       { "skip": true },
@@ -45,6 +44,5 @@
     "vbtc":          { "skip": true },
     "whitebit":      { "skip": true },
     "xbtce":         { "skip": true },
-    "zaif":          { "skip": true },
     "zb":            { "skip": true }
 }
