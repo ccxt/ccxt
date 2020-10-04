@@ -360,9 +360,6 @@ async def test_symbol(exchange, symbol, code):
         await exchange.fetch_balance()
         dump(green(exchange.id), 'fetched balance')
 
-
-
-
 # ------------------------------------------------------------------------------
 
 
@@ -442,7 +439,6 @@ async def test_exchange(exchange, symbol=None):
 
     # ..........................................................................
     # private API
-
 
     # move to testnet/sandbox if possible before accessing the balance if possible
     # if 'test' in exchange.urls:
