@@ -936,6 +936,7 @@ module.exports = class idex2 extends Exchange {
             this.numberToBE (typeEnum, 1),
             this.numberToBE (sideEnum, 1),
             this.stringToBinary (this.encode (amountString)),
+            this.numberToBE (0, 1),
         ];
         if (type === 'limit') {
             const encodedPrice = this.stringToBinary (this.encode (priceString));
