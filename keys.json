@@ -21,8 +21,6 @@
     "foxbit":        { "skip": true },
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
-    "oceanex":       { "skip": true },
-    "paymium":       { "skip": true },
     "rightbtc":      { "skip": true },
     "stronghold":    { "skip": true },
     "surbitcoin":    { "skip": true },
