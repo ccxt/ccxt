@@ -888,6 +888,7 @@ class idex2(Exchange):
             self.number_to_be(typeEnum, 1),
             self.number_to_be(sideEnum, 1),
             self.encode(amountString),
+            self.number_to_be(0, 1),
         ]
         if type == 'limit':
             encodedPrice = self.encode(priceString)

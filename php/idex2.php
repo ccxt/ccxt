@@ -938,6 +938,7 @@ class idex2 extends Exchange {
             $this->number_to_be($typeEnum, 1),
             $this->number_to_be($sideEnum, 1),
             $this->encode($amountString),
+            $this->number_to_be(0, 1),
         ];
         if ($type === 'limit') {
             $encodedPrice = $this->encode($priceString);
