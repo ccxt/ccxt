@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadRequest;
+use \ccxt\NotSupported;
 
 class idex2 extends Exchange {
 
@@ -893,6 +894,14 @@ class idex2 extends Exchange {
         } else if ($type === 'market') {
             $typeEnum = 0;
         }
+        $amountEnum = 0; // base quantity
+        if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
+            if ($type !== 'market') {
+                throw new NotSupported($this->id . ' quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
+            }
+            $amountEnum = 1;
+            $amount = $this->safe_float($params, 'quoteOrderQuantity');
+        }
         $sideEnum = ($side === 'buy') ? 0 : 1;
         $walletBytes = $this->remove0x_prefix($this->walletAddress);
         $orderVersion = 1;
@@ -938,7 +947,7 @@ class idex2 extends Exchange {
             $this->number_to_be($typeEnum, 1),
             $this->number_to_be($sideEnum, 1),
             $this->encode($amountString),
-            $this->number_to_be(0, 1),
+            $this->number_to_be($amountEnum, 1),
         ];
         if ($type === 'limit') {
             $encodedPrice = $this->encode($priceString);
@@ -959,7 +968,6 @@ class idex2 extends Exchange {
                 'market' => $market['id'],
                 'side' => $side,
                 'type' => $type,
-                'quantity' => $amountString,
                 'wallet' => $this->walletAddress,
                 'timeInForce' => $timeInForce,
                 'selfTradePrevention' => $selfTradePrevention,
@@ -968,6 +976,11 @@ class idex2 extends Exchange {
         );
         if ($type === 'limit') {
             $request['parameters']['price'] = $priceString;
+        }
+        if ($amountEnum === 0) {
+            $request['parameters']['quantity'] = $amountString;
+        } else {
+            $request['parameters']['quoteOrderQuantity'] = $amountString;
         }
         // {
         //   $market => 'DIL-ETH',

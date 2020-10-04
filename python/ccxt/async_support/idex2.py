@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
@@ -845,6 +846,12 @@ class idex2(Exchange):
             priceString = self.price_to_precision(symbol, price)
         elif type == 'market':
             typeEnum = 0
+        amountEnum = 0  # base quantity
+        if 'quoteOrderQuantity' in params:
+            if type != 'market':
+                raise NotSupported(self.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders')
+            amountEnum = 1
+            amount = self.safe_float(params, 'quoteOrderQuantity')
         sideEnum = 0 if (side == 'buy') else 1
         walletBytes = self.remove0x_prefix(self.walletAddress)
         orderVersion = 1
@@ -888,7 +895,7 @@ class idex2(Exchange):
             self.number_to_be(typeEnum, 1),
             self.number_to_be(sideEnum, 1),
             self.encode(amountString),
-            self.number_to_be(0, 1),
+            self.number_to_be(amountEnum, 1),
         ]
         if type == 'limit':
             encodedPrice = self.encode(priceString)
@@ -908,7 +915,6 @@ class idex2(Exchange):
                 'market': market['id'],
                 'side': side,
                 'type': type,
-                'quantity': amountString,
                 'wallet': self.walletAddress,
                 'timeInForce': timeInForce,
                 'selfTradePrevention': selfTradePrevention,
@@ -917,6 +923,10 @@ class idex2(Exchange):
         }
         if type == 'limit':
             request['parameters']['price'] = priceString
+        if amountEnum == 0:
+            request['parameters']['quantity'] = amountString
+        else:
+            request['parameters']['quoteOrderQuantity'] = amountString
         # {
         #   market: 'DIL-ETH',
         #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
