@@ -625,9 +625,10 @@ module.exports = class luno extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let auth = this.encode (this.apiKey + ':' + this.secret);
-            auth = this.stringToBase64 (auth);
-            headers = { 'Authorization': 'Basic ' + this.decode (auth) };
+            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
+            headers = {
+                'Authorization': 'Basic ' + this.decode (auth),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

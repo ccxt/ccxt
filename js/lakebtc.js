@@ -301,7 +301,7 @@ module.exports = class lakebtc extends Exchange {
             ];
             query = query.join ('&');
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
-            const auth = this.encode (this.apiKey + ':' + signature);
+            const auth = this.apiKey + ':' + signature;
             const signature64 = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,

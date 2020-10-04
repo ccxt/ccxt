@@ -29,7 +29,6 @@ module.exports =
 
     , stringToBinary: string => CryptoJS.enc.Latin1.parse (string)
     , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
     , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)

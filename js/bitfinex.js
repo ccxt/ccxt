@@ -1205,7 +1205,7 @@ module.exports = class bitfinex extends Exchange {
                 'request': request,
             }, query);
             body = this.json (query);
-            const payload = this.stringToBase64 (this.encode (body));
+            const payload = this.stringToBase64 (body);
             const secret = this.encode (this.secret);
             const signature = this.hmac (payload, secret, 'sha384');
             headers = {

@@ -720,7 +720,7 @@ module.exports = class fcoin extends Exchange {
                     auth += this.urlencode (query);
                 }
             }
-            const payload = this.stringToBase64 (this.encode (auth));
+            const payload = this.stringToBase64 (auth);
             let signature = this.hmac (payload, this.encode (this.secret), 'sha1', 'binary');
             signature = this.decode (this.stringToBase64 (signature));
             headers = {
