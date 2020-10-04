@@ -19,6 +19,7 @@ module.exports = async (exchange) => {
         'tidex',
         'ccex',
         'liqui',
+        'dsx',
     ]).reduce ((params, id) => ({ ...params, [id]: [randomSymbols], }), {})
 
     const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []
