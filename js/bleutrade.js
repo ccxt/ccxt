@@ -254,7 +254,7 @@ module.exports = class bleutrade extends Exchange {
             'market': market['id'],
         };
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
-        const ticker = response['result'][0];
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
