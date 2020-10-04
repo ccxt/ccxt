@@ -1,12 +1,7 @@
 {
     "bcex":          { "skip": true },
     "bibox":         { "skip": true },
-    "bit2c":         { "skip": true },
-    "bitbay":        { "skip": true },
     "bitforex":      { "skip": true },
-    "bithumb":       { "skip": true },
-    "bitkk":         { "skip": true },
-    "bitlish":       { "skip": true },
     "bitso":         { "skip": true },
     "bitz":          { "skip": true },
     "bl3p":          { "skip": true },
