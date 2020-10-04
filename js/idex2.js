@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
+const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -894,7 +894,7 @@ module.exports = class idex2 extends Exchange {
         let amountEnum = 0; // base quantity
         if ('quoteOrderQuantity' in params) {
             if (type !== 'market') {
-                throw new BadRequest (this.id + ' quoteOrderQuantity is only supported for market orders');
+                throw new NotSupported (this.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders');
             }
             amountEnum = 1;
             amount = this.safeFloat (params, 'quoteOrderQuantity');
