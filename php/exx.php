@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\ExchangeNotAvailable;
 
 class exx extends Exchange {
@@ -387,6 +388,9 @@ class exx extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],

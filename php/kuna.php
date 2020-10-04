@@ -195,10 +195,10 @@ class kuna extends acx {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limits = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $trades = $this->fetch_trades($symbol, $since, $limits, $params);
-        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limits);
+        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
+        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($ohlcvc); $i++) {
             $ohlcv = $ohlcvc[$i];
