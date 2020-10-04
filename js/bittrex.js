@@ -489,7 +489,14 @@ module.exports = class bittrex extends Exchange {
         //
         // publicGetMarketsTickers
         //
-        //
+        //     [
+        //         {
+        //             "symbol":"4ART-BTC",
+        //             "lastTradeRate":"0.00000210",
+        //             "bidRate":"0.00000210",
+        //             "askRate":"0.00000215"
+        //         }
+        //     ]
         //
         // publicGetMarketsSummaries
         //
