@@ -1,9 +1,6 @@
 {
     "bcex":          { "skip": true },
     "bibox":         { "skip": true },
-    "bitz":          { "skip": true },
-    "bl3p":          { "skip": true },
-    "bleutrade":     { "skip": true },
     "braziliex":     { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },
