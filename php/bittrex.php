@@ -80,6 +80,7 @@ class bittrex extends Exchange {
                         'currencies',
                         'currencies/{symbol}',
                         'markets',
+                        'markets/tickers',
                         'markets/summaries',
                         'markets/{marketSymbol}',
                         'markets/{marketSymbol}/summary',
@@ -132,6 +133,7 @@ class bittrex extends Exchange {
                         'transfers',
                     ),
                     'delete' => array(
+                        'orders/open',
                         'orders/{orderId}',
                         'withdrawals/{withdrawalId}',
                         'conditional-orders/{conditionalOrderId}',
@@ -218,6 +220,12 @@ class bittrex extends Exchange {
                 ),
             ),
             'options' => array(
+                'fetchTicker' => array(
+                    'method' => 'publicGetMarketsMarketSymbolTicker', // publicGetMarketsMarketSymbolSummary
+                ),
+                'fetchTickers' => array(
+                    'method' => 'publicGetMarketsTickers', // publicGetMarketsSummaries
+                ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
                 'symbolSeparator' => '-',
@@ -419,6 +427,17 @@ class bittrex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
+        // $ticker
+        //
+        //     {
+        //         "$symbol":"ETH-BTC",
+        //         "lastTradeRate":"0.03284496",
+        //         "bidRate":"0.03284523",
+        //         "askRate":"0.03286857"
+        //     }
+        //
+        // summary
+        //
         //     {
         //         "$symbol":"ETH-BTC",
         //         "high":"0.03369528",
@@ -443,6 +462,7 @@ class bittrex extends Exchange {
             $symbol = $market['symbol'];
         }
         $percentage = $this->safe_float($ticker, 'percentChange');
+        $last = $this->safe_float($ticker, 'lastTradeRate');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -455,8 +475,8 @@ class bittrex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'last' => null,
+            'close' => $last,
+            'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => $percentage,
@@ -469,7 +489,22 @@ class bittrex extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketsSummaries ($params);
+        $options = $this->safe_value($this->options, 'fetchTickers', array());
+        $method = $this->safe_string($options, 'method', 'publicGetMarketsTickers');
+        $response = $this->$method ($params);
+        //
+        // publicGetMarketsTickers
+        //
+        //     array(
+        //         {
+        //             "symbol":"4ART-BTC",
+        //             "lastTradeRate":"0.00000210",
+        //             "bidRate":"0.00000210",
+        //             "askRate":"0.00000215"
+        //         }
+        //     )
+        //
+        // publicGetMarketsSummaries
         //
         //     array(
         //         {
@@ -497,7 +532,21 @@ class bittrex extends Exchange {
         $request = array(
             'marketSymbol' => $market['id'],
         );
-        $response = $this->publicGetMarketsMarketSymbolSummary (array_merge($request, $params));
+        $options = $this->safe_value($this->options, 'fetchTicker', array());
+        $method = $this->safe_string($options, 'method', 'publicGetMarketsMarketSymbolTicker');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // publicGetMarketsMarketSymbolTicker
+        //
+        //     {
+        //         "$symbol":"ETH-BTC",
+        //         "lastTradeRate":"0.03284496",
+        //         "bidRate":"0.03284523",
+        //         "askRate":"0.03286857"
+        //     }
+        //
+        //
+        // publicGetMarketsMarketSymbolSummary
         //
         //     {
         //         "$symbol":"ETH-BTC",

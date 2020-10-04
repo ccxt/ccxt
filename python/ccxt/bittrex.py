@@ -96,6 +96,7 @@ class bittrex(Exchange):
                         'currencies',
                         'currencies/{symbol}',
                         'markets',
+                        'markets/tickers',
                         'markets/summaries',
                         'markets/{marketSymbol}',
                         'markets/{marketSymbol}/summary',
@@ -148,6 +149,7 @@ class bittrex(Exchange):
                         'transfers',
                     ],
                     'delete': [
+                        'orders/open',
                         'orders/{orderId}',
                         'withdrawals/{withdrawalId}',
                         'conditional-orders/{conditionalOrderId}',
@@ -234,6 +236,12 @@ class bittrex(Exchange):
                 },
             },
             'options': {
+                'fetchTicker': {
+                    'method': 'publicGetMarketsMarketSymbolTicker',  # publicGetMarketsMarketSymbolSummary
+                },
+                'fetchTickers': {
+                    'method': 'publicGetMarketsTickers',  # publicGetMarketsSummaries
+                },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
@@ -425,6 +433,17 @@ class bittrex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # ticker
+        #
+        #     {
+        #         "symbol":"ETH-BTC",
+        #         "lastTradeRate":"0.03284496",
+        #         "bidRate":"0.03284523",
+        #         "askRate":"0.03286857"
+        #     }
+        #
+        # summary
+        #
         #     {
         #         "symbol":"ETH-BTC",
         #         "high":"0.03369528",
@@ -446,6 +465,7 @@ class bittrex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         percentage = self.safe_float(ticker, 'percentChange')
+        last = self.safe_float(ticker, 'lastTradeRate')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -458,8 +478,8 @@ class bittrex(Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'last': None,
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': None,
             'percentage': percentage,
@@ -471,7 +491,22 @@ class bittrex(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarketsSummaries(params)
+        options = self.safe_value(self.options, 'fetchTickers', {})
+        method = self.safe_string(options, 'method', 'publicGetMarketsTickers')
+        response = getattr(self, method)(params)
+        #
+        # publicGetMarketsTickers
+        #
+        #     [
+        #         {
+        #             "symbol":"4ART-BTC",
+        #             "lastTradeRate":"0.00000210",
+        #             "bidRate":"0.00000210",
+        #             "askRate":"0.00000215"
+        #         }
+        #     ]
+        #
+        # publicGetMarketsSummaries
         #
         #     [
         #         {
@@ -497,7 +532,21 @@ class bittrex(Exchange):
         request = {
             'marketSymbol': market['id'],
         }
-        response = self.publicGetMarketsMarketSymbolSummary(self.extend(request, params))
+        options = self.safe_value(self.options, 'fetchTicker', {})
+        method = self.safe_string(options, 'method', 'publicGetMarketsMarketSymbolTicker')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # publicGetMarketsMarketSymbolTicker
+        #
+        #     {
+        #         "symbol":"ETH-BTC",
+        #         "lastTradeRate":"0.03284496",
+        #         "bidRate":"0.03284523",
+        #         "askRate":"0.03286857"
+        #     }
+        #
+        #
+        # publicGetMarketsMarketSymbolSummary
         #
         #     {
         #         "symbol":"ETH-BTC",
