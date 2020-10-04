@@ -20,7 +20,6 @@
     "dsx":           { "skip": true },
     "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
-    "exmo":          { "skip": true },
     "fcoin":         { "skip": true },
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
