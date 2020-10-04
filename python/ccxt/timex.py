@@ -1175,7 +1175,7 @@ class timex(Exchange):
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':
             self.check_required_credentials()
-            auth = self.string_to_base64(self.encode(self.apiKey + ':' + self.secret))
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             secret = 'Basic ' + self.decode(auth)
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

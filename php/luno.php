@@ -628,9 +628,10 @@ class luno extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $auth = $this->encode($this->apiKey . ':' . $this->secret);
-            $auth = base64_encode($auth);
-            $headers = array( 'Authorization' => 'Basic ' . $this->decode($auth) );
+            $auth = base64_encode($this->apiKey . ':' . $this->secret);
+            $headers = array(
+                'Authorization' => 'Basic ' . $this->decode($auth),
+            );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

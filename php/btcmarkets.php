@@ -1001,7 +1001,7 @@ class btcmarkets extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $secret = base64_decode($this->encode($this->secret)); // or stringToBase64
+            $secret = base64_decode($this->encode($this->secret));
             $auth = $method . $request . $nonce;
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {

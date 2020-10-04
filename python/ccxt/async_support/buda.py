@@ -707,7 +707,7 @@ class buda(Exchange):
             nonce = str(self.nonce())
             components = [method, '/api/' + self.version + '/' + request]
             if body:
-                base64Body = self.string_to_base64(self.encode(body))
+                base64Body = self.string_to_base64(body)
                 components.append(self.decode(base64Body))
             components.append(nonce)
             message = ' '.join(components)

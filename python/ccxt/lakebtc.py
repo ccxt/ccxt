@@ -289,7 +289,7 @@ class lakebtc(Exchange):
             ]
             query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
-            auth = self.encode(self.apiKey + ':' + signature)
+            auth = self.apiKey + ':' + signature
             signature64 = self.decode(self.string_to_base64(auth))
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,

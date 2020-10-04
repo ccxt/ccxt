@@ -1147,7 +1147,7 @@ class probit(Exchange):
             self.check_required_credentials()
             url += self.implode_params(path, params)
             auth = self.apiKey + ':' + self.secret
-            auth64 = self.string_to_base64(self.encode(auth))
+            auth64 = self.string_to_base64(auth)
             headers = {
                 'Authorization': 'Basic ' + self.decode(auth64),
                 'Content-Type': 'application/json',

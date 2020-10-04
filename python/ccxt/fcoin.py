@@ -673,7 +673,7 @@ class fcoin(Exchange):
                 if query:
                     body = self.json(query)
                     auth += self.urlencode(query)
-            payload = self.string_to_base64(self.encode(auth))
+            payload = self.string_to_base64(auth)
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha1, 'binary')
             signature = self.decode(self.string_to_base64(signature))
             headers = {

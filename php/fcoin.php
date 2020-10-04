@@ -724,7 +724,7 @@ class fcoin extends Exchange {
                     $auth .= $this->urlencode($query);
                 }
             }
-            $payload = base64_encode($this->encode($auth));
+            $payload = base64_encode($auth);
             $signature = $this->hmac($payload, $this->encode($this->secret), 'sha1', 'binary');
             $signature = $this->decode(base64_encode($signature));
             $headers = array(

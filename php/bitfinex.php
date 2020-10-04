@@ -1208,7 +1208,7 @@ class bitfinex extends Exchange {
                 'request' => $request,
             ), $query);
             $body = $this->json($query);
-            $payload = base64_encode($this->encode($body));
+            $payload = base64_encode($body);
             $secret = $this->encode($this->secret);
             $signature = $this->hmac($payload, $secret, 'sha384');
             $headers = array(

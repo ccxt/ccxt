@@ -1131,7 +1131,7 @@ class bitfinex(Exchange):
                 'request': request,
             }, query)
             body = self.json(query)
-            payload = self.string_to_base64(self.encode(body))
+            payload = self.string_to_base64(body)
             secret = self.encode(self.secret)
             signature = self.hmac(payload, secret, hashlib.sha384)
             headers = {

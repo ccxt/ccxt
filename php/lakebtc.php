@@ -303,7 +303,7 @@ class lakebtc extends Exchange {
             );
             $query = implode('&', $query);
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
-            $auth = $this->encode($this->apiKey . ':' . $signature);
+            $auth = $this->apiKey . ':' . $signature;
             $signature64 = $this->decode(base64_encode($auth));
             $headers = array(
                 'Json-Rpc-Tonce' => $nonceAsString,

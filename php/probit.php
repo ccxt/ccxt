@@ -1234,7 +1234,7 @@ class probit extends Exchange {
             $this->check_required_credentials();
             $url .= $this->implode_params($path, $params);
             $auth = $this->apiKey . ':' . $this->secret;
-            $auth64 = base64_encode($this->encode($auth));
+            $auth64 = base64_encode($auth);
             $headers = array(
                 'Authorization' => 'Basic ' . $this->decode($auth64),
                 'Content-Type' => 'application/json',

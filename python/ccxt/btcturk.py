@@ -293,7 +293,7 @@ class btcturk(Exchange):
             headers = {
                 'X-PCK': self.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': self.string_to_base64(self.hmac(self.encode(auth), secret, hashlib.sha256, 'binary')),
+                'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

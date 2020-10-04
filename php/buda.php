@@ -766,7 +766,7 @@ class buda extends Exchange {
             $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
-                $base64Body = base64_encode($this->encode($body));
+                $base64Body = base64_encode($body);
                 $components[] = $this->decode($base64Body);
             }
             $components[] = $nonce;

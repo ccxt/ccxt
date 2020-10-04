@@ -566,9 +566,10 @@ class luno(Exchange):
             url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            auth = self.encode(self.apiKey + ':' + self.secret)
-            auth = self.string_to_base64(auth)
-            headers = {'Authorization': 'Basic ' + self.decode(auth)}
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
+            headers = {
+                'Authorization': 'Basic ' + self.decode(auth),
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
