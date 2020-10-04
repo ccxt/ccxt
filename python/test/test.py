@@ -311,6 +311,8 @@ def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
     test_ticker(exchange, symbol)
+    test_tickers(exchange, symbol)
+    test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = exchange.fetchGlobal()
@@ -318,14 +320,16 @@ def test_symbol(exchange, symbol, code):
     else:
         test_order_book(exchange, symbol)
         test_trades(exchange, symbol)
-        if exchange.apiKey:
-            test_orders(exchange, symbol)
-            test_open_orders(exchange, symbol)
-            test_closed_orders(exchange, symbol)
-            test_transactions(exchange, code)
-
-    test_tickers(exchange, symbol)
-    test_ohlcvs(exchange, symbol)
+        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+            return
+        if exchange.has['signIn']:
+            exchange.sign_in()
+        test_orders(exchange, symbol)
+        test_open_orders(exchange, symbol)
+        test_closed_orders(exchange, symbol)
+        test_transactions(exchange, code)
+        exchange.fetch_balance()
+        dump(green(exchange.id), 'fetched balance')
 
 # ------------------------------------------------------------------------------
 
@@ -407,17 +411,11 @@ def test_exchange(exchange, symbol=None):
     # ..........................................................................
     # private API
 
-    if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-        return
-
     # move to testnet/sandbox if possible before accessing the balance if possible
     # if 'test' in exchange.urls:
     #     exchange.urls['api'] = exchange.urls['test']
 
-    exchange.fetch_balance()
-    dump(green(exchange.id), 'fetched balance')
-
-    time.sleep(exchange.rateLimit / 1000)
+    # time.sleep(exchange.rateLimit / 1000)
 
     # time.sleep(delay)
 
