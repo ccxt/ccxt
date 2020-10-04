@@ -258,7 +258,7 @@ class bleutrade extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->v3PublicGetGetmarketsummary (array_merge($request, $params));
-        $ticker = $response['result'][0];
+        $ticker = $this->safe_value($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 

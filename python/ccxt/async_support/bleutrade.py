@@ -254,7 +254,7 @@ class bleutrade(Exchange):
             'market': market['id'],
         }
         response = await self.v3PublicGetGetmarketsummary(self.extend(request, params))
-        ticker = response['result'][0]
+        ticker = self.safe_value(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
