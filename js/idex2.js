@@ -893,7 +893,9 @@ module.exports = class idex2 extends Exchange {
         }
         let amountEnum = 0; // base quantity
         if ('quoteOrderQuantity' in params) {
-            // only supported for market orders :-v-:
+            if (type !== 'market') {
+                throw new BadRequest (this.id + ' quoteOrderQuantity is only supported for market orders');
+            }
             amountEnum = 1;
             amount = this.safeFloat (params, 'quoteOrderQuantity');
         }
