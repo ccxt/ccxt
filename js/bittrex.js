@@ -263,6 +263,66 @@ module.exports = class bittrex extends ccxt.bittrex {
         client.resolve (stored, messageHash);
     }
 
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const negotiate = this.negotiate ();
+        const future = this.afterAsync (negotiate, this.subscribeToTrades, symbol, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+    }
+
+    async subscribeToTrades (negotiation, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.getSignalRUrl (negotiation);
+        const requestId = this.milliseconds ().toString ();
+        const name = 'trade';
+        const messageHash = name + '_' + market['id'];
+        const request = this.getSignalRRequest (requestId, messageHash);
+        const subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'negotiation': negotiation,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleTrades (client, message) {
+        //
+        //     {
+        //         deltas: [
+        //             {
+        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
+        //                 executedAt: '2020-10-05T23:02:17.49Z',
+        //                 quantity: '0.00166790',
+        //                 rate: '10763.97000000',
+        //                 takerSide: 'BUY'
+        //             }
+        //         ],
+        //         sequence: 24391,
+        //         marketSymbol: 'BTC-USD'
+        //     }
+        //
+        const deltas = this.safeValue (message, 'deltas', []);
+        const marketId = this.safeString (message, 'marketSymbol');
+        const symbol = this.safeSymbol (marketId, undefined, '-');
+        const market = this.market (symbol);
+        const name = 'trade';
+        const messageHash = name + '_' + marketId;
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            array = new ArrayCache (limit);
+        }
+        const trades = this.parseTrades (deltas, market);
+        for (let i = 0; i < trades.length; i++) {
+            array.append (trades[i]);
+        }
+        this.trades[symbol] = array;
+        client.resolve (array, messageHash);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -508,14 +568,14 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         //     {}
         //
-        // ticker subscription update
+        // subscription update
         //
         //     {
         //         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
         //         M: [
         //             {
         //                 H: 'C3',
-        //                 M: 'ticker',
+        //                 M: 'ticker', // orderBook, trade, candle
         //                 A: [
         //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
         //                 ]
@@ -523,37 +583,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         ]
         //     }
         //
-        // orderbook subscription update
-        //
-        //     {
-        //         C: 'd-6089E69C-B,0|3tG,0|3tH,2|Cu,48D8A',
-        //         M: [
-        //             {
-        //                 H: 'C3',
-        //                 M: 'orderBook',
-        //                 A: [
-        //                 'fY/LDoIwFAX/5a5r09sXlqXyB+DKsCjSRMJDoWVBCP9u3RgTosuTzExyVujt1LqQL3316CCFU3E+XPKsAAK1e4Y7pFwR8G6c3XBzcRmlhZEEqqbOXBesh/S6wjjbITRhiQUW1cmGyAKyBA0VmDDGhISN/AMTypFHkPEdSJlGoxH1t6GNolxxg0eh94YUWr5jPwwFW0nA+vbzodxe'
-        //                 ]
-        //             }
-        //         ]
-        //     }
-        //
-        // ohlcv subscription update
-        //
-        //     {
-        //         C: 'd-6010FB90-B,0|BA_p,0|BA_q,2|w8V,43E',
-        //         M: [
-        //             {
-        //                 H: 'C3',
-        //                 M: 'candle',
-        //                 A: [
-        //                     'bcq7DoJAEIXhd5kayMwKLmznrbDQRrCwMagTNS6swKIxhHd3SaTzlN9/Omi4ark8MygRC5IeFHn9YLv7FCejQcE8XfjZbgke3EvL9SsfcLPeZunqSE4vrG0OqoPG5rVtZtZlgQJ9Qh+jlGI1CRXiwV3Nk0tXCacJBUiEw5zf7tfbz8NAShxdm/e/+1mbhv/9X0a3xVAwQJQTEhQ5rVpjeT8mGQeUJBGGMoG+/wI='
-        //                 ]
-        //             }
-        //         ]
-        //     }
-        //
         const methods = {
+            'trade': this.handleTrades,
             'candle': this.handleOHLCV,
             'orderBook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
