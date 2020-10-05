@@ -13,12 +13,13 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOrderBook': true,
-                'watchBalance': true,
-                'watchTrades': true,
+                'watchHeartbeat': true,
+                // 'watchOrderBook': true,
+                // 'watchBalance': true,
+                // 'watchTrades': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
-                'watchOHLCV': false, // missing on the exchange side
+                // 'watchTickers': false, // for now
+                // 'watchOHLCV': false, // missing on the exchange side
             },
             'urls': {
                 'api': {
@@ -41,6 +42,61 @@ module.exports = class bittrex extends ccxt.bittrex {
         });
     }
 
+    createSignalRQuery (params = {}) {
+        const hub = this.safeString (this.options, 'hub', 'c2');
+        const hubs = [
+            { 'name': hub },
+        ];
+        const ms = this.milliseconds ();
+        return this.extend ({
+            'transport': 'webSockets',
+            'connectionData': this.json (hubs),
+            'clientProtocol': 1.5,
+            '_': ms, // no cache
+            'tid': this.sum (ms % 10, 1), // random
+        }, params);
+    }
+
+    async negotiate (params = {}) {
+        const client = this.client (this.urls['api']['ws']);
+        const messageHash = 'negotiate';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            client.subscriptions[messageHash] = future;
+            const request = this.createSignalRQuery (params);
+            const response = await this.signalrGetNegotiate (this.extend (request, params));
+            //
+            //     {
+            //         Url: '/signalr/v1.1/signalr',
+            //         ConnectionToken: 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
+            //         ConnectionId: 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
+            //         KeepAliveTimeout: 20,
+            //         DisconnectTimeout: 30,
+            //         ConnectionTimeout: 110,
+            //         TryWebSockets: true,
+            //         ProtocolVersion: '1.5',
+            //         TransportConnectTimeout: 5,
+            //         LongPollDelay: 0
+            //     }
+            //
+            const result = {
+                'request': request,
+                'response': response,
+            };
+            client.resolve (result, messageHash);
+        }
+        return await future;
+    }
+
+    async start (negotiation, params = {}) {
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const request = this.createSignalRQuery (this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+        }));
+        return await this.signalrGetStart (request);
+    }
+
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const future = this.negotiate ();
@@ -56,12 +112,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         });
         const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
         const requestId = this.milliseconds ().toString ();
-        const name = 'heartbeat';
-        const messageHash = name;
-        const method = 'Subscribe';
-        const subscribeHash = method;
+        const messageHash = 'heartbeat';
         const hub = this.safeString (this.options, 'hub', 'c3');
-        const subscriptions = [ name ];
+        const subscriptions = [ messageHash ];
+        const method = 'Subscribe';
         const request = {
             'H': hub,
             'M': method,
@@ -72,60 +126,181 @@ module.exports = class bittrex extends ccxt.bittrex {
             'id': requestId,
             'params': params,
             'negotiation': negotiation,
-            'method': this.handleSubscribeToHeartbeat,
         };
-        return await this.watch (url, messageHash, request, subscribeHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    // async subscribeToTicker (negotiation, symbol, params = {}) {
-    //     await this.loadMarkets ();
-    //     const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
-    //     const query = this.extend (negotiation['request'], {
-    //         'connectionToken': connectionToken,
-    //         // 'tid': this.milliseconds () % 10,
-    //     });
-    //     const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
-    //     const requestId = this.milliseconds ().toString ();
-    //     const name = 'ticker';
-    //     const messageHash = name + ':' + symbol;
-    //     const method = 'SubscribeToSummaryDeltas';
-    //     const subscribeHash = method;
-    //     const hub = this.safeString (this.options, 'hub', 'c3');
-    //     const request = {
-    //         'H': hub,
-    //         'M': method,
-    //         'A': [], // arguments
-    //         'I': requestId, // invocation request id
-    //     };
-    //     const subscription = {
-    //         'id': requestId,
-    //         'symbol': symbol,
-    //         'params': params,
-    //         'negotiation': negotiation,
-    //         'method': this.handleSubscribeToSummaryDeltas,
-    //     };
-    //     return await this.watch (url, messageHash, request, subscribeHash, subscription);
-    // }
+    handleHeartbeat (client, message) {
+        //
+        // every 20 seconds (approx) if no other updates are sent
+        //
+        //     {}
+        //
+        client.resolve (message, 'heartbeat');
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        return await this.afterAsync (future, this.subscribeToTicker, symbol, params);
+    }
+
+    async subscribeToTicker (negotiation, symbol, params = {}) {
+        await this.loadMarkets ();
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const query = this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+            // 'tid': this.milliseconds () % 10,
+        });
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const requestId = this.milliseconds ().toString ();
+        const name = 'ticker';
+        const messageHash = name + '_' + market['id'];
+        const method = 'Subscribe';
+        const hub = this.safeString (this.options, 'hub', 'c3');
+        const subscriptions = [ messageHash ];
+        const request = {
+            'H': hub,
+            'M': method,
+            'A': [ subscriptions ], // arguments
+            'I': requestId, // invocation request id
+        };
+        const subscription = {
+            'id': requestId,
+            'marketId': market['id'],
+            'symbol': symbol,
+            'params': params,
+            'negotiation': negotiation,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleTicker (client, message) {
+        //
+        // summary subscription update
+        //
+        //     ...
+        //
+        // ticker subscription update
+        //
+        //     {
+        //         symbol: 'BTC-USDT',
+        //         lastTradeRate: '10701.02140008',
+        //         bidRate: '10701.02140007',
+        //         askRate: '10705.71049998'
+        //     }
+        //
+        const ticker = this.parseTicker (message);
+        const symbol = ticker['symbol'];
+        const market = this.market (symbol);
+        this.tickers[symbol] = ticker;
+        const name = 'ticker';
+        const messageHash = name + '_' + market['id'];
+        client.resolve (ticker, messageHash);
+    }
+
+    handleSystemStatus (client, message) {
+        // send signalR protocol start() call
+        const future = this.negotiate ();
+        this.spawn (this.afterAsync, future, this.start);
+        return message;
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        // success
+        //
+        //     { R: [ { Success: true, ErrorCode: null } ], I: '1601891513224' }
+        //
+        // failure
+        // todo add error handling and future rejections
+        //
+        //     {
+        //         I: '1580494127086',
+        //         E: "There was an error invoking Hub method 'c2.QuerySummaryState'."
+        //     }
+        //
+        const I = this.safeString (message, 'I'); // noqa: E741
+        let subscription = this.safeValue (client.subscriptions, I);
+        if (subscription === undefined) {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            subscription = this.safeValue (subscriptionsById, I, {});
+        } else {
+            // clear if subscriptionHash === requestId (one-time request)
+            delete client.subscriptions[I];
+        }
+        const method = this.safeValue (subscription, 'method');
+        if (method === undefined) {
+            client.resolve (message, I);
+        } else {
+            method.call (this, client, message, subscription);
+        }
+        return message;
+    }
 
     handleMessage (client, message) {
-        console.dir (message, { depth: null });
-        process.exit ();
+        // console.dir (message, { depth: null });
+        //
+        // subscription confirmation
+        //
+        //     {
+        //         R: [
+        //             { Success: true, ErrorCode: null }
+        //         ],
+        //         I: '1601899375696'
+        //     }
+        //
+        // heartbeat subscription update
+        //
+        //     {
+        //         C: 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
+        //         M: [
+        //             { H: 'C3', M: 'heartbeat', A: [] }
+        //         ]
+        //     }
+        //
+        // heartbeat empty message
+        //
+        //     {}
+        //
+        // ticker subscription update
+        //
+        //     {
+        //         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
+        //         M: [
+        //             {
+        //                 H: 'C3',
+        //                 M: 'ticker',
+        //                 A: [
+        //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
         const methods = {
-            'uE': this.handleExchangeDelta,
-            'uO': this.handleOrderDelta,
-            'uB': this.handleBalanceDelta,
-            'uS': this.handleSummaryDelta,
+            // 'uE': this.handleExchangeDelta,
+            // 'uO': this.handleOrderDelta,
+            // 'uB': this.handleBalanceDelta,
+            // 'uS': this.handleSummaryDelta,
+            'heartbeat': this.handleHeartbeat,
+            'ticker': this.handleTicker,
         };
         const M = this.safeValue (message, 'M', []);
         for (let i = 0; i < M.length; i++) {
             const methodType = this.safeValue (M[i], 'M');
             const method = this.safeValue (methods, methodType);
             if (method !== undefined) {
-                const A = this.safeValue (M[i], 'A', []);
-                for (let k = 0; k < A.length; k++) {
-                    const inflated = this.inflate64 (A[k]);
-                    const update = JSON.parse (inflated);
-                    method.call (this, client, update);
+                if (methodType === 'heartbeat') {
+                    method.call (this, client, message);
+                } else {
+                    const A = this.safeValue (M[i], 'A', []);
+                    for (let k = 0; k < A.length; k++) {
+                        const inflated = this.inflate64 (A[k]);
+                        const update = JSON.parse (inflated);
+                        method.call (this, client, update);
+                    }
                 }
             }
         }
