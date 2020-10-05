@@ -42,6 +42,15 @@ module.exports = class bittrex extends ccxt.bittrex {
         });
     }
 
+    getSignalRUrl (negotiation) {
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const query = this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+            // 'tid': this.milliseconds () % 10,
+        });
+        return this.urls['api']['ws'] + '?' + this.urlencode (query);
+    }
+
     createSignalRQuery (params = {}) {
         const hub = this.safeString (this.options, 'hub', 'c2');
         const hubs = [
@@ -105,12 +114,7 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async subscribeToHeartbeat (negotiation, params = {}) {
         await this.loadMarkets ();
-        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
-        const query = this.extend (negotiation['request'], {
-            'connectionToken': connectionToken,
-            // 'tid': this.milliseconds () % 10,
-        });
-        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const url = this.getSignalRUrl (negotiation);
         const requestId = this.milliseconds ().toString ();
         const messageHash = 'heartbeat';
         const hub = this.safeString (this.options, 'hub', 'c3');
@@ -147,13 +151,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async subscribeToTicker (negotiation, symbol, params = {}) {
         await this.loadMarkets ();
-        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
-        const query = this.extend (negotiation['request'], {
-            'connectionToken': connectionToken,
-            // 'tid': this.milliseconds () % 10,
-        });
+        const url = this.getSignalRUrl (negotiation);
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
         const requestId = this.milliseconds ().toString ();
         const name = 'ticker';
         const messageHash = name + '_' + market['id'];
@@ -200,6 +199,79 @@ module.exports = class bittrex extends ccxt.bittrex {
         client.resolve (ticker, messageHash);
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const negotiate = this.negotiate ();
+        const future = this.afterAsync (negotiate, this.subscribeToOHLCV, symbol, timeframe, params);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+    }
+
+    async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.getSignalRUrl (negotiation);
+        const requestId = this.milliseconds ().toString ();
+        const interval = this.timeframes[timeframe];
+        const name = 'candle';
+        const messageHash = name + '_' + market['id'] + '_' + interval;
+        const method = 'Subscribe';
+        const hub = this.safeString (this.options, 'hub', 'c3');
+        const subscriptions = [ messageHash ];
+        const request = {
+            'H': hub,
+            'M': method,
+            'A': [ subscriptions ], // arguments
+            'I': requestId, // invocation request id
+        };
+        const subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'messageHash': messageHash,
+            'negotiation': negotiation,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleOHLCV (client, message, subscription) {
+        //
+        //     {
+        //         sequence: 28286,
+        //         marketSymbol: 'BTC-USD',
+        //         interval: 'MINUTE_1',
+        //         delta: {
+        //             startsAt: '2020-10-05T18:52:00Z',
+        //             open: '10706.62600000',
+        //             high: '10706.62600000',
+        //             low: '10703.25900000',
+        //             close: '10703.26000000',
+        //             volume: '0.86822264',
+        //             quoteVolume: '9292.84594774'
+        //         }
+        //     }
+        //
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const timeframe = this.safeString (subscription, 'timeframe');
+        const symbol = this.safeString (subscription, 'symbol');
+        const delta = this.safeValue (message, 'delta', {});
+        const parsed = this.parseOHLCV (delta);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const length = stored.length;
+        if (length && (parsed[0] === stored[length - 1][0])) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -224,12 +296,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
-        const query = this.extend (negotiation['request'], {
-            'connectionToken': connectionToken,
-            // 'tid': this.milliseconds () % 10,
-        });
-        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const url = this.getSignalRUrl (negotiation);
         const requestId = this.milliseconds ().toString ();
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
@@ -431,7 +498,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleMessage (client, message) {
-        // console.dir (message, { depth: null });
+        console.dir (message, { depth: null });
         //
         // subscription confirmation
         //
@@ -485,11 +552,23 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         ]
         //     }
         //
+        // ohlcv subscription update
+        //
+        //     {
+        //         C: 'd-6010FB90-B,0|BA_p,0|BA_q,2|w8V,43E',
+        //         M: [
+        //             {
+        //                 H: 'C3',
+        //                 M: 'candle',
+        //                 A: [
+        //                     'bcq7DoJAEIXhd5kayMwKLmznrbDQRrCwMagTNS6swKIxhHd3SaTzlN9/Omi4ark8MygRC5IeFHn9YLv7FCejQcE8XfjZbgke3EvL9SsfcLPeZunqSE4vrG0OqoPG5rVtZtZlgQJ9Qh+jlGI1CRXiwV3Nk0tXCacJBUiEw5zf7tfbz8NAShxdm/e/+1mbhv/9X0a3xVAwQJQTEhQ5rVpjeT8mGQeUJBGGMoG+/wI='
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
         const methods = {
-            // 'uE': this.handleExchangeDelta,
-            // 'uO': this.handleOrderDelta,
-            // 'uB': this.handleBalanceDelta,
-            // 'uS': this.handleSummaryDelta,
+            'candle': this.handleOHLCV,
             'orderBook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
             'ticker': this.handleTicker,
