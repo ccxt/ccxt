@@ -170,3 +170,4 @@ class Exchange(BaseExchange):
         for key, value in self.timeframes.items():
             if value == timeframe:
                 return key
+        return None

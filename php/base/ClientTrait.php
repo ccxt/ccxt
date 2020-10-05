@@ -174,5 +174,6 @@ trait ClientTrait {
                 return $key;
             }
         }
+        return null;
     }
 }
