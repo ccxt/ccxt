@@ -706,8 +706,6 @@ class hitbtc(Exchange):
         order = self.parse_order(response)
         if order['status'] == 'rejected':
             raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
-        id = order['id']
-        self.orders[id] = order
         return order
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
@@ -729,9 +727,7 @@ class hitbtc(Exchange):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePatchOrderClientOrderId(self.extend(request, params))
-        order = self.parse_order(response)
-        self.orders[order['id']] = order
-        return order
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -798,9 +794,6 @@ class hitbtc(Exchange):
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
         price = self.safe_float(order, 'price')
-        if price is None:
-            if id in self.orders:
-                price = self.orders[id]['price']
         remaining = None
         cost = None
         if amount is not None:

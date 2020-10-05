@@ -418,6 +418,8 @@ class bybit(Exchange):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, 'fetchBalance', {})
         code = self.safe_value(options, 'code', defaultCode)
+        code = self.safe_string(params, 'code', code)
+        params = self.omit(params, 'code')
         currency = self.currency(code)
         request = {
             'coin': currency['id'],

@@ -418,6 +418,8 @@ class bybit extends Exchange {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $code = $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->safe_string($params, 'code', $code);
+        $params = $this->omit($params, 'code');
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
