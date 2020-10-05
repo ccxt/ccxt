@@ -764,7 +764,8 @@ class bithumb extends Exchange {
             ), $query));
             $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
-            $signature64 = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512', 'base64');
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
+            $signature64 = $this->decode(base64_encode($signature));
             $headers = array(
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/x-www-form-urlencoded',

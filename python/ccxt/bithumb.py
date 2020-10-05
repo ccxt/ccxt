@@ -713,7 +713,8 @@ class bithumb(Exchange):
             }, query))
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
-            signature64 = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'base64')
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            signature64 = self.decode(self.string_to_base64(signature))
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
