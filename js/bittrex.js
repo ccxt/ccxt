@@ -51,6 +51,18 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.urls['api']['ws'] + '?' + this.urlencode (query);
     }
 
+    getSignalRRequest (requestId, messageHash) {
+        const hub = this.safeString (this.options, 'hub', 'c3');
+        const subscriptions = [ messageHash ];
+        const method = 'Subscribe';
+        return {
+            'H': hub,
+            'M': method,
+            'A': [ subscriptions ], // arguments
+            'I': requestId, // invocation request id
+        };
+    }
+
     createSignalRQuery (params = {}) {
         const hub = this.safeString (this.options, 'hub', 'c2');
         const hubs = [
@@ -117,15 +129,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const url = this.getSignalRUrl (negotiation);
         const requestId = this.milliseconds ().toString ();
         const messageHash = 'heartbeat';
-        const hub = this.safeString (this.options, 'hub', 'c3');
-        const subscriptions = [ messageHash ];
-        const method = 'Subscribe';
-        const request = {
-            'H': hub,
-            'M': method,
-            'A': [ subscriptions ], // arguments
-            'I': requestId, // invocation request id
-        };
+        const request = this.getSignalRRequest (requestId, messageHash);
         const subscription = {
             'id': requestId,
             'params': params,
@@ -156,15 +160,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const requestId = this.milliseconds ().toString ();
         const name = 'ticker';
         const messageHash = name + '_' + market['id'];
-        const method = 'Subscribe';
-        const hub = this.safeString (this.options, 'hub', 'c3');
-        const subscriptions = [ messageHash ];
-        const request = {
-            'H': hub,
-            'M': method,
-            'A': [ subscriptions ], // arguments
-            'I': requestId, // invocation request id
-        };
+        const request = this.getSignalRRequest (requestId, messageHash);
         const subscription = {
             'id': requestId,
             'marketId': market['id'],
@@ -214,15 +210,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const interval = this.timeframes[timeframe];
         const name = 'candle';
         const messageHash = name + '_' + market['id'] + '_' + interval;
-        const method = 'Subscribe';
-        const hub = this.safeString (this.options, 'hub', 'c3');
-        const subscriptions = [ messageHash ];
-        const request = {
-            'H': hub,
-            'M': method,
-            'A': [ subscriptions ], // arguments
-            'I': requestId, // invocation request id
-        };
+        const request = this.getSignalRRequest (requestId, messageHash);
         const subscription = {
             'id': requestId,
             'symbol': symbol,
@@ -256,7 +244,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const interval = this.safeString (message, 'interval');
         const messageHash = name + '_' + marketId + '_' + interval;
-        const timeframe = this.safeString (subscription, 'timeframe');
+        const timeframe = this.findTimeframe (interval);
         const delta = this.safeValue (message, 'delta', {});
         const parsed = this.parseOHLCV (delta);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -303,15 +291,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const requestId = this.milliseconds ().toString ();
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
-        const method = 'Subscribe';
-        const hub = this.safeString (this.options, 'hub', 'c3');
-        const subscriptions = [ messageHash ];
-        const request = {
-            'H': hub,
-            'M': method,
-            'A': [ subscriptions ], // arguments
-            'I': requestId, // invocation request id
-        };
+        const request = this.getSignalRRequest (requestId, messageHash);
         const subscription = {
             'id': requestId,
             'symbol': symbol,
@@ -504,7 +484,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleMessage (client, message) {
-        console.dir (message, { depth: null });
+        // console.dir (message, { depth: null });
         //
         // subscription confirmation
         //
