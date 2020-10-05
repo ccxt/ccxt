@@ -1242,14 +1242,10 @@ class bittrex extends Exchange {
     public function sign($path, $api = 'v3', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'][$api], array(
             'hostname' => $this->hostname,
-        )) . '/' . $this->version . '/';
-        if ($api === 'public') {
-            $url .= $this->implode_params($path, $params);
-            $params = $this->omit($params, $this->extract_params($path));
-            if ($params) {
-                $url .= '?' . $this->urlencode($params);
-            }
-        } else if ($api === 'private') {
+        )) . '/';
+        if ($api === 'private') {
+            $url .= $this->version . '/';
+            $this->check_required_credentials();
             $url .= $this->implode_params($path, $params);
             $params = $this->omit($params, $this->extract_params($path));
             $hashString = '';
@@ -1282,18 +1278,14 @@ class bittrex extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         } else {
-            $this->check_required_credentials();
-            $url .= $api . '/';
-            $request = array(
-                'apikey' => $this->apiKey,
-            );
-            $disableNonce = $this->safe_value($this->options, 'disableNonce');
-            if (($disableNonce === null) || !$disableNonce) {
-                $request['nonce'] = $this->nonce();
+            if ($api === 'public') {
+                $url .= $this->version . '/';
             }
-            $url .= $path . '?' . $this->urlencode(array_merge($request, $params));
-            $signature = $this->hmac($this->encode($url), $this->encode($this->secret), 'sha512');
-            $headers = array( 'apisign' => $signature );
+            $url .= $this->implode_params($path, $params);
+            $params = $this->omit($params, $this->extract_params($path));
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -1374,9 +1366,5 @@ class bittrex extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
-    }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body);
     }
 }

@@ -1174,13 +1174,10 @@ class bittrex(Exchange):
     def sign(self, path, api='v3', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
-        }) + '/' + self.version + '/'
-        if api == 'public':
-            url += self.implode_params(path, params)
-            params = self.omit(params, self.extract_params(path))
-            if params:
-                url += '?' + self.urlencode(params)
-        elif api == 'private':
+        }) + '/'
+        if api == 'private':
+            url += self.version + '/'
+            self.check_required_credentials()
             url += self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
             hashString = ''
@@ -1208,17 +1205,12 @@ class bittrex(Exchange):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
         else:
-            self.check_required_credentials()
-            url += api + '/'
-            request = {
-                'apikey': self.apiKey,
-            }
-            disableNonce = self.safe_value(self.options, 'disableNonce')
-            if (disableNonce is None) or not disableNonce:
-                request['nonce'] = self.nonce()
-            url += path + '?' + self.urlencode(self.extend(request, params))
-            signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
-            headers = {'apisign': signature}
+            if api == 'public':
+                url += self.version + '/'
+            url += self.implode_params(path, params)
+            params = self.omit(params, self.extract_params(path))
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1282,6 +1274,3 @@ class bittrex(Exchange):
                 if message is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return await self.fetch2(path, api, method, params, headers, body)
