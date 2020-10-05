@@ -992,7 +992,7 @@ class okex(Exchange):
             name = self.safe_string(currency, 'name')
             canDeposit = self.safe_integer(currency, 'can_deposit')
             canWithdraw = self.safe_integer(currency, 'can_withdraw')
-            active = canDeposit and canWithdraw
+            active = True if (canDeposit and canWithdraw) else False
             result[code] = {
                 'id': id,
                 'code': code,
