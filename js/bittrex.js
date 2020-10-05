@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
+const { AuthenticationError, InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -13,13 +13,13 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchHeartbeat': true,
-                'watchOrderBook': true,
                 // 'watchBalance': true,
-                // 'watchTrades': true,
+                'watchHeartbeat': true,
+                'watchOHLCV': true,
+                'watchOrderBook': true,
                 'watchTicker': true,
                 // 'watchTickers': false, // for now
-                // 'watchOHLCV': false, // missing on the exchange side
+                // 'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -99,8 +99,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToHeartbeat, params);
+        const negotiate = this.negotiate ();
+        return await this.afterAsync (negotiate, this.subscribeToHeartbeat, params);
     }
 
     async subscribeToHeartbeat (negotiation, params = {}) {
@@ -141,8 +141,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.subscribeToTicker, symbol, params);
+        const negotiate = this.negotiate ();
+        return await this.afterAsync (negotiate, this.subscribeToTicker, symbol, params);
     }
 
     async subscribeToTicker (negotiation, symbol, params = {}) {
@@ -201,8 +201,12 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        limit = (limit === undefined) ? 25 : limit; // 25 by default
+        if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
+            throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 100, default is 25');
+        }
         await this.loadMarkets ();
-        const future = this.negotiate ();
+        const negotiate = this.negotiate ();
         //
         //     1. Subscribe to the relevant socket streams
         //     2. Begin to queue up messages without processing them
@@ -213,7 +217,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        return await this.afterAsync (future, this.subscribeToOrderBook, symbol, limit, params);
+        const future = this.afterAsync (negotiate, this.subscribeToOrderBook, symbol, limit, params);
+        return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
@@ -265,9 +270,10 @@ module.exports = class bittrex extends ccxt.bittrex {
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const data = this.safeValue (firstMessage, 'data', {});
-            const sequenceStart = this.safeInteger (data, 'sequenceStart');
+            const sequenceStart = this.safeInteger (data, 'sequence');
             const nonce = this.safeInteger (snapshot, 'nonce');
             const previousSequence = sequenceStart - 1;
+            // console.log (snapshot, nonce < previousSequence);
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
@@ -294,7 +300,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
                     const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
+                    this.handleOrderBookMessage (client, message, subscription, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
@@ -305,13 +311,90 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     handleSubscribeToOrderBook (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeString (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    handleDelta (bookside, delta) {
+        //
+        //     {
+        //         quantity: '0.05100000',
+        //         rate: '10694.86410031'
+        //     }
+        //
+        const price = this.safeFloat (delta, 'rate');
+        const amount = this.safeFloat (delta, 'quantity');
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        //
+        //     [
+        //         { quantity: '0.05100000', rate: '10694.86410031' },
+        //         { quantity: '0', rate: '10665.72578226' }
+        //     ]
+        //
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBook (client, message, subscription) {
+        //
+        //     {
+        //         marketSymbol: 'BTC-USDT',
+        //         depth: 25,
+        //         sequence: 3009387,
+        //         bidDeltas: [
+        //             { quantity: '0.05100000', rate: '10694.86410031' },
+        //             { quantity: '0', rate: '10665.72578226' }
+        //         ],
+        //         askDeltas: []
+        //     }
+        //
+        const marketId = this.safeString (message, 'marketSymbol');
+        const symbol = this.safeSymbol (marketId, undefined, '-');
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook['nonce'] !== undefined) {
+            this.handleOrderBookMessage (client, message, subscription, orderbook);
+        } else {
+            orderbook.cache.push (message);
+        }
+    }
+
+    handleOrderBookMessage (client, message, subscription, orderbook) {
+        //
+        //     {
+        //         marketSymbol: 'BTC-USDT',
+        //         depth: 25,
+        //         sequence: 3009387,
+        //         bidDeltas: [
+        //             { quantity: '0.05100000', rate: '10694.86410031' },
+        //             { quantity: '0', rate: '10665.72578226' }
+        //         ],
+        //         askDeltas: []
+        //     }
+        //
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const nonce = this.safeInteger (message, 'sequence');
+        if (nonce > orderbook['nonce']) {
+            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'askDeltas', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bidDeltas', []));
+            orderbook['nonce'] = nonce;
+            client.resolve (orderbook, messageHash);
+        }
+        return orderbook;
     }
 
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
-        const future = this.negotiate ();
-        this.spawn (this.afterAsync, future, this.start);
+        const negotiate = this.negotiate ();
+        this.spawn (this.afterAsync, negotiate, this.start);
         return message;
     }
 
@@ -387,12 +470,27 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         ]
         //     }
         //
+        // orderbook subscription update
+        //
+        //     {
+        //         C: 'd-6089E69C-B,0|3tG,0|3tH,2|Cu,48D8A',
+        //         M: [
+        //             {
+        //                 H: 'C3',
+        //                 M: 'orderBook',
+        //                 A: [
+        //                 'fY/LDoIwFAX/5a5r09sXlqXyB+DKsCjSRMJDoWVBCP9u3RgTosuTzExyVujt1LqQL3316CCFU3E+XPKsAAK1e4Y7pFwR8G6c3XBzcRmlhZEEqqbOXBesh/S6wjjbITRhiQUW1cmGyAKyBA0VmDDGhISN/AMTypFHkPEdSJlGoxH1t6GNolxxg0eh94YUWr5jPwwFW0nA+vbzodxe'
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
         const methods = {
             // 'uE': this.handleExchangeDelta,
             // 'uO': this.handleOrderDelta,
             // 'uB': this.handleBalanceDelta,
             // 'uS': this.handleSummaryDelta,
-            // 'orderbook': this.handleOrderBook,
+            'orderBook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
             'ticker': this.handleTicker,
         };
