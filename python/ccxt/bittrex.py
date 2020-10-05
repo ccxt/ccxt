@@ -370,8 +370,29 @@ class bittrex(Exchange):
         request = {
             'marketSymbol': self.market_id(symbol),
         }
+        if limit is not None:
+            if (limit != 1) and (limit != 25) and (limit != 500):
+                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 1, 25 or 100, default is 25')
+            request['depth'] = limit
         response = self.publicGetMarketsMarketSymbolOrderbook(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bid', 'ask', 'rate', 'quantity')
+        #
+        #     {
+        #         "bid":[
+        #             {"quantity":"0.01250000","rate":"10718.56200003"},
+        #             {"quantity":"0.10000000","rate":"10718.56200002"},
+        #             {"quantity":"0.39648292","rate":"10718.56200001"},
+        #         ],
+        #         "ask":[
+        #             {"quantity":"0.05100000","rate":"10724.30099631"},
+        #             {"quantity":"0.10000000","rate":"10724.30099632"},
+        #             {"quantity":"0.26000000","rate":"10724.30099634"},
+        #         ]
+        #     }
+        #
+        sequence = self.safe_integer(self.last_response_headers, 'Sequence')
+        orderbook = self.parse_order_book(response, None, 'bid', 'ask', 'rate', 'quantity')
+        orderbook['nonce'] = sequence
+        return orderbook
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)

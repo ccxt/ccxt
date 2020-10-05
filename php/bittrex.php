@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\BadRequest;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -361,8 +362,31 @@ class bittrex extends Exchange {
         $request = array(
             'marketSymbol' => $this->market_id($symbol),
         );
+        if ($limit !== null) {
+            if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 1, 25 or 100, default is 25');
+            }
+            $request['depth'] = $limit;
+        }
         $response = $this->publicGetMarketsMarketSymbolOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bid', 'ask', 'rate', 'quantity');
+        //
+        //     {
+        //         "bid":array(
+        //             array("quantity":"0.01250000","rate":"10718.56200003"),
+        //             array("quantity":"0.10000000","rate":"10718.56200002"),
+        //             array("quantity":"0.39648292","rate":"10718.56200001"),
+        //         ),
+        //         "ask":array(
+        //             array("quantity":"0.05100000","rate":"10724.30099631"),
+        //             array("quantity":"0.10000000","rate":"10724.30099632"),
+        //             array("quantity":"0.26000000","rate":"10724.30099634"),
+        //         )
+        //     }
+        //
+        $sequence = $this->safe_integer($this->last_response_headers, 'Sequence');
+        $orderbook = $this->parse_order_book($response, null, 'bid', 'ask', 'rate', 'quantity');
+        $orderbook['nonce'] = $sequence;
+        return $orderbook;
     }
 
     public function fetch_currencies($params = array ()) {
