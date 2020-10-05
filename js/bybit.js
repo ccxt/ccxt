@@ -415,7 +415,9 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const defaultCode = this.safeValue (this.options, 'code', 'BTC');
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        const code = this.safeValue (options, 'code', defaultCode);
+        let code = this.safeValue (options, 'code', defaultCode);
+        code = this.safeString (params, 'code', code);
+        params = this.omit (params, 'code');
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
