@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError } = require ('ccxt/js/base/errors');
+const { AuthenticationError, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'has': {
                 'ws': true,
                 'watchHeartbeat': true,
-                // 'watchOrderBook': true,
+                'watchOrderBook': true,
                 // 'watchBalance': true,
                 // 'watchTrades': true,
                 'watchTicker': true,
@@ -200,6 +200,114 @@ module.exports = class bittrex extends ccxt.bittrex {
         client.resolve (ticker, messageHash);
     }
 
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const future = this.negotiate ();
+        //
+        //     1. Subscribe to the relevant socket streams
+        //     2. Begin to queue up messages without processing them
+        //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, orderbook snapshots of different depths will have different sequence numbers.
+        //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
+        //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
+        //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
+        //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
+        //     8. If a message is received that is not the next in order, return to step 2 in this process
+        //
+        return await this.afterAsync (future, this.subscribeToOrderBook, symbol, limit, params);
+    }
+
+    async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const connectionToken = this.safeString (negotiation['response'], 'ConnectionToken');
+        const query = this.extend (negotiation['request'], {
+            'connectionToken': connectionToken,
+            // 'tid': this.milliseconds () % 10,
+        });
+        const url = this.urls['api']['ws'] + '?' + this.urlencode (query);
+        const requestId = this.milliseconds ().toString ();
+        const name = 'orderbook';
+        const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
+        const method = 'Subscribe';
+        const hub = this.safeString (this.options, 'hub', 'c3');
+        const subscriptions = [ messageHash ];
+        const request = {
+            'H': hub,
+            'M': method,
+            'A': [ subscriptions ], // arguments
+            'I': requestId, // invocation request id
+        };
+        const subscription = {
+            'id': requestId,
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'negotiation': negotiation,
+            'method': this.handleSubscribeToOrderBook,
+            'limit': limit,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+            // todo: this is a synch blocking call in ccxt.php - make it async
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
+            const messages = orderbook.cache;
+            // make sure we have at least one delta before fetching the snapshot
+            // otherwise we cannot synchronize the feed with the snapshot
+            // and that will lead to a bidask cross as reported here
+            // https://github.com/ccxt/ccxt/issues/6762
+            const firstMessage = this.safeValue (messages, 0, {});
+            const data = this.safeValue (firstMessage, 'data', {});
+            const sequenceStart = this.safeInteger (data, 'sequenceStart');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            const previousSequence = sequenceStart - 1;
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if (nonce < previousSequence) {
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleSubscribeToOrderBook (client, message, subscription) {
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
         const future = this.negotiate ();
@@ -284,6 +392,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             // 'uO': this.handleOrderDelta,
             // 'uB': this.handleBalanceDelta,
             // 'uS': this.handleSummaryDelta,
+            // 'orderbook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
             'ticker': this.handleTicker,
         };
@@ -317,5 +426,4 @@ module.exports = class bittrex extends ccxt.bittrex {
             this.handleHeartbeat (client, message);
         }
     }
-
 };
