@@ -355,8 +355,31 @@ module.exports = class bittrex extends Exchange {
         const request = {
             'marketSymbol': this.marketId (symbol),
         };
+        if (limit !== undefined) {
+            if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
+                throw new BadRequest (this.id + ' fetchOrderBook limit argument must be undefined, 1, 25 or 100, default is 25');
+            }
+            request['depth'] = limit;
+        }
         const response = await this.publicGetMarketsMarketSymbolOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'rate', 'quantity');
+        //
+        //     {
+        //         "bid":[
+        //             {"quantity":"0.01250000","rate":"10718.56200003"},
+        //             {"quantity":"0.10000000","rate":"10718.56200002"},
+        //             {"quantity":"0.39648292","rate":"10718.56200001"},
+        //         ],
+        //         "ask":[
+        //             {"quantity":"0.05100000","rate":"10724.30099631"},
+        //             {"quantity":"0.10000000","rate":"10724.30099632"},
+        //             {"quantity":"0.26000000","rate":"10724.30099634"},
+        //         ]
+        //     }
+        //
+        const sequence = this.safeInteger (this.last_response_headers, 'Sequence');
+        const orderbook = this.parseOrderBook (response, undefined, 'bid', 'ask', 'rate', 'quantity');
+        orderbook['nonce'] = sequence;
+        return orderbook;
     }
 
     async fetchCurrencies (params = {}) {
