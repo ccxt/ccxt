@@ -13,13 +13,13 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchBalance': true,
+                'watchBalance': true,
                 'watchHeartbeat': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
                 // 'watchTickers': false, // for now
-                // 'watchTrades': true,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -234,7 +234,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client, message) {
         //
         //     {
         //         sequence: 28286,
@@ -251,9 +251,12 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         }
         //     }
         //
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const name = 'candle';
+        const marketId = this.safeString (message, 'marketSymbol');
+        const symbol = this.safeSymbol (marketId, undefined, '-');
+        const interval = this.safeString (message, 'interval');
+        const messageHash = name + '_' + marketId + '_' + interval;
         const timeframe = this.safeString (subscription, 'timeframe');
-        const symbol = this.safeString (subscription, 'symbol');
         const delta = this.safeValue (message, 'delta', {});
         const parsed = this.parseOHLCV (delta);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -367,7 +370,7 @@ module.exports = class bittrex extends ccxt.bittrex {
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
                     const message = messages[i];
-                    this.handleOrderBookMessage (client, message, subscription, orderbook);
+                    this.handleOrderBookMessage (client, message, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
@@ -411,7 +414,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         }
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client, message) {
         //
         //     {
         //         marketSymbol: 'BTC-USDT',
@@ -428,13 +431,13 @@ module.exports = class bittrex extends ccxt.bittrex {
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook['nonce'] !== undefined) {
-            this.handleOrderBookMessage (client, message, subscription, orderbook);
+            this.handleOrderBookMessage (client, message, orderbook);
         } else {
             orderbook.cache.push (message);
         }
     }
 
-    handleOrderBookMessage (client, message, subscription, orderbook) {
+    handleOrderBookMessage (client, message, orderbook) {
         //
         //     {
         //         marketSymbol: 'BTC-USDT',
@@ -447,7 +450,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         askDeltas: []
         //     }
         //
-        const messageHash = this.safeString (subscription, 'messageHash');
+        const marketId = this.safeString (message, 'marketSymbol');
+        const depth = this.safeString (message, 'depth');
+        const name = 'orderbook';
+        const messageHash = name + '_' + marketId + '_' + depth;
         const nonce = this.safeInteger (message, 'sequence');
         if (nonce > orderbook['nonce']) {
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'askDeltas', []));
