@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.3.95'
+__version__ = '0.3.96'
 
 # -----------------------------------------------------------------------------
 
@@ -170,3 +170,4 @@ class Exchange(BaseExchange):
         for key, value in self.timeframes.items():
             if value == timeframe:
                 return key
+        return None

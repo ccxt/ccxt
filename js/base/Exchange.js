@@ -188,5 +188,6 @@ module.exports = class Exchange extends ccxt.Exchange {
                 return key;
             }
         }
+        return undefined;
     }
 }
