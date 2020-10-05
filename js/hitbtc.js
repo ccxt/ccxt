@@ -836,7 +836,7 @@ module.exports = class hitbtc extends Exchange {
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'price');
         let remaining = undefined;
         let cost = undefined;
         if (amount !== undefined) {
