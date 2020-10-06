@@ -424,27 +424,14 @@ In order to handle the market-`id` properly it has to be looked-up in the info c
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
-   let symbol = undefined;
-   const marketId = this.safeString (trade, 'pair');
-   if (marketId !== undefined) {
-      if (marketId in this.markets_by_id) {
-         // look up by an exchange-specific id in the preloaded markets first
-         market = this.markets_by_id[market];
-         symbol = market['symbol'];
-      } else {
-         // try to parse it somehow, if the format is known
-         const [ baseId, quoteId ] = marketId.split ('/');
-         const base = this.safeCurrencyCode (baseId); // unified
-         const quote = this.safeCurrencyCode (quoteId);
-         symbol = base + '/' + quote;
-      }
-   }
-   // parsing code...
-   return {
-      'info': trade,
-      'symbol': symbol, // very good, a unified symbol here now
-      // other fields...
-   };
+    const marketId = this.safeString (trade, 'pair');
+    // safeSymbol is used to parse the market id to a unified symbol
+    const symbol = this.safeSymbol (marketId, market);
+    return {
+       'info': trade,
+       'symbol': symbol, // very good, a unified symbol here now
+       // other fields...
+    };
 }
 ```
 
