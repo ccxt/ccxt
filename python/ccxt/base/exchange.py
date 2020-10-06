@@ -1727,6 +1727,8 @@ class Exchange(object):
         if return_market:
             return {
                 'symbol': marketId,
+                'base': None,
+                'quote': None,
             }
         else:
             return marketId
