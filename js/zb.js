@@ -538,15 +538,8 @@ module.exports = class zb extends Exchange {
         if (createDateField in order) {
             timestamp = order[createDateField];
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'currency');
-        if (marketId in this.markets_by_id) {
-            // get symbol from currency
-            market = this.marketsById[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'trade_amount');
         const amount = this.safeFloat (order, 'total_amount');
