@@ -28,6 +28,7 @@ class bittrex extends Exchange {
             // new metainfo interface
             'has' => array(
                 'CORS' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
@@ -865,6 +866,47 @@ class bittrex extends Exchange {
             'info' => $response,
             'status' => 'canceled',
         ));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['marketSymbol'] = $market['id'];
+        }
+        $response = $this->privateDeleteOrdersOpen (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        //             "statusCode":"SUCCESS",
+        //             "$result":{
+        //                 "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        //                 "marketSymbol":"BTC-USDT",
+        //                 "direction":"BUY",
+        //                 "type":"LIMIT",
+        //                 "quantity":"0.01000000",
+        //                 "limit":"3000.00000000",
+        //                 "timeInForce":"GOOD_TIL_CANCELLED",
+        //                 "fillQuantity":"0.00000000",
+        //                 "commission":"0.00000000",
+        //                 "proceeds":"0.00000000",
+        //                 "status":"CLOSED",
+        //                 "createdAt":"2020-10-06T12:31:53.39Z",
+        //                 "updatedAt":"2020-10-06T12:54:28.8Z",
+        //                 "closedAt":"2020-10-06T12:54:28.8Z"
+        //             }
+        //         }
+        //     )
+        //
+        $orders = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $result = $this->safe_value($response[$i], 'result', array());
+            $orders[] = $result;
+        }
+        return $this->parse_orders($orders, $market);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

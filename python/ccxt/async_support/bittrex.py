@@ -43,6 +43,7 @@ class bittrex(Exchange):
             # new metainfo interface
             'has': {
                 'CORS': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
@@ -838,6 +839,44 @@ class bittrex(Exchange):
             'info': response,
             'status': 'canceled',
         })
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['marketSymbol'] = market['id']
+        response = await self.privateDeleteOrdersOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        #             "statusCode":"SUCCESS",
+        #             "result":{
+        #                 "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        #                 "marketSymbol":"BTC-USDT",
+        #                 "direction":"BUY",
+        #                 "type":"LIMIT",
+        #                 "quantity":"0.01000000",
+        #                 "limit":"3000.00000000",
+        #                 "timeInForce":"GOOD_TIL_CANCELLED",
+        #                 "fillQuantity":"0.00000000",
+        #                 "commission":"0.00000000",
+        #                 "proceeds":"0.00000000",
+        #                 "status":"CLOSED",
+        #                 "createdAt":"2020-10-06T12:31:53.39Z",
+        #                 "updatedAt":"2020-10-06T12:54:28.8Z",
+        #                 "closedAt":"2020-10-06T12:54:28.8Z"
+        #             }
+        #         }
+        #     ]
+        #
+        orders = []
+        for i in range(0, len(response)):
+            result = self.safe_value(response[i], 'result', {})
+            orders.append(result)
+        return self.parse_orders(orders, market)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
