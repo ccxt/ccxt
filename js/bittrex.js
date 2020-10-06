@@ -21,6 +21,7 @@ module.exports = class bittrex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
@@ -858,6 +859,47 @@ module.exports = class bittrex extends Exchange {
             'info': response,
             'status': 'canceled',
         });
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketSymbol'] = market['id'];
+        }
+        const response = await this.privateDeleteOrdersOpen (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        //             "statusCode":"SUCCESS",
+        //             "result":{
+        //                 "id":"66582be0-5337-4d8c-b212-c356dd525801",
+        //                 "marketSymbol":"BTC-USDT",
+        //                 "direction":"BUY",
+        //                 "type":"LIMIT",
+        //                 "quantity":"0.01000000",
+        //                 "limit":"3000.00000000",
+        //                 "timeInForce":"GOOD_TIL_CANCELLED",
+        //                 "fillQuantity":"0.00000000",
+        //                 "commission":"0.00000000",
+        //                 "proceeds":"0.00000000",
+        //                 "status":"CLOSED",
+        //                 "createdAt":"2020-10-06T12:31:53.39Z",
+        //                 "updatedAt":"2020-10-06T12:54:28.8Z",
+        //                 "closedAt":"2020-10-06T12:54:28.8Z"
+        //             }
+        //         }
+        //     ]
+        //
+        const orders = [];
+        for (let i = 0; i < response.length; i++) {
+            const result = this.safeValue (response[i], 'result', {});
+            orders.push (result);
+        }
+        return this.parseOrders (orders, market);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
