@@ -1843,22 +1843,37 @@ class Exchange {
         return $this->parse_orders($orders, $market, $since, $limit, $params);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+    public function safe_symbol($marketId, $market = null, $delimiter = null, $return_market = false) {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                return $market['symbol'];
+                return $return_market ? $market : $market['symbol'];
             } else if ($delimiter !== null) {
                 list($baseId, $quoteId) = explode($delimiter, $marketId);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                return $base . '/' . $quote;
+                $symbol = $base . '/' . $quote;
+                if ($return_market) {
+                    return array(
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                    );
+                } else {
+                    return $symbol;
+                }
             }
         }
         if ($market !== null) {
-            return $market['symbol'];
+            return $return_market ? $market : $market['symbol'];
         }
-        return $marketId;
+        if ($return_market) {
+            return array(
+                'symbol' => $marketId
+            );
+        } else {
+            return $marketId;
+        }
     }
 
     public function safeSymbol($marketId, $market = null, $delimiter = null) {

@@ -1161,22 +1161,37 @@ module.exports = class Exchange {
         return code
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
+    safeSymbol (marketId, market = undefined, delimiter = undefined, returnMarket = false) {
         if (marketId !== undefined) {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId]
-                return market['symbol']
+                return returnMarket ? market : market['symbol']
             } else if (delimiter !== undefined) {
                 const [ baseId, quoteId ] = marketId.split (delimiter)
                 const base = this.safeCurrencyCode (baseId)
                 const quote = this.safeCurrencyCode (quoteId)
-                return base + '/' + quote
+                const symbol = base + '/' + quote
+                if (returnMarket) {
+                    return {
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                    }
+                } else {
+                    return symbol
+                }
             }
         }
         if (market !== undefined) {
-            return market['symbol']
+            return returnMarket ? market : market['symbol']
         }
-        return marketId
+        if (returnMarket) {
+            return {
+                'symbol': marketId
+            }
+        } else {
+            return marketId
+        }
     }
 
     filterBySymbol (array, symbol = undefined) {
