@@ -263,16 +263,8 @@ class zaif extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'currency_pair');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'currency_pair');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,
             'info' => $trade,
@@ -346,12 +338,8 @@ class zaif extends Exchange {
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
-        if (!$market) {
-            $marketId = $this->safe_string($order, 'currency_pair');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
+        $marketId = $this->safe_string($order, 'currency_pair');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $cost = null;
@@ -361,10 +349,6 @@ class zaif extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         return array(
             'id' => $id,
             'clientOrderId' => null,
