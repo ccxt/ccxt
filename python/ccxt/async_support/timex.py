@@ -950,19 +950,8 @@ class timex(Exchange):
         #         "volumeQuote": 0.07312
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_float(ticker, 'last')
         open = self.safe_float(ticker, 'open')
@@ -1024,13 +1013,8 @@ class timex(Exchange):
         #         "timestamp": "2019-12-08T04:54:11.171Z"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
@@ -1112,13 +1096,8 @@ class timex(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'quantity')
