@@ -1869,7 +1869,9 @@ class Exchange {
         }
         if ($return_market) {
             return array(
-                'symbol' => $marketId
+                'symbol' => $marketId,
+                'base' => null,
+                'quote' => null,
             );
         } else {
             return $marketId;
