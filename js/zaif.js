@@ -261,16 +261,8 @@ module.exports = class zaif extends Exchange {
                 cost = amount * price;
             }
         }
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
             'info': trade,
@@ -344,12 +336,8 @@ module.exports = class zaif extends Exchange {
         let side = this.safeString (order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        if (!market) {
-            const marketId = this.safeString (order, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         let cost = undefined;
@@ -359,10 +347,6 @@ module.exports = class zaif extends Exchange {
             }
         }
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         return {
             'id': id,
             'clientOrderId': undefined,
