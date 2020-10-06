@@ -1187,7 +1187,9 @@ module.exports = class Exchange {
         }
         if (returnMarket) {
             return {
-                'symbol': marketId
+                'symbol': marketId,
+                'base': undefined,
+                'quote': undefined,
             }
         } else {
             return marketId
