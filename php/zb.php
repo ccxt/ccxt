@@ -544,15 +544,8 @@ class zb extends Exchange {
         if (is_array($order) && array_key_exists($createDateField, $order)) {
             $timestamp = $order[$createDateField];
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'currency');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            // get $symbol from currency
-            $market = $this->marketsById[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'trade_amount');
         $amount = $this->safe_float($order, 'total_amount');

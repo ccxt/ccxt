@@ -509,13 +509,8 @@ class zb(Exchange):
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
-        symbol = None
         marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
-            # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
