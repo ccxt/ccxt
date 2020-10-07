@@ -401,18 +401,8 @@ class qtrade(Exchange):
         #         "last_change":1588533365354609
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'id_hr')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = quote + '/' + base
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer_product(ticker, 'last_change', 0.001)
         previous = self.safe_float(ticker, 'day_open')
         last = self.safe_float(ticker, 'last')
@@ -635,18 +625,8 @@ class qtrade(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         side = self.safe_string(trade, 'side')
-        symbol = None
         marketId = self.safe_string(trade, 'market_string')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = quote + '/' + base
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         cost = self.safe_float_2(trade, 'base_volume', 'base_amount')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'market_amount', 'amount')
@@ -858,18 +838,8 @@ class qtrade(Exchange):
             status = 'canceled'
         else:
             status = 'closed'
-        symbol = None
         marketId = self.safe_string(order, 'market_string')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         rawTrades = self.safe_value(order, 'trades', [])
         parsedTrades = self.parse_trades(rawTrades, market, None, None, {
             'order': id,
