@@ -1158,20 +1158,8 @@ module.exports = class upbit extends Exchange {
         let average = undefined;
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'paid_fee');
-        let feeCurrency = undefined;
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        } else {
-            const [ baseId, quoteId ] = marketId.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-            feeCurrency = quote;
-        }
         let trades = this.safeValue (order, 'trades', []);
         trades = this.parseTrades (trades, market, undefined, undefined, {
             'order': id,
@@ -1202,7 +1190,7 @@ module.exports = class upbit extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCost,
             };
         }
@@ -1213,7 +1201,7 @@ module.exports = class upbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
