@@ -458,17 +458,17 @@ module.exports = class bittrex extends ccxt.bittrex {
         const market = this.market (symbol);
         const name = 'trade';
         const messageHash = name + '_' + marketId;
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
+            stored = new ArrayCache (limit);
         }
         const trades = this.parseTrades (deltas, market);
         for (let i = 0; i < trades.length; i++) {
-            array.append (trades[i]);
+            stored.append (trades[i]);
         }
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
+        this.trades[symbol] = stored;
+        client.resolve (stored, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
