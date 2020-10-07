@@ -42,10 +42,12 @@ module.exports = async (exchange, symbol) => {
             // log.noLocate (asTable (response))
 
             for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, response[i], symbol, now)
+                const trade = response[i]
+                testTrade (exchange, trade, symbol, now)
                 if (i > 0) {
-                    if (response[i].timestamp && response[i - 1].timestamp) {
-                        assert (response[i].timestamp >= response[i - 1].timestamp)
+                    const previousTrade = response[i - 1]
+                    if (trade.timestamp && previousTrade.timestamp) {
+                        assert (trade.timestamp >= previousTrade.timestamp)
                     }
                 }
             }
