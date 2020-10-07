@@ -570,17 +570,8 @@ class coinbasepro(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        symbol = None
         marketId = self.safe_string(order, 'product_id')
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        market = self.safe_market(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'filled_size')
@@ -596,15 +587,11 @@ class coinbasepro(Exchange):
             feeCurrencyCode = None
             if market is not None:
                 feeCurrencyCode = market['quote']
-            elif quote is not None:
-                feeCurrencyCode = quote
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
                 'rate': None,
             }
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
@@ -616,7 +603,7 @@ class coinbasepro(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
