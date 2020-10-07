@@ -121,7 +121,7 @@ class Exchange(object):
 
     # rate limiter settings
     enable_rate_limit = False
-    rateLimit = 2000  # milliseconds = seconds * 1000
+    rate_limit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
@@ -129,8 +129,8 @@ class Exchange(object):
     session = None  # Session () by default
     verify = True  # SSL verification
     logger = None  # logging.getLogger(__name__) by default
-    userAgent = None
-    userAgents = {
+    user_agent = None
+    user_agents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
     }
@@ -159,7 +159,7 @@ class Exchange(object):
     ids = None
     urls = None
     api = None
-    parseJsonResponse = True
+    parse_json_response = True
     proxy = ''
     origin = '*'  # CORS origin
     proxies = None
@@ -169,10 +169,9 @@ class Exchange(object):
     password = ''
     uid = ''
     private_key = ''  # a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = ''  # the wallet address "0x"-prefixed hexstring
+    wallet_address = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-    marketsById = None
     markets_by_id = None
     currencies_by_id = None
     precision = None
@@ -191,7 +190,7 @@ class Exchange(object):
             'max': None,
         },
     }
-    httpExceptions = {
+    http_exceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
         '429': RateLimitExceeded,
@@ -220,7 +219,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
-    myTrades = None
+    my_trades = None
     trades = None
     transactions = None
     ohlcvs = None
@@ -238,7 +237,7 @@ class Exchange(object):
         'url': None,
     }
 
-    requiredCredentials = {
+    required_credentials = {
         'apiKey': True,
         'secret': True,
         'uid': False,
@@ -296,10 +295,10 @@ class Exchange(object):
         'signIn': False,
         'withdraw': False,
     }
-    precisionMode = DECIMAL_PLACES
-    paddingMode = NO_PADDING
-    minFundingAddressLength = 1  # used in check_address
-    substituteCommonCurrencyCodes = True
+    precision_mode = DECIMAL_PLACES
+    padding_mode = NO_PADDING
+    min_funding_address_length = 1  # used in check_address
+    substitute_common_currency_codes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
     restRequestQueue = None
@@ -314,15 +313,15 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
-    requiresWeb3 = False
-    requiresEddsa = False
+    requires_web3 = False
+    requires_eddsa = False
     web3 = None
     base58_encoder = None
     base58_decoder = None
     # no lower case l or upper case I, O
     base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
-    commonCurrencies = {
+    common_currencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
@@ -353,7 +352,7 @@ class Exchange(object):
         # }
 
         self.origin = self.uuid()
-        self.userAgent = default_user_agent()
+        self.user_agent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
 
@@ -369,7 +368,7 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        class camelcaseAttribute:
+        class CamelcaseAttribute:
             __slots__ = ('underscore',)
 
             def __init__(self, underscore):
@@ -389,8 +388,12 @@ class Exchange(object):
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
                 exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
                 camelcase = parts[0] + ''.join(exceptions.get(i, Exchange.capitalize(i)) for i in parts[1:])
-                # by using a descriptor here editing enable_rate_limit will automatically change enableRateLimit and vice verse
-                setattr(cls, camelcase, camelcaseAttribute(name))
+                # use descriptor here so camelCase attributes reference the same data as underscore properties
+                # > exchange.enableRateLimit = True
+                # > print(exchange.enable_rate_limit, exchange.enableRateLimit)
+                # > exchange.enable_rate_limit = False
+                # > print(exchange.enable_rate_limit, exchange.enableRateLimit)
+                setattr(cls, camelcase, CamelcaseAttribute(name))
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
