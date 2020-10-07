@@ -381,7 +381,9 @@ module.exports = class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            result[market['symbol']] = this.parseTicker (data[marketId], market);
+            const ticker = this.parseTicker (data[marketId], market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
