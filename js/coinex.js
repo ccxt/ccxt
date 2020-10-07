@@ -302,7 +302,7 @@ module.exports = class coinex extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost) {
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
@@ -323,7 +323,7 @@ module.exports = class coinex extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': tradeId,
             'order': orderId,
             'type': undefined,
