@@ -353,20 +353,6 @@ class Exchange(object):
         self.origin = self.uuid()
         self.user_agent = default_user_agent()
 
-        settings = self.deep_extend(self.describe(), config)
-
-        for key in settings:
-            if hasattr(self, key) and isinstance(getattr(self, key), dict):
-                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
-            else:
-                setattr(self, key, settings[key])
-
-        if self.api:
-            self.define_rest_api(self.api, 'request')
-
-        if self.markets:
-            self.set_markets(self.markets)
-
         class CamelcaseAttribute:
             __slots__ = ('underscore',)
 
@@ -382,6 +368,7 @@ class Exchange(object):
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
+            print(name)
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
@@ -393,6 +380,20 @@ class Exchange(object):
                 # > exchange.enable_rate_limit = False
                 # > print(exchange.enable_rate_limit, exchange.enableRateLimit)
                 setattr(cls, camelcase, CamelcaseAttribute(name))
+
+        settings = self.deep_extend(self.describe(), config)
+
+        for key in settings:
+            if hasattr(self, key) and isinstance(getattr(self, key), dict):
+                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
+            else:
+                setattr(self, key, settings[key])
+
+        if self.api:
+            self.define_rest_api(self.api, 'request')
+
+        if self.markets:
+            self.set_markets(self.markets)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
