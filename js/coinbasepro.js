@@ -190,6 +190,7 @@ module.exports = class coinbasepro extends Exchange {
                     'price too precise': InvalidOrder,
                     'under maintenance': OnMaintenance,
                     'size is too small': InvalidOrder,
+                    'Cancel only mode': OnMaintenance, // https://github.com/ccxt/ccxt/issues/7690
                 },
             },
         });
