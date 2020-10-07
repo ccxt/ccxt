@@ -6,7 +6,8 @@ namespace ccxtpro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\AuthenticationError;
+use \ccxt\BadRequest;
+use \ccxt\InvalidNonce;
 
 class bittrex extends \ccxt\bittrex {
 
@@ -16,17 +17,19 @@ class bittrex extends \ccxt\bittrex {
         return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
-                'watchOrderBook' => true,
                 'watchBalance' => true,
-                'watchTrades' => true,
+                'watchHeartbeat' => true,
+                'watchOHLCV' => true,
+                'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
-                'watchOHLCV' => false, // missing on the exchange side
+                'watchTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://socket.bittrex.com/signalr/connect',
-                    'signalr' => 'https://socket.bittrex.com/signalr',
+                    'ws' => 'wss://socket-v3.bittrex.com/signalr/connect',
+                    'signalr' => 'https://socket-v3.bittrex.com/signalr',
                 ),
             ),
             'api' => array(
@@ -39,13 +42,113 @@ class bittrex extends \ccxt\bittrex {
             ),
             'options' => array(
                 'tradesLimit' => 1000,
-                'hub' => 'c2',
+                'hub' => 'c3',
             ),
         ));
     }
 
+    public function get_signal_r_url($negotiation) {
+        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
+        $query = array_merge($negotiation['request'], array(
+            'connectionToken' => $connectionToken,
+            // 'tid' => $this->milliseconds(fmod(), 10),
+        ));
+        return $this->urls['api']['ws'] . '?' . $this->urlencode($query);
+    }
+
+    public function make_request($requestId, $method, $args) {
+        $hub = $this->safe_string($this->options, 'hub', 'c3');
+        return array(
+            'H' => $hub,
+            'M' => $method,
+            'A' => $args, // arguments
+            'I' => $requestId, // invocation request id
+        );
+    }
+
+    public function make_request_to_subscribe($requestId, $args) {
+        $method = 'Subscribe';
+        return $this->make_request($requestId, $method, $args);
+    }
+
+    public function make_request_to_authenticate($requestId) {
+        $timestamp = $this->milliseconds();
+        $uuid = $this->uuid();
+        $auth = (string) $timestamp . $uuid;
+        $signature = $this->hmac($this->encode($auth), $this->secret, 'sha512');
+        $args = array( $this->apiKey, $timestamp, $uuid, $signature );
+        $method = 'Authenticate';
+        return $this->make_request($requestId, $method, $args);
+    }
+
+    public function send_request_to_subscribe($negotiation, $messageHash, $subscription, $params = array ()) {
+        $args = array( $messageHash );
+        $requestId = (string) $this->milliseconds();
+        $request = $this->make_request_to_subscribe($requestId, array( $args ));
+        $subscription = array_merge(array(
+            'id' => $requestId,
+            'negotiation' => $negotiation,
+        ), $subscription);
+        $url = $this->get_signal_r_url($negotiation);
+        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+    }
+
+    public function authenticate($params = array ()) {
+        $this->load_markets();
+        $future = $this->negotiate();
+        return $this->after_async($future, array($this, 'send_request_to_authenticate'), false, $params);
+    }
+
+    public function send_request_to_authenticate($negotiation, $expired = false, $params = array ()) {
+        $url = $this->get_signal_r_url($negotiation);
+        $client = $this->client($url);
+        $messageHash = 'authenticate';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if (($future === null) || $expired) {
+            $future = $client->future ($messageHash);
+            $client->subscriptions[$messageHash] = $future;
+            $requestId = (string) $this->milliseconds();
+            $request = $this->make_request_to_authenticate($requestId);
+            $subscription = array(
+                'id' => $requestId,
+                'params' => $params,
+                'negotiation' => $negotiation,
+                'method' => array($this, 'handle_authenticate'),
+            );
+            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
+        }
+        return $future;
+    }
+
+    public function send_authenticated_request_to_subscribe($authentication, $messageHash, $params = array ()) {
+        $negotiation = $this->safe_value($authentication, 'negotiation');
+        $subscription = array( 'params' => $params );
+        return $this->send_request_to_subscribe($negotiation, $messageHash, $subscription, $params);
+    }
+
+    public function handle_authenticate($client, $message, $subscription) {
+        $requestId = $this->safe_string($subscription, 'id');
+        if (is_array($client->subscriptions) && array_key_exists($requestId, $client->subscriptions)) {
+            unset($client->subscriptions[$requestId]);
+        }
+        $client->resolve ($subscription, 'authenticate');
+    }
+
+    public function handle_authentication_expiring($client, $message) {
+        //
+        //     {
+        //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        //         M => array( array( H => 'C3', M => 'authenticationExpiring', A => array() ) )
+        //     }
+        //
+        // resend the authentication request and refresh the subscription
+        //
+        $future = $this->negotiate();
+        $this->spawn(array($this, 'after_async'), $future, array($this, 'send_request_to_authenticate'), true);
+    }
+
     public function create_signal_r_query($params = array ()) {
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
+        $hub = $this->safe_string($this->options, 'hub', 'c3');
         $hubs = array(
             array( 'name' => $hub ),
         );
@@ -99,908 +202,471 @@ class bittrex extends \ccxt\bittrex {
         return $this->signalrGetStart ($request);
     }
 
-    public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'get_auth_context'), $params);
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $authenticate = $this->authenticate();
+        $future = $this->after_async($authenticate, array($this, 'subscribe_to_orders'), $params);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
-    public function get_auth_context($negotiation, $params = array ()) {
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $method = 'GetAuthContext';
-        $client = $this->client($url);
-        $authenticate = $this->safe_value($client->subscriptions, $method, array());
-        $future = $this->safe_value($authenticate, 'future');
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $requestId = (string) $this->milliseconds();
-            $hub = $this->safe_string($this->options, 'hub', 'c2');
-            $request = array(
-                'H' => $hub,
-                'M' => $method, // $request $method
-                'A' => array( $this->apiKey ), // arguments
-                'I' => $requestId, // invocation $request id
-            );
-            $subscription = array(
-                'id' => $requestId,
-                'method' => array($this, 'handle_get_auth_context'),
-                'negotiation' => $negotiation,
-                'future' => $future,
-            );
-            $this->spawn(array($this, 'watch'), $url, $requestId, $request, $method, $subscription);
-        }
-        return $future;
+    public function subscribe_to_orders($authentication, $params = array ()) {
+        $messageHash = 'order';
+        return $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
     }
 
-    public function handle_get_auth_context($client, $message, $subscription) {
+    public function handle_order($client, $message) {
         //
         //     {
-        //         'R' => '7d10e6b583484659918821072c83a5b6ce488e03cb744d86a2cc820bad466f1f',
-        //         'I' => '1579474528471'
+        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        //         sequence => 41,
+        //         $delta => {
+        //             id => 'b91eff76-10eb-4382-834a-b753b770283e',
+        //             marketSymbol => 'BTC-USDT',
+        //             direction => 'BUY',
+        //             type => 'LIMIT',
+        //             quantity => '0.01000000',
+        //             $limit => '3000.00000000',
+        //             timeInForce => 'GOOD_TIL_CANCELLED',
+        //             fillQuantity => '0.00000000',
+        //             commission => '0.00000000',
+        //             proceeds => '0.00000000',
+        //             status => 'OPEN',
+        //             createdAt => '2020-10-07T12:51:43.16Z',
+        //             updatedAt => '2020-10-07T12:51:43.16Z'
+        //         }
         //     }
         //
-        $negotiation = $this->safe_value($subscription, 'negotiation', array());
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $challenge = $this->safe_string($message, 'R');
-        $signature = $this->hmac($this->encode($challenge), $this->encode($this->secret), 'sha512');
-        $requestId = (string) $this->milliseconds();
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $method = 'Authenticate';
-        $request = array(
-            'H' => $hub,
-            'M' => $method, // $request $method
-            'A' => array( $this->apiKey, $signature ), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $authenticateSubscription = array(
-            'id' => $requestId,
-            'method' => array($this, 'handle_authenticate'),
-            'negotiation' => $negotiation,
-        );
-        $this->spawn(array($this, 'watch'), $url, $requestId, $request, $requestId, $authenticateSubscription);
-        return $message;
-    }
-
-    public function handle_authenticate($client, $message, $subscription) {
-        //
-        //     array( 'R' => true, 'I' => '1579474528821' )
-        //
-        $R = $this->safe_value($message, 'R');
-        if ($R) {
-            $client->resolve ($subscription['negotiation'], 'authenticated');
-        } else {
-            $error = new AuthenticationError ('Authentication failed');
-            $client->reject ($error, 'authenticated');
-            $authSubscriptionHash = 'GetAuthContext';
-            if (is_array($client->subscriptions) && array_key_exists($authSubscriptionHash, $client->subscriptions)) {
-                unset($client->subscriptions[$authSubscriptionHash]);
-            }
+        $delta = $this->safe_value($message, 'delta', array());
+        $parsed = $this->parse_order($delta);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
         }
-        return $message;
-    }
-
-    public function subscribe_to_user_deltas($negotiation, $params = array ()) {
-        $this->load_markets();
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $requestId = (string) $this->milliseconds();
-        $method = 'SubscribeToUserDeltas';
-        $messageHash = 'balance';
-        $subscribeHash = $method;
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array(), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'params' => $params,
-            'method' => array($this, 'handle_subscribe_to_user_deltas'),
-            'negotiation' => $negotiation,
-        );
-        return $this->watch($url, $messageHash, $request, $subscribeHash, $subscription);
+        $orders = $this->orders;
+        $orders->append ($parsed);
+        $messageHash = 'order';
+        $client->resolve ($this->orders, $messageHash);
     }
 
     public function watch_balance($params = array ()) {
         $this->load_markets();
-        $future = $this->authenticate();
-        return $this->after_async($future, array($this, 'subscribe_to_user_deltas'), $params);
+        $authenticate = $this->authenticate();
+        return $this->after_async($authenticate, array($this, 'subscribe_to_balance'), $params);
     }
 
-    public function subscribe_to_trade_deltas($negotiation, $symbol, $since = null, $limit = null, $params = array ()) {
-        $subscription = array(
-            'since' => $since,
-            'limit' => $limit,
-            'params' => $params,
-        );
-        $future = $this->subscribe_to_exchange_deltas('trade', $negotiation, $symbol, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+    public function subscribe_to_balance($authentication, $params = array ()) {
+        $messageHash = 'balance';
+        return $this->send_authenticated_request_to_subscribe($authentication, $messageHash, $params);
     }
 
-    public function subscribe_to_order_book_deltas($negotiation, $symbol, $limit = null, $params = array ()) {
-        $subscription = array(
-            'limit' => $limit,
-            'params' => $params,
-        );
-        $future = $this->subscribe_to_exchange_deltas('orderbook', $negotiation, $symbol, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    public function handle_balance($client, $message) {
+        //
+        //     {
+        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        //         sequence => 9,
+        //         $delta => {
+        //             currencySymbol => 'USDT',
+        //             total => '32.88918476',
+        //             available => '2.82918476',
+        //             updatedAt => '2020-10-06T13:49:20.29Z'
+        //         }
+        //     }
+        //
+        $delta = $this->safe_value($message, 'delta', array());
+        $currencyId = $this->safe_string($delta, 'currencySymbol');
+        $code = $this->safe_currency_code($currencyId);
+        $account = $this->account();
+        $account['free'] = $this->safe_float($delta, 'available');
+        $account['total'] = $this->safe_float($delta, 'total');
+        $this->balance[$code] = $account;
+        $this->balance = $this->parse_balance($this->balance);
+        $messageHash = 'balance';
+        $client->resolve ($this->balance, $messageHash);
     }
 
-    public function subscribe_to_summary_deltas($negotiation, $symbol, $params = array ()) {
+    public function watch_heartbeat($params = array ()) {
         $this->load_markets();
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-            // 'tid' => $this->milliseconds(fmod(), 10),
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
+        $negotiate = $this->negotiate();
+        return $this->after_async($negotiate, array($this, 'subscribe_to_heartbeat'), $params);
+    }
+
+    public function subscribe_to_heartbeat($negotiation, $params = array ()) {
+        $this->load_markets();
+        $url = $this->get_signal_r_url($negotiation);
         $requestId = (string) $this->milliseconds();
-        $name = 'ticker';
-        $messageHash = $name . ':' . $symbol;
-        $method = 'SubscribeToSummaryDeltas';
-        $subscribeHash = $method;
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array(), // arguments
-            'I' => $requestId, // invocation $request id
-        );
+        $messageHash = 'heartbeat';
+        $args = array( $messageHash );
+        $request = $this->make_request_to_subscribe($requestId, array( $args ));
         $subscription = array(
             'id' => $requestId,
-            'symbol' => $symbol,
             'params' => $params,
             'negotiation' => $negotiation,
-            'method' => array($this, 'handle_subscribe_to_summary_deltas'),
         );
-        return $this->watch($url, $messageHash, $request, $subscribeHash, $subscription);
+        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
-    public function subscribe_to_exchange_deltas($name, $negotiation, $symbol, $subscription) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-            // 'tid' => $this->milliseconds(fmod(), 10),
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $requestId = (string) $this->milliseconds();
-        $messageHash = $name . ':' . $symbol;
-        $method = 'SubscribeToExchangeDeltas';
-        $subscribeHash = $method . ':' . $symbol;
-        $marketId = $market['id'];
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array( $marketId ), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $subscription = array_merge(array(
-            'id' => $requestId,
-            'symbol' => $symbol,
-            'negotiation' => $negotiation,
-            'method' => array($this, 'handle_subscribe_to_exchange_deltas'),
-        ), $subscription);
-        return $this->watch($url, $messageHash, $request, $subscribeHash, $subscription);
+    public function handle_heartbeat($client, $message) {
+        //
+        // every 20 seconds (approx) if no other updates are sent
+        //
+        //     array()
+        //
+        $client->resolve ($message, 'heartbeat');
     }
 
     public function watch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'subscribe_to_summary_deltas'), $symbol, $params);
+        $negotiate = $this->negotiate();
+        return $this->after_async($negotiate, array($this, 'subscribe_to_ticker'), $symbol, $params);
+    }
+
+    public function subscribe_to_ticker($negotiation, $symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $name = 'ticker';
+        $messageHash = $name . '_' . $market['id'];
+        $subscription = array(
+            'marketId' => $market['id'],
+            'symbol' => $symbol,
+            'params' => $params,
+        );
+        return $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+    }
+
+    public function handle_ticker($client, $message) {
+        //
+        // summary subscription update
+        //
+        //     ...
+        //
+        // $ticker subscription update
+        //
+        //     {
+        //         $symbol => 'BTC-USDT',
+        //         lastTradeRate => '10701.02140008',
+        //         bidRate => '10701.02140007',
+        //         askRate => '10705.71049998'
+        //     }
+        //
+        $ticker = $this->parse_ticker($message);
+        $symbol = $ticker['symbol'];
+        $market = $this->market($symbol);
+        $this->tickers[$symbol] = $ticker;
+        $name = 'ticker';
+        $messageHash = $name . '_' . $market['id'];
+        $client->resolve ($ticker, $messageHash);
+    }
+
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $negotiate = $this->negotiate();
+        $future = $this->after_async($negotiate, array($this, 'subscribe_to_ohlcv'), $symbol, $timeframe, $params);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+    }
+
+    public function subscribe_to_ohlcv($negotiation, $symbol, $timeframe = '1m', $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $interval = $this->timeframes[$timeframe];
+        $name = 'candle';
+        $messageHash = $name . '_' . $market['id'] . '_' . $interval;
+        $subscription = array(
+            'symbol' => $symbol,
+            'timeframe' => $timeframe,
+            'messageHash' => $messageHash,
+            'params' => $params,
+        );
+        return $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+    }
+
+    public function handle_ohlcv($client, $message) {
+        //
+        //     {
+        //         sequence => 28286,
+        //         marketSymbol => 'BTC-USD',
+        //         $interval => 'MINUTE_1',
+        //         $delta => {
+        //             startsAt => '2020-10-05T18:52:00Z',
+        //             open => '10706.62600000',
+        //             high => '10706.62600000',
+        //             low => '10703.25900000',
+        //             close => '10703.26000000',
+        //             volume => '0.86822264',
+        //             quoteVolume => '9292.84594774'
+        //         }
+        //     }
+        //
+        $name = 'candle';
+        $marketId = $this->safe_string($message, 'marketSymbol');
+        $symbol = $this->safe_symbol($marketId, null, '-');
+        $interval = $this->safe_string($message, 'interval');
+        $messageHash = $name . '_' . $marketId . '_' . $interval;
+        $timeframe = $this->find_timeframe($interval);
+        $delta = $this->safe_value($message, 'delta', array());
+        $parsed = $this->parse_ohlcv($delta);
+        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
+        }
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && ($parsed[0] === $stored[$length - 1][0])) {
+            $stored[$length - 1] = $parsed;
+        } else {
+            $stored->append ($parsed);
+        }
+        $client->resolve ($stored, $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'subscribe_to_trade_deltas'), $symbol, $since, $limit, $params);
+        $negotiate = $this->negotiate();
+        $future = $this->after_async($negotiate, array($this, 'subscribe_to_trades'), $symbol, $params);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+    }
+
+    public function subscribe_to_trades($negotiation, $symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $name = 'trade';
+        $messageHash = $name . '_' . $market['id'];
+        $subscription = array(
+            'symbol' => $symbol,
+            'messageHash' => $messageHash,
+            'params' => $params,
+        );
+        return $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+    }
+
+    public function handle_trades($client, $message) {
+        //
+        //     {
+        //         $deltas => array(
+        //             {
+        //                 id => '5bf67885-a0a8-4c62-b73d-534e480e3332',
+        //                 executedAt => '2020-10-05T23:02:17.49Z',
+        //                 quantity => '0.00166790',
+        //                 rate => '10763.97000000',
+        //                 takerSide => 'BUY'
+        //             }
+        //         ),
+        //         sequence => 24391,
+        //         marketSymbol => 'BTC-USD'
+        //     }
+        //
+        $deltas = $this->safe_value($message, 'deltas', array());
+        $marketId = $this->safe_string($message, 'marketSymbol');
+        $symbol = $this->safe_symbol($marketId, null, '-');
+        $market = $this->market($symbol);
+        $name = 'trade';
+        $messageHash = $name . '_' . $marketId;
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+        }
+        $trades = $this->parse_trades($deltas, $market);
+        for ($i = 0; $i < count($trades); $i++) {
+            $stored->append ($trades[$i]);
+        }
+        $this->trades[$symbol] = $stored;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        $limit = ($limit === null) ? 25 : $limit; // 25 by default
+        if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
+            throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 100, default is 25');
+        }
         $this->load_markets();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'subscribe_to_order_book_deltas'), $symbol, $limit, $params);
+        $negotiate = $this->negotiate();
+        //
+        //     1. Subscribe to the relevant socket streams
+        //     2. Begin to queue up messages without processing them
+        //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, orderbook snapshots of different depths will have different sequence numbers.
+        //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
+        //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
+        //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
+        //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
+        //     8. If a message is received that is not the next in order, return to step 2 in this process
+        //
+        $future = $this->after_async($negotiate, array($this, 'subscribe_to_order_book'), $symbol, $limit, $params);
+        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+    }
+
+    public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $name = 'orderbook';
+        $messageHash = $name . '_' . $market['id'] . '_' . (string) $limit;
+        $subscription = array(
+            'symbol' => $symbol,
+            'messageHash' => $messageHash,
+            'method' => array($this, 'handle_subscribe_to_order_book'),
+            'limit' => $limit,
+            'params' => $params,
+        );
+        return $this->send_request_to_subscribe($negotiation, $messageHash, $subscription);
+    }
+
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_integer($subscription, 'limit');
+        $messageHash = $this->safe_string($subscription, 'messageHash');
+        try {
+            // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
+            // todo => this is a synch blocking call in ccxt.php - make it async
+            $snapshot = $this->fetch_order_book($symbol, $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $messages = $orderbook->cache;
+            // make sure we have at least one delta before fetching the $snapshot
+            // otherwise we cannot synchronize the feed with the $snapshot
+            // and that will lead to a bidask cross as reported here
+            // https://github.com/ccxt/ccxt/issues/6762
+            $firstMessage = $this->safe_value($messages, 0, array());
+            $sequence = $this->safe_integer($firstMessage, 'sequence');
+            $nonce = $this->safe_integer($snapshot, 'nonce');
+            // if the received $snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in $maxAttempts
+            if ($nonce < $sequence) {
+                $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
+                $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached $maxAttempts yet
+                if ($numAttempts < $maxAttempts) {
+                    // safety guard
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        $numAttempts = $this->sum($numAttempts, 1);
+                        $subscription['numAttempts'] = $numAttempts;
+                        $client->subscriptions[$messageHash] = $subscription;
+                        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in $maxAttempts
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                }
+            } else {
+                $orderbook->reset ($snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for ($i = 0; $i < count($messages); $i++) {
+                    $message = $messages[$i];
+                    $this->handle_order_book_message($client, $message, $orderbook);
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            }
+        } catch (Exception $e) {
+            $client->reject ($e, $messageHash);
+        }
+    }
+
+    public function handle_subscribe_to_order_book($client, $message, $subscription) {
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_integer($subscription, 'limit');
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
     public function handle_delta($bookside, $delta) {
-        $price = $this->safe_float($delta, 'R');
-        $amount = $this->safe_float($delta, 'Q');
+        //
+        //     {
+        //         quantity => '0.05100000',
+        //         rate => '10694.86410031'
+        //     }
+        //
+        $price = $this->safe_float($delta, 'rate');
+        $amount = $this->safe_float($delta, 'quantity');
         $bookside->store ($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
+        //
+        //     array(
+        //         array( quantity => '0.05100000', rate => '10694.86410031' ),
+        //         array( quantity => '0', rate => '10665.72578226' )
+        //     )
+        //
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_exchange_delta($client, $message) {
+    public function handle_order_book($client, $message) {
         //
         //     {
-        //         'M' => 'BTC-ETH',
-        //         'N' => 2322248,
-        //         'Z' => array(),
-        //         'S' => array(
-        //             array( 'TY' => 0, 'R' => 0.01938852, 'Q' => 29.32758526 ),
-        //             array( 'TY' => 1, 'R' => 0.02322822, 'Q' => 0 )
+        //         marketSymbol => 'BTC-USDT',
+        //         depth => 25,
+        //         sequence => 3009387,
+        //         bidDeltas => array(
+        //             array( quantity => '0.05100000', rate => '10694.86410031' ),
+        //             array( quantity => '0', rate => '10665.72578226' )
         //         ),
-        //         'f' => array(
-        //             {
-        //                 FI => 50365744,
-        //                 OT => 'SELL',
-        //                 R => 9240.432,
-        //                 Q => 0.07602962,
-        //                 T => 1580480744050
-        //             }
-        //         )
+        //         askDeltas => array()
         //     }
         //
-        $marketId = $this->safe_string($message, 'M');
-        $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                $orderbook = $this->orderbooks[$symbol];
-                //
-                // https://bittrex.github.io/api/v1-1#socket-connections
-                //
-                //     1 Drop existing websocket connections and flush accumulated data and state (e.g. $market nonces).
-                //     2 Re-establish websocket connection.
-                //     3 Subscribe to BTC-ETH $market deltas, cache received data keyed by nonce.
-                //     4 Query BTC-ETH $market state.
-                //     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
-                //
-                if ($orderbook['nonce'] !== null) {
-                    $this->handle_order_book_message($client, $message, $market, $orderbook);
-                } else {
-                    $orderbook->cache[] = $message;
-                }
-            }
-            $this->handle_trades_message($client, $message, $market);
+        $marketId = $this->safe_string($message, 'marketSymbol');
+        $symbol = $this->safe_symbol($marketId, null, '-');
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook['nonce'] !== null) {
+            $this->handle_order_book_message($client, $message, $orderbook);
+        } else {
+            $orderbook->cache[] = $message;
         }
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function handle_order_book_message($client, $message, $orderbook) {
         //
         //     {
-        //         FI => 50365744,     // fill $trade $id
-        //         OT => 'SELL',       // order $side type
-        //         R => 9240.432,      // $price rate
-        //         Q => 0.07602962,    // $amount quantity
-        //         T => 1580480744050, // $timestamp
-        //     }
-        //
-        $id = $this->safe_string($trade, 'FI');
-        if ($id === null) {
-            return parent::parse_trade($trade, $market);
-        }
-        $timestamp = $this->safe_integer($trade, 'T');
-        $price = $this->safe_float($trade, 'R');
-        $amount = $this->safe_float($trade, 'Q');
-        $side = $this->safe_string_lower($trade, 'OT');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        return array(
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
-            'id' => $id,
-            'order' => null,
-            'type' => null,
-            'takerOrMaker' => null,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => null,
-        );
-    }
-
-    public function handle_trades_message($client, $message, $market) {
-        //
-        //     {
-        //         'M' => 'BTC-ETH',
-        //         'N' => 2322248,
-        //         'Z' => array(),
-        //         'S' => array(
-        //             array( 'TY' => 0, 'R' => 0.01938852, 'Q' => 29.32758526 ),
-        //             array( 'TY' => 1, 'R' => 0.02322822, 'Q' => 0 )
+        //         marketSymbol => 'BTC-USDT',
+        //         $depth => 25,
+        //         sequence => 3009387,
+        //         bidDeltas => array(
+        //             array( quantity => '0.05100000', rate => '10694.86410031' ),
+        //             array( quantity => '0', rate => '10665.72578226' )
         //         ),
-        //         'f' => array(
-        //             {
-        //                 FI => 50365744,
-        //                 OT => 'SELL',
-        //                 R => 9240.432,
-        //                 Q => 0.07602962,
-        //                 T => 1580480744050
-        //             }
-        //         )
+        //         askDeltas => array()
         //     }
         //
-        $f = $this->safe_value($message, 'f', array());
-        $trades = $this->parse_trades($f, $market);
-        $tradesLength = is_array($trades) ? count($trades) : 0;
-        if ($tradesLength > 0) {
-            $symbol = $market['symbol'];
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $stored = new ArrayCache ($limit);
-                $this->trades[$symbol] = $stored;
-            }
-            for ($i = 0; $i < count($trades); $i++) {
-                $stored->append ($trades[$i]);
-            }
-            $name = 'trade';
-            $messageHash = $name . ':' . $market['symbol'];
-            $client->resolve ($stored, $messageHash);
-        }
-        return $message;
-    }
-
-    public function handle_order_book_message($client, $message, $market, $orderbook) {
-        //
-        //     {
-        //         'M' => 'BTC-ETH',
-        //         'N' => 2322248,
-        //         'Z' => array(),
-        //         'S' => array(
-        //             array( 'TY' => 0, 'R' => 0.01938852, 'Q' => 29.32758526 ),
-        //             array( 'TY' => 1, 'R' => 0.02322822, 'Q' => 0 )
-        //         ),
-        //         'f' => array()
-        //     }
-        //
-        $nonce = $this->safe_integer($message, 'N');
+        $marketId = $this->safe_string($message, 'marketSymbol');
+        $depth = $this->safe_string($message, 'depth');
+        $name = 'orderbook';
+        $messageHash = $name . '_' . $marketId . '_' . $depth;
+        $nonce = $this->safe_integer($message, 'sequence');
         if ($nonce > $orderbook['nonce']) {
-            $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'S', array()));
-            $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'Z', array()));
+            $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'askDeltas', array()));
+            $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bidDeltas', array()));
             $orderbook['nonce'] = $nonce;
-            $name = 'orderbook';
-            $messageHash = $name . ':' . $market['symbol'];
             $client->resolve ($orderbook, $messageHash);
         }
         return $orderbook;
     }
 
-    public function handle_summary_delta($client, $message) {
-        //
-        //     {
-        //         N => 93611,
-        //         $D => array(
-        //             array(
-        //                 M => 'BTC-WGP',
-        //                 H => 0,
-        //                 L => 0,
-        //                 V => 0,
-        //                 l => 0,
-        //                 m => 0,
-        //                 T => 1580498848980,
-        //                 B => 0.0000051,
-        //                 A => 0.0000077,
-        //                 G => 26,
-        //                 g => 68,
-        //                 PD => 0,
-        //                 x => 1573085249977
-        //             ),
-        //         )
-        //     }
-        //
-        $D = $this->safe_value($message, 'D', array());
-        $this->handle_tickers($client, $message, $D);
-    }
-
-    public function handle_balance_delta($client, $message) {
-        //
-        //     {
-        //         N => 4, // nonce
-        //         $d => array(
-        //             U => '2832c5c6-ac7a-493e-bc16-ebca06c73670', // uuid
-        //             W => 334126, // $account id (wallet)
-        //             c => 'BTC', // currency
-        //             b => 0.0181687, // balance
-        //             a => 0.0081687, // available
-        //             z => 0, // pending
-        //             p => '1cL5M4HjjoGWMA4jgHC5v6GqcjfxeeNMy', // address
-        //             r => false, // requested
-        //             u => 1579561864940, // last updated timestamp
-        //             h => null, // autosell
-        //         ),
-        //     }
-        //
-        $d = $this->safe_value($message, 'd');
-        $account = $this->account();
-        $account['free'] = $this->safe_float($d, 'a');
-        $account['total'] = $this->safe_float($d, 'b');
-        $code = $this->safe_currency_code($this->safe_string($d, 'c'));
-        $result = array();
-        $result[$code] = $account;
-        $this->balance = $this->deep_extend($this->balance, $result);
-        $this->balance = $this->parse_balance($this->balance);
-        $client->resolve ($this->balance, 'balance');
+    public function handle_system_status($client, $message) {
+        // send signalR protocol start() call
+        $negotiate = $this->negotiate();
+        $this->spawn(array($this, 'after_async'), $negotiate, array($this, 'start'));
         return $message;
-    }
-
-    public function fetch_balance_snapshot($client, $message, $subscription) {
-        // this is a method for fetching the balance snapshot over REST
-        // todo it is a synch blocking call in ccxt.php - make it async
-        $response = $this->fetchBalance ();
-        $this->balance = $this->deep_extend($this->balance, $response);
-        $client->resolve ($this->balance, 'balance');
-    }
-
-    public function fetch_summary_state($symbol, $params = array ()) {
-        // this is a method for fetching a market ticker snapshot over WS
-        $this->load_markets();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'query_summary_state'), $symbol, $params);
-    }
-
-    public function query_summary_state($negotiation, $symbol, $params = array ()) {
-        $this->load_markets();
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $method = 'QuerySummaryState';
-        $requestId = (string) $this->milliseconds();
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array(), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'symbol' => $symbol,
-            'params' => $params,
-            'method' => array($this, 'handle_query_summary_state'),
-        );
-        return $this->watch($url, $requestId, $request, $requestId, $subscription);
-    }
-
-    public function handle_query_summary_state($client, $message, $subscription) {
-        $R = $this->safe_string($message, 'R');
-        if ($R !== null) {
-            //
-            //     {
-            //         N => 92752,
-            //         $s => array(
-            //             array(
-            //                 M => 'USDT-VDX',      // market name
-            //                 H => 0.000939,        // high
-            //                 L => 0.000937,        // low
-            //                 V => 144826.07861649, // volume
-            //                 l => 0.000937,        // last
-            //                 m => 135.78640981,    // base volume
-            //                 T => 1580494553713,   // ticker timestamp
-            //                 B => 0.000937,        // bid
-            //                 A => 0.000939,        // ask
-            //                 G => 71,              // open buy orders
-            //                 g => 122,             // open sell orders
-            //                 PD => 0.000939,       // previous day
-            //                 x => 1558572081843    // created timestamp
-            //             ),
-            //         )
-            //     }
-            //
-            $inflated = $this->inflate64($R);
-            $response = json_decode($inflated, $as_associative_array = true);
-            $s = $this->safe_value($response, 's', array());
-            $this->handle_tickers($client, $message, $s);
-        }
-        return $R;
-    }
-
-    public function handle_tickers($client, $message, $tickers) {
-        //
-        //     array(
-        //         array(
-        //             M => 'BTC-WGP',
-        //             H => 0,
-        //             L => 0,
-        //             V => 0,
-        //             l => 0,
-        //             m => 0,
-        //             T => 1580498848980,
-        //             B => 0.0000051,
-        //             A => 0.0000077,
-        //             G => 26,
-        //             g => 68,
-        //             PD => 0,
-        //             x => 1573085249977
-        //         ),
-        //     )
-        //
-        for ($i = 0; $i < count($tickers); $i++) {
-            $this->handle_ticker($client, $message, $tickers[$i]);
-        }
-    }
-
-    public function handle_ticker($client, $message, $ticker) {
-        //
-        //     {
-        //         M => 'USDT-VDX',      // market $name
-        //         H => 0.000939,        // high
-        //         L => 0.000937,        // low
-        //         V => 144826.07861649, // volume
-        //         l => 0.000937,        // last
-        //         m => 135.78640981,    // base volume
-        //         T => 1580494553713,   // $ticker timestamp
-        //         B => 0.000937,        // bid
-        //         A => 0.000939,        // ask
-        //         G => 71,              // open buy orders
-        //         g => 122,             // open sell orders
-        //         PD => 0.000939,       // previous day
-        //         x => 1558572081843    // created timestamp
-        //     }
-        //
-        $result = $this->parse_ticker($ticker);
-        $symbol = $result['symbol'];
-        $this->tickers[$symbol] = $result;
-        $name = 'ticker';
-        $messageHash = $name . ':' . $symbol;
-        $client->resolve ($result, $messageHash);
-    }
-
-    public function parse_ticker($ticker, $market = null) {
-        //
-        //     {
-        //         M => 'USDT-VDX',      // $market name
-        //         H => 0.000939,        // high
-        //         L => 0.000937,        // low
-        //         V => 144826.07861649, // volume
-        //         l => 0.000937,        // $last
-        //         m => 135.78640981,    // $base volume
-        //         T => 1580494553713,   // $ticker $timestamp
-        //         B => 0.000937,        // bid
-        //         A => 0.000939,        // ask
-        //         G => 71,              // open buy orders
-        //         g => 122,             // open sell orders
-        //         PD => 0.000939,       // $previous day
-        //         x => 1558572081843    // created $timestamp
-        //     }
-        //
-        if (!(is_array($ticker) && array_key_exists('PD', $ticker))) {
-            return parent::parse_ticker($ticker, $market);
-        }
-        $previous = $this->safe_float($ticker, 'PD');
-        $timestamp = $this->safe_integer($ticker, 'T');
-        $symbol = null;
-        $marketId = $this->safe_string($ticker, 'M');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($quoteId, $baseId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_float($ticker, 'l');
-        $change = null;
-        $percentage = null;
-        if ($last !== null) {
-            if ($previous !== null) {
-                $change = $last - $previous;
-                if ($previous > 0) {
-                    $percentage = ($change / $previous) * 100;
-                }
-            }
-        }
-        return array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'H'),
-            'low' => $this->safe_float($ticker, 'L'),
-            'bid' => $this->safe_float($ticker, 'B'),
-            'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'A'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => $previous,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'm'),
-            'quoteVolume' => $this->safe_float($ticker, 'V'),
-            'info' => $ticker,
-        );
-    }
-
-    public function fetch_balance_state($params = array ()) {
-        // this is a method for fetching the balance snapshot over WS
-        $this->load_markets();
-        $future = $this->authenticate();
-        return $this->after_async($future, array($this, 'query_balance_state'), $params);
-    }
-
-    public function query_balance_state($negotiation, $params = array ()) {
-        //
-        // This $method does not work as expected.
-        //
-        // In general Bittrex API docs do not mention how to get the current
-        // state or a snapshot of balances of all coins over WS. The docs only
-        // specify how to 'Authenticate' (that works fine) which subscribes
-        // the user being authenticated to balance and order deltas by default.
-        //
-        // Investigating the WS message log in the browser on the
-        // balance page on Bittrex's website shows a $request to
-        // QueryBalanceState over WS sent in the very beginning.
-        // However, in case of WS in the browser on the Bittrex website
-        // there is no 'Authenticate' message, therefore the Bittrex website
-        // uses a different authentication mechanism (presumably, involving
-        // HTTP headers and Cookies upon the SignalR $negotiation handshake).
-        //
-        // An attempt to replicate the same $request to QueryBalanceState
-        // over WS here has failed – the WS server responds to that $request
-        // with an empty message containing just the $request id, without
-        // the actual snapshot result (no field called R in the SignalR message).
-        //
-        // The issue experienced is 100% identical to
-        //
-        //     https://github.com/Bittrex/bittrex.github.io/issues/23
-        //
-        //     2020-01-20T16:20:52.133Z connecting to wss://socket.bittrex.com/signalr/connect?transport=webSockets&connectionData=%5B%7B%22name%22%3A%22c2%22%7D%5D&clientProtocol=1.5&_=1579537250704&tid=4&$connectionToken=ycjp5vmHhq3%2BZ5yyAgSejQyUOQR%2Bj3aWrwoqBH3Tu4MWk0y84QjuCo4tp6PHPwrVqQf96jE7QRIZ3SwTcpMf5pdS40Vkxr3e4AjUdrRfFuoaidSh
-        //     2020-01-20T16:20:52.469Z onUpgrade
-        //     2020-01-20T16:20:52.471Z onOpen
-        //     2020-01-20T16:20:52.471Z sending {
-        //         H => 'c2',
-        //         M => 'GetAuthContext',
-        //         A => array( '247febd8422c4b1dbdcd8a4ca9a6d15b' ),
-        //         I => '1579537252133'
-        //     }
-        //     2020-01-20T16:20:52.584Z handleSystemStatus array( C => 'd-4F618038-L,0|LC0f,0|LC0g,1', S => 1, M => array() )
-        //     2020-01-20T16:20:52.938Z onMessage {
-        //         R => '99d0f9052ee442eba5736169517ef9a67ecf08c83a364295a647c989c32737f4',
-        //         I => '1579537252133'
-        //     }
-        //     2020-01-20T16:20:52.943Z sending {
-        //         H => 'c2',
-        //         M => 'Authenticate',
-        //         A => array(
-        //             '247febd8422c4b1dbdcd8a4ca9a6d15b',
-        //             '7935676d6c995f0435ec1cab48a8d02e3b4d1f786f941abba8aedbe2e088db0f023c15cee132dc6db50dd674e4ebf5a417de9ed59645b5668314846bbea8ec57'
-        //         ),
-        //         I => '1579537252943'
-        //     }
-        //     2020-01-20T16:20:56.216Z onMessage array( R => true, I => '1579537252943' )
-        //     2020-01-20T16:20:56.217Z sending array( H => 'c2', M => 'SubscribeToUserDeltas', A => array(), I => '1579537256217' )
-        //     2020-01-20T16:20:57.035Z onMessage array( R => true, I => '1579537256217' )
-        //     2020-01-20T16:20:57.037Z sending array( H => 'c2', M => 'QueryBalanceState', A => array(), I => '1579537257037' )
-        //     2020-01-20T16:20:57.772Z onMessage array( I => '1579537257037' )
-        //                                                  ↑
-        //                                                  |
-        //                       :( no 'R' here ------------+
-        //
-        // The last message in the sequence above has no resulting 'R' field
-        // which is present in the WebInspector and should contain the snapshot.
-        // Since the balance snapshot is returned and observed in WebInspector
-        // this is not caused by low balances. Apparently, a 'Query*' over WS
-        // requires a different authentication sequence that involves
-        // headers and cookies from reCaptcha and Cloudflare.
-        //
-        $this->load_markets();
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $method = 'QueryBalanceState';
-        $requestId = (string) $this->milliseconds();
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array(), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'method' => array($this, 'handle_balance_state'),
-        );
-        $future = $this->watch($url, $requestId, $request, $requestId, $subscription);
-        // has to be fixed here for the reasons explained above
-        return $this->after($future, array($this, 'limit_order_book'), $params);
-    }
-
-    public function handle_balance_state($client, $message, $subscription) {
-        $R = $this->safe_string($message, 'R');
-        // if ($R !== null) {
-        //     //
-        //     //     {
-        //     //         N => 2,
-        //     //         y => {
-        //     //             USDT => array(
-        //     //                 U => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //     //                 W => 334126,
-        //     //                 c => 'USDT',
-        //     //                 b => 0.00002077,
-        //     //                 a => 0.00002077,
-        //     //                 z => 0,
-        //     //                 p => null,
-        //     //                 r => false,
-        //     //                 u => 978307200000,
-        //     //                 h => null
-        //     //             ),
-        //     //             BTC => array(
-        //     //                 U => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //     //                 W => 334126,
-        //     //                 c => 'BTC',
-        //     //                 b => 0.00000736,
-        //     //                 a => 0.00000736,
-        //     //                 z => 0,
-        //     //                 p => '1cL5M4HjjoGWMA4jgHC5v6GqcjfxeeNMy',
-        //     //                 r => false,
-        //     //                 u => 978307200000,
-        //     //                 h => null
-        //     //             ),
-        //     //         }
-        //     //     }
-        //     //
-        //     $response = json_decode($this->inflate($R, $as_associative_array = true));
-        // }
-        return $R;
-    }
-
-    public function fetch_exchange_state($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $future = $this->negotiate();
-        return $this->after_async($future, array($this, 'query_exchange_state'), $symbol, $limit, $params);
-    }
-
-    public function query_exchange_state($negotiation, $symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $connectionToken = $this->safe_string($negotiation['response'], 'ConnectionToken');
-        $query = array_merge($negotiation['request'], array(
-            'connectionToken' => $connectionToken,
-        ));
-        $url = $this->urls['api']['ws'] . '?' . $this->urlencode($query);
-        $method = 'QueryExchangeState';
-        $requestId = (string) $this->milliseconds();
-        $marketId = $market['id'];
-        $hub = $this->safe_string($this->options, 'hub', 'c2');
-        $request = array(
-            'H' => $hub,
-            'M' => $method,
-            'A' => array( $marketId ), // arguments
-            'I' => $requestId, // invocation $request id
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'method' => array($this, 'handle_exchange_state'),
-        );
-        $future = $this->watch($url, $requestId, $request, $requestId, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
-    }
-
-    public function handle_exchange_state($client, $message, $subscription) {
-        $inflated = $this->inflate64($this->safe_value($message, 'R'));
-        $R = json_decode($inflated, $as_associative_array = true);
-        //
-        //     {
-        //         'M' => 'BTC-ETH',
-        //         'N' => 2571953,
-        //         'Z' => array( // bids
-        //             array( 'Q' => 2.38619729, 'R' => 0.01964739 ),
-        //             array( 'Q' => 6, 'R' => 0.01964738 ),
-        //             array( 'Q' => 0.0257, 'R' => 0.01964736 ),
-        //         ),
-        //         'S' => array( // asks
-        //             array( 'Q' => 1.84253634, 'R' => 0.01965675 ),
-        //             array( 'Q' => 3.61380271, 'R' => 0.01965677 ),
-        //             array( 'Q' => 5.6518, 'R' => 0.01965678 ),
-        //         ),
-        //         'f' => array( // last fills
-        //             array(
-        //                 'I' => 49355896,
-        //                 'T' => 1579380036860,
-        //                 'Q' => 0.06966562,
-        //                 'P' => 0.01964993,
-        //                 't' => 0.0013689245564066,
-        //                 'F' => 'FILL',
-        //                 'OT' => 'SELL',
-        //                 'U' => '421c649f-82fa-437b-b8f2-2a6a55bbecbc'
-        //             ),
-        //         )
-        //     }
-        //
-        $marketId = $this->safe_string($R, 'M');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook !== null) {
-                $snapshot = $this->parse_order_book($R, null, 'Z', 'S', 'R', 'Q');
-                $snapshot['nonce'] = $this->safe_integer($R, 'N');
-                $orderbook->reset ($snapshot);
-                // unroll the accumulated deltas
-                $messages = $orderbook->cache;
-                for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $market, $orderbook);
-                }
-                $this->orderbooks[$symbol] = $orderbook;
-                $requestId = $this->safe_string($subscription, 'id');
-                $client->resolve ($orderbook, $requestId);
-            }
-            $this->handle_trades_message($client, $message, $market);
-        }
-    }
-
-    public function handle_subscribe_to_user_deltas($client, $message, $subscription) {
-        // fetch the snapshot in a separate async call
-        $this->spawn(array($this, 'fetch_balance_snapshot'), $client, $message, $subscription);
-        // the two lines below may work when bittrex fixes the snapshots
-        // $params = $this->safe_value($subscription, 'params');
-        // $this->spawn(array($this, 'fetch_balance_state'), $params);
-    }
-
-    public function handle_subscribe_to_summary_deltas($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $params = $this->safe_string($subscription, 'params');
-        // fetch the snapshot in a separate async call
-        $this->spawn(array($this, 'fetch_summary_state'), $symbol, $params);
-    }
-
-    public function handle_subscribe_to_exchange_deltas($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_string($subscription, 'limit');
-        $params = $this->safe_string($subscription, 'params');
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
-        }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        // fetch the snapshot in a separate async call
-        $this->spawn(array($this, 'fetch_exchange_state'), $symbol, $limit, $params);
     }
 
     public function handle_subscription_status($client, $message) {
         //
         // success
         //
-        //     array( 'R' => true, $I => '1579299273251' )
+        //     array( R => array( array( Success => true, ErrorCode => null ) ), $I => '1601891513224' )
         //
         // failure
         // todo add error handling and future rejections
         //
         //     {
-        //         $I => '1580494127086',
-        //         E => "There was an error invoking Hub $method 'c2.QuerySummaryState'."
+        //         $I => '1601942374563',
+        //         E => "There was an error invoking Hub $method 'c3.Authenticate'."
         //     }
         //
         $I = $this->safe_string($message, 'I'); // noqa => E741
@@ -1021,43 +687,79 @@ class bittrex extends \ccxt\bittrex {
         return $message;
     }
 
-    public function handle_system_status($client, $message) {
-        // send signalR protocol start() call
-        $future = $this->negotiate();
-        $this->spawn(array($this, 'after_async'), $future, array($this, 'start'));
-        return $message;
-    }
-
-    public function handle_heartbeat($client, $message) {
+    public function handle_message($client, $message) {
+        // console.dir ($message, array( depth => null ));
         //
-        // every 20 seconds (approx) if no other updates are sent
+        // subscription confirmation
+        //
+        //     {
+        //         R => array(
+        //             array( Success => true, ErrorCode => null )
+        //         ),
+        //         I => '1601899375696'
+        //     }
+        //
+        // heartbeat subscription $update
+        //
+        //     {
+        //         C => 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
+        //         $M => array(
+        //             array( H => 'C3', $M => 'heartbeat', $A => array() )
+        //         )
+        //     }
+        //
+        // heartbeat empty $message
         //
         //     array()
         //
-        $client->resolve ($message, 'heartbeat');
-    }
-
-    public function handle_order_delta($client, $message) {
-        return $message;
-    }
-
-    public function handle_message($client, $message) {
+        // subscription $update
+        //
+        //     {
+        //         C => 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
+        //         $M => array(
+        //             {
+        //                 H => 'C3',
+        //                 $M => 'ticker', // orderBook, trade, candle, balance, order
+        //                 $A => array(
+        //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        //                 )
+        //             }
+        //         )
+        //     }
+        //
+        // authentication expiry notification
+        //
+        //     {
+        //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        //         $M => array( array( H => 'C3', $M => 'authenticationExpiring', $A => array() ) )
+        //     }
+        //
         $methods = array(
-            'uE' => array($this, 'handle_exchange_delta'),
-            'uO' => array($this, 'handle_order_delta'),
-            'uB' => array($this, 'handle_balance_delta'),
-            'uS' => array($this, 'handle_summary_delta'),
+            'authenticationExpiring' => array($this, 'handle_authentication_expiring'),
+            'order' => array($this, 'handle_order'),
+            'balance' => array($this, 'handle_balance'),
+            'trade' => array($this, 'handle_trades'),
+            'candle' => array($this, 'handle_ohlcv'),
+            'orderBook' => array($this, 'handle_order_book'),
+            'heartbeat' => array($this, 'handle_heartbeat'),
+            'ticker' => array($this, 'handle_ticker'),
         );
         $M = $this->safe_value($message, 'M', array());
         for ($i = 0; $i < count($M); $i++) {
             $methodType = $this->safe_value($M[$i], 'M');
             $method = $this->safe_value($methods, $methodType);
             if ($method !== null) {
-                $A = $this->safe_value($M[$i], 'A', array());
-                for ($k = 0; $k < count($A); $k++) {
-                    $inflated = $this->inflate64($A[$k]);
-                    $update = json_decode($inflated, $as_associative_array = true);
-                    $method($client, $update);
+                if ($methodType === 'heartbeat') {
+                    $method($client, $message);
+                } else if ($methodType === 'authenticationExpiring') {
+                    $method($client, $message);
+                } else {
+                    $A = $this->safe_value($M[$i], 'A', array());
+                    for ($k = 0; $k < count($A); $k++) {
+                        $inflated = $this->inflate64($A[$k]);
+                        $update = json_decode($inflated, $as_associative_array = true);
+                        $method($client, $update);
+                    }
                 }
             }
         }
@@ -1072,20 +774,6 @@ class bittrex extends \ccxt\bittrex {
         $numKeys = is_array($keys) ? count($keys) : 0;
         if ($numKeys < 1) {
             $this->handle_heartbeat($client, $message);
-        }
-    }
-
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($api === 'signalr') {
-            $url = $this->implode_params($this->urls['api'][$api], array(
-                'hostname' => $this->hostname,
-            )) . '/' . $path;
-            if ($params) {
-                $url .= '?' . $this->urlencode($params);
-            }
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-        } else {
-            return parent::sign ($path, $api, $method, $params, $headers, $body);
         }
     }
 }

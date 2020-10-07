@@ -5,10 +5,11 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 import json
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidNonce
 
 
 class bittrex(Exchange, ccxt.bittrex):
@@ -17,17 +18,19 @@ class bittrex(Exchange, ccxt.bittrex):
         return self.deep_extend(super(bittrex, self).describe(), {
             'has': {
                 'ws': True,
-                'watchOrderBook': True,
                 'watchBalance': True,
-                'watchTrades': True,
+                'watchHeartbeat': True,
+                'watchOHLCV': True,
+                'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
-                'watchOHLCV': False,  # missing on the exchange side
+                'watchTrades': True,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://socket.bittrex.com/signalr/connect',
-                    'signalr': 'https://socket.bittrex.com/signalr',
+                    'ws': 'wss://socket-v3.bittrex.com/signalr/connect',
+                    'signalr': 'https://socket-v3.bittrex.com/signalr',
                 },
             },
             'api': {
@@ -40,12 +43,100 @@ class bittrex(Exchange, ccxt.bittrex):
             },
             'options': {
                 'tradesLimit': 1000,
-                'hub': 'c2',
+                'hub': 'c3',
             },
         })
 
+    def get_signal_r_url(self, negotiation):
+        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
+        query = self.extend(negotiation['request'], {
+            'connectionToken': connectionToken,
+            # 'tid': self.milliseconds() % 10,
+        })
+        return self.urls['api']['ws'] + '?' + self.urlencode(query)
+
+    def make_request(self, requestId, method, args):
+        hub = self.safe_string(self.options, 'hub', 'c3')
+        return {
+            'H': hub,
+            'M': method,
+            'A': args,  # arguments
+            'I': requestId,  # invocation request id
+        }
+
+    def make_request_to_subscribe(self, requestId, args):
+        method = 'Subscribe'
+        return self.make_request(requestId, method, args)
+
+    def make_request_to_authenticate(self, requestId):
+        timestamp = self.milliseconds()
+        uuid = self.uuid()
+        auth = str(timestamp) + uuid
+        signature = self.hmac(self.encode(auth), self.secret, hashlib.sha512)
+        args = [self.apiKey, timestamp, uuid, signature]
+        method = 'Authenticate'
+        return self.make_request(requestId, method, args)
+
+    async def send_request_to_subscribe(self, negotiation, messageHash, subscription, params={}):
+        args = [messageHash]
+        requestId = str(self.milliseconds())
+        request = self.make_request_to_subscribe(requestId, [args])
+        subscription = self.extend({
+            'id': requestId,
+            'negotiation': negotiation,
+        }, subscription)
+        url = self.get_signal_r_url(negotiation)
+        return await self.watch(url, messageHash, request, messageHash, subscription)
+
+    async def authenticate(self, params={}):
+        await self.load_markets()
+        future = self.negotiate()
+        return await self.after_async(future, self.send_request_to_authenticate, False, params)
+
+    async def send_request_to_authenticate(self, negotiation, expired=False, params={}):
+        url = self.get_signal_r_url(negotiation)
+        client = self.client(url)
+        messageHash = 'authenticate'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if (future is None) or expired:
+            future = client.future(messageHash)
+            client.subscriptions[messageHash] = future
+            requestId = str(self.milliseconds())
+            request = self.make_request_to_authenticate(requestId)
+            subscription = {
+                'id': requestId,
+                'params': params,
+                'negotiation': negotiation,
+                'method': self.handle_authenticate,
+            }
+            self.spawn(self.watch, url, messageHash, request, requestId, subscription)
+        return await future
+
+    async def send_authenticated_request_to_subscribe(self, authentication, messageHash, params={}):
+        negotiation = self.safe_value(authentication, 'negotiation')
+        subscription = {'params': params}
+        return await self.send_request_to_subscribe(negotiation, messageHash, subscription, params)
+
+    def handle_authenticate(self, client, message, subscription):
+        requestId = self.safe_string(subscription, 'id')
+        if requestId in client.subscriptions:
+            del client.subscriptions[requestId]
+        client.resolve(subscription, 'authenticate')
+
+    def handle_authentication_expiring(self, client, message):
+        #
+        #     {
+        #         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
+        #     }
+        #
+        # resend the authentication request and refresh the subscription
+        #
+        future = self.negotiate()
+        self.spawn(self.after_async, future, self.send_request_to_authenticate, True)
+
     def create_signal_r_query(self, params={}):
-        hub = self.safe_string(self.options, 'hub', 'c2')
+        hub = self.safe_string(self.options, 'hub', 'c3')
         hubs = [
             {'name': hub},
         ]
@@ -95,844 +186,429 @@ class bittrex(Exchange, ccxt.bittrex):
         }))
         return await self.signalrGetStart(request)
 
-    async def authenticate(self, params={}):
-        self.check_required_credentials()
-        future = self.negotiate()
-        return await self.after_async(future, self.get_auth_context, params)
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        authenticate = self.authenticate()
+        future = self.after_async(authenticate, self.subscribe_to_orders, params)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
-    async def get_auth_context(self, negotiation, params={}):
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        method = 'GetAuthContext'
-        client = self.client(url)
-        authenticate = self.safe_value(client.subscriptions, method, {})
-        future = self.safe_value(authenticate, 'future')
-        if future is None:
-            future = client.future('authenticated')
-            requestId = str(self.milliseconds())
-            hub = self.safe_string(self.options, 'hub', 'c2')
-            request = {
-                'H': hub,
-                'M': method,  # request method
-                'A': [self.apiKey],  # arguments
-                'I': requestId,  # invocation request id
-            }
-            subscription = {
-                'id': requestId,
-                'method': self.handle_get_auth_context,
-                'negotiation': negotiation,
-                'future': future,
-            }
-            self.spawn(self.watch, url, requestId, request, method, subscription)
-        return await future
+    async def subscribe_to_orders(self, authentication, params={}):
+        messageHash = 'order'
+        return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
 
-    def handle_get_auth_context(self, client, message, subscription):
+    def handle_order(self, client, message):
         #
         #     {
-        #         'R': '7d10e6b583484659918821072c83a5b6ce488e03cb744d86a2cc820bad466f1f',
-        #         'I': '1579474528471'
+        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        #         sequence: 41,
+        #         delta: {
+        #             id: 'b91eff76-10eb-4382-834a-b753b770283e',
+        #             marketSymbol: 'BTC-USDT',
+        #             direction: 'BUY',
+        #             type: 'LIMIT',
+        #             quantity: '0.01000000',
+        #             limit: '3000.00000000',
+        #             timeInForce: 'GOOD_TIL_CANCELLED',
+        #             fillQuantity: '0.00000000',
+        #             commission: '0.00000000',
+        #             proceeds: '0.00000000',
+        #             status: 'OPEN',
+        #             createdAt: '2020-10-07T12:51:43.16Z',
+        #             updatedAt: '2020-10-07T12:51:43.16Z'
+        #         }
         #     }
         #
-        negotiation = self.safe_value(subscription, 'negotiation', {})
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        challenge = self.safe_string(message, 'R')
-        signature = self.hmac(self.encode(challenge), self.encode(self.secret), hashlib.sha512)
-        requestId = str(self.milliseconds())
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        method = 'Authenticate'
-        request = {
-            'H': hub,
-            'M': method,  # request method
-            'A': [self.apiKey, signature],  # arguments
-            'I': requestId,  # invocation request id
-        }
-        authenticateSubscription = {
-            'id': requestId,
-            'method': self.handle_authenticate,
-            'negotiation': negotiation,
-        }
-        self.spawn(self.watch, url, requestId, request, requestId, authenticateSubscription)
-        return message
-
-    def handle_authenticate(self, client, message, subscription):
-        #
-        #     {'R': True, 'I': '1579474528821'}
-        #
-        R = self.safe_value(message, 'R')
-        if R:
-            client.resolve(subscription['negotiation'], 'authenticated')
-        else:
-            error = AuthenticationError('Authentication failed')
-            client.reject(error, 'authenticated')
-            authSubscriptionHash = 'GetAuthContext'
-            if authSubscriptionHash in client.subscriptions:
-                del client.subscriptions[authSubscriptionHash]
-        return message
-
-    async def subscribe_to_user_deltas(self, negotiation, params={}):
-        await self.load_markets()
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        requestId = str(self.milliseconds())
-        method = 'SubscribeToUserDeltas'
-        messageHash = 'balance'
-        subscribeHash = method
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [],  # arguments
-            'I': requestId,  # invocation request id
-        }
-        subscription = {
-            'id': requestId,
-            'params': params,
-            'method': self.handle_subscribe_to_user_deltas,
-            'negotiation': negotiation,
-        }
-        return await self.watch(url, messageHash, request, subscribeHash, subscription)
+        delta = self.safe_value(message, 'delta', {})
+        parsed = self.parse_order(delta)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(parsed)
+        messageHash = 'order'
+        client.resolve(self.orders, messageHash)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        future = self.authenticate()
-        return await self.after_async(future, self.subscribe_to_user_deltas, params)
+        authenticate = self.authenticate()
+        return await self.after_async(authenticate, self.subscribe_to_balance, params)
 
-    async def subscribe_to_trade_deltas(self, negotiation, symbol, since=None, limit=None, params={}):
-        subscription = {
-            'since': since,
-            'limit': limit,
-            'params': params,
-        }
-        future = self.subscribe_to_exchange_deltas('trade', negotiation, symbol, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+    async def subscribe_to_balance(self, authentication, params={}):
+        messageHash = 'balance'
+        return await self.send_authenticated_request_to_subscribe(authentication, messageHash, params)
 
-    async def subscribe_to_order_book_deltas(self, negotiation, symbol, limit=None, params={}):
-        subscription = {
-            'limit': limit,
-            'params': params,
-        }
-        future = self.subscribe_to_exchange_deltas('orderbook', negotiation, symbol, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+    def handle_balance(self, client, message):
+        #
+        #     {
+        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        #         sequence: 9,
+        #         delta: {
+        #             currencySymbol: 'USDT',
+        #             total: '32.88918476',
+        #             available: '2.82918476',
+        #             updatedAt: '2020-10-06T13:49:20.29Z'
+        #         }
+        #     }
+        #
+        delta = self.safe_value(message, 'delta', {})
+        currencyId = self.safe_string(delta, 'currencySymbol')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_float(delta, 'available')
+        account['total'] = self.safe_float(delta, 'total')
+        self.balance[code] = account
+        self.balance = self.parse_balance(self.balance)
+        messageHash = 'balance'
+        client.resolve(self.balance, messageHash)
 
-    async def subscribe_to_summary_deltas(self, negotiation, symbol, params={}):
+    async def watch_heartbeat(self, params={}):
         await self.load_markets()
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-            # 'tid': self.milliseconds() % 10,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
+        negotiate = self.negotiate()
+        return await self.after_async(negotiate, self.subscribe_to_heartbeat, params)
+
+    async def subscribe_to_heartbeat(self, negotiation, params={}):
+        await self.load_markets()
+        url = self.get_signal_r_url(negotiation)
         requestId = str(self.milliseconds())
-        name = 'ticker'
-        messageHash = name + ':' + symbol
-        method = 'SubscribeToSummaryDeltas'
-        subscribeHash = method
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [],  # arguments
-            'I': requestId,  # invocation request id
-        }
+        messageHash = 'heartbeat'
+        args = [messageHash]
+        request = self.make_request_to_subscribe(requestId, [args])
         subscription = {
             'id': requestId,
-            'symbol': symbol,
             'params': params,
             'negotiation': negotiation,
-            'method': self.handle_subscribe_to_summary_deltas,
         }
-        return await self.watch(url, messageHash, request, subscribeHash, subscription)
+        return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def subscribe_to_exchange_deltas(self, name, negotiation, symbol, subscription):
-        await self.load_markets()
-        market = self.market(symbol)
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-            # 'tid': self.milliseconds() % 10,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        requestId = str(self.milliseconds())
-        messageHash = name + ':' + symbol
-        method = 'SubscribeToExchangeDeltas'
-        subscribeHash = method + ':' + symbol
-        marketId = market['id']
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [marketId],  # arguments
-            'I': requestId,  # invocation request id
-        }
-        subscription = self.extend({
-            'id': requestId,
-            'symbol': symbol,
-            'negotiation': negotiation,
-            'method': self.handle_subscribe_to_exchange_deltas,
-        }, subscription)
-        return await self.watch(url, messageHash, request, subscribeHash, subscription)
+    def handle_heartbeat(self, client, message):
+        #
+        # every 20 seconds(approx) if no other updates are sent
+        #
+        #     {}
+        #
+        client.resolve(message, 'heartbeat')
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_summary_deltas, symbol, params)
+        negotiate = self.negotiate()
+        return await self.after_async(negotiate, self.subscribe_to_ticker, symbol, params)
+
+    async def subscribe_to_ticker(self, negotiation, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        name = 'ticker'
+        messageHash = name + '_' + market['id']
+        subscription = {
+            'marketId': market['id'],
+            'symbol': symbol,
+            'params': params,
+        }
+        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+
+    def handle_ticker(self, client, message):
+        #
+        # summary subscription update
+        #
+        #     ...
+        #
+        # ticker subscription update
+        #
+        #     {
+        #         symbol: 'BTC-USDT',
+        #         lastTradeRate: '10701.02140008',
+        #         bidRate: '10701.02140007',
+        #         askRate: '10705.71049998'
+        #     }
+        #
+        ticker = self.parse_ticker(message)
+        symbol = ticker['symbol']
+        market = self.market(symbol)
+        self.tickers[symbol] = ticker
+        name = 'ticker'
+        messageHash = name + '_' + market['id']
+        client.resolve(ticker, messageHash)
+
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        negotiate = self.negotiate()
+        future = self.after_async(negotiate, self.subscribe_to_ohlcv, symbol, timeframe, params)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+
+    async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        interval = self.timeframes[timeframe]
+        name = 'candle'
+        messageHash = name + '_' + market['id'] + '_' + interval
+        subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'messageHash': messageHash,
+            'params': params,
+        }
+        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+
+    def handle_ohlcv(self, client, message):
+        #
+        #     {
+        #         sequence: 28286,
+        #         marketSymbol: 'BTC-USD',
+        #         interval: 'MINUTE_1',
+        #         delta: {
+        #             startsAt: '2020-10-05T18:52:00Z',
+        #             open: '10706.62600000',
+        #             high: '10706.62600000',
+        #             low: '10703.25900000',
+        #             close: '10703.26000000',
+        #             volume: '0.86822264',
+        #             quoteVolume: '9292.84594774'
+        #         }
+        #     }
+        #
+        name = 'candle'
+        marketId = self.safe_string(message, 'marketSymbol')
+        symbol = self.safe_symbol(marketId, None, '-')
+        interval = self.safe_string(message, 'interval')
+        messageHash = name + '_' + marketId + '_' + interval
+        timeframe = self.find_timeframe(interval)
+        delta = self.safe_value(message, 'delta', {})
+        parsed = self.parse_ohlcv(delta)
+        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCache(limit)
+            self.ohlcvs[symbol][timeframe] = stored
+        length = len(stored)
+        if length and (parsed[0] == stored[length - 1][0]):
+            stored[length - 1] = parsed
+        else:
+            stored.append(parsed)
+        client.resolve(stored, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_trade_deltas, symbol, since, limit, params)
+        negotiate = self.negotiate()
+        future = self.after_async(negotiate, self.subscribe_to_trades, symbol, params)
+        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.subscribe_to_order_book_deltas, symbol, limit, params)
-
-    def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 'R')
-        amount = self.safe_float(delta, 'Q')
-        bookside.store(price, amount)
-
-    def handle_deltas(self, bookside, deltas):
-        for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
-
-    def handle_exchange_delta(self, client, message):
-        #
-        #     {
-        #         'M': 'BTC-ETH',
-        #         'N': 2322248,
-        #         'Z': [],
-        #         'S': [
-        #             {'TY': 0, 'R': 0.01938852, 'Q': 29.32758526},
-        #             {'TY': 1, 'R': 0.02322822, 'Q': 0}
-        #         ],
-        #         'f': [
-        #             {
-        #                 FI: 50365744,
-        #                 OT: 'SELL',
-        #                 R: 9240.432,
-        #                 Q: 0.07602962,
-        #                 T: 1580480744050
-        #             }
-        #         ]
-        #     }
-        #
-        marketId = self.safe_string(message, 'M')
-        market = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            if symbol in self.orderbooks:
-                orderbook = self.orderbooks[symbol]
-                #
-                # https://bittrex.github.io/api/v1-1#socket-connections
-                #
-                #     1 Drop existing websocket connections and flush accumulated data and state(e.g. market nonces).
-                #     2 Re-establish websocket connection.
-                #     3 Subscribe to BTC-ETH market deltas, cache received data keyed by nonce.
-                #     4 Query BTC-ETH market state.
-                #     5 Apply cached deltas sequentially, starting with nonces greater than that received in step 4.
-                #
-                if orderbook['nonce'] is not None:
-                    self.handle_order_book_message(client, message, market, orderbook)
-                else:
-                    orderbook.cache.append(message)
-            self.handle_trades_message(client, message, market)
-
-    def parse_trade(self, trade, market=None):
-        #
-        #     {
-        #         FI: 50365744,     # fill trade id
-        #         OT: 'SELL',       # order side type
-        #         R: 9240.432,      # price rate
-        #         Q: 0.07602962,    # amount quantity
-        #         T: 1580480744050,  # timestamp
-        #     }
-        #
-        id = self.safe_string(trade, 'FI')
-        if id is None:
-            return super(bittrex, self).parse_trade(trade, market)
-        timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float(trade, 'R')
-        amount = self.safe_float(trade, 'Q')
-        side = self.safe_string_lower(trade, 'OT')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
-        symbol = None
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': None,
-            'type': None,
-            'takerOrMaker': None,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
-        }
-
-    def handle_trades_message(self, client, message, market):
-        #
-        #     {
-        #         'M': 'BTC-ETH',
-        #         'N': 2322248,
-        #         'Z': [],
-        #         'S': [
-        #             {'TY': 0, 'R': 0.01938852, 'Q': 29.32758526},
-        #             {'TY': 1, 'R': 0.02322822, 'Q': 0}
-        #         ],
-        #         'f': [
-        #             {
-        #                 FI: 50365744,
-        #                 OT: 'SELL',
-        #                 R: 9240.432,
-        #                 Q: 0.07602962,
-        #                 T: 1580480744050
-        #             }
-        #         ]
-        #     }
-        #
-        f = self.safe_value(message, 'f', [])
-        trades = self.parse_trades(f, market)
-        tradesLength = len(trades)
-        if tradesLength > 0:
-            symbol = market['symbol']
-            stored = self.safe_value(self.trades, symbol)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                stored = ArrayCache(limit)
-                self.trades[symbol] = stored
-            for i in range(0, len(trades)):
-                stored.append(trades[i])
-            name = 'trade'
-            messageHash = name + ':' + market['symbol']
-            client.resolve(stored, messageHash)
-        return message
-
-    def handle_order_book_message(self, client, message, market, orderbook):
-        #
-        #     {
-        #         'M': 'BTC-ETH',
-        #         'N': 2322248,
-        #         'Z': [],
-        #         'S': [
-        #             {'TY': 0, 'R': 0.01938852, 'Q': 29.32758526},
-        #             {'TY': 1, 'R': 0.02322822, 'Q': 0}
-        #         ],
-        #         'f': []
-        #     }
-        #
-        nonce = self.safe_integer(message, 'N')
-        if nonce > orderbook['nonce']:
-            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'S', []))
-            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'Z', []))
-            orderbook['nonce'] = nonce
-            name = 'orderbook'
-            messageHash = name + ':' + market['symbol']
-            client.resolve(orderbook, messageHash)
-        return orderbook
-
-    def handle_summary_delta(self, client, message):
-        #
-        #     {
-        #         N: 93611,
-        #         D: [
-        #             {
-        #                 M: 'BTC-WGP',
-        #                 H: 0,
-        #                 L: 0,
-        #                 V: 0,
-        #                 l: 0,
-        #                 m: 0,
-        #                 T: 1580498848980,
-        #                 B: 0.0000051,
-        #                 A: 0.0000077,
-        #                 G: 26,
-        #                 g: 68,
-        #                 PD: 0,
-        #                 x: 1573085249977
-        #             },
-        #         ]
-        #     }
-        #
-        D = self.safe_value(message, 'D', [])
-        self.handle_tickers(client, message, D)
-
-    def handle_balance_delta(self, client, message):
-        #
-        #     {
-        #         N: 4,  # nonce
-        #         d: {
-        #             U: '2832c5c6-ac7a-493e-bc16-ebca06c73670',  # uuid
-        #             W: 334126,  # account id(wallet)
-        #             c: 'BTC',  # currency
-        #             b: 0.0181687,  # balance
-        #             a: 0.0081687,  # available
-        #             z: 0,  # pending
-        #             p: '1cL5M4HjjoGWMA4jgHC5v6GqcjfxeeNMy',  # address
-        #             r: False,  # requested
-        #             u: 1579561864940,  # last updated timestamp
-        #             h: null,  # autosell
-        #         },
-        #     }
-        #
-        d = self.safe_value(message, 'd')
-        account = self.account()
-        account['free'] = self.safe_float(d, 'a')
-        account['total'] = self.safe_float(d, 'b')
-        code = self.safe_currency_code(self.safe_string(d, 'c'))
-        result = {}
-        result[code] = account
-        self.balance = self.deep_extend(self.balance, result)
-        self.balance = self.parse_balance(self.balance)
-        client.resolve(self.balance, 'balance')
-        return message
-
-    async def fetch_balance_snapshot(self, client, message, subscription):
-        # self is a method for fetching the balance snapshot over REST
-        # todo it is a synch blocking call in ccxt.php - make it async
-        response = await self.fetchBalance()
-        self.balance = self.deep_extend(self.balance, response)
-        client.resolve(self.balance, 'balance')
-
-    async def fetch_summary_state(self, symbol, params={}):
-        # self is a method for fetching a market ticker snapshot over WS
-        await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.query_summary_state, symbol, params)
-
-    async def query_summary_state(self, negotiation, symbol, params={}):
-        await self.load_markets()
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        method = 'QuerySummaryState'
-        requestId = str(self.milliseconds())
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [],  # arguments
-            'I': requestId,  # invocation request id
-        }
-        subscription = {
-            'id': requestId,
-            'symbol': symbol,
-            'params': params,
-            'method': self.handle_query_summary_state,
-        }
-        return await self.watch(url, requestId, request, requestId, subscription)
-
-    def handle_query_summary_state(self, client, message, subscription):
-        R = self.safe_string(message, 'R')
-        if R is not None:
-            #
-            #     {
-            #         N: 92752,
-            #         s: [
-            #             {
-            #                 M: 'USDT-VDX',      # market name
-            #                 H: 0.000939,        # high
-            #                 L: 0.000937,        # low
-            #                 V: 144826.07861649,  # volume
-            #                 l: 0.000937,        # last
-            #                 m: 135.78640981,    # base volume
-            #                 T: 1580494553713,   # ticker timestamp
-            #                 B: 0.000937,        # bid
-            #                 A: 0.000939,        # ask
-            #                 G: 71,              # open buy orders
-            #                 g: 122,             # open sell orders
-            #                 PD: 0.000939,       # previous day
-            #                 x: 1558572081843    # created timestamp
-            #             },
-            #         ]
-            #     }
-            #
-            inflated = self.inflate64(R)
-            response = json.loads(inflated)
-            s = self.safe_value(response, 's', [])
-            self.handle_tickers(client, message, s)
-        return R
-
-    def handle_tickers(self, client, message, tickers):
-        #
-        #     [
-        #         {
-        #             M: 'BTC-WGP',
-        #             H: 0,
-        #             L: 0,
-        #             V: 0,
-        #             l: 0,
-        #             m: 0,
-        #             T: 1580498848980,
-        #             B: 0.0000051,
-        #             A: 0.0000077,
-        #             G: 26,
-        #             g: 68,
-        #             PD: 0,
-        #             x: 1573085249977
-        #         },
-        #     ]
-        #
-        for i in range(0, len(tickers)):
-            self.handle_ticker(client, message, tickers[i])
-
-    def handle_ticker(self, client, message, ticker):
-        #
-        #     {
-        #         M: 'USDT-VDX',      # market name
-        #         H: 0.000939,        # high
-        #         L: 0.000937,        # low
-        #         V: 144826.07861649,  # volume
-        #         l: 0.000937,        # last
-        #         m: 135.78640981,    # base volume
-        #         T: 1580494553713,   # ticker timestamp
-        #         B: 0.000937,        # bid
-        #         A: 0.000939,        # ask
-        #         G: 71,              # open buy orders
-        #         g: 122,             # open sell orders
-        #         PD: 0.000939,       # previous day
-        #         x: 1558572081843    # created timestamp
-        #     }
-        #
-        result = self.parse_ticker(ticker)
-        symbol = result['symbol']
-        self.tickers[symbol] = result
-        name = 'ticker'
-        messageHash = name + ':' + symbol
-        client.resolve(result, messageHash)
-
-    def parse_ticker(self, ticker, market=None):
-        #
-        #     {
-        #         M: 'USDT-VDX',      # market name
-        #         H: 0.000939,        # high
-        #         L: 0.000937,        # low
-        #         V: 144826.07861649,  # volume
-        #         l: 0.000937,        # last
-        #         m: 135.78640981,    # base volume
-        #         T: 1580494553713,   # ticker timestamp
-        #         B: 0.000937,        # bid
-        #         A: 0.000939,        # ask
-        #         G: 71,              # open buy orders
-        #         g: 122,             # open sell orders
-        #         PD: 0.000939,       # previous day
-        #         x: 1558572081843    # created timestamp
-        #     }
-        #
-        if not ('PD' in ticker):
-            return super(bittrex, self).parse_ticker(ticker, market)
-        previous = self.safe_float(ticker, 'PD')
-        timestamp = self.safe_integer(ticker, 'T')
-        symbol = None
-        marketId = self.safe_string(ticker, 'M')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                quoteId, baseId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'l')
-        change = None
-        percentage = None
-        if last is not None:
-            if previous is not None:
-                change = last - previous
-                if previous > 0:
-                    percentage = (change / previous) * 100
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'H'),
-            'low': self.safe_float(ticker, 'L'),
-            'bid': self.safe_float(ticker, 'B'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'A'),
-            'askVolume': None,
-            'vwap': None,
-            'open': previous,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': None,
-            'baseVolume': self.safe_float(ticker, 'm'),
-            'quoteVolume': self.safe_float(ticker, 'V'),
-            'info': ticker,
-        }
-
-    async def fetch_balance_state(self, params={}):
-        # self is a method for fetching the balance snapshot over WS
-        await self.load_markets()
-        future = self.authenticate()
-        return await self.after_async(future, self.query_balance_state, params)
-
-    async def query_balance_state(self, negotiation, params={}):
-        #
-        # This method does not work as expected.
-        #
-        # In general Bittrex API docs do not mention how to get the current
-        # state or a snapshot of balances of all coins over WS. The docs only
-        # specify how to 'Authenticate'(that works fine) which subscribes
-        # the user being authenticated to balance and order deltas by default.
-        #
-        # Investigating the WS message log in the browser on the
-        # balance page on Bittrex's website shows a request to
-        # QueryBalanceState over WS sent in the very beginning.
-        # However, in case of WS in the browser on the Bittrex website
-        # there is no 'Authenticate' message, therefore the Bittrex website
-        # uses a different authentication mechanism(presumably, involving
-        # HTTP headers and Cookies upon the SignalR negotiation handshake).
-        #
-        # An attempt to replicate the same request to QueryBalanceState
-        # over WS here has failed – the WS server responds to that request
-        # with an empty message containing just the request id, without
-        # the actual snapshot result(no field called R in the SignalR message).
-        #
-        # The issue experienced is 100% identical to
-        #
-        #     https://github.com/Bittrex/bittrex.github.io/issues/23
-        #
-        #     2020-01-20T16:20:52.133Z connecting to wss://socket.bittrex.com/signalr/connect?transport=webSockets&connectionData=%5B%7B%22name%22%3A%22c2%22%7D%5D&clientProtocol=1.5&_=1579537250704&tid=4&connectionToken=ycjp5vmHhq3%2BZ5yyAgSejQyUOQR%2Bj3aWrwoqBH3Tu4MWk0y84QjuCo4tp6PHPwrVqQf96jE7QRIZ3SwTcpMf5pdS40Vkxr3e4AjUdrRfFuoaidSh
-        #     2020-01-20T16:20:52.469Z onUpgrade
-        #     2020-01-20T16:20:52.471Z onOpen
-        #     2020-01-20T16:20:52.471Z sending {
-        #         H: 'c2',
-        #         M: 'GetAuthContext',
-        #         A: ['247febd8422c4b1dbdcd8a4ca9a6d15b'],
-        #         I: '1579537252133'
-        #     }
-        #     2020-01-20T16:20:52.584Z handleSystemStatus {C: 'd-4F618038-L,0|LC0f,0|LC0g,1', S: 1, M: []}
-        #     2020-01-20T16:20:52.938Z onMessage {
-        #         R: '99d0f9052ee442eba5736169517ef9a67ecf08c83a364295a647c989c32737f4',
-        #         I: '1579537252133'
-        #     }
-        #     2020-01-20T16:20:52.943Z sending {
-        #         H: 'c2',
-        #         M: 'Authenticate',
-        #         A: [
-        #             '247febd8422c4b1dbdcd8a4ca9a6d15b',
-        #             '7935676d6c995f0435ec1cab48a8d02e3b4d1f786f941abba8aedbe2e088db0f023c15cee132dc6db50dd674e4ebf5a417de9ed59645b5668314846bbea8ec57'
-        #         ],
-        #         I: '1579537252943'
-        #     }
-        #     2020-01-20T16:20:56.216Z onMessage {R: True, I: '1579537252943'}
-        #     2020-01-20T16:20:56.217Z sending {H: 'c2', M: 'SubscribeToUserDeltas', A: [], I: '1579537256217'}
-        #     2020-01-20T16:20:57.035Z onMessage {R: True, I: '1579537256217'}
-        #     2020-01-20T16:20:57.037Z sending {H: 'c2', M: 'QueryBalanceState', A: [], I: '1579537257037'}
-        #     2020-01-20T16:20:57.772Z onMessage {I: '1579537257037'}
-        #                                                  ↑
-        #                                                  |
-        #                       :( no 'R' here ------------+
-        #
-        # The last message in the sequence above has no resulting 'R' field
-        # which is present in the WebInspector and should contain the snapshot.
-        # Since the balance snapshot is returned and observed in WebInspector
-        # self is not caused by low balances. Apparently, a 'Query*' over WS
-        # requires a different authentication sequence that involves
-        # headers and cookies from reCaptcha and Cloudflare.
-        #
-        await self.load_markets()
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        method = 'QueryBalanceState'
-        requestId = str(self.milliseconds())
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [],  # arguments
-            'I': requestId,  # invocation request id
-        }
-        subscription = {
-            'id': requestId,
-            'method': self.handle_balance_state,
-        }
-        future = self.watch(url, requestId, request, requestId, subscription)
-        # has to be fixed here for the reasons explained above
-        return await self.after(future, self.limit_order_book, params)
-
-    def handle_balance_state(self, client, message, subscription):
-        R = self.safe_string(message, 'R')
-        # if R is not None:
-        #     #
-        #     #     {
-        #     #         N: 2,
-        #     #         y: {
-        #     #             USDT: {
-        #     #                 U: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #     #                 W: 334126,
-        #     #                 c: 'USDT',
-        #     #                 b: 0.00002077,
-        #     #                 a: 0.00002077,
-        #     #                 z: 0,
-        #     #                 p: null,
-        #     #                 r: False,
-        #     #                 u: 978307200000,
-        #     #                 h: null
-        #     #             },
-        #     #             BTC: {
-        #     #                 U: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #     #                 W: 334126,
-        #     #                 c: 'BTC',
-        #     #                 b: 0.00000736,
-        #     #                 a: 0.00000736,
-        #     #                 z: 0,
-        #     #                 p: '1cL5M4HjjoGWMA4jgHC5v6GqcjfxeeNMy',
-        #     #                 r: False,
-        #     #                 u: 978307200000,
-        #     #                 h: null
-        #     #             },
-        #     #         }
-        #     #     }
-        #     #
-        #     response = json.loads(self.inflate(R))
-        # }
-        return R
-
-    async def fetch_exchange_state(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.query_exchange_state, symbol, limit, params)
-
-    async def query_exchange_state(self, negotiation, symbol, limit=None, params={}):
+    async def subscribe_to_trades(self, negotiation, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        connectionToken = self.safe_string(negotiation['response'], 'ConnectionToken')
-        query = self.extend(negotiation['request'], {
-            'connectionToken': connectionToken,
-        })
-        url = self.urls['api']['ws'] + '?' + self.urlencode(query)
-        method = 'QueryExchangeState'
-        requestId = str(self.milliseconds())
-        marketId = market['id']
-        hub = self.safe_string(self.options, 'hub', 'c2')
-        request = {
-            'H': hub,
-            'M': method,
-            'A': [marketId],  # arguments
-            'I': requestId,  # invocation request id
-        }
+        name = 'trade'
+        messageHash = name + '_' + market['id']
         subscription = {
-            'id': requestId,
-            'method': self.handle_exchange_state,
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'params': params,
         }
-        future = self.watch(url, requestId, request, requestId, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
 
-    def handle_exchange_state(self, client, message, subscription):
-        inflated = self.inflate64(self.safe_value(message, 'R'))
-        R = json.loads(inflated)
+    def handle_trades(self, client, message):
         #
         #     {
-        #         'M': 'BTC-ETH',
-        #         'N': 2571953,
-        #         'Z': [ # bids
-        #             {'Q': 2.38619729, 'R': 0.01964739},
-        #             {'Q': 6, 'R': 0.01964738},
-        #             {'Q': 0.0257, 'R': 0.01964736},
-        #         ],
-        #         'S': [ # asks
-        #             {'Q': 1.84253634, 'R': 0.01965675},
-        #             {'Q': 3.61380271, 'R': 0.01965677},
-        #             {'Q': 5.6518, 'R': 0.01965678},
-        #         ],
-        #         'f': [ # last fills
+        #         deltas: [
         #             {
-        #                 'I': 49355896,
-        #                 'T': 1579380036860,
-        #                 'Q': 0.06966562,
-        #                 'P': 0.01964993,
-        #                 't': 0.0013689245564066,
-        #                 'F': 'FILL',
-        #                 'OT': 'SELL',
-        #                 'U': '421c649f-82fa-437b-b8f2-2a6a55bbecbc'
-        #             },
-        #         ]
+        #                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
+        #                 executedAt: '2020-10-05T23:02:17.49Z',
+        #                 quantity: '0.00166790',
+        #                 rate: '10763.97000000',
+        #                 takerSide: 'BUY'
+        #             }
+        #         ],
+        #         sequence: 24391,
+        #         marketSymbol: 'BTC-USD'
         #     }
         #
-        marketId = self.safe_string(R, 'M')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is not None:
-                snapshot = self.parse_order_book(R, None, 'Z', 'S', 'R', 'Q')
-                snapshot['nonce'] = self.safe_integer(R, 'N')
+        deltas = self.safe_value(message, 'deltas', [])
+        marketId = self.safe_string(message, 'marketSymbol')
+        symbol = self.safe_symbol(marketId, None, '-')
+        market = self.market(symbol)
+        name = 'trade'
+        messageHash = name + '_' + marketId
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+        trades = self.parse_trades(deltas, market)
+        for i in range(0, len(trades)):
+            stored.append(trades[i])
+        self.trades[symbol] = stored
+        client.resolve(stored, messageHash)
+
+    async def watch_order_book(self, symbol, limit=None, params={}):
+        limit = 25 if (limit is None) else limit  # 25 by default
+        if (limit != 1) and (limit != 25) and (limit != 500):
+            raise BadRequest(self.id + ' watchOrderBook() limit argument must be None, 1, 25 or 100, default is 25')
+        await self.load_markets()
+        negotiate = self.negotiate()
+        #
+        #     1. Subscribe to the relevant socket streams
+        #     2. Begin to queue up messages without processing them
+        #     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, orderbook snapshots of different depths will have different sequence numbers.
+        #     4. If the Sequence header is less than the sequence number of the first queued socket message received(unlikely), discard the results of step 3 and then repeat step 3 until self check passes.
+        #     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
+        #     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message(see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
+        #     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
+        #     8. If a message is received that is not the next in order, return to step 2 in self process
+        #
+        future = self.after_async(negotiate, self.subscribe_to_order_book, symbol, limit, params)
+        return await self.after(future, self.limit_order_book, symbol, limit, params)
+
+    async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        name = 'orderbook'
+        messageHash = name + '_' + market['id'] + '_' + str(limit)
+        subscription = {
+            'symbol': symbol,
+            'messageHash': messageHash,
+            'method': self.handle_subscribe_to_order_book,
+            'limit': limit,
+            'params': params,
+        }
+        return await self.send_request_to_subscribe(negotiation, messageHash, subscription)
+
+    async def fetch_order_book_snapshot(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
+        messageHash = self.safe_string(subscription, 'messageHash')
+        try:
+            # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
+            # todo: self is a synch blocking call in ccxt.php - make it async
+            snapshot = await self.fetch_order_book(symbol, limit)
+            orderbook = self.orderbooks[symbol]
+            messages = orderbook.cache
+            # make sure we have at least one delta before fetching the snapshot
+            # otherwise we cannot synchronize the feed with the snapshot
+            # and that will lead to a bidask cross as reported here
+            # https://github.com/ccxt/ccxt/issues/6762
+            firstMessage = self.safe_value(messages, 0, {})
+            sequence = self.safe_integer(firstMessage, 'sequence')
+            nonce = self.safe_integer(snapshot, 'nonce')
+            # if the received snapshot is earlier than the first cached delta
+            # then we cannot align it with the cached deltas and we need to
+            # retry synchronizing in maxAttempts
+            if nonce < sequence:
+                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
+                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
+                # retry to syncrhonize if we haven't reached maxAttempts yet
+                if numAttempts < maxAttempts:
+                    # safety guard
+                    if messageHash in client.subscriptions:
+                        numAttempts = self.sum(numAttempts, 1)
+                        subscription['numAttempts'] = numAttempts
+                        client.subscriptions[messageHash] = subscription
+                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+                else:
+                    # raise upon failing to synchronize in maxAttempts
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+            else:
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
-                messages = orderbook.cache
+                # 3. Playback the cached Level 2 data flow.
                 for i in range(0, len(messages)):
                     message = messages[i]
-                    self.handle_order_book_message(client, message, market, orderbook)
+                    self.handle_order_book_message(client, message, orderbook)
                 self.orderbooks[symbol] = orderbook
-                requestId = self.safe_string(subscription, 'id')
-                client.resolve(orderbook, requestId)
-            self.handle_trades_message(client, message, market)
+                client.resolve(orderbook, messageHash)
+        except Exception as e:
+            client.reject(e, messageHash)
 
-    def handle_subscribe_to_user_deltas(self, client, message, subscription):
-        # fetch the snapshot in a separate async call
-        self.spawn(self.fetch_balance_snapshot, client, message, subscription)
-        # the two lines below may work when bittrex fixes the snapshots
-        # params = self.safe_value(subscription, 'params')
-        # self.spawn(self.fetch_balance_state, params)
-
-    def handle_subscribe_to_summary_deltas(self, client, message, subscription):
+    def handle_subscribe_to_order_book(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
-        params = self.safe_string(subscription, 'params')
-        # fetch the snapshot in a separate async call
-        self.spawn(self.fetch_summary_state, symbol, params)
-
-    def handle_subscribe_to_exchange_deltas(self, client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_string(subscription, 'limit')
-        params = self.safe_string(subscription, 'params')
+        limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        # fetch the snapshot in a separate async call
-        self.spawn(self.fetch_exchange_state, symbol, limit, params)
+        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+
+    def handle_delta(self, bookside, delta):
+        #
+        #     {
+        #         quantity: '0.05100000',
+        #         rate: '10694.86410031'
+        #     }
+        #
+        price = self.safe_float(delta, 'rate')
+        amount = self.safe_float(delta, 'quantity')
+        bookside.store(price, amount)
+
+    def handle_deltas(self, bookside, deltas):
+        #
+        #     [
+        #         {quantity: '0.05100000', rate: '10694.86410031'},
+        #         {quantity: '0', rate: '10665.72578226'}
+        #     ]
+        #
+        for i in range(0, len(deltas)):
+            self.handle_delta(bookside, deltas[i])
+
+    def handle_order_book(self, client, message):
+        #
+        #     {
+        #         marketSymbol: 'BTC-USDT',
+        #         depth: 25,
+        #         sequence: 3009387,
+        #         bidDeltas: [
+        #             {quantity: '0.05100000', rate: '10694.86410031'},
+        #             {quantity: '0', rate: '10665.72578226'}
+        #         ],
+        #         askDeltas: []
+        #     }
+        #
+        marketId = self.safe_string(message, 'marketSymbol')
+        symbol = self.safe_symbol(marketId, None, '-')
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook['nonce'] is not None:
+            self.handle_order_book_message(client, message, orderbook)
+        else:
+            orderbook.cache.append(message)
+
+    def handle_order_book_message(self, client, message, orderbook):
+        #
+        #     {
+        #         marketSymbol: 'BTC-USDT',
+        #         depth: 25,
+        #         sequence: 3009387,
+        #         bidDeltas: [
+        #             {quantity: '0.05100000', rate: '10694.86410031'},
+        #             {quantity: '0', rate: '10665.72578226'}
+        #         ],
+        #         askDeltas: []
+        #     }
+        #
+        marketId = self.safe_string(message, 'marketSymbol')
+        depth = self.safe_string(message, 'depth')
+        name = 'orderbook'
+        messageHash = name + '_' + marketId + '_' + depth
+        nonce = self.safe_integer(message, 'sequence')
+        if nonce > orderbook['nonce']:
+            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'askDeltas', []))
+            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bidDeltas', []))
+            orderbook['nonce'] = nonce
+            client.resolve(orderbook, messageHash)
+        return orderbook
+
+    def handle_system_status(self, client, message):
+        # send signalR protocol start() call
+        negotiate = self.negotiate()
+        self.spawn(self.after_async, negotiate, self.start)
+        return message
 
     def handle_subscription_status(self, client, message):
         #
         # success
         #
-        #     {'R': True, I: '1579299273251'}
+        #     {R: [{Success: True, ErrorCode: null}], I: '1601891513224'}
         #
         # failure
         # todo add error handling and future rejections
         #
         #     {
-        #         I: '1580494127086',
-        #         E: "There was an error invoking Hub method 'c2.QuerySummaryState'."
+        #         I: '1601942374563',
+        #         E: "There was an error invoking Hub method 'c3.Authenticate'."
         #     }
         #
         I = self.safe_string(message, 'I')  # noqa: E741
@@ -950,40 +626,78 @@ class bittrex(Exchange, ccxt.bittrex):
             method(client, message, subscription)
         return message
 
-    def handle_system_status(self, client, message):
-        # send signalR protocol start() call
-        future = self.negotiate()
-        self.spawn(self.after_async, future, self.start)
-        return message
-
-    def handle_heartbeat(self, client, message):
+    def handle_message(self, client, message):
+        # console.dir(message, {depth: null})
         #
-        # every 20 seconds(approx) if no other updates are sent
+        # subscription confirmation
+        #
+        #     {
+        #         R: [
+        #             {Success: True, ErrorCode: null}
+        #         ],
+        #         I: '1601899375696'
+        #     }
+        #
+        # heartbeat subscription update
+        #
+        #     {
+        #         C: 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
+        #         M: [
+        #             {H: 'C3', M: 'heartbeat', A: []}
+        #         ]
+        #     }
+        #
+        # heartbeat empty message
         #
         #     {}
         #
-        client.resolve(message, 'heartbeat')
-
-    def handle_order_delta(self, client, message):
-        return message
-
-    def handle_message(self, client, message):
+        # subscription update
+        #
+        #     {
+        #         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
+        #         M: [
+        #             {
+        #                 H: 'C3',
+        #                 M: 'ticker',  # orderBook, trade, candle, balance, order
+        #                 A: [
+        #                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        # authentication expiry notification
+        #
+        #     {
+        #         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
+        #     }
+        #
         methods = {
-            'uE': self.handle_exchange_delta,
-            'uO': self.handle_order_delta,
-            'uB': self.handle_balance_delta,
-            'uS': self.handle_summary_delta,
+            'authenticationExpiring': self.handle_authentication_expiring,
+            'order': self.handle_order,
+            'balance': self.handle_balance,
+            'trade': self.handle_trades,
+            'candle': self.handle_ohlcv,
+            'orderBook': self.handle_order_book,
+            'heartbeat': self.handle_heartbeat,
+            'ticker': self.handle_ticker,
         }
         M = self.safe_value(message, 'M', [])
         for i in range(0, len(M)):
             methodType = self.safe_value(M[i], 'M')
             method = self.safe_value(methods, methodType)
             if method is not None:
-                A = self.safe_value(M[i], 'A', [])
-                for k in range(0, len(A)):
-                    inflated = self.inflate64(A[k])
-                    update = json.loads(inflated)
-                    method(client, update)
+                if methodType == 'heartbeat':
+                    method(client, message)
+                elif methodType == 'authenticationExpiring':
+                    method(client, message)
+                else:
+                    A = self.safe_value(M[i], 'A', [])
+                    for k in range(0, len(A)):
+                        inflated = self.inflate64(A[k])
+                        update = json.loads(inflated)
+                        method(client, update)
         # resolve invocations by request id
         if 'I' in message:
             self.handle_subscription_status(client, message)
@@ -993,14 +707,3 @@ class bittrex(Exchange, ccxt.bittrex):
         numKeys = len(keys)
         if numKeys < 1:
             self.handle_heartbeat(client, message)
-
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        if api == 'signalr':
-            url = self.implode_params(self.urls['api'][api], {
-                'hostname': self.hostname,
-            }) + '/' + path
-            if params:
-                url += '?' + self.urlencode(params)
-            return {'url': url, 'method': method, 'body': body, 'headers': headers}
-        else:
-            return super(bittrex, self).sign(path, api, method, params, headers, body)
