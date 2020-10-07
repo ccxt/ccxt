@@ -265,12 +265,8 @@ module.exports = class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = marketId;
-            let market = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
             const ticker = this.parseTicker ({
                 'date': timestamp,
                 'ticker': tickers[marketId],
@@ -306,11 +302,7 @@ module.exports = class coinex extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost) {
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
@@ -484,7 +476,7 @@ module.exports = class coinex extends Exchange {
         const average = this.safeFloat (order, 'avg_price');
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeMarket (marketId, market);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (market !== undefined) {
