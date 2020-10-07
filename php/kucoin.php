@@ -388,13 +388,16 @@ class kucoin extends Exchange {
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($entry, 'precision');
+            $isWithdrawEnabled = $this->safe_value($entry, 'isWithdrawEnabled', false);
+            $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
+            $active = ($isWithdrawEnabled && $isDepositEnabled);
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
                 'precision' => $precision,
                 'info' => $entry,
-                'active' => null,
+                'active' => $active,
                 'fee' => null,
                 'limits' => $this->limits,
             );
