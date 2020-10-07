@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
+const { InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -62,7 +62,12 @@ module.exports = class bittrex extends ccxt.bittrex {
         };
     }
 
-    makeAuthenticateRequest (requestId) {
+    makeRequestToSubscribe (requestId, args) {
+        const method = 'Subscribe';
+        return this.makeRequest (requestId, method, args);
+    }
+
+    makeRequestToAuthenticate (requestId) {
         const timestamp = this.milliseconds ();
         const uuid = this.uuid ();
         const auth = timestamp.toString () + uuid;
@@ -72,38 +77,70 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.makeRequest (requestId, method, args);
     }
 
-    makeSubscribeRequest (requestId, args) {
-        const method = 'Subscribe';
-        return this.makeRequest (requestId, method, args);
+    async sendRequestToSubscribe (negotiation, messageHash, subscription, params = {}) {
+        const args = [ messageHash ];
+        const requestId = this.milliseconds ().toString ();
+        const request = this.makeRequestToSubscribe (requestId, [ args ]);
+        subscription = this.extend ({
+            'id': requestId,
+            'negotiation': negotiation,
+        }, subscription);
+        const url = this.getSignalRUrl (negotiation);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async authenticate (params = {}) {
         await this.loadMarkets ();
         const future = this.negotiate ();
-        return await this.afterAsync (future, this.sendAuthenticationRequest, params);
+        return await this.afterAsync (future, this.sendRequestToAuthenticate, false, params);
     }
 
-    async sendAuthenticationRequest (negotiation, params = {}) {
+    async sendRequestToAuthenticate (negotiation, expired = false, params = {}) {
         const url = this.getSignalRUrl (negotiation);
         const client = this.client (url);
         const messageHash = 'authenticate';
         let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        if ((future === undefined) || expired) {
+            future = client.future (messageHash);
+            client.subscriptions[messageHash] = future;
             const requestId = this.milliseconds ().toString ();
-            const request = this.makeAuthenticateRequest (requestId);
+            const request = this.makeRequestToAuthenticate (requestId);
             const subscription = {
                 'id': requestId,
                 'params': params,
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            future = this.watch (url, messageHash, request, messageHash, subscription);
+            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
 
+    async sendAuthenticatedRequestToSubscribe (authentication, messageHash, params = {}) {
+        const negotiation = this.safeValue (authentication, 'negotiation');
+        const subscription = { 'params': params };
+        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription, params);
+    }
+
     handleAuthenticate (client, message, subscription) {
+        const requestId = this.safeString (subscription, 'id');
+        if (requestId in client.subscriptions) {
+            delete client.subscriptions[requestId];
+        }
         client.resolve (subscription, 'authenticate');
+    }
+
+    handleAuthenticationExpiring (client, message) {
+        //
+        //     {
+        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //     }
+        //
+        // resend the authentication request and refresh the subscription
+        //
+        const future = this.negotiate ();
+        this.spawn (this.afterAsync, future, this.sendRequestToAuthenticate, true);
     }
 
     createSignalRQuery (params = {}) {
@@ -161,21 +198,6 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.signalrGetStart (request);
     }
 
-    async subscribeAuthenticated (messageHash, authentication, params = {}) {
-        const negotiation = this.safeValue (authentication, 'negotiation');
-        await this.loadMarkets ();
-        const url = this.getSignalRUrl (negotiation);
-        const requestId = this.milliseconds ().toString ();
-        const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
-        const subscription = {
-            'id': requestId,
-            'params': params,
-            'negotiation': negotiation,
-        };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
-    }
-
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const authenticate = this.authenticate ();
@@ -184,7 +206,8 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async subscribeToOrders (authentication, params = {}) {
-        return await this.subscribeAuthenticated ('order', authentication, params);
+        const messageHash = 'order';
+        return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
     }
 
     handleOrder (client, message) {
@@ -228,7 +251,8 @@ module.exports = class bittrex extends ccxt.bittrex {
     }
 
     async subscribeToBalance (authentication, params = {}) {
-        return await this.subscribeAuthenticated ('balance', authentication, params);
+        const messageHash = 'balance';
+        return await this.sendAuthenticatedRequestToSubscribe (authentication, messageHash, params);
     }
 
     handleBalance (client, message) {
@@ -268,7 +292,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const requestId = this.milliseconds ().toString ();
         const messageHash = 'heartbeat';
         const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
+        const request = this.makeRequestToSubscribe (requestId, [ args ]);
         const subscription = {
             'id': requestId,
             'params': params,
@@ -294,21 +318,15 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async subscribeToTicker (negotiation, symbol, params = {}) {
         await this.loadMarkets ();
-        const url = this.getSignalRUrl (negotiation);
         const market = this.market (symbol);
-        const requestId = this.milliseconds ().toString ();
         const name = 'ticker';
         const messageHash = name + '_' + market['id'];
-        const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
         const subscription = {
-            'id': requestId,
             'marketId': market['id'],
             'symbol': symbol,
             'params': params,
-            'negotiation': negotiation,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
     handleTicker (client, message) {
@@ -345,22 +363,16 @@ module.exports = class bittrex extends ccxt.bittrex {
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.getSignalRUrl (negotiation);
-        const requestId = this.milliseconds ().toString ();
         const interval = this.timeframes[timeframe];
         const name = 'candle';
         const messageHash = name + '_' + market['id'] + '_' + interval;
-        const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
         const subscription = {
-            'id': requestId,
             'symbol': symbol,
             'timeframe': timeframe,
             'messageHash': messageHash,
-            'negotiation': negotiation,
             'params': params,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
     handleOHLCV (client, message) {
@@ -414,20 +426,14 @@ module.exports = class bittrex extends ccxt.bittrex {
     async subscribeToTrades (negotiation, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.getSignalRUrl (negotiation);
-        const requestId = this.milliseconds ().toString ();
         const name = 'trade';
         const messageHash = name + '_' + market['id'];
-        const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
         const subscription = {
-            'id': requestId,
             'symbol': symbol,
             'messageHash': messageHash,
-            'negotiation': negotiation,
             'params': params,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
     handleTrades (client, message) {
@@ -489,22 +495,16 @@ module.exports = class bittrex extends ccxt.bittrex {
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.getSignalRUrl (negotiation);
-        const requestId = this.milliseconds ().toString ();
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
-        const args = [ messageHash ];
-        const request = this.makeSubscribeRequest (requestId, [ args ]);
         const subscription = {
-            'id': requestId,
             'symbol': symbol,
             'messageHash': messageHash,
-            'negotiation': negotiation,
             'method': this.handleSubscribeToOrderBook,
             'limit': limit,
             'params': params,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -522,14 +522,12 @@ module.exports = class bittrex extends ccxt.bittrex {
             // and that will lead to a bidask cross as reported here
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
-            const data = this.safeValue (firstMessage, 'data', {});
-            const sequenceStart = this.safeInteger (data, 'sequence');
+            const sequence = this.safeInteger (firstMessage, 'sequence');
             const nonce = this.safeInteger (snapshot, 'nonce');
-            const previousSequence = sequenceStart - 1;
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
-            if (nonce < previousSequence) {
+            if (nonce < sequence) {
                 const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
                 const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
@@ -564,7 +562,7 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     handleSubscribeToOrderBook (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
@@ -725,7 +723,15 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         ]
         //     }
         //
+        // authentication expiry notification
+        //
+        //     {
+        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
+        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //     }
+        //
         const methods = {
+            'authenticationExpiring': this.handleAuthenticationExpiring,
             'order': this.handleOrder,
             'balance': this.handleBalance,
             'trade': this.handleTrades,
@@ -740,6 +746,8 @@ module.exports = class bittrex extends ccxt.bittrex {
             const method = this.safeValue (methods, methodType);
             if (method !== undefined) {
                 if (methodType === 'heartbeat') {
+                    method.call (this, client, message);
+                } else if (methodType === 'authenticationExpiring') {
                     method.call (this, client, message);
                 } else {
                     const A = this.safeValue (M[i], 'A', []);
