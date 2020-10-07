@@ -443,7 +443,6 @@ module.exports = class yobit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeFloat (trade, 'amount');
         const type = 'limit'; // all trades are still limit trades
-        let takerOrMaker = undefined;
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'commission');
         if (feeCost !== undefined) {
@@ -456,12 +455,8 @@ module.exports = class yobit extends Exchange {
         }
         const isYourOrder = this.safeValue (trade, 'is_your_order');
         if (isYourOrder !== undefined) {
-            takerOrMaker = 'taker';
-            if (isYourOrder) {
-                takerOrMaker = 'maker';
-            }
             if (fee === undefined) {
-                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+                fee = this.calculateFee (symbol, type, side, amount, price, 'taker');
             }
         }
         let cost = undefined;
@@ -478,7 +473,7 @@ module.exports = class yobit extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
