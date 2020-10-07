@@ -1188,7 +1188,7 @@ module.exports = class Exchange {
     }
 
     safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        const market = this.safeMarket (marketId, market, delimiter)
+        market = this.safeMarket (marketId, market, delimiter)
         return market['symbol'];
     }
 
