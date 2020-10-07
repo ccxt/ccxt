@@ -119,14 +119,8 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'name');
-            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->milliseconds();
         $last = floatval($ticker['last_price']);
         return array(
@@ -305,16 +299,8 @@ class coinfalcon extends Exchange {
         //         "created_at":"2018-01-12T21:14:06.747828Z"
         //     }
         //
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
