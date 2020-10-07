@@ -352,13 +352,7 @@ class eterbase extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
         $last = $this->safe_float($ticker, 'price');
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
@@ -500,14 +494,8 @@ class eterbase extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'id' => $id,
@@ -775,13 +763,7 @@ class eterbase extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'placedAt');
         $marketId = $this->safe_integer($order, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         if ($status === 'closed') {
             $status = $this->parse_order_status($this->safe_string($order, 'closeReason'));

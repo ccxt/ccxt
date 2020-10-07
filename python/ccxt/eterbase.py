@@ -348,11 +348,7 @@ class eterbase(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'time')
         last = self.safe_float(ticker, 'price')
         baseVolume = self.safe_float(ticker, 'volumeBase')
@@ -486,12 +482,8 @@ class eterbase(Exchange):
             takerOrMaker = 'maker' if (liquidity == '1') else 'taker'
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'id')
-        symbol = None
         marketId = self.safe_string(trade, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
             'id': id,
@@ -747,11 +739,7 @@ class eterbase(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'placedAt')
         marketId = self.safe_integer(order, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'state'))
         if status == 'closed':
             status = self.parse_order_status(self.safe_string(order, 'closeReason'))
