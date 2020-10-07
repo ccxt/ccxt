@@ -13,7 +13,7 @@ module.exports = class ripio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ripio',
             'name': 'Ripio',
-            'countries': [ 'AR' ], // Argentina
+            'countries': [ 'AR', 'BR' ], // Argentina
             'rateLimit': 50,
             'version': 'v1',
             'pro': true,
