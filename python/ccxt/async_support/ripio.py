@@ -434,38 +434,21 @@ class ripio(Exchange):
         if (amount is not None) and (price is not None):
             cost = amount * price
         marketId = self.safe_string(trade, 'pair')
-        symbol = None
-        base = None
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                base = market['base']
-                quote = market['quote']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (market is not None) and (symbol is None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        market = self.safe_market(marketId, market)
         feeCost = self.safe_float(trade, takerOrMaker + '_fee')
         orderId = self.safe_string(trade, takerOrMaker)
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': base if (side == 'buy') else quote,
+                'currency': market['base'] if (side == 'buy') else market['quote'],
             }
         return {
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'price': price,

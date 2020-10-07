@@ -439,34 +439,14 @@ class ripio extends Exchange {
             $cost = $amount * $price;
         }
         $marketId = $this->safe_string($trade, 'pair');
-        $symbol = null;
-        $base = null;
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $base = $market['base'];
-                $quote = $market['quote'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($market !== null) && ($symbol === null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
+        $market = $this->safe_market($marketId, $market);
         $feeCost = $this->safe_float($trade, $takerOrMaker . '_fee');
         $orderId = $this->safe_string($trade, $takerOrMaker);
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => ($side === 'buy') ? $base : $quote,
+                'currency' => ($side === 'buy') ? $market['base'] : $market['quote'],
             );
         }
         return array(
@@ -474,7 +454,7 @@ class ripio extends Exchange {
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'price' => $price,
