@@ -15,7 +15,7 @@ class ripio extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ripio',
             'name' => 'Ripio',
-            'countries' => array( 'AR' ), // Argentina
+            'countries' => array( 'AR', 'BR' ), // Argentina
             'rateLimit' => 50,
             'version' => 'v1',
             'pro' => true,
