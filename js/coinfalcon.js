@@ -117,14 +117,8 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'name');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
         const last = parseFloat (ticker['last_price']);
         return {
@@ -303,16 +297,8 @@ module.exports = class coinfalcon extends Exchange {
         //         "created_at":"2018-01-12T21:14:06.747828Z"
         //     }
         //
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
