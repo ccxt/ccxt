@@ -390,7 +390,8 @@ class bittrex(Exchange):
         #         ]
         #     }
         #
-        sequence = self.safe_integer_2(self.last_response_headers, 'sequence', 'Sequence')
+        sequence = self.safe_value_2(self.last_response_headers, 'sequence', 'Sequence')
+        sequence = int(sequence[0]) if isinstance(sequence, list) else int(sequence)
         orderbook = self.parse_order_book(response, None, 'bid', 'ask', 'rate', 'quantity')
         orderbook['nonce'] = sequence
         return orderbook
