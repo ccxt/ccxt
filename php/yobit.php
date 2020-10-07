@@ -446,7 +446,6 @@ class yobit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $amount = $this->safe_float($trade, 'amount');
         $type = 'limit'; // all trades are still limit trades
-        $takerOrMaker = null;
         $fee = null;
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
@@ -459,12 +458,8 @@ class yobit extends Exchange {
         }
         $isYourOrder = $this->safe_value($trade, 'is_your_order');
         if ($isYourOrder !== null) {
-            $takerOrMaker = 'taker';
-            if ($isYourOrder) {
-                $takerOrMaker = 'maker';
-            }
             if ($fee === null) {
-                $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
+                $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, 'taker');
             }
         }
         $cost = null;
@@ -481,7 +476,7 @@ class yobit extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => $takerOrMaker,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
