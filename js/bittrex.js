@@ -476,7 +476,6 @@ module.exports = class bittrex extends ccxt.bittrex {
             const sequenceStart = this.safeInteger (data, 'sequence');
             const nonce = this.safeInteger (snapshot, 'nonce');
             const previousSequence = sequenceStart - 1;
-            // console.log (snapshot, nonce < previousSequence);
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
