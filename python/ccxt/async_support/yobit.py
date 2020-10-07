@@ -438,7 +438,6 @@ class yobit(Exchange):
         symbol = self.safe_symbol(marketId, market)
         amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
-        takerOrMaker = None
         fee = None
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
@@ -450,11 +449,8 @@ class yobit(Exchange):
             }
         isYourOrder = self.safe_value(trade, 'is_your_order')
         if isYourOrder is not None:
-            takerOrMaker = 'taker'
-            if isYourOrder:
-                takerOrMaker = 'maker'
             if fee is None:
-                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+                fee = self.calculate_fee(symbol, type, side, amount, price, 'taker')
         cost = None
         if amount is not None:
             if price is not None:
@@ -467,7 +463,7 @@ class yobit(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
