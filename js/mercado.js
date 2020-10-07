@@ -334,14 +334,8 @@ module.exports = class mercado extends Exchange {
             side = (order['order_type'] === 1) ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'coin_pair');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'coin_pair');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
         const fee = {
             'cost': this.safeFloat (order, 'fee'),
@@ -362,7 +356,7 @@ module.exports = class mercado extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
             'price': price,
