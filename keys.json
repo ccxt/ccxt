@@ -1,3 +1,4 @@
 {
-    "dsx": { "skip": true }
+    "dsx": { "skip": true },
+    "bittrex": { "skip": true }
 }

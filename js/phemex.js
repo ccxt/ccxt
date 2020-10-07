@@ -204,17 +204,6 @@ module.exports = class phemex extends ccxt.phemex {
         }
     }
 
-    findTimeframe (timeframe) {
-        const keys = Object.keys (this.timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     handleOHLCV (client, message) {
         //
         //     {
@@ -427,11 +416,6 @@ module.exports = class phemex extends ccxt.phemex {
             return ev;
         }
         return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
-    }
-
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: signMessage not implemented yet
-        return message;
     }
 
     handleMessage (client, message) {

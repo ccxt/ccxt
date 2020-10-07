@@ -284,11 +284,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage() via parent sign()
-        return message;
-    }
-
     handleSubscriptionStatus (client, message) {
         //
         //     {

@@ -263,10 +263,6 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
                 orderbook['datetime'] = self.iso8601(timestamp)
                 client.resolve(orderbook, messageHash)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage() via parent sign()
-        return message
-
     def handle_subscription_status(self, client, message):
         #
         #     {

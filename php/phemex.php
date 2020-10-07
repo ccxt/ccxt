@@ -206,17 +206,6 @@ class phemex extends \ccxt\phemex {
         }
     }
 
-    public function find_timeframe($timeframe) {
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -414,7 +403,7 @@ class phemex extends \ccxt\phemex {
 
     public function from_en($en, $scale, $precision, $precisionMode = null) {
         $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
-        return floatval ($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
+        return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
     }
 
     public function from_ep($ep, $market = null) {
@@ -429,11 +418,6 @@ class phemex extends \ccxt\phemex {
             return $ev;
         }
         return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
     }
 
     public function handle_message($client, $message) {

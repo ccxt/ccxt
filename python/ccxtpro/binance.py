@@ -279,10 +279,6 @@ class binance(Exchange, ccxt.binance):
                 del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_order_book_subscription(self, client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         symbol = self.safe_string(subscription, 'symbol')
@@ -415,15 +411,6 @@ class binance(Exchange, ccxt.binance):
         messageHash = marketId + '@' + name + '_' + interval
         future = self.watch_public(messageHash, params)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
-
-    def find_timeframe(self, timeframe):
-        # redo to use reverse lookups in a static map instead
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
 
     def handle_ohlcv(self, client, message):
         #
@@ -694,7 +681,7 @@ class binance(Exchange, ccxt.binance):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-        timestamp = self.safe_string(message, 'O')
+        timestamp = self.safe_integer(message, 'O')
         lastTradeTimestamp = self.safe_string(message, 'T')
         feeAmount = self.safe_float(message, 'n')
         feeCurrency = self.safe_currency_code(self.safe_string(message, 'N'))

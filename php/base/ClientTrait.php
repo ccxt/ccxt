@@ -118,7 +118,6 @@ trait ClientTrait {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     if ($message) {
-                        $message = $this->sign_message($client, $message_hash, $message);
                         $client->send($message);
                     }
                 }
@@ -163,11 +162,18 @@ trait ClientTrait {
         // }
     }
 
-    public function sign_message($client, $messag_hash, $message, $params = array()) {
-        throw new \ccxt\NotSupported ($this->id . ' signMessage () not implemented yet');
-    }
-
     public function limit_order_book($orderbook, $symbol, $limit = null, $params = array()) {
         return $orderbook->limit($limit);
+    }
+
+    public function find_timeframe($timeframe) {
+        $keys = array_keys($this->timeframes);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
     }
 }

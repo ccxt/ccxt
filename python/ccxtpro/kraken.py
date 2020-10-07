@@ -146,14 +146,6 @@ class kraken(Exchange, ccxt.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def find_timeframe(self, timeframe):
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message, subscription):
         #
         #     [
@@ -465,10 +457,6 @@ class kraken(Exchange, ccxt.kraken):
                 client.reject(exception, requestId)
                 return False
         return True
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: signMessage not implemented yet
-        return message
 
     def handle_message(self, client, message):
         if isinstance(message, list):

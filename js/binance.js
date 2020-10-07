@@ -308,11 +308,6 @@ module.exports = class binance extends ccxt.binance {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleOrderBookSubscription (client, message, subscription) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         const symbol = this.safeString (subscription, 'symbol');
@@ -459,18 +454,6 @@ module.exports = class binance extends ccxt.binance {
         const messageHash = marketId + '@' + name + '_' + interval;
         const future = this.watchPublic (messageHash, params);
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
-    }
-
-    findTimeframe (timeframe) {
-        // redo to use reverse lookups in a static map instead
-        const keys = Object.keys (this.timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
     }
 
     handleOHLCV (client, message) {
@@ -758,7 +741,7 @@ module.exports = class binance extends ccxt.binance {
             const market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeString (message, 'O');
+        const timestamp = this.safeInteger (message, 'O');
         const lastTradeTimestamp = this.safeString (message, 'T');
         const feeAmount = this.safeFloat (message, 'n');
         const feeCurrency = this.safeCurrencyCode (this.safeString (message, 'N'));

@@ -13,25 +13,40 @@ function test_watch_order_book($exchange, $symbol) {
 
     $future = new \ccxtpro\Future();
 
-    if (array_key_exists('watchOrderBook', $exchange->has) && $exchange->has['watchOrderBook']) {
+    $method = 'watchOrderBook';
 
-        function tick_order_book($iteration, $maxIterations, $future, $method, ... $args) {
-            $method(... $args)->then(function($result) use ($iteration, $maxIterations, $future, $method, $args) {
-                print_orderbook($result, ... $args);
-                if ($iteration < $maxIterations) {
-                    tick_order_book(++$iteration, $maxIterations, $future, $method, ... $args);
-                } else {
-                    $future->resolve($result);
-                }
-            });
-        };
+    // we have to skip some exchanges here due to the frequency of trading
+    $skipped_exchanges = array(
+        'ripio',
+    );
 
-        tick_order_book(0, 10, $future, array($exchange, 'watch_order_book'), $symbol);
+    if (in_array($exchange->id, $skipped_exchanges)) {
+
+        echo $exchange->id, ' ', $method, "() test skipped\n";
+        $future->resolve(true);
 
     } else {
 
-        echo $exchange->id, " watchOrderBook() is not supported or not implemented yet\n";
-        $future->resolve(true);
+        if (array_key_exists($method, $exchange->has) && $exchange->has[$method]) {
+
+            function tick_order_book($iteration, $maxIterations, $future, $method, ... $args) {
+                $method(... $args)->then(function($result) use ($iteration, $maxIterations, $future, $method, $args) {
+                    print_orderbook($result, ... $args);
+                    if ($iteration < $maxIterations) {
+                        tick_order_book(++$iteration, $maxIterations, $future, $method, ... $args);
+                    } else {
+                        $future->resolve($result);
+                    }
+                });
+            };
+
+            tick_order_book(0, 10, $future, array($exchange, 'watch_order_book'), $symbol);
+
+        } else {
+
+            echo $exchange->id, ' ', $method, "() is not supported or not implemented yet\n";
+            $future->resolve(true);
+        }
     }
 
     return $future;

@@ -95,7 +95,6 @@ module.exports = class Exchange extends ccxt.Exchange {
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
-        //             message = this.signMessage (client, messageHash, message)
         //             client.send (message)
         //         }
         //     }).catch ((error) => {})
@@ -134,13 +133,9 @@ module.exports = class Exchange extends ccxt.Exchange {
                 if (message) {
                     if (this.enableRateLimit && client.throttle) {
                         client.throttle (rateLimit).then (() => {
-                            // todo: decouple signing from subscriptions
-                            message = this.signMessage (client, messageHash, message)
                             client.send (message)
                         }).catch ((e) => { throw e })
                     } else {
-                        // todo: decouple signing from subscriptions
-                        message = this.signMessage (client, messageHash, message)
                         client.send (message)
                     }
                 }
@@ -181,11 +176,18 @@ module.exports = class Exchange extends ccxt.Exchange {
         }
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        throw new ccxt.NotSupported (this.id + ' signMessage () not implemented yet')
-    }
-
     limitOrderBook (orderbook, symbol, limit = undefined, params = {}) {
         return orderbook.limit (limit);
+    }
+
+    findTimeframe (timeframe) {
+        const keys = Object.keys (this.timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
     }
 }

@@ -109,7 +109,7 @@ class bitstamp extends \ccxt\bitstamp {
         $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
         $orderbook['nonce'] = $microtimestamp;
-        $timestamp = intval ($microtimestamp / 1000);
+        $timestamp = intval($microtimestamp / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
@@ -225,7 +225,7 @@ class bitstamp extends \ccxt\bitstamp {
             return parent::parse_trade($trade, $market);
         }
         $id = $this->safe_string($trade, 'id');
-        $timestamp = intval ($microtimestamp / 1000);
+        $timestamp = intval($microtimestamp / 1000);
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -294,11 +294,6 @@ class bitstamp extends \ccxt\bitstamp {
         }
         $array->append ($trade);
         $client->resolve ($array, $channel);
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
     }
 
     public function handle_order_book_subscription($client, $message, $subscription) {

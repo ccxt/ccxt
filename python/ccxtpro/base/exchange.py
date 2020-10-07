@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.3.62'
+__version__ = '0.3.96'
 
 # -----------------------------------------------------------------------------
 
@@ -114,12 +114,6 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    def sign_message(self, client, message_hash, message):
-        always = True
-        if always:
-            raise NotSupported(self.id + '.sign_message() not implemented yet')
-        return {}
-
     async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         # base exchange self.open starts the aiohttp Session in an async context
@@ -134,7 +128,6 @@ class Exchange(BaseExchange):
                 await client.throttle(rateLimit)
             # todo: decouple signing from subscriptions
             if message:
-                message = self.sign_message(client, message_hash, message)
                 await client.send(message)
         return await client.future(message_hash)
 
@@ -158,3 +151,9 @@ class Exchange(BaseExchange):
         if self.clients:
             await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
         await super(Exchange, self).close()
+
+    def find_timeframe(self, timeframe):
+        for key, value in self.timeframes.items():
+            if value == timeframe:
+                return key
+        return None

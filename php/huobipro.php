@@ -203,18 +203,6 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe($timeframe) {
-        // redo to use reverse lookups in a static map instead
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -444,11 +432,6 @@ class huobipro extends \ccxt\huobipro {
             $this->handle_order_book_message($client, $message, $orderbook);
             $client->resolve ($orderbook, $messageHash);
         }
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
     }
 
     public function handle_order_book_subscription($client, $message, $subscription) {

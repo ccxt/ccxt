@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.3.62'
+__version__ = '0.3.96'
 
 # -----------------------------------------------------------------------------
 
@@ -133,6 +133,7 @@ from ccxt.async_support.luno import luno                                  # noqa
 from ccxt.async_support.lykke import lykke                                # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
+from ccxt.async_support.novadax import novadax                            # noqa: F401
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.probit import probit                              # noqa: F401
@@ -176,12 +177,14 @@ from ccxtpro.hitbtc import hitbtc                                         # noqa
 from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401
 from ccxtpro.huobiru import huobiru                                       # noqa: F401
+from ccxtpro.idex2 import idex2                                           # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.kucoin import kucoin                                         # noqa: F401
 from ccxtpro.okcoin import okcoin                                         # noqa: F401
 from ccxtpro.okex import okex                                             # noqa: F401
 from ccxtpro.phemex import phemex                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
+from ccxtpro.ripio import ripio                                           # noqa: F401
 from ccxtpro.upbit import upbit                                           # noqa: F401
 
 __all__ = ccxt.__all__ + ['exchanges']

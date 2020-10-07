@@ -269,10 +269,6 @@ class bitstamp(Exchange, ccxt.bitstamp):
         array.append(trade)
         client.resolve(array, channel)
 
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
-
     def handle_order_book_subscription(self, client, message, subscription):
         type = self.safe_string(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')

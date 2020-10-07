@@ -250,15 +250,6 @@ class hitbtc(Exchange, ccxt.hitbtc):
         future = self.watch_public(symbol, 'ohlcv', period, requestParams)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
-    def find_timeframe(self, timeframe):
-        # redo to use reverse lookups in a static map instead
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message):
         #
         #     {
@@ -314,10 +305,6 @@ class hitbtc(Exchange, ccxt.hitbtc):
                 else:
                     stored.append(parsed)
                 client.resolve(stored, messageHash)
-        return message
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
         return message
 
     def handle_notification(self, client, message):

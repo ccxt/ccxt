@@ -311,11 +311,6 @@ class binance extends \ccxt\binance {
         }
     }
 
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => implement signMessage
-        return $message;
-    }
-
     public function handle_order_book_subscription($client, $message, $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $symbol = $this->safe_string($subscription, 'symbol');
@@ -462,18 +457,6 @@ class binance extends \ccxt\binance {
         $messageHash = $marketId . '@' . $name . '_' . $interval;
         $future = $this->watch_public($messageHash, $params);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
-    }
-
-    public function find_timeframe($timeframe) {
-        // redo to use reverse lookups in a static map instead
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
     }
 
     public function handle_ohlcv($client, $message) {
@@ -761,7 +744,7 @@ class binance extends \ccxt\binance {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_string($message, 'O');
+        $timestamp = $this->safe_integer($message, 'O');
         $lastTradeTimestamp = $this->safe_string($message, 'T');
         $feeAmount = $this->safe_float($message, 'n');
         $feeCurrency = $this->safe_currency_code($this->safe_string($message, 'N'));

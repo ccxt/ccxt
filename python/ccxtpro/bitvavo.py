@@ -148,15 +148,6 @@ class bitvavo(Exchange, ccxt.bitvavo):
         future = self.watch(url, messageHash, message, messageHash)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
-    def find_timeframe(self, timeframe):
-        # redo to use reverse lookups in a static map instead
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message):
         #
         #     {
@@ -582,10 +573,6 @@ class bitvavo(Exchange, ccxt.bitvavo):
             event = self.safe_value(message, 'event')
             if event in client.subscriptions:
                 del client.subscriptions[event]
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
 
     def handle_message(self, client, message):
         #

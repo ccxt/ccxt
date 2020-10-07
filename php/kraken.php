@@ -152,17 +152,6 @@ class kraken extends \ccxt\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function find_timeframe($timeframe) {
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message, $subscription) {
         //
         //     array(
@@ -196,7 +185,7 @@ class kraken extends \ccxt\kraken {
             $timestamp = $this->safe_float($candle, 1);
             $timestamp -= $duration;
             $result = array(
-                intval ($timestamp * 1000),
+                intval($timestamp * 1000),
                 $this->safe_float($candle, 2),
                 $this->safe_float($candle, 3),
                 $this->safe_float($candle, 4),
@@ -434,9 +423,9 @@ class kraken extends \ccxt\kraken {
     public function handle_deltas($bookside, $deltas, $timestamp) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
-            $price = floatval ($delta[0]);
-            $amount = floatval ($delta[1]);
-            $timestamp = max ($timestamp || 0, intval (floatval ($delta[2]) * 1000));
+            $price = floatval($delta[0]);
+            $amount = floatval($delta[1]);
+            $timestamp = max ($timestamp || 0, intval(floatval($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;
@@ -506,11 +495,6 @@ class kraken extends \ccxt\kraken {
             }
         }
         return true;
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo => signMessage not implemented yet
-        return $message;
     }
 
     public function handle_message($client, $message) {

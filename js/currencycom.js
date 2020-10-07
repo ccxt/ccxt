@@ -449,11 +449,6 @@ module.exports = class currencycom extends ccxt.currencycom {
         client.resolve (orderbook, messageHash);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: signMessage not implemented yet
-        return message;
-    }
-
     handleMessage (client, message) {
         //
         //     {

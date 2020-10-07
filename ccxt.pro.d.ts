@@ -49,12 +49,14 @@ declare module 'ccxt.pro' {
     export class huobijp extends huobipro {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
+    export class idex2 extends Exchange2 {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class okcoin extends okex {}
     export class okex extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
+    export class ripio extends Exchange {}
     export class upbit extends Exchange {}
 
     /* tslint:enable */

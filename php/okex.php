@@ -151,18 +151,6 @@ class okex extends \ccxt\okex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe($timeframe) {
-        // redo to use reverse lookups in a static map instead
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -513,11 +501,6 @@ class okex extends \ccxt\okex {
         //     array( event => 'login', success => true )
         //
         $client->resolve ($message, 'authenticated');
-        return $message;
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // okex uses login requests instead of $message signing
         return $message;
     }
 

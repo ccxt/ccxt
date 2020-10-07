@@ -425,7 +425,7 @@ class bitmex extends \ccxt\bitmex {
         //     }
         //
         $data = $this->safe_value($message, 'data');
-        $balance = $this->parseBalanceResponse ($data);
+        $balance = $this->parse_balance_response($data);
         $this->balance = array_merge($this->balance, $balance);
         $messageHash = $this->safe_string($message, 'table');
         $client->resolve ($this->balance, $messageHash);
@@ -713,17 +713,6 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe($timeframe) {
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -839,11 +828,6 @@ class bitmex extends \ccxt\bitmex {
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
         return $this->watch($url, $event);
-    }
-
-    public function sign_message($client, $messageHash, $message, $params = array ()) {
-        // todo bitmex signMessage not implemented yet
-        return $message;
     }
 
     public function handle_order_book($client, $message) {

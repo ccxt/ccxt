@@ -5,7 +5,10 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+import hashlib
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class ftx(Exchange, ccxt.ftx):
@@ -19,8 +22,8 @@ class ftx(Exchange, ccxt.ftx):
                 'watchTrades': True,
                 'watchOHLCV': False,  # missing on the exchange side
                 'watchBalance': False,  # missing on the exchange side
-                'watchOrders': False,  # not implemented yet
-                'watchMyTrades': False,  # not implemented yet
+                'watchOrders': True,
+                'watchMyTrades': True,
             },
             'urls': {
                 'api': {
@@ -28,6 +31,7 @@ class ftx(Exchange, ccxt.ftx):
                 },
             },
             'options': {
+                'ordersLimit': 1000,
                 'tradesLimit': 1000,
             },
             'streaming': {
@@ -35,6 +39,12 @@ class ftx(Exchange, ccxt.ftx):
                 # instead it requires a custom text-based ping-pong
                 'ping': self.ping,
                 'keepAlive': 15000,
+            },
+            'exceptions': {
+                'exact': {
+                    'Invalid login credentials': AuthenticationError,
+                    'Not logged in': AuthenticationError,
+                },
             },
         })
 
@@ -51,6 +61,44 @@ class ftx(Exchange, ccxt.ftx):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, request, messageHash)
 
+    async def watch_private(self, channel, symbol=None, params={}):
+        await self.load_markets()
+        messageHash = channel
+        if symbol is not None:
+            market = self.market(symbol)
+            messageHash = messageHash + ':' + market['id']
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'channel': channel,
+        }
+        future = self.authenticate()
+        return await self.after_dropped(future, self.watch, url, messageHash, request, channel)
+
+    def authenticate(self):
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        authenticate = 'authenticate'
+        method = 'login'
+        if not (authenticate in client.subscriptions):
+            self.check_required_credentials()
+            client.subscriptions[authenticate] = True
+            time = self.milliseconds()
+            payload = str(time) + 'websocket_login'
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
+            message = {
+                'args': {
+                    'key': self.apiKey,
+                    'time': time,
+                    'sign': signature,
+                },
+                'op': method,
+            }
+            # ftx does not reply to self message
+            future = self.watch(url, method, message)
+            future.resolve(True)
+        return client.future(method)
+
     async def watch_ticker(self, symbol, params={}):
         return await self.watch_public(symbol, 'ticker')
 
@@ -61,9 +109,6 @@ class ftx(Exchange, ccxt.ftx):
     async def watch_order_book(self, symbol, limit=None, params={}):
         future = self.watch_public(symbol, 'orderbook')
         return await self.after(future, self.limit_order_book, symbol, limit, params)
-
-    def sign_message(self, client, messageHash, message):
-        return message
 
     def handle_partial(self, client, message):
         methods = {
@@ -76,9 +121,11 @@ class ftx(Exchange, ccxt.ftx):
 
     def handle_update(self, client, message):
         methods = {
-            'trades': self.handle_trades,
+            'trades': self.handle_trade,
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book_update,
+            'orders': self.handle_order,
+            'fills': self.handle_my_trade,
         }
         methodName = self.safe_string(message, 'channel')
         method = self.safe_value(methods, methodName)
@@ -221,7 +268,7 @@ class ftx(Exchange, ccxt.ftx):
             messageHash = self.get_message_hash(message)
             client.resolve(orderbook, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trade(self, client, message):
         #
         #     {
         #         channel:   "trades",
@@ -277,6 +324,20 @@ class ftx(Exchange, ccxt.ftx):
         return message
 
     def handle_error(self, client, message):
+        errorMessage = self.safe_string(message, 'msg')
+        Exception = self.safe_value(self.exceptions['exact'], errorMessage)
+        if Exception is None:
+            error = ExchangeError(errorMessage)
+            client.reject(error)
+        else:
+            if isinstance(Exception, AuthenticationError):
+                method = 'authenticate'
+                if method in client.subscriptions:
+                    del client.subscriptions[method]
+            error = Exception(errorMessage)
+            # just reject the private api futures
+            client.reject(error, 'fills')
+            client.reject(error, 'orders')
         return message
 
     def ping(self, client):
@@ -290,3 +351,140 @@ class ftx(Exchange, ccxt.ftx):
     def handle_pong(self, client, message):
         client.lastPong = self.milliseconds()
         return message
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        future = self.watch_private('orders', symbol)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_order(self, client, message):
+        #
+        # futures
+        #
+        #     {
+        #         channel: 'orders',
+        #         type: 'update',
+        #         data: {
+        #             id: 8047498974,
+        #             clientId: null,
+        #             market: 'ETH-PERP',
+        #             type: 'limit',
+        #             side: 'buy',
+        #             price: 300,
+        #             size: 0.1,
+        #             status: 'closed',
+        #             filledSize: 0,
+        #             remainingSize: 0,
+        #             reduceOnly: False,
+        #             liquidation: False,
+        #             avgFillPrice: null,
+        #             postOnly: False,
+        #             ioc: False,
+        #             createdAt: '2020-08-22T14:35:07.861545+00:00'
+        #         }
+        #     }
+        #
+        # spot
+        #
+        #     {
+        #         channel: 'orders',
+        #         type: 'update',
+        #         data: {
+        #             id: 8048834542,
+        #             clientId: null,
+        #             market: 'ETH/USD',
+        #             type: 'limit',
+        #             side: 'buy',
+        #             price: 300,
+        #             size: 0.1,
+        #             status: 'new',
+        #             filledSize: 0,
+        #             remainingSize: 0.1,
+        #             reduceOnly: False,
+        #             liquidation: False,
+        #             avgFillPrice: null,
+        #             postOnly: False,
+        #             ioc: False,
+        #             createdAt: '2020-08-22T15:17:32.184123+00:00'
+        #         }
+        #     }
+        #
+        messageHash = self.safe_string(message, 'channel')
+        data = self.safe_value(message, 'data')
+        order = self.parse_order(data)
+        market = self.market(order['symbol'])
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(order)
+        client.resolve(orders, messageHash)
+        symbolMessageHash = messageHash + ':' + market['id']
+        client.resolve(orders, symbolMessageHash)
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        future = self.watch_private('fills', symbol)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_my_trade(self, client, message):
+        #
+        # future
+        #
+        #     {
+        #         "channel": "fills",
+        #         "type": "update"
+        #         "data": {
+        #             "fee": 78.05799225,
+        #             "feeRate": 0.0014,
+        #             "future": "BTC-PERP",
+        #             "id": 7828307,
+        #             "liquidity": "taker",
+        #             "market": "BTC-PERP",
+        #             "orderId": 38065410,
+        #             "price": 3723.75,
+        #             "side": "buy",
+        #             "size": 14.973,
+        #             "time": "2019-05-07T16:40:58.358438+00:00",
+        #             "tradeId": 19129310,
+        #             "type": "order"
+        #         },
+        #     }
+        #
+        # spot
+        #
+        #     {
+        #         channel: 'fills',
+        #         type: 'update',
+        #         data: {
+        #             baseCurrency: 'ETH',
+        #             quoteCurrency: 'USD',
+        #             feeCurrency: 'USD',
+        #             fee: 0.0023439654,
+        #             feeRate: 0.000665,
+        #             future: null,
+        #             id: 182349460,
+        #             liquidity: 'taker'
+        #             market: 'ETH/USD',
+        #             orderId: 8049570214,
+        #             price: 391.64,
+        #             side: 'sell',
+        #             size: 0.009,
+        #             time: '2020-08-22T15:42:42.646980+00:00',
+        #             tradeId: 90614141,
+        #             type: 'order',
+        #         }
+        #     }
+        #
+        messageHash = self.safe_string(message, 'channel')
+        data = self.safe_value(message, 'data', {})
+        trade = self.parse_trade(data)
+        market = self.market(trade['symbol'])
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        tradesCache = self.myTrades
+        tradesCache.append(trade)
+        client.resolve(tradesCache, messageHash)
+        symbolMessageHash = messageHash + ':' + market['id']
+        client.resolve(tradesCache, symbolMessageHash)

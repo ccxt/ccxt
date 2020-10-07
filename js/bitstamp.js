@@ -293,11 +293,6 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         client.resolve (array, channel);
     }
 
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
-    }
-
     handleOrderBookSubscription (client, message, subscription) {
         const type = this.safeString (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');

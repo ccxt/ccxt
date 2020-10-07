@@ -419,7 +419,7 @@ class bitmex(Exchange, ccxt.bitmex):
         #     }
         #
         data = self.safe_value(message, 'data')
-        balance = self.parseBalanceResponse(data)
+        balance = self.parse_balance_response(data)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)
@@ -685,14 +685,6 @@ class bitmex(Exchange, ccxt.bitmex):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
-    def find_timeframe(self, timeframe):
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message):
         #
         #     {
@@ -802,10 +794,6 @@ class bitmex(Exchange, ccxt.bitmex):
         event = 'heartbeat'
         url = self.urls['api']['ws']
         return await self.watch(url, event)
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo bitmex signMessage not implemented yet
-        return message
 
     def handle_order_book(self, client, message):
         #

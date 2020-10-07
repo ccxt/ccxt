@@ -709,17 +709,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
-    findTimeframe (timeframe) {
-        const keys = Object.keys (this.timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     handleOHLCV (client, message) {
         //
         //     {
@@ -835,11 +824,6 @@ module.exports = class bitmex extends ccxt.bitmex {
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
         return await this.watch (url, event);
-    }
-
-    signMessage (client, messageHash, message, params = {}) {
-        // todo bitmex signMessage not implemented yet
-        return message;
     }
 
     handleOrderBook (client, message) {

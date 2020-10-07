@@ -156,18 +156,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
-    findTimeframe (timeframe) {
-        // redo to use reverse lookups in a static map instead
-        const keys = Object.keys (this.timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     handleOHLCV (client, message) {
         //
         //     {
@@ -643,11 +631,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
                 delete client.subscriptions[event];
             }
         }
-    }
-
-    signMessage (client, messageHash, message, params = {}) {
-        // todo: implement signMessage
-        return message;
     }
 
     handleMessage (client, message) {

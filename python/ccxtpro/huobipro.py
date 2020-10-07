@@ -191,15 +191,6 @@ class huobipro(Exchange, ccxt.huobipro):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
-    def find_timeframe(self, timeframe):
-        # redo to use reverse lookups in a static map instead
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message):
         #
         #     {
@@ -412,10 +403,6 @@ class huobipro(Exchange, ccxt.huobipro):
         else:
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
-
-    def sign_message(self, client, messageHash, message, params={}):
-        # todo: implement signMessage
-        return message
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
