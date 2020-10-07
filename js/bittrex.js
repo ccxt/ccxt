@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, InvalidNonce, BadRequest } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,8 +17,9 @@ module.exports = class bittrex extends ccxt.bittrex {
                 'watchHeartbeat': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
-                // 'watchTickers': false, // for now
+                'watchTickers': false, // for now
                 'watchTrades': true,
             },
             'urls': {
@@ -160,18 +161,11 @@ module.exports = class bittrex extends ccxt.bittrex {
         return await this.signalrGetStart (request);
     }
 
-    async watchBalance (params = {}) {
-        await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        return await this.afterAsync (authenticate, this.subscribeToBalance, params);
-    }
-
-    async subscribeToBalance (authentication, params = {}) {
+    async subscribeAuthenticated (messageHash, authentication, params = {}) {
         const negotiation = this.safeValue (authentication, 'negotiation');
         await this.loadMarkets ();
         const url = this.getSignalRUrl (negotiation);
         const requestId = this.milliseconds ().toString ();
-        const messageHash = 'balance';
         const args = [ messageHash ];
         const request = this.makeSubscribeRequest (requestId, [ args ]);
         const subscription = {
@@ -180,6 +174,61 @@ module.exports = class bittrex extends ccxt.bittrex {
             'negotiation': negotiation,
         };
         return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const authenticate = this.authenticate ();
+        const future = this.afterAsync (authenticate, this.subscribeToOrders, params);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    async subscribeToOrders (authentication, params = {}) {
+        return await this.subscribeAuthenticated ('order', authentication, params);
+    }
+
+    handleOrder (client, message) {
+        //
+        //     {
+        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
+        //         sequence: 41,
+        //         delta: {
+        //             id: 'b91eff76-10eb-4382-834a-b753b770283e',
+        //             marketSymbol: 'BTC-USDT',
+        //             direction: 'BUY',
+        //             type: 'LIMIT',
+        //             quantity: '0.01000000',
+        //             limit: '3000.00000000',
+        //             timeInForce: 'GOOD_TIL_CANCELLED',
+        //             fillQuantity: '0.00000000',
+        //             commission: '0.00000000',
+        //             proceeds: '0.00000000',
+        //             status: 'OPEN',
+        //             createdAt: '2020-10-07T12:51:43.16Z',
+        //             updatedAt: '2020-10-07T12:51:43.16Z'
+        //         }
+        //     }
+        //
+        const delta = this.safeValue (message, 'delta', {});
+        const parsed = this.parseOrder (delta);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        const messageHash = 'order';
+        client.resolve (this.orders, messageHash);
+    }
+
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        const authenticate = this.authenticate ();
+        return await this.afterAsync (authenticate, this.subscribeToBalance, params);
+    }
+
+    async subscribeToBalance (authentication, params = {}) {
+        return await this.subscribeAuthenticated ('balance', authentication, params);
     }
 
     handleBalance (client, message) {
@@ -203,7 +252,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         account['total'] = this.safeFloat (delta, 'total');
         this.balance[code] = account;
         this.balance = this.parseBalance (this.balance);
-        client.resolve (this.balance, 'balance');
+        const messageHash = 'balance';
+        client.resolve (this.balance, messageHash);
     }
 
     async watchHeartbeat (params = {}) {
@@ -667,7 +717,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //         M: [
         //             {
         //                 H: 'C3',
-        //                 M: 'ticker', // orderBook, trade, candle, 'balance'
+        //                 M: 'ticker', // orderBook, trade, candle, balance, order
         //                 A: [
         //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
         //                 ]
@@ -676,6 +726,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     }
         //
         const methods = {
+            'order': this.handleOrder,
             'balance': this.handleBalance,
             'trade': this.handleTrades,
             'candle': this.handleOHLCV,
