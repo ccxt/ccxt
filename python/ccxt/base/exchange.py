@@ -365,6 +365,9 @@ class Exchange(object):
             def __set__(self, instance, value):
                 setattr(instance, self.underscore, value)
 
+            def __repr__(self):
+                return self.underscore
+
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
