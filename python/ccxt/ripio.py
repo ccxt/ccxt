@@ -22,7 +22,7 @@ class ripio(Exchange):
         return self.deep_extend(super(ripio, self).describe(), {
             'id': 'ripio',
             'name': 'Ripio',
-            'countries': ['AR'],  # Argentina
+            'countries': ['AR', 'BR'],  # Argentina
             'rateLimit': 50,
             'version': 'v1',
             'pro': True,
