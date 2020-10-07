@@ -465,21 +465,8 @@ module.exports = class probit extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'market_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const close = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
         let percentage = undefined;
@@ -631,28 +618,14 @@ module.exports = class probit extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        let symbol = undefined;
         const id = this.safeString (trade, 'id');
+        let marketId = undefined;
         if (id !== undefined) {
             const parts = id.split (':');
-            let marketId = this.safeString (parts, 0);
-            if (marketId === undefined) {
-                marketId = this.safeString (trade, 'market_id');
-            }
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
+            marketId = this.safeString (parts, 0);
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        marketId = this.safeString (trade, 'market_id', marketId);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const side = this.safeString (trade, 'side');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
@@ -907,21 +880,8 @@ module.exports = class probit extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
         let price = this.safeFloat (order, 'limit_price');
         const filled = this.safeFloat (order, 'filled_quantity');
