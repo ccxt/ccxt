@@ -471,21 +471,8 @@ class probit extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'market_id');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $close = $this->safe_float($ticker, 'last');
         $change = $this->safe_float($ticker, 'change');
         $percentage = null;
@@ -637,28 +624,14 @@ class probit extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $symbol = null;
         $id = $this->safe_string($trade, 'id');
+        $marketId = null;
         if ($id !== null) {
             $parts = explode(':', $id);
             $marketId = $this->safe_string($parts, 0);
-            if ($marketId === null) {
-                $marketId = $this->safe_string($trade, 'market_id');
-            }
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'market_id', $marketId);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
@@ -913,21 +886,8 @@ class probit extends Exchange {
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market_id');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
         $price = $this->safe_float($order, 'limit_price');
         $filled = $this->safe_float($order, 'filled_quantity');

@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.35.32';
+$version = '1.35.41';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.35.32';
+    const VERSION = '1.35.41';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1843,22 +1843,39 @@ class Exchange {
         return $this->parse_orders($orders, $market, $since, $limit, $params);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+    public function safe_market($marketId, $market = null, $delimiter = null) {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                return $market['symbol'];
             } else if ($delimiter !== null) {
                 list($baseId, $quoteId) = explode($delimiter, $marketId);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                return $base . '/' . $quote;
+                $symbol = $base . '/' . $quote;
+                return array(
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                );
             }
         }
         if ($market !== null) {
-            return $market['symbol'];
+            return $market;
         }
-        return $marketId;
+        return array(
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+        );
+    }
+
+    public function safeMarket($marketId, $market = null, $delimiter = null) {
+        return $this->safe_market($marketId, $market, $delimiter);
+    }
+
+    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter);
+        return $market['symbol'];
     }
 
     public function safeSymbol($marketId, $market = null, $delimiter = null) {

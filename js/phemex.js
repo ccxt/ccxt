@@ -944,14 +944,8 @@ module.exports = class phemex extends Exchange {
         //         "volume": 4053863
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
         const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
@@ -1188,11 +1182,7 @@ module.exports = class phemex extends Exchange {
                 takerOrMaker = 'maker';
             }
             const marketId = this.safeString (trade, 'symbol');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
-            }
+            symbol = this.safeSymbol (marketId, market);
             price = this.fromEp (this.safeFloat (trade, 'execPriceEp'), market);
             amount = this.fromEv (this.safeFloat (trade, 'execBaseQtyEv'), market);
             amount = this.safeFloat (trade, 'execQty', amount);
@@ -1214,9 +1204,6 @@ module.exports = class phemex extends Exchange {
                     'currency': undefined,
                 };
             }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
         }
         return {
             'info': trade,
@@ -1587,9 +1574,7 @@ module.exports = class phemex extends Exchange {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
         if (price === 0) {
             price = undefined;
@@ -1603,10 +1588,6 @@ module.exports = class phemex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
-        let symbol = undefined;
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
         let fee = undefined;
         const feeCost = this.fromEv (this.safeFloat (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
@@ -1684,9 +1665,7 @@ module.exports = class phemex extends Exchange {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
@@ -1699,10 +1678,6 @@ module.exports = class phemex extends Exchange {
         let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
-        }
-        let symbol = undefined;
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
         }
         return {
             'info': order,

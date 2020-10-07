@@ -392,13 +392,16 @@ class kucoin(Exchange):
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
+            isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
+            isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
+            active = (isWithdrawEnabled and isDepositEnabled)
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': precision,
                 'info': entry,
-                'active': None,
+                'active': active,
                 'fee': None,
                 'limits': self.limits,
             }
