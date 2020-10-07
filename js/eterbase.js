@@ -349,13 +349,7 @@ module.exports = class eterbase extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'marketId');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        let symbol = undefined;
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'time');
         const last = this.safeFloat (ticker, 'price');
         const baseVolume = this.safeFloat (ticker, 'volumeBase');
@@ -497,14 +491,8 @@ module.exports = class eterbase extends Exchange {
         }
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'id');
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'marketId');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         return {
             'info': trade,
             'id': id,
@@ -772,13 +760,7 @@ module.exports = class eterbase extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.safeInteger (order, 'placedAt');
         const marketId = this.safeInteger (order, 'marketId');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
         if (status === 'closed') {
             status = this.parseOrderStatus (this.safeString (order, 'closeReason'));
