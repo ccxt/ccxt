@@ -53,7 +53,6 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 # Python 2 & 3
-import types
 import logging
 import base64
 import calendar
