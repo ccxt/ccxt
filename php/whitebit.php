@@ -383,19 +383,10 @@ class whitebit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = null;
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $market = $this->safe_market($marketId);
             $ticker = $this->parse_ticker($data[$marketId], $market);
-            $result[$symbol] = array_merge($ticker, array( 'symbol' => $symbol ));
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
