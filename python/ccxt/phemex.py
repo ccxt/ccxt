@@ -923,12 +923,8 @@ class phemex(Exchange):
         #         "volume": 4053863
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_float(ticker, 'lastEp'), market)
         quoteVolume = self.from_ep(self.safe_float(ticker, 'turnoverEv'), market)
@@ -1154,9 +1150,7 @@ class phemex(Exchange):
             if execStatus == 'MakerFill':
                 takerOrMaker = 'maker'
             marketId = self.safe_string(trade, 'symbol')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+            symbol = self.safe_symbol(marketId, market)
             price = self.from_ep(self.safe_float(trade, 'execPriceEp'), market)
             amount = self.from_ev(self.safe_float(trade, 'execBaseQtyEv'), market)
             amount = self.safe_float(trade, 'execQty', amount)
@@ -1176,8 +1170,6 @@ class phemex(Exchange):
                     'rate': feeRate,
                     'currency': None,
                 }
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
@@ -1536,8 +1528,7 @@ class phemex(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        symbol = self.safe_symbol(marketId, market)
         price = self.from_ep(self.safe_float(order, 'priceEp'), market)
         if price == 0:
             price = None
@@ -1550,9 +1541,6 @@ class phemex(Exchange):
         side = self.safe_string_lower(order, 'side')
         type = self.parse_order_type(self.safe_string(order, 'ordType'))
         timestamp = self.safe_integer_product_2(order, 'actionTimeNs', 'createTimeNs', 0.000001)
-        symbol = None
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         fee = None
         feeCost = self.from_ev(self.safe_float(order, 'cumFeeEv'), market)
         if feeCost is not None:
@@ -1625,8 +1613,7 @@ class phemex(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        symbol = self.safe_symbol(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
@@ -1639,9 +1626,6 @@ class phemex(Exchange):
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        symbol = None
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
         return {
             'info': order,
             'id': id,

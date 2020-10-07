@@ -948,14 +948,8 @@ class phemex extends Exchange {
         //         "volume" => 4053863
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_float($ticker, 'lastEp'), $market);
         $quoteVolume = $this->from_ep($this->safe_float($ticker, 'turnoverEv'), $market);
@@ -1192,11 +1186,7 @@ class phemex extends Exchange {
                 $takerOrMaker = 'maker';
             }
             $marketId = $this->safe_string($trade, 'symbol');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
+            $symbol = $this->safe_symbol($marketId, $market);
             $price = $this->from_ep($this->safe_float($trade, 'execPriceEp'), $market);
             $amount = $this->from_ev($this->safe_float($trade, 'execBaseQtyEv'), $market);
             $amount = $this->safe_float($trade, 'execQty', $amount);
@@ -1218,9 +1208,6 @@ class phemex extends Exchange {
                     'currency' => null,
                 );
             }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
         }
         return array(
             'info' => $trade,
@@ -1591,9 +1578,7 @@ class phemex extends Exchange {
             $clientOrderId = null;
         }
         $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $price = $this->from_ep($this->safe_float($order, 'priceEp'), $market);
         if ($price === 0) {
             $price = null;
@@ -1607,10 +1592,6 @@ class phemex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parse_order_type($this->safe_string($order, 'ordType'));
         $timestamp = $this->safe_integer_product_2($order, 'actionTimeNs', 'createTimeNs', 0.000001);
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
         $fee = null;
         $feeCost = $this->from_ev($this->safe_float($order, 'cumFeeEv'), $market);
         if ($feeCost !== null) {
@@ -1688,9 +1669,7 @@ class phemex extends Exchange {
             $clientOrderId = null;
         }
         $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->parse_order_type($this->safe_string($order, 'orderType'));
@@ -1703,10 +1682,6 @@ class phemex extends Exchange {
         $lastTradeTimestamp = $this->safe_integer_product($order, 'transactTimeNs', 0.000001);
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
-        }
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
         }
         return array(
             'info' => $order,
