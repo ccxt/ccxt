@@ -1704,34 +1704,31 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def safe_symbol(self, marketId, market=None, delimiter=None, return_market=False):
+    def safe_market(self, marketId, market=None, delimiter=None):
         if marketId is not None:
             if self.markets_by_id is not None and marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                return market if return_market else market['symbol']
             elif delimiter is not None:
                 baseId, quoteId = marketId.split(delimiter)
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-                if return_market:
-                    return {
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                    }
-                else:
-                    return symbol
+                return {
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                }
         if market is not None:
-            return market if return_market else market['symbol']
-        if return_market:
-            return {
-                'symbol': marketId,
-                'base': None,
-                'quote': None,
-            }
-        else:
-            return marketId
+            return market
+        return {
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+        }
+
+    def safe_symbol(self, marketId, market=None, delimiter=None):
+        market = self.safe_market(marketId, market, delimiter)
+        return market['symbol']
 
     def safe_currency_code(self, currency_id, currency=None):
         code = None
