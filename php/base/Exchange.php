@@ -1843,39 +1843,39 @@ class Exchange {
         return $this->parse_orders($orders, $market, $since, $limit, $params);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null, $return_market = false) {
+    public function safe_market($marketId, $market = null, $delimiter = null) {
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                return $return_market ? $market : $market['symbol'];
             } else if ($delimiter !== null) {
                 list($baseId, $quoteId) = explode($delimiter, $marketId);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-                if ($return_market) {
-                    return array(
-                        'symbol' => $symbol,
-                        'base' => $base,
-                        'quote' => $quote,
-                    );
-                } else {
-                    return $symbol;
-                }
+                return array(
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                );
             }
         }
         if ($market !== null) {
-            return $return_market ? $market : $market['symbol'];
+            return $market;
         }
-        if ($return_market) {
-            return array(
-                'symbol' => $marketId,
-                'base' => null,
-                'quote' => null,
-            );
-        } else {
-            return $marketId;
-        }
+        return array(
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+        );
+    }
+
+    public function safeMarket($marketId, $market = null, $delimiter = null) {
+        return $this->safe_market($marketId, $market, $delimiter);
+    }
+
+    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter);
+        return $market['symbol'];
     }
 
     public function safeSymbol($marketId, $market = null, $delimiter = null) {
