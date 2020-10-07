@@ -142,6 +142,7 @@ class crex24(Exchange):
                 'BCC': 'BCH',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
+                'GHOST': 'GHOSTPRISM',
                 'YOYO': 'YOYOW',
             },
             # exchange-specific options

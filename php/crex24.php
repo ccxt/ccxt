@@ -138,6 +138,7 @@ class crex24 extends Exchange {
                 'BCC' => 'BCH',
                 'BULL' => 'BuySell',
                 'CREDIT' => 'TerraCredit',
+                'GHOST' => 'GHOSTPRISM',
                 'YOYO' => 'YOYOW',
             ),
             // exchange-specific options

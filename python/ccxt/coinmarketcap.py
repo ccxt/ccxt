@@ -118,6 +118,7 @@ class coinmarketcap(Exchange):
             'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             # 'GET Protocol': 'GET Protocol',
+            'GHOSTPRISM': 'GHOSTPRISM',  # conflict with GHOST
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
