@@ -120,7 +120,7 @@ class Exchange(object):
     pro = False
 
     # rate limiter settings
-    enableRateLimit = False
+    enable_rate_limit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
@@ -168,7 +168,7 @@ class Exchange(object):
     secret = ''
     password = ''
     uid = ''
-    privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
+    private_key = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
@@ -369,6 +369,18 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
+        class camelcaseAttribute:
+            __slots__ = ('underscore',)
+
+            def __init__(self, underscore):
+                self.underscore = underscore
+
+            def __get__(self, instance, owner):
+                return getattr(instance, self.underscore)
+
+            def __set__(self, instance, value):
+                setattr(instance, self.underscore, value)
+
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
@@ -376,12 +388,9 @@ class Exchange(object):
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
                 exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
-                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
-                attr = getattr(self, name)
-                if isinstance(attr, types.MethodType):
-                    setattr(cls, camelcase, getattr(cls, name))
-                else:
-                    setattr(self, camelcase, attr)
+                camelcase = parts[0] + ''.join(exceptions.get(i, Exchange.capitalize(i)) for i in parts[1:])
+                # by using a descriptor here editing enable_rate_limit will automatically change enableRateLimit and vice verse
+                setattr(cls, camelcase, camelcaseAttribute(name))
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
