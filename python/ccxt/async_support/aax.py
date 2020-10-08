@@ -33,6 +33,7 @@ class aax(Exchange):
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchTicker': True,
             },
             'timeframes': {
@@ -911,6 +912,16 @@ class aax(Exchange):
         response = await self.privateGetV2SpotOrders(self.extend(request, params))
         result = self.safe_value(response, 'data')
         return self.parse_orders(self.safe_value(result, 'list', []), market, since, limit)
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'orderID': id,
+        }
+        response = await self.privateGetV2SpotOrders(self.extend(request, params))
+        result = self.safe_value(response, 'data')
+        list = self.safe_value(result, 'list', [])
+        return self.parse_order(list[0])
 
     async def fetch_user_id(self):
         response = await self.privateGetV2UserInfo()

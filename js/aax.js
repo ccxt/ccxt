@@ -20,6 +20,7 @@ module.exports = class aax extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchTicker': true,
             },
             'timeframes': {
@@ -968,6 +969,17 @@ module.exports = class aax extends Exchange {
         const response = await this.privateGetV2SpotOrders (this.extend (request, params));
         const result = this.safeValue (response, 'data');
         return this.parseOrders (this.safeValue (result, 'list', []), market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderID': id,
+        };
+        const response = await this.privateGetV2SpotOrders (this.extend (request, params));
+        const result = this.safeValue (response, 'data');
+        const list = this.safeValue (result, 'list', []);
+        return this.parseOrder (list[0]);
     }
 
     async fetchUserId () {

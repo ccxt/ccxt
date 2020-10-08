@@ -535,7 +535,7 @@ class bittrex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",

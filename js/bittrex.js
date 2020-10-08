@@ -531,7 +531,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",
