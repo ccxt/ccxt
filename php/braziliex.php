@@ -349,7 +349,7 @@ class braziliex extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $marketId = $ids[$i];
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$marketId], $market);
         }

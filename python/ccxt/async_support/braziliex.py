@@ -344,7 +344,7 @@ class braziliex(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             marketId = ids[i]
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[marketId], market)
         return self.filter_by_array(result, 'symbol', symbols)
