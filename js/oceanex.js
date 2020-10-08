@@ -230,7 +230,8 @@ module.exports = class oceanex extends Exchange {
             const ticker = data[i];
             const marketId = this.safeString (ticker, 'market');
             const market = this.safeMarket (marketId);
-            result[market['symbol']] = this.parseTicker (ticker, market);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -556,7 +557,7 @@ module.exports = class oceanex extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeValue (order, 'state'));
-        const marketId = this.safeValue2 (order, 'market', 'market_id');
+        const marketId = this.safeString2 (order, 'market', 'market_id');
         const symbol = this.safeSymbol (marketId);
         let timestamp = this.safeTimestamp (order, 'created_on');
         if (timestamp === undefined) {
