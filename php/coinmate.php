@@ -454,25 +454,8 @@ class coinmate extends Exchange {
         //         "tradeType":"BUY"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'currencyPair');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {
-                $market = $this->markets_by_id[$marketId];
-                $quote = $market['quote'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $market = $this->safe_market($marketId, $market, '_');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -491,7 +474,7 @@ class coinmate extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $quote,
+                'currency' => $market['quote'],
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'feeType');
@@ -501,7 +484,7 @@ class coinmate extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'order' => $orderId,
@@ -648,21 +631,8 @@ class coinmate extends Exchange {
             }
         }
         $average = $this->safe_float($order, 'avgPrice');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         return array(
             'id' => $id,
