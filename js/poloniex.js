@@ -386,7 +386,15 @@ module.exports = class poloniex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const symbol = this.safeSymbol (marketId, undefined, '_');
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            } else {
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
             const orderbook = this.parseOrderBook (response[marketId]);
             orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
             result[symbol] = orderbook;
@@ -441,9 +449,20 @@ module.exports = class poloniex extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.safeMarket (id, undefined, '_');
+            let symbol = undefined;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                const [ quoteId, baseId ] = id.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+                market = { 'symbol': symbol };
+            }
             const ticker = response[id];
-            result[market['symbol']] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -533,8 +552,21 @@ module.exports = class poloniex extends Exchange {
         const id = this.safeString2 (trade, 'globalTradeID', 'tradeID');
         const orderId = this.safeString (trade, 'orderNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
-        const marketId = this.safeString (trade, 'currencyPair');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        let symbol = undefined;
+        if ((!market) && ('currencyPair' in trade)) {
+            const marketId = this.safeString (trade, 'currencyPair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const side = this.safeString (trade, 'type');
         let fee = undefined;
         const price = this.safeFloat (trade, 'rate');
@@ -784,8 +816,21 @@ module.exports = class poloniex extends Exchange {
         if ('resultingTrades' in order) {
             trades = this.parseTrades (order['resultingTrades'], market);
         }
+        let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ quoteId, baseId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const price = this.safeFloat2 (order, 'price', 'rate');
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'startingAmount');
