@@ -27,6 +27,7 @@ class aax extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
                 'fetchTicker' => true,
             ),
             'timeframes' => array(
@@ -975,6 +976,17 @@ class aax extends Exchange {
         $response = $this->privateGetV2SpotOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'data');
         return $this->parse_orders($this->safe_value($result, 'list', array()), $market, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'orderID' => $id,
+        );
+        $response = $this->privateGetV2SpotOrders (array_merge($request, $params));
+        $result = $this->safe_value($response, 'data');
+        $list = $this->safe_value($result, 'list', array());
+        return $this->parse_order($list[0]);
     }
 
     public function fetch_user_id () {

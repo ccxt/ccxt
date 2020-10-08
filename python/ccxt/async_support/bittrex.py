@@ -524,7 +524,7 @@ class bittrex(Exchange):
         response = await self.v3publicGetMarketsMarketSymbolTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
         #     {
         #         "startsAt":"2020-06-12T02:35:00Z",
