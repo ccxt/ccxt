@@ -345,7 +345,8 @@ module.exports = class braziliex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const marketId = ids[i];
             const market = this.safeMarket (marketId);
-            result[market['symbol']] = this.parseTicker (response[marketId], market);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (response[marketId], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
