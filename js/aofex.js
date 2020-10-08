@@ -484,8 +484,9 @@ module.exports = class aofex extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString (tickers[i], 'symbol');
             const market = this.safeMarket (marketId, undefined, '-');
+            const symbol = market['symbol'];
             const data = this.safeValue (tickers[i], 'data', {});
-            result[market['symbol']] = this.parseTicker (data, market);
+            result[symbol] = this.parseTicker (data, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
