@@ -343,10 +343,7 @@ class yobit(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(id)
             result[symbol] = self.parse_order_book(response[id])
         return result
 
@@ -412,11 +409,8 @@ class yobit(Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
