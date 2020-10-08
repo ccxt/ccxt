@@ -19,7 +19,6 @@
     "rightbtc":      { "skip": true },
     "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
-    "therock":       { "skip": true },
     "vaultoro":      { "skip": true },
     "xbtce":         { "skip": true }
 }
