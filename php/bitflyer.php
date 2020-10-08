@@ -346,16 +346,8 @@ class bitflyer extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'product_code');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'product_code');
+        $symbol = $this->safe_symbol($marketId, $market);
         $fee = null;
         $feeCost = $this->safe_float($order, 'total_commission');
         if ($feeCost !== null) {

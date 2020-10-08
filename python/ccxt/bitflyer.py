@@ -322,13 +322,8 @@ class bitflyer(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'product_code')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'product_code')
+        symbol = self.safe_symbol(marketId, market)
         fee = None
         feeCost = self.safe_float(order, 'total_commission')
         if feeCost is not None:
