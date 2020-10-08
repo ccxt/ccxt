@@ -417,16 +417,8 @@ class digifinex extends Exchange {
             ), $tickers[$reversedMarketId]);
             list($quoteId, $baseId) = explode('_', $reversedMarketId);
             $marketId = strtoupper($baseId) . '_' . strtoupper($quoteId);
-            $market = null;
-            $symbol = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $market = $this->safe_market($marketId, null, '_');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -557,24 +549,8 @@ class digifinex extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_value($trade, 'is_maker');
         $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
@@ -871,25 +847,8 @@ class digifinex extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($market === null) {
-            $exchange = strtoupper($order['symbol']);
-            if (is_array($this->markets_by_id) && array_key_exists($exchange, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$exchange];
-            }
-        }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'executed_amount');
         $price = $this->safe_float($order, 'price');

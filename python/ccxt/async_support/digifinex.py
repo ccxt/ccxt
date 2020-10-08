@@ -415,15 +415,8 @@ class digifinex(Exchange):
             }, tickers[reversedMarketId])
             quoteId, baseId = reversedMarketId.split('_')
             marketId = baseId.upper() + '_' + quoteId.upper()
-            market = None
-            symbol = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            market = self.safe_market(marketId, None, '_')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -546,20 +539,8 @@ class digifinex(Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_value(trade, 'is_maker')
         feeCost = self.safe_float(trade, 'fee')
         fee = None
@@ -837,21 +818,8 @@ class digifinex(Exchange):
             else:
                 type = 'limit'
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if market is None:
-            exchange = order['symbol'].upper()
-            if exchange in self.markets_by_id:
-                market = self.markets_by_id[exchange]
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        symbol = self.safe_symbol(marketId, market, '_')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'executed_amount')
         price = self.safe_float(order, 'price')
