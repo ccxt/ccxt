@@ -338,14 +338,8 @@ class mercado extends Exchange {
             $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'coin_pair');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'coin_pair');
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'created_timestamp');
         $fee = array(
             'cost' => $this->safe_float($order, 'fee'),
@@ -366,7 +360,7 @@ class mercado extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
             'price' => $price,
