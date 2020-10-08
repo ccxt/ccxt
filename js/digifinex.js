@@ -414,7 +414,8 @@ module.exports = class digifinex extends Exchange {
             const [ quoteId, baseId ] = reversedMarketId.split ('_');
             const marketId = baseId.toUpperCase () + '_' + quoteId.toUpperCase ();
             const market = this.safeMarket (marketId, undefined, '_');
-            result[market['symbol']] = this.parseTicker (ticker, market);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
