@@ -114,6 +114,7 @@ class phemex extends Exchange {
                         'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
                     ),
                     'post' => array(
                         // spot
