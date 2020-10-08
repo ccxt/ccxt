@@ -409,7 +409,8 @@ module.exports = class yobit extends Exchange {
             const id = keys[k];
             const ticker = tickers[id];
             const market = this.safeMarket (id);
-            result[market['symbol']] = this.parseTicker (ticker, market);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
