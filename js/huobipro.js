@@ -1157,13 +1157,13 @@ module.exports = class huobipro extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request['amount'] = this.costtToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             } else {
-                request['amount'] = this.amountToPrecision (symbol, amount);
+                request['amount'] = this.costToPrecision (symbol, amount);
             }
         } else {
-            request['amount'] = this.costToPrecision (symbol, amount);
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
             request['price'] = this.priceToPrecision (symbol, price);
