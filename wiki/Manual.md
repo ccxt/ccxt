@@ -874,7 +874,7 @@ For examples of how to use the `decimalToPrecision` to format strings and floats
 - Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
 - PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
 
-**Python WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!**
+**Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
 
 ## Loading Markets
 
