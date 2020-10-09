@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -312,6 +313,10 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+    }
+
     async fetchMarkets (params = {}) {
         const method = this.options['fetchMarketsMethod'];
         const response = await this[method] (params);
@@ -330,8 +335,9 @@ module.exports = class huobipro extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
+                'amount': this.safeInteger (market, 'amount-precision'),
+                'price': this.safeInteger (market, 'price-precision'),
+                'cost': this.safeInteger (market, 'value-precision'),
             };
             const maker = (base === 'OMG') ? 0 : 0.2 / 100;
             const taker = (base === 'OMG') ? 0 : 0.2 / 100;
@@ -1157,7 +1163,7 @@ module.exports = class huobipro extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
         } else {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['amount'] = this.costToPrecision (symbol, amount);
         }
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
             request['price'] = this.priceToPrecision (symbol, price);
