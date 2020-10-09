@@ -377,8 +377,7 @@ module.exports = class bittrex extends Exchange {
         //         ]
         //     }
         //
-        let sequence = this.safeValue2 (this.last_response_headers, 'sequence', 'Sequence');
-        sequence = Array.isArray (sequence) ? parseInt (sequence[0]) : parseInt (sequence);
+        const sequence = this.safeInteger (this.last_response_headers, 'Sequence');
         const orderbook = this.parseOrderBook (response, undefined, 'bid', 'ask', 'rate', 'quantity');
         orderbook['nonce'] = sequence;
         return orderbook;
