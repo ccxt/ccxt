@@ -2271,7 +2271,7 @@ module.exports = class binance extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'address': this.checkAddress (address),
+            'address': address,
             'tag': tag,
             'info': response,
         };
