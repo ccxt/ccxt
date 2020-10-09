@@ -2538,7 +2538,8 @@ class binance extends Exchange {
         $error = $this->safe_string($response, 'code');
         if ($error !== null) {
             // https://github.com/ccxt/ccxt/issues/6501
-            if ($error === '200') {
+            // https://github.com/ccxt/ccxt/issues/7742
+            if (($error === '200') || ($error === '0')) {
                 return;
             }
             // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
