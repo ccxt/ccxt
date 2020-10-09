@@ -1730,17 +1730,19 @@ class Exchange(object):
         market = self.safe_market(marketId, market, delimiter)
         return market['symbol']
 
+    def safe_currency(self, currency_id, currency=None):
+        if currency_id is None and currency is not None:
+            return currency
+        if (self.currencies_by_id is not None) and (currency_id in self.currencies_by_id):
+            return self.currencies_by_id[currency_id]
+        return {
+            'id': currency_id,
+            'code': self.common_currency_code(currency_id.upper()) if currency_id is not None else currency_id
+        }
+
     def safe_currency_code(self, currency_id, currency=None):
-        code = None
-        if currency_id is not None:
-            currency_id = str(currency_id)
-            if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
-                code = self.currencies_by_id[currency_id]['code']
-            else:
-                code = self.common_currency_code(currency_id.upper())
-        if code is None and currency is not None:
-            code = currency['code']
-        return code
+        currency = self.safe_currency(currency_id, currency)
+        return currency['code']
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
