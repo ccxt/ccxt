@@ -384,8 +384,7 @@ class bittrex extends Exchange {
         //         )
         //     }
         //
-        $sequence = $this->safe_value_2($this->last_response_headers, 'sequence', 'Sequence');
-        $sequence = gettype($sequence) === 'array' && count(array_filter(array_keys($sequence), 'is_string')) == 0 ? intval($sequence[0]) : intval($sequence);
+        $sequence = $this->safe_integer($this->last_response_headers, 'Sequence');
         $orderbook = $this->parse_order_book($response, null, 'bid', 'ask', 'rate', 'quantity');
         $orderbook['nonce'] = $sequence;
         return $orderbook;

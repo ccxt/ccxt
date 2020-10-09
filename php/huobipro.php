@@ -317,6 +317,10 @@ class huobipro extends Exchange {
         );
     }
 
+    public function cost_to_precision($symbol, $cost) {
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
+    }
+
     public function fetch_markets($params = array ()) {
         $method = $this->options['fetchMarketsMethod'];
         $response = $this->$method ($params);
@@ -335,8 +339,9 @@ class huobipro extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => $market['amount-precision'],
-                'price' => $market['price-precision'],
+                'amount' => $this->safe_integer($market, 'amount-precision'),
+                'price' => $this->safe_integer($market, 'price-precision'),
+                'cost' => $this->safe_integer($market, 'value-precision'),
             );
             $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
@@ -1156,10 +1161,10 @@ class huobipro extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    $request['amount'] = $this->amount_to_precision($symbol, floatval($amount) * floatval($price));
+                    $request['amount'] = $this->costtToPrecision ($symbol, floatval($amount) * floatval($price));
                 }
             } else {
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                $request['amount'] = $this->cost_to_precision($symbol, $amount);
             }
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);

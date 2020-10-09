@@ -19,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class huobipro(Exchange):
@@ -321,6 +322,9 @@ class huobipro(Exchange):
             },
         }
 
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
+
     async def fetch_markets(self, params={}):
         method = self.options['fetchMarketsMethod']
         response = await getattr(self, method)(params)
@@ -338,8 +342,9 @@ class huobipro(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
+                'amount': self.safe_integer(market, 'amount-precision'),
+                'price': self.safe_integer(market, 'price-precision'),
+                'cost': self.safe_integer(market, 'value-precision'),
             }
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
@@ -1083,9 +1088,9 @@ class huobipro(Exchange):
                     # https://github.com/ccxt/ccxt/pull/4395
                     # https://github.com/ccxt/ccxt/issues/7611
                     # we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = self.amount_to_precision(symbol, float(amount) * float(price))
+                    request['amount'] = self.costtToPrecision(symbol, float(amount) * float(price))
             else:
-                request['amount'] = self.amount_to_precision(symbol, amount)
+                request['amount'] = self.cost_to_precision(symbol, amount)
         else:
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker':
