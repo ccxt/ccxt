@@ -11,6 +11,7 @@
     "coinmarketcap": { "skip": true },
     "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
+    "exx":           { "skip": true },
     "fcoin":         { "skip": true },
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
