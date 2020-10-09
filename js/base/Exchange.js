@@ -1155,7 +1155,7 @@ module.exports = class Exchange {
         }
         return {
             'id': currencyId,
-            'code': this.commonCurrencyCode (currencyId.toUpperCase ()),
+            'code': (currencyId === undefined) ? currencyId : this.commonCurrencyCode (currencyId.toUpperCase ()),
         }
     }
 
