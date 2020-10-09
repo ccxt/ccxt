@@ -2221,10 +2221,6 @@ module.exports = class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-        // 'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-    // 'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
-
-
     parseTransactionStatus (status) {
         const statuses = {
             'Success': 'ok',
