@@ -1882,19 +1882,26 @@ class Exchange {
         return $this->safe_symbol($marketId, $market, $delimiter);
     }
 
+    public function safe_currency($currency_id, $currency = null) {
+        if (($currency_id === null) && ($currency !== null)) {
+            return $currency;
+        }
+        if (($this->currencies_by_id !== null) && array_key_exists($currency_id, $this->currencies_by_id)) {
+            return $this->currencies_by_id[$currency_id];
+        }
+        return array(
+            'id' => $currency_id,
+            'code' => ($currency_id === null) ? $currency_id : $this->common_currency_code(mb_strtoupper($currency_id)),
+        );
+    }
+
+    public function safeCurrency($currency_id, $currency = null) {
+        return $this->safe_currency($currency_id, $currency);
+    }
+
     public function safe_currency_code($currency_id, $currency = null) {
-        $code = null;
-        if ($currency_id !== null) {
-            if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currency_id]['code'];
-            } else {
-                $code = $this->common_currency_code(mb_strtoupper($currency_id));
-            }
-        }
-        if ($code === null && $currency !== null) {
-            $code = $currency['code'];
-        }
-        return $code;
+        $currency = $this->safe_currency($currency_id, $currency);
+        return $currency['code'];
     }
 
     public function safeCurrencyCode($currency_id, $currency = null) {
