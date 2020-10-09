@@ -20,7 +20,6 @@ module.exports = class exmo extends Exchange {
                 'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
@@ -31,7 +30,6 @@ module.exports = class exmo extends Exchange {
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchOrders': 'emulated',
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1064,7 +1062,7 @@ module.exports = class exmo extends Exchange {
         amount = parseFloat (amount);
         price = parseFloat (price);
         const status = 'open';
-        const order = {
+        return {
             'id': id,
             'info': response,
             'timestamp': timestamp,
@@ -1084,60 +1082,45 @@ module.exports = class exmo extends Exchange {
             'clientOrderId': undefined,
             'average': undefined,
         };
-        this.orders[id] = order;
-        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { 'order_id': id };
-        const response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        try {
-            const request = {
-                'order_id': id.toString (),
-            };
-            const response = await this.privatePostOrderTrades (this.extend (request, params));
-            //
-            //     {
-            //         "type": "buy",
-            //         "in_currency": "BTC",
-            //         "in_amount": "1",
-            //         "out_currency": "USD",
-            //         "out_amount": "100",
-            //         "trades": [
-            //             {
-            //                 "trade_id": 3,
-            //                 "date": 1435488248,
-            //                 "type": "buy",
-            //                 "pair": "BTC_USD",
-            //                 "order_id": 12345,
-            //                 "quantity": 1,
-            //                 "price": 100,
-            //                 "amount": 100
-            //             }
-            //         ]
-            //     }
-            //
-            const order = this.parseOrder (response);
-            return this.extend (order, {
-                'id': id.toString (),
-            });
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                if (id in this.orders) {
-                    return this.orders[id];
-                }
-            }
-        }
-        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
+        const request = {
+            'order_id': id.toString (),
+        };
+        const response = await this.privatePostOrderTrades (this.extend (request, params));
+        //
+        //     {
+        //         "type": "buy",
+        //         "in_currency": "BTC",
+        //         "in_amount": "1",
+        //         "out_currency": "USD",
+        //         "out_amount": "100",
+        //         "trades": [
+        //             {
+        //                 "trade_id": 3,
+        //                 "date": 1435488248,
+        //                 "type": "buy",
+        //                 "pair": "BTC_USD",
+        //                 "order_id": 12345,
+        //                 "quantity": 1,
+        //                 "price": 100,
+        //                 "amount": 100
+        //             }
+        //         ]
+        //     }
+        //
+        const order = this.parseOrder (response);
+        return this.extend (order, {
+            'id': id.toString (),
+        });
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1178,48 +1161,7 @@ module.exports = class exmo extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            const id = cachedOrderIds[k];
-            let order = this.orders[id];
-            if (!(id in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== order['symbol']) {
-                    continue;
-                }
-                // order is cached but not present in the list of open orders -> mark the cached order as closed
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostUserOpenOrders (params);
         const marketIds = Object.keys (response);
@@ -1233,19 +1175,6 @@ module.exports = class exmo extends Exchange {
             const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
-        this.updateCachedOrders (orders, symbol);
-        return this.filterBySymbolSinceLimit (this.toArray (this.orders), symbol, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.fetchOrders (symbol, since, limit, params);
-        const orders = this.filterBy (this.orders, 'status', 'open');
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.fetchOrders (symbol, since, limit, params);
-        const orders = this.filterBy (this.orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
