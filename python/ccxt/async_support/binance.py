@@ -2375,7 +2375,8 @@ class binance(Exchange):
         error = self.safe_string(response, 'code')
         if error is not None:
             # https://github.com/ccxt/ccxt/issues/6501
-            if error == '200':
+            # https://github.com/ccxt/ccxt/issues/7742
+            if (error == '200') or (error == '0'):
                 return
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
