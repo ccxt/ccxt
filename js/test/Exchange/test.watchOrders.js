@@ -6,16 +6,16 @@ const log = require ('ololog')
     , chai = require ('chai')
     , asTable = require ('as-table')
     , assert = chai.assert
-    , testTrade = require ('ccxt/js/test/Exchange/test.trade.js')
+    , testOrder = require ('ccxt/js/test/Exchange/test.order.js')
     , errors = require ('ccxt/js/base/errors.js')
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = async (exchange, symbol) => {
 
-    // log (symbol.green, 'watching my trades...')
+    // log (symbol.green, 'watching orders...')
 
-    const method = 'watchMyTrades'
+    const method = 'watchOrders'
 
     if (!exchange.has[method]) {
         log (exchange.id, 'does not support', method + '() method')
@@ -37,17 +37,17 @@ module.exports = async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
+            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'orders')
 
             // log.noLocate (asTable (response))
 
             for (let i = 0; i < response.length; i++) {
-                const trade = response[i]
-                testTrade (exchange, trade, symbol, now)
+                const order = response[i]
+                testOrder (exchange, order, symbol, now)
                 if (i > 0) {
-                    const previousTrade = response[i - 1]
-                    if (trade.timestamp && previousTrade.timestamp) {
-                        assert (trade.timestamp >= previousTrade.timestamp)
+                    const previousOrder = response[i - 1]
+                    if (order.timestamp && previousOrder.timestamp) {
+                        assert (order.timestamp >= previousOrder.timestamp)
                     }
                 }
             }
