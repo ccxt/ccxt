@@ -1292,6 +1292,14 @@ class Exchange {
     //     }
     // }
 
+    public function set_headers($headers) {
+        return $headers;
+    }
+
+    public function setHeaders($headers) {
+        return $this->set_headers($headers);
+    }
+
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
 
         $headers = array_merge($this->headers, $headers ? $headers : array());
@@ -1299,6 +1307,10 @@ class Exchange {
         if (strlen($this->proxy)) {
             $headers['Origin'] = $this->origin;
         }
+
+        $headers = $this->set_headers ($headers);
+
+        $verbose_headers = $headers;
 
         if (!$headers) {
             $headers = array();
@@ -1313,8 +1325,6 @@ class Exchange {
         // this name for the proxy string is deprecated
         // we should rename it to $this->cors everywhere
         $url = $this->proxy . $url;
-
-        $verbose_headers = $headers;
 
         // https://github.com/ccxt/ccxt/issues/5914
         if ($this->curl) {
