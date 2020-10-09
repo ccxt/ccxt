@@ -1146,19 +1146,22 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
+    safeCurrency (currencyId, currency = undefined) {
+        if ((currencyId === undefined) && (currency !== undefined)) {
+            return currency
+        }
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+            return this.currencies_by_id[currencyId]
+        }
+        return {
+            'id': currencyId,
+            'code': this.commonCurrencyCode (currencyId.toUpperCase ()),
+        }
+    }
+
     safeCurrencyCode (currencyId, currency = undefined) {
-        let code = undefined
-        if (currencyId !== undefined) {
-            if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code']
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ())
-            }
-        }
-        if (code === undefined && currency !== undefined) {
-            code = currency['code']
-        }
-        return code
+        currency = this.safeCurrency (currencyId, currency)
+        return currency['code']
     }
 
     safeMarket (marketId, market = undefined, delimiter = undefined) {
@@ -1171,6 +1174,7 @@ module.exports = class Exchange {
                 const quote = this.safeCurrencyCode (quoteId)
                 const symbol = base + '/' + quote
                 return {
+                    'id': marketId,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
@@ -1181,6 +1185,7 @@ module.exports = class Exchange {
             return market
         }
         return {
+            'id': marketId,
             'symbol': marketId,
             'base': undefined,
             'quote': undefined,
