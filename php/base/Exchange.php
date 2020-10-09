@@ -1413,12 +1413,17 @@ class Exchange {
                     }
                     return $length;
                 }
-                $key = strtolower(trim($tuple[0]));
+                $key = trim($tuple[0]);
+                $key = implode('-', array_map(get_called_class() . '::capitalize', explode('-', $key)));
                 $value = trim($tuple[1]);
                 if (!array_key_exists($key, $response_headers)) {
-                    $response_headers[$key] = array($value);
+                    $response_headers[$key] = $value;
                 } else {
-                    $response_headers[$key][] = $value;
+                    if (is_array($response_headers[$key])) {
+                        $response_headers[$key][] = $value;
+                    } else {
+                        $response_headers[$key] = array($response_headers[$key], $value);
+                    }
                 }
                 return $length;
             }
