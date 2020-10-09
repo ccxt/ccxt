@@ -25,7 +25,6 @@ class yobit extends Exchange {
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => false,
                 'fetchMarkets' => true,
@@ -34,7 +33,6 @@ class yobit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
-                'fetchOrders' => 'emulated',
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -525,7 +523,7 @@ class yobit extends Exchange {
             $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
         $timestamp = $this->milliseconds();
-        $order = array(
+        return array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -540,14 +538,12 @@ class yobit extends Exchange {
             'remaining' => $remaining,
             'filled' => $filled,
             'fee' => null,
-            // 'trades' => $this->parse_trades($order['trades'], $market),
+            // 'trades' => $this->parse_trades(order['trades'], $market),
             'info' => $response,
             'clientOrderId' => null,
             'average' => null,
             'trades' => null,
         );
-        $this->orders[$id] = $order;
-        return $order;
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -555,11 +551,7 @@ class yobit extends Exchange {
         $request = array(
             'order_id' => intval($id),
         );
-        $response = $this->privatePostCancelOrder (array_merge($request, $params));
-        if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-            $this->orders[$id]['status'] = 'canceled';
-        }
-        return $response;
+        return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -579,20 +571,13 @@ class yobit extends Exchange {
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
         $remaining = $this->safe_float($order, 'amount');
-        $amount = null;
+        $amount = $this->safe_float($order, 'start_amount');
         $price = $this->safe_float($order, 'rate');
         $filled = null;
         $cost = null;
-        if (is_array($order) && array_key_exists('start_amount', $order)) {
-            $amount = $this->safe_float($order, 'start_amount');
-        } else {
-            if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-                $amount = $this->orders[$id]['amount'];
-            }
-        }
         if ($amount !== null) {
             if ($remaining !== null) {
-                $filled = $amount - $remaining;
+                $filled = max (0, $amount - $remaining);
                 $cost = $price * $filled;
             }
         }
@@ -644,57 +629,13 @@ class yobit extends Exchange {
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
         $id = (string) $id;
-        $newOrder = $this->parse_order(array_merge(array( 'id' => $id ), $response['return'][$id]));
-        $oldOrder = (is_array($this->orders) && array_key_exists($id, $this->orders)) ? $this->orders[$id] : array();
-        $this->orders[$id] = array_merge($oldOrder, $newOrder);
-        return $this->orders[$id];
+        $orders = $this->safe_value($response, 'return', array());
+        return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
     }
 
-    public function update_cached_orders($openOrders, $symbol) {
-        // update local cache with open orders
-        // this will add unseen orders and overwrite existing ones
-        for ($j = 0; $j < count($openOrders); $j++) {
-            $id = $openOrders[$j]['id'];
-            $this->orders[$id] = $openOrders[$j];
-        }
-        $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = is_array($this->orders) ? array_keys($this->orders) : array();
-        for ($k = 0; $k < count($cachedOrderIds); $k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            $cachedOrderId = $cachedOrderIds[$k];
-            $cachedOrder = $this->orders[$cachedOrderId];
-            if (!(is_array($openOrdersIndexedById) && array_key_exists($cachedOrderId, $openOrdersIndexedById))) {
-                // cached order is not in open orders array
-                // if we fetched orders by $symbol and it doesn't match the cached order -> won't update the cached order
-                if ($symbol !== null && $symbol !== $cachedOrder['symbol']) {
-                    continue;
-                }
-                // cached order is absent from the list of open orders -> mark the cached order as closed
-                if ($cachedOrder['status'] === 'open') {
-                    $cachedOrder = array_merge($cachedOrder, array(
-                        'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost' => null,
-                        'filled' => $cachedOrder['amount'],
-                        'remaining' => 0.0,
-                    ));
-                    if ($cachedOrder['cost'] === null) {
-                        if ($cachedOrder['filled'] !== null) {
-                            $cachedOrder['cost'] = $cachedOrder['filled'] * $cachedOrder['price'];
-                        }
-                    }
-                    $this->orders[$cachedOrderId] = $cachedOrder;
-                }
-            }
-        }
-        return $this->to_array($this->orders);
-    }
-
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $request = array();
@@ -704,24 +645,8 @@ class yobit extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge($request, $params));
-        // can only return 'open' orders (i.e. no way to fetch 'closed' orders)
-        $openOrders = array();
-        if (is_array($response) && array_key_exists('return', $response)) {
-            $openOrders = $this->parse_orders($response['return'], $market);
-        }
-        $allOrders = $this->update_cached_orders($openOrders, $symbol);
-        $result = $this->filter_by_symbol($allOrders, $symbol);
-        return $this->filter_by_since_limit($result, $since, $limit);
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'open');
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
+        $orders = $this->safe_value($response, 'return', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
