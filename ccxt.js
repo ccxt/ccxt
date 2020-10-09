@@ -131,6 +131,7 @@ const exchanges = {
     'kuna':                    require ('./js/kuna.js'),
     'lakebtc':                 require ('./js/lakebtc.js'),
     'latoken':                 require ('./js/latoken.js'),
+    'latoken_v2':              require ('./js/latoken_v2.js'),
     'lbank':                   require ('./js/lbank.js'),
     'liquid':                  require ('./js/liquid.js'),
     'livecoin':                require ('./js/livecoin.js'),
