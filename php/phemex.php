@@ -30,6 +30,7 @@ class phemex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -39,6 +40,7 @@ class phemex extends Exchange {
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -662,7 +664,7 @@ class phemex extends Exchange {
         //         "$code":0,
         //         "msg":"OK",
         //         "$data":{
-        //             "ratioScale":8,
+        //             ...,
         //             "$currencies":array(
         //                 array("$currency":"BTC","$valueScale":8,"$minValueEv":1,"$maxValueEv":5000000000000000000,"$name":"Bitcoin"),
         //                 array("$currency":"USD","$valueScale":4,"$minValueEv":1,"$maxValueEv":500000000000000,"$name":"USD"),
@@ -2158,6 +2160,153 @@ class phemex extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'info' => $response,
+        );
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = $this->privateGetExchangeWalletsDepositList ($params);
+        //
+        //     {
+        //         "$code":0,
+        //         "msg":"OK",
+        //         "$data":array(
+        //             {
+        //                 "id":29200,
+        //                 "$currency":"USDT",
+        //                 "currencyCode":3,
+        //                 "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //                 "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //                 "amountEv":3000000000,
+        //                 "confirmations":13,
+        //                 "type":"Deposit",
+        //                 "status":"Success",
+        //                 "createdAt":1592722565000
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = $this->privateGetExchangeWalletsWithdrawList ($params);
+        //
+        //     {
+        //         "$code":0,
+        //         "msg":"OK",
+        //         "$data":array(
+        //             {
+        //                 "address" => "1Lxxxxxxxxxxx"
+        //                 "amountEv" => 200000
+        //                 "$currency" => "BTC"
+        //                 "currencyCode" => 1
+        //                 "expiredTime" => 0
+        //                 "feeEv" => 50000
+        //                 "rejectReason" => null
+        //                 "status" => "Succeed"
+        //                 "txHash" => "44exxxxxxxxxxxxxxxxxxxxxx"
+        //                 "withdrawStatus => ""
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'Success' => 'ok',
+            'Succeed' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     ...
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "$id":29200,
+        //         "$currency":"USDT",
+        //         "currencyCode":3,
+        //         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //         "$address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //         "amountEv":3000000000,
+        //         "confirmations":13,
+        //         "$type":"Deposit",
+        //         "$status":"Success",
+        //         "createdAt":1592722565000
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "$address" => "1Lxxxxxxxxxxx"
+        //         "amountEv" => 200000
+        //         "$currency" => "BTC"
+        //         "currencyCode" => 1
+        //         "expiredTime" => 0
+        //         "feeEv" => 50000
+        //         "rejectReason" => null
+        //         "$status" => "Succeed"
+        //         "txHash" => "44exxxxxxxxxxxxxxxxxxxxxx"
+        //         "withdrawStatus => ""
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = null;
+        $txid = $this->safe_string($transaction, 'txHash');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $code = $currency['code'];
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $type = $this->safe_string_lower($transaction, 'type');
+        $feeCost = $this->from_en($this->safe_float($transaction, 'feeEv'), $currency['valueScale'], $currency['precision']);
+        $fee = null;
+        if ($feeCost !== null) {
+            $type = 'withdrawal';
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $amount = $this->from_en($this->safe_float($transaction, 'amountEv'), $currency['valueScale'], $currency['precision']);
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => $fee,
         );
     }
 

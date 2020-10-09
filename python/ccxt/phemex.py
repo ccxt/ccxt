@@ -43,6 +43,7 @@ class phemex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -52,6 +53,7 @@ class phemex(Exchange):
                 'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -664,7 +666,7 @@ class phemex(Exchange):
         #         "code":0,
         #         "msg":"OK",
         #         "data":{
-        #             "ratioScale":8,
+        #             ...,
         #             "currencies":[
         #                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
         #                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
@@ -2062,6 +2064,146 @@ class phemex(Exchange):
             'address': address,
             'tag': tag,
             'info': response,
+        }
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetExchangeWalletsDepositList(params)
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"OK",
+        #         "data":[
+        #             {
+        #                 "id":29200,
+        #                 "currency":"USDT",
+        #                 "currencyCode":3,
+        #                 "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        #                 "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        #                 "amountEv":3000000000,
+        #                 "confirmations":13,
+        #                 "type":"Deposit",
+        #                 "status":"Success",
+        #                 "createdAt":1592722565000
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transactions(data, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetExchangeWalletsWithdrawList(params)
+        #
+        #     {
+        #         "code":0,
+        #         "msg":"OK",
+        #         "data":[
+        #             {
+        #                 "address": "1Lxxxxxxxxxxx"
+        #                 "amountEv": 200000
+        #                 "currency": "BTC"
+        #                 "currencyCode": 1
+        #                 "expiredTime": 0
+        #                 "feeEv": 50000
+        #                 "rejectReason": null
+        #                 "status": "Succeed"
+        #                 "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
+        #                 "withdrawStatus: ""
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transactions(data, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Success': 'ok',
+            'Succeed': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     ...
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "id":29200,
+        #         "currency":"USDT",
+        #         "currencyCode":3,
+        #         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        #         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        #         "amountEv":3000000000,
+        #         "confirmations":13,
+        #         "type":"Deposit",
+        #         "status":"Success",
+        #         "createdAt":1592722565000
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "address": "1Lxxxxxxxxxxx"
+        #         "amountEv": 200000
+        #         "currency": "BTC"
+        #         "currencyCode": 1
+        #         "expiredTime": 0
+        #         "feeEv": 50000
+        #         "rejectReason": null
+        #         "status": "Succeed"
+        #         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
+        #         "withdrawStatus: ""
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'address')
+        tag = None
+        txid = self.safe_string(transaction, 'txHash')
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        code = currency['code']
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        type = self.safe_string_lower(transaction, 'type')
+        feeCost = self.from_en(self.safe_float(transaction, 'feeEv'), currency['valueScale'], currency['precision'])
+        fee = None
+        if feeCost is not None:
+            type = 'withdrawal'
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        amount = self.from_en(self.safe_float(transaction, 'amountEv'), currency['valueScale'], currency['precision'])
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': fee,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
