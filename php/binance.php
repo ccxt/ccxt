@@ -2278,7 +2278,7 @@ class binance extends Exchange {
         $this->check_address($address);
         return array(
             'currency' => $code,
-            'address' => $this->check_address($address),
+            'address' => $address,
             'tag' => $tag,
             'info' => $response,
         );

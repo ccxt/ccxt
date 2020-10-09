@@ -2147,7 +2147,7 @@ class binance(Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'address': self.check_address(address),
+            'address': address,
             'tag': tag,
             'info': response,
         }
