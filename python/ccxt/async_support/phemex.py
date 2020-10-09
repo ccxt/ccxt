@@ -128,6 +128,7 @@ class phemex(Exchange):
                         'exchange/wallets/confirm/withdraw',  # ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList',  # ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'exchange/wallets/depositList',  # ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress',  # ?currency=<currency>
                     ],
                     'post': [
                         # spot
