@@ -26,6 +26,7 @@ module.exports = class phemex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -35,6 +36,7 @@ module.exports = class phemex extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
@@ -658,7 +660,7 @@ module.exports = class phemex extends Exchange {
         //         "code":0,
         //         "msg":"OK",
         //         "data":{
-        //             "ratioScale":8,
+        //             ...,
         //             "currencies":[
         //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
         //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
@@ -2154,6 +2156,157 @@ module.exports = class phemex extends Exchange {
             'address': address,
             'tag': tag,
             'info': response,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetExchangeWalletsDepositList (params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":[
+        //             {
+        //                 "id":29200,
+        //                 "currency":"USDT",
+        //                 "currencyCode":3,
+        //                 "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //                 "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //                 "amountEv":3000000000,
+        //                 "confirmations":13,
+        //                 "type":"Deposit",
+        //                 "status":"Success",
+        //                 "createdAt":1592722565000
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetExchangeWalletsWithdrawList (params);
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"OK",
+        //         "data":[
+        //             {
+        //                 "address": "1Lxxxxxxxxxxx"
+        //                 "amountEv": 200000
+        //                 "currency": "BTC"
+        //                 "currencyCode": 1
+        //                 "expiredTime": 0
+        //                 "feeEv": 50000
+        //                 "rejectReason": null
+        //                 "status": "Succeed"
+        //                 "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
+        //                 "withdrawStatus: ""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+        // 'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+    // 'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
+
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Success': 'ok',
+            'Succeed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     ...
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id":29200,
+        //         "currency":"USDT",
+        //         "currencyCode":3,
+        //         "txHash":"0x0bdbdc47807769a03b158d5753f54dfc58b92993d2f5e818db21863e01238e5d",
+        //         "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
+        //         "amountEv":3000000000,
+        //         "confirmations":13,
+        //         "type":"Deposit",
+        //         "status":"Success",
+        //         "createdAt":1592722565000
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "address": "1Lxxxxxxxxxxx"
+        //         "amountEv": 200000
+        //         "currency": "BTC"
+        //         "currencyCode": 1
+        //         "expiredTime": 0
+        //         "feeEv": 50000
+        //         "rejectReason": null
+        //         "status": "Succeed"
+        //         "txHash": "44exxxxxxxxxxxxxxxxxxxxxx"
+        //         "withdrawStatus: ""
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const tag = undefined;
+        const txid = this.safeString (transaction, 'txHash');
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        let type = this.safeStringLower (transaction, 'type');
+        const feeCost = this.fromEn (this.safeFloat (transaction, 'feeEv'), currency['valueScale'], currency['precision']);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            type = 'withdrawal';
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.fromEn (this.safeFloat (transaction, 'amountEv'), currency['valueScale'], currency['precision']);
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
         };
     }
 
