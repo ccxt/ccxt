@@ -18,12 +18,11 @@ module.exports = class bitstamp extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchMyTrades': true,
@@ -229,7 +228,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTradingPairsInfo (params);
+        const response = await this.fetchMarketsFromCache (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -316,8 +315,25 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
+    async fetchMarketsFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetTradingPairsInfo (params);
+            this.options['fetchMarkets'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchMarkets'], 'response');
+    }
+
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetTradingPairsInfo (params);
+        const response = await this.fetchMarketsFromCache (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -942,21 +958,6 @@ module.exports = class bitstamp extends Exchange {
             currency = this.currency (code);
         }
         const transactions = this.filterByArray (response, 'type', [ '0', '1' ], false);
-        return this.parseTransactions (transactions, currency, since, limit);
-    }
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privatePostUserTransactions (this.extend (request, params));
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const transactions = this.filterBy (response, 'type', '0');
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
