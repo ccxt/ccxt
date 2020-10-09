@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 
 class exmo extends Exchange {
@@ -26,7 +25,6 @@ class exmo extends Exchange {
                 'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
@@ -37,7 +35,6 @@ class exmo extends Exchange {
                 'fetchOrder' => 'emulated',
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
-                'fetchOrders' => 'emulated',
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1070,7 +1067,7 @@ class exmo extends Exchange {
         $amount = floatval($amount);
         $price = floatval($price);
         $status = 'open';
-        $order = array(
+        return array(
             'id' => $id,
             'info' => $response,
             'timestamp' => $timestamp,
@@ -1090,60 +1087,45 @@ class exmo extends Exchange {
             'clientOrderId' => null,
             'average' => null,
         );
-        $this->orders[$id] = $order;
-        return $order;
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array( 'order_id' => $id );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
-        if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-            $this->orders[$id]['status'] = 'canceled';
-        }
-        return $response;
+        return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        try {
-            $request = array(
-                'order_id' => (string) $id,
-            );
-            $response = $this->privatePostOrderTrades (array_merge($request, $params));
-            //
-            //     {
-            //         "type" => "buy",
-            //         "in_currency" => "BTC",
-            //         "in_amount" => "1",
-            //         "out_currency" => "USD",
-            //         "out_amount" => "100",
-            //         "trades" => array(
-            //             {
-            //                 "trade_id" => 3,
-            //                 "date" => 1435488248,
-            //                 "type" => "buy",
-            //                 "pair" => "BTC_USD",
-            //                 "order_id" => 12345,
-            //                 "quantity" => 1,
-            //                 "price" => 100,
-            //                 "amount" => 100
-            //             }
-            //         )
-            //     }
-            //
-            $order = $this->parse_order($response);
-            return array_merge($order, array(
-                'id' => (string) $id,
-            ));
-        } catch (Exception $e) {
-            if ($e instanceof OrderNotFound) {
-                if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-                    return $this->orders[$id];
-                }
-            }
-        }
-        throw new OrderNotFound($this->id . ' fetchOrder $order $id ' . (string) $id . ' not found in cache.');
+        $request = array(
+            'order_id' => (string) $id,
+        );
+        $response = $this->privatePostOrderTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "buy",
+        //         "in_currency" => "BTC",
+        //         "in_amount" => "1",
+        //         "out_currency" => "USD",
+        //         "out_amount" => "100",
+        //         "trades" => array(
+        //             {
+        //                 "trade_id" => 3,
+        //                 "date" => 1435488248,
+        //                 "type" => "buy",
+        //                 "pair" => "BTC_USD",
+        //                 "order_id" => 12345,
+        //                 "quantity" => 1,
+        //                 "price" => 100,
+        //                 "amount" => 100
+        //             }
+        //         )
+        //     }
+        //
+        $order = $this->parse_order($response);
+        return array_merge($order, array(
+            'id' => (string) $id,
+        ));
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1184,48 +1166,7 @@ class exmo extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function update_cached_orders($openOrders, $symbol) {
-        // update local cache with open orders
-        for ($j = 0; $j < count($openOrders); $j++) {
-            $id = $openOrders[$j]['id'];
-            $this->orders[$id] = $openOrders[$j];
-        }
-        $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = is_array($this->orders) ? array_keys($this->orders) : array();
-        for ($k = 0; $k < count($cachedOrderIds); $k++) {
-            // match each cached $order to an $order in the open orders array
-            // possible reasons why a cached $order may be missing in the open orders array:
-            // - $order was closed or canceled -> update cache
-            // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            $id = $cachedOrderIds[$k];
-            $order = $this->orders[$id];
-            if (!(is_array($openOrdersIndexedById) && array_key_exists($id, $openOrdersIndexedById))) {
-                // cached $order is not in open orders array
-                // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
-                if ($symbol !== null && $symbol !== $order['symbol']) {
-                    continue;
-                }
-                // $order is cached but not present in the list of open orders -> mark the cached $order as closed
-                if ($order['status'] === 'open') {
-                    $order = array_merge($order, array(
-                        'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost' => null,
-                        'filled' => $order['amount'],
-                        'remaining' => 0.0,
-                    ));
-                    if ($order['cost'] === null) {
-                        if ($order['filled'] !== null) {
-                            $order['cost'] = $order['filled'] * $order['price'];
-                        }
-                    }
-                    $this->orders[$id] = $order;
-                }
-            }
-        }
-        return $this->to_array($this->orders);
-    }
-
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -1239,19 +1180,6 @@ class exmo extends Exchange {
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
-        $this->update_cached_orders($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->fetch_orders($symbol, $since, $limit, $params);
-        $orders = $this->filter_by($this->orders, 'status', 'open');
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->fetch_orders($symbol, $since, $limit, $params);
-        $orders = $this->filter_by($this->orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
