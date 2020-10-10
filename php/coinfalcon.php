@@ -309,10 +309,10 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
+                $remaining = max (0, $amount - $filled);
             }
             if ($price !== null) {
-                $cost = floatval($this->price_to_precision($symbol, $filled * $price));
+                $cost = $filled * $price;
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

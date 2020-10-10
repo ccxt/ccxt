@@ -291,9 +291,9 @@ class coinfalcon(Exchange):
         cost = None
         if amount is not None:
             if filled is not None:
-                remaining = float(self.amount_to_precision(symbol, amount - filled))
+                remaining = max(0, amount - filled)
             if price is not None:
-                cost = float(self.price_to_precision(symbol, filled * price))
+                cost = filled * price
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'operation_type')
         if type is not None:
