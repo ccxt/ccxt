@@ -229,7 +229,7 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         const marketId = this.safeString (message, 's');
-        const symbol = this.safeSymbol (marketID);
+        const symbol = this.safeSymbol (marketId);
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const orderbook = this.safeValue (this.orderbooks, symbol);
