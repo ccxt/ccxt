@@ -1082,19 +1082,6 @@ class kraken(Exchange):
             'trades': trades,
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        result = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
-
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
@@ -1305,6 +1292,45 @@ class kraken(Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostClosedOrders(self.extend(request, params))
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "closed":{
+        #                 "OETZYO-UL524-QJMXCT":{
+        #                     "refid":null,
+        #                     "userref":null,
+        #                     "status":"canceled",
+        #                     "reason":"User requested",
+        #                     "opentm":1601489313.3898,
+        #                     "closetm":1601489346.5507,
+        #                     "starttm":0,
+        #                     "expiretm":0,
+        #                     "descr":{
+        #                         "pair":"ETHUSDT",
+        #                         "type":"buy",
+        #                         "ordertype":"limit",
+        #                         "price":"330.00",
+        #                         "price2":"0",
+        #                         "leverage":"none",
+        #                         "order":"buy 0.02100000 ETHUSDT @ limit 330.00",
+        #                         "close":""
+        #                     },
+        #                     "vol":"0.02100000",
+        #                     "vol_exec":"0.00000000",
+        #                     "cost":"0.00000",
+        #                     "fee":"0.00000",
+        #                     "price":"0.00000",
+        #                     "stopprice":"0.00000",
+        #                     "limitprice":"0.00000",
+        #                     "misc":"",
+        #                     "oflags":"fciq"
+        #                 },
+        #             },
+        #             "count":16
+        #         }
+        #     }
+        #
         market = None
         if symbol is not None:
             market = self.market(symbol)

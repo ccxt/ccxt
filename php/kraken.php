@@ -1150,22 +1150,6 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
-        $result = array();
-        $ids = is_array($orders) ? array_keys($orders) : array();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $order = array_merge(array( 'id' => $id ), $orders[$id]);
-            $result[] = array_merge($this->parse_order($order, $market), $params);
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
-    }
-
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1400,6 +1384,45 @@ class kraken extends Exchange {
             $request['start'] = intval($since / 1000);
         }
         $response = $this->privatePostClosedOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":{
+        //             "closed":array(
+        //                 "OETZYO-UL524-QJMXCT":array(
+        //                     "refid":null,
+        //                     "userref":null,
+        //                     "status":"canceled",
+        //                     "reason":"User requested",
+        //                     "opentm":1601489313.3898,
+        //                     "closetm":1601489346.5507,
+        //                     "starttm":0,
+        //                     "expiretm":0,
+        //                     "descr":array(
+        //                         "pair":"ETHUSDT",
+        //                         "type":"buy",
+        //                         "ordertype":"$limit",
+        //                         "price":"330.00",
+        //                         "price2":"0",
+        //                         "leverage":"none",
+        //                         "order":"buy 0.02100000 ETHUSDT @ $limit 330.00",
+        //                         "close":""
+        //                     ),
+        //                     "vol":"0.02100000",
+        //                     "vol_exec":"0.00000000",
+        //                     "cost":"0.00000",
+        //                     "fee":"0.00000",
+        //                     "price":"0.00000",
+        //                     "stopprice":"0.00000",
+        //                     "limitprice":"0.00000",
+        //                     "misc":"",
+        //                     "oflags":"fciq"
+        //                 ),
+        //             ),
+        //             "count":16
+        //         }
+        //     }
+        //
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
