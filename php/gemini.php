@@ -706,12 +706,11 @@ class gemini extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostV1Orders ($params);
-        $orders = $this->parse_orders($response, null, $since, $limit);
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol); // throws on non-existent $symbol
-            $orders = $this->filter_by_symbol($orders, $market['symbol']);
         }
-        return $orders;
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

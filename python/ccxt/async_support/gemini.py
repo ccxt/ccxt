@@ -679,11 +679,10 @@ class gemini(Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privatePostV1Orders(params)
-        orders = self.parse_orders(response, None, since, limit)
+        market = None
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
-            orders = self.filter_by_symbol(orders, market['symbol'])
-        return orders
+        return self.parse_orders(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
