@@ -441,11 +441,9 @@ class indodax(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOrderHistory(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        orders = self.parse_orders(response['return']['orders'], market)
         orders = self.filter_by(orders, 'status', 'closed')
-        if symbol is not None:
-            return self.filter_by_symbol(orders, symbol)
-        return orders
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -464,9 +462,11 @@ class indodax(Exchange):
             request[market['baseId']] = amount
         request[currency] = amount
         result = self.privatePostTrade(self.extend(request, params))
+        data = self.safe_value(result, 'return', {})
+        id = self.safe_string(data, 'order_id')
         return {
             'info': result,
-            'id': str(result['return']['order_id']),
+            'id': id,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

@@ -469,12 +469,9 @@ class indodax extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOrderHistory (array_merge($request, $params));
-        $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
+        $orders = $this->parse_orders($response['return']['orders'], $market);
         $orders = $this->filter_by($orders, 'status', 'closed');
-        if ($symbol !== null) {
-            return $this->filter_by_symbol($orders, $symbol);
-        }
-        return $orders;
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -496,9 +493,11 @@ class indodax extends Exchange {
         }
         $request[$currency] = $amount;
         $result = $this->privatePostTrade (array_merge($request, $params));
+        $data = $this->safe_value($result, 'return', array());
+        $id = $this->safe_string($data, 'order_id');
         return array(
             'info' => $result,
-            'id' => (string) $result['return']['order_id'],
+            'id' => $id,
         );
     }
 
