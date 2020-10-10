@@ -1409,18 +1409,10 @@ class bitstamp extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $order = $this->parse_order($response[$i], $market);
-            $result[] = array_merge($order, array(
-                'status' => 'open',
-                'type' => 'limit',
-            ));
-        }
-        if ($symbol === null) {
-            return $this->filter_by_since_limit($result, $since, $limit);
-        }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->parse_orders($response, $market, $since, $limit, array(
+            'status' => 'open',
+            'type' => 'limit',
+        ));
     }
 
     public function get_currency_name($code) {
