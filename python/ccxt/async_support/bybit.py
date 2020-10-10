@@ -795,20 +795,12 @@ class bybit(Exchange):
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'exec_id')
-        symbol = None
-        base = None
         marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         amount = self.safe_float_2(trade, 'qty', 'exec_qty')
         cost = self.safe_float(trade, 'exec_value')
         price = self.safe_float_2(trade, 'exec_price', 'price')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-                base = market['base']
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -822,9 +814,10 @@ class bybit(Exchange):
         feeCost = self.safe_float(trade, 'exec_fee')
         fee = None
         if feeCost is not None:
+            feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': feeCurrencyCode,
                 'rate': self.safe_float(trade, 'fee_rate'),
             }
         return {

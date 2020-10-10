@@ -810,23 +810,12 @@ class bybit extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'exec_id');
-        $symbol = null;
-        $base = null;
         $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $amount = $this->safe_float_2($trade, 'qty', 'exec_qty');
         $cost = $this->safe_float($trade, 'exec_value');
         $price = $this->safe_float_2($trade, 'exec_price', 'price');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-        }
-        if ($market !== null) {
-            if ($symbol === null) {
-                $symbol = $market['symbol'];
-                $base = $market['base'];
-            }
-        }
         if ($cost === null) {
             if ($amount !== null) {
                 if ($price !== null) {
@@ -844,9 +833,10 @@ class bybit extends Exchange {
         $feeCost = $this->safe_float($trade, 'exec_fee');
         $fee = null;
         if ($feeCost !== null) {
+            $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $base,
+                'currency' => $feeCurrencyCode,
                 'rate' => $this->safe_float($trade, 'fee_rate'),
             );
         }
