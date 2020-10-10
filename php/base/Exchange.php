@@ -1844,10 +1844,15 @@ class Exchange {
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($orders) ? array_values($orders) : array();
         $result = array();
-        foreach ($array as $order) {
-            $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
+        if (count(array_filter(array_keys($orders), 'is_string')) == 0) {
+            foreach ($orders as $order) {
+                $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
+            }
+        } else {
+            foreach ($orders as $id => $order) {
+                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => $id), $order), $market), $params);
+            }
         }
         $result = $this->sort_by($result, 'timestamp');
         $symbol = isset($market) ? $market['symbol'] : null;
