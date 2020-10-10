@@ -28,11 +28,9 @@ async def exchange_loop(asyncio_loop, exchange_id, symbols):
 
 
 async def main(asyncio_loop):
-    symbols = ['BTC/USDT', 'ETH/BTC']
-    # symbols = []
     exchanges = {
-        'okex': symbols + ['ETH/USDT'],
-        'binance': symbols,
+        'okex': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
+        'binance': ['BTC/USDT', 'ETH/BTC'],
     }
     loops = [exchange_loop(asyncio_loop, exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
     await asyncio.gather(*loops)
