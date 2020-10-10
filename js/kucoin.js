@@ -385,14 +385,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'symbol');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             const subscription = this.safeValue (client.subscriptions, messageHash);
