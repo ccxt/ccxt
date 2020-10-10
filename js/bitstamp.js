@@ -1412,9 +1412,6 @@ module.exports = class bitstamp extends Exchange {
                 'type': 'limit',
             }));
         }
-        if (symbol === undefined) {
-            return this.filterBySinceLimit (result, since, limit);
-        }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
