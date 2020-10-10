@@ -233,8 +233,8 @@ module.exports = class bytetrade extends Exchange {
             let quote = this.safeString (market, 'quoteName');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
-            const normalBase = base.split ('@')[0];
-            let normalQuote = quote.split ('@')[0];
+            const normalBase = base.split ('@' + baseId)[0];
+            let normalQuote = quote.split ('@' + quoteId)[0];
             if (quoteId === '126') {
                 normalQuote = 'ZAR'; // The id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
             }
