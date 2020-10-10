@@ -466,12 +466,9 @@ module.exports = class indodax extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
-        if (symbol !== undefined) {
-            return this.filterBySymbol (orders, symbol);
-        }
-        return orders;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -493,9 +490,11 @@ module.exports = class indodax extends Exchange {
         }
         request[currency] = amount;
         const result = await this.privatePostTrade (this.extend (request, params));
+        const data = this.safeValue (result, 'return', {});
+        const id = this.safeString (data, 'order_id');
         return {
             'info': result,
-            'id': result['return']['order_id'].toString (),
+            'id': id,
         };
     }
 
