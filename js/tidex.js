@@ -714,8 +714,7 @@ module.exports = class tidex extends Exchange {
         const orders = this.safeValue (response, 'return', []);
         const openOrders = this.parseOrders (orders, market);
         const allOrders = this.updateCachedOrders (openOrders, symbol);
-        const result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
