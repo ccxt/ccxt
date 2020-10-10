@@ -42,9 +42,9 @@ module.exports = (exchange, ticker, method, symbol) => {
     assert (!('first' in ticker), '`first` field leftover in ' + exchange.id)
     assert (ticker['last'] === ticker['close'], '`last` != `close` in ' + exchange.id)
 
-    log (ticker['datetime'], exchange.id, method, ticker['symbol'].green, ticker['last'])
+    log (ticker['datetime'], exchange.id, method, ticker['symbol'], ticker['last'])
 
-    keys.forEach (key => assert (key in ticker))
+    keys.forEach ((key) => assert (key in ticker))
 
     const { high, low, vwap, baseVolume, quoteVolume } = ticker
 
@@ -59,11 +59,13 @@ module.exports = (exchange, ticker, method, symbol) => {
     }
     */
 
-    if (baseVolume && vwap)
+    if (baseVolume && vwap) {
         assert (quoteVolume)
+    }
 
-    if (quoteVolume && vwap)
+    if (quoteVolume && vwap) {
         assert (baseVolume)
+    }
 
     // log (symbol.green, 'ticker',
     //     ticker['datetime'],
@@ -76,17 +78,18 @@ module.exports = (exchange, ticker, method, symbol) => {
         'xbtce',
         'coss',
         'idex',
-        'mandala',
         'mercado',
         'okex',
         'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png
         'bitmart',
+        'gateio', // some ticker bids are greaters than asks
+        'timex',
 
     ].includes (exchange.id)) {
 
         if (ticker['baseVolume'] || ticker['quoteVolume']) {
             if (ticker['bid'] && ticker['ask']) {
-                assert (ticker['bid'] <= ticker['ask'], 'ticker bid is greater than ticker ask!')
+                assert (ticker['bid'] <= ticker['ask'], (ticker['symbol'] ? (ticker['symbol'] + ' ') : '') + 'ticker bid is greater than ticker ask!')
             }
         }
 

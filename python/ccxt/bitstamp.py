@@ -16,11 +16,13 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
@@ -34,15 +36,30 @@ class bitstamp(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'pro': True,
             'has': {
                 'CORS': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
+                'fetchMarkets': True,
+                'fetchCurrencies': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
+                'fetchFundingFees': True,
+                'fetchFees': True,
+                'fetchLedger': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -54,6 +71,20 @@ class bitstamp(Exchange):
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
+            },
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -62,6 +93,7 @@ class bitstamp(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -93,6 +125,10 @@ class bitstamp(Exchange):
                         'eth_address/',
                         'xrp_withdrawal/',
                         'xrp_address/',
+                        'xlm_withdrawal/',
+                        'xlm_address/',
+                        'pax_withdrawal/',
+                        'pax_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -131,7 +167,13 @@ class bitstamp(Exchange):
                             [2000000, 0.13 / 100],
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
-                            [20000001, 0.10 / 100],
+                            [50000000, 0.10 / 100],
+                            [100000000, 0.07 / 100],
+                            [500000000, 0.05 / 100],
+                            [2000000000, 0.03 / 100],
+                            [6000000000, 0.01 / 100],
+                            [10000000000, 0.005 / 100],
+                            [10000000001, 0.0],
                         ],
                         'maker': [
                             [0, 0.5 / 100],
@@ -144,7 +186,13 @@ class bitstamp(Exchange):
                             [2000000, 0.13 / 100],
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
-                            [20000001, 0.10 / 100],
+                            [50000000, 0.10 / 100],
+                            [100000000, 0.07 / 100],
+                            [500000000, 0.05 / 100],
+                            [2000000000, 0.03 / 100],
+                            [6000000000, 0.01 / 100],
+                            [10000000000, 0.005 / 100],
+                            [10000000001, 0.0],
                         ],
                     },
                 },
@@ -152,13 +200,15 @@ class bitstamp(Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0,
-                        'BCH': 0,
-                        'LTC': 0,
-                        'ETH': 0,
-                        'XRP': 0,
+                        'BTC': 0.0005,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'ETH': 0.001,
+                        'XRP': 0.02,
+                        'XLM': 0.005,
+                        'PAX': 0.5,
                         'USD': 25,
-                        'EUR': 0.90,
+                        'EUR': 3.0,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -166,7 +216,9 @@ class bitstamp(Exchange):
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
-                        'USD': 25,
+                        'XLM': 0,
+                        'PAX': 0,
+                        'USD': 7.5,
                         'EUR': 0,
                     },
                 },
@@ -184,6 +236,7 @@ class bitstamp(Exchange):
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
+                    'Bitstamp.net is under scheduled maintenance.': OnMaintenance,  # {"error": "Bitstamp.net is under scheduled maintenance. We'll be back soon."}
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
@@ -194,7 +247,7 @@ class bitstamp(Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTradingPairsInfo(params)
+        response = self.fetch_markets_from_cache(params)
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -243,14 +296,103 @@ class bitstamp(Exchange):
             })
         return result
 
+    def construct_currency_object(self, id, code, name, precision, minCost, originalPayload):
+        currencyType = 'crypto'
+        description = self.describe()
+        if self.is_fiat(code):
+            currencyType = 'fiat'
+        return {
+            'id': id,
+            'code': code,
+            'info': originalPayload,  # the original payload
+            'type': currencyType,
+            'name': name,
+            'active': True,
+            'fee': self.safe_float(description['fees']['funding']['withdraw'], code),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': math.pow(10, -precision),
+                    'max': None,
+                },
+                'price': {
+                    'min': math.pow(10, -precision),
+                    'max': None,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        }
+
+    def fetch_markets_from_cache(self, params={}):
+        # self method is now redundant
+        # currencies are now fetched before markets
+        options = self.safe_value(self.options, 'fetchMarkets', {})
+        timestamp = self.safe_integer(options, 'timestamp')
+        expires = self.safe_integer(options, 'expires', 1000)
+        now = self.milliseconds()
+        if (timestamp is None) or ((now - timestamp) > expires):
+            response = self.publicGetTradingPairsInfo(params)
+            self.options['fetchMarkets'] = self.extend(options, {
+                'response': response,
+                'timestamp': now,
+            })
+        return self.safe_value(self.options['fetchMarkets'], 'response')
+
+    def fetch_currencies(self, params={}):
+        response = self.fetch_markets_from_cache(params)
+        result = {}
+        for i in range(0, len(response)):
+            market = response[i]
+            name = self.safe_string(market, 'name')
+            base, quote = name.split('/')
+            baseId = base.lower()
+            quoteId = quote.lower()
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
+            description = self.safe_string(market, 'description')
+            baseDescription, quoteDescription = description.split(' / ')
+            parts = market['minimum_order'].split(' ')
+            cost = parts[0]
+            if not (base in result):
+                result[base] = self.construct_currency_object(baseId, base, baseDescription, market['base_decimals'], None, market)
+            if not (quote in result):
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, market['counter_decimals'], float(cost), market)
+        return result
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'pair': self.market_id(symbol),
         }
         response = self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        #
+        #     {
+        #         "timestamp": "1583652948",
+        #         "microtimestamp": "1583652948955826",
+        #         "bids": [
+        #             ["8750.00", "1.33685271"],
+        #             ["8749.39", "0.07700000"],
+        #             ["8746.98", "0.07400000"],
+        #         ]
+        #         "asks": [
+        #             ["8754.10", "1.51995636"],
+        #             ["8754.71", "1.40000000"],
+        #             ["8754.72", "2.50000000"],
+        #         ]
+        #     }
+        #
+        microtimestamp = self.safe_integer(response, 'microtimestamp')
+        timestamp = int(microtimestamp / 1000)
+        orderbook = self.parse_order_book(response, timestamp)
+        orderbook['nonce'] = microtimestamp
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -463,6 +605,15 @@ class bitstamp(Exchange):
             'fee': fee,
         }
 
+    def parse_trading_fee(self, balances, symbol):
+        market = self.market(symbol)
+        tradeFee = self.safe_float(balances, market['id'] + '_fee')
+        return {
+            'symbol': symbol,
+            'maker': tradeFee,
+            'taker': tradeFee,
+        }
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -491,6 +642,66 @@ class bitstamp(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "high": "9064.77",
+        #         "timestamp": "1593961440",
+        #         "volume": "18.49436608",
+        #         "low": "9040.87",
+        #         "close": "9064.77",
+        #         "open": "9040.87"
+        #     }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'timestamp'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+            'step': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        if limit is None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                limit = 1000
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+                request['limit'] = limit
+        else:
+            if since is not None:
+                start = int(since / 1000)
+                request['start'] = start
+                request['end'] = self.sum(start, limit * duration)
+            request['limit'] = min(limit, 1000)  # min 1, max 1000
+        response = self.publicGetOhlcPair(self.extend(request, params))
+        #
+        #     {
+        #         "data": {
+        #             "pair": "BTC/USD",
+        #             "ohlc": [
+        #                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        #                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        #                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        #             ],
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        ohlc = self.safe_value(data, 'ohlc', [])
+        return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
+
     def fetch_balance(self, params={}):
         self.load_markets()
         balance = self.privatePostBalance(params)
@@ -507,6 +718,70 @@ class bitstamp(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        request = {}
+        method = 'privatePostBalance'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+            method += 'Pair'
+        balance = getattr(self, method)(self.extend(request, params))
+        return {
+            'info': balance,
+            'symbol': symbol,
+            'maker': balance.fee,
+            'taker': balance.fee,
+        }
+
+    def prase_trading_fees(self, balance):
+        result = {'info': balance}
+        markets = list(self.markets.keys())
+        for i in range(0, len(markets)):
+            symbol = markets[i]
+            fee = self.parse_trading_fee(balance, symbol)
+            result[symbol] = fee
+        return result
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        balance = self.privatePostBalance(params)
+        return self.prase_trading_fees(balance)
+
+    def parse_funding_fees(self, balance):
+        withdraw = {}
+        ids = list(balance.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            if id.find('_withdrawal_fee') >= 0:
+                currencyId = id.split('_')[0]
+                code = self.safe_currency_code(currencyId)
+                withdraw[code] = self.safe_float(balance, id)
+        return {
+            'info': balance,
+            'withdraw': withdraw,
+            'deposit': {},
+        }
+
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        balance = self.privatePostBalance(params)
+        return self.parse_funding_fees(balance)
+
+    def fetch_fees(self, params={}):
+        self.load_markets()
+        balance = self.privatePostBalance(params)
+        tradingFees = self.prase_trading_fees(balance)
+        del tradingFees['info']
+        fundingFees = self.parse_funding_fees(balance)
+        del fundingFees['info']
+        return {
+            'info': balance,
+            'trading': tradingFees,
+            'funding': fundingFees,
+        }
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -517,6 +792,8 @@ class bitstamp(Exchange):
         }
         if type == 'market':
             method += 'Market'
+        elif type == 'instant':
+            method += 'Instant'
         else:
             request['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
@@ -633,6 +910,8 @@ class bitstamp(Exchange):
         request = {}
         if since is not None:
             request['timedelta'] = self.milliseconds() - since
+        else:
+            request['timedelta'] = 50000000  # use max bitstamp approved value
         response = self.privatePostWithdrawalRequests(self.extend(request, params))
         #
         #     [
@@ -885,6 +1164,7 @@ class bitstamp(Exchange):
                 }
         return {
             'id': id,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -900,7 +1180,115 @@ class bitstamp(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            '0': 'transaction',
+            '1': 'transaction',
+            '2': 'trade',
+            '14': 'transfer',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     [
+        #         {
+        #             "fee": "0.00000000",
+        #             "btc_usd": "0.00",
+        #             "id": 1234567894,
+        #             "usd": 0,
+        #             "btc": 0,
+        #             "datetime": "2018-09-08 09:00:31",
+        #             "type": "1",
+        #             "xrp": "-20.00000000",
+        #             "eur": 0,
+        #         },
+        #         {
+        #             "fee": "0.00000000",
+        #             "btc_usd": "0.00",
+        #             "id": 1134567891,
+        #             "usd": 0,
+        #             "btc": 0,
+        #             "datetime": "2018-09-07 18:47:52",
+        #             "type": "0",
+        #             "xrp": "20.00000000",
+        #             "eur": 0,
+        #         },
+        #     ]
+        #
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
+        if type == 'trade':
+            parsedTrade = self.parse_trade(item)
+            market = None
+            keys = list(item.keys())
+            for i in range(0, len(keys)):
+                if keys[i].find('_') >= 0:
+                    marketId = keys[i].replace('_', '')
+                    if marketId in self.markets_by_id:
+                        market = self.markets_by_id[marketId]
+            # if the market is still not defined
+            # try to deduce it from used keys
+            if market is None:
+                market = self.get_market_from_trade(item)
+            direction = parsedTrade['side'] == 'in' if 'buy' else 'out'
+            return {
+                'id': parsedTrade['id'],
+                'info': item,
+                'timestamp': parsedTrade['timestamp'],
+                'datetime': parsedTrade['datetime'],
+                'direction': direction,
+                'account': None,
+                'referenceId': parsedTrade['order'],
+                'referenceAccount': None,
+                'type': type,
+                'currency': market['base'],
+                'amount': parsedTrade['amount'],
+                'before': None,
+                'after': None,
+                'status': 'ok',
+                'fee': parsedTrade['fee'],
+            }
+        else:
+            parsedTransaction = self.parse_transaction(item)
+            direction = None
+            if 'amount' in item:
+                amount = self.safe_float(item, 'amount')
+                direction = amount > 'in' if 0 else 'out'
+            elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
+                currencyId = self.currency_id(parsedTransaction['currency'])
+                amount = self.safe_float(item, currencyId)
+                direction = amount > 'in' if 0 else 'out'
+            return {
+                'id': parsedTransaction['id'],
+                'info': item,
+                'timestamp': parsedTransaction['timestamp'],
+                'datetime': parsedTransaction['datetime'],
+                'direction': direction,
+                'account': None,
+                'referenceId': parsedTransaction['txid'],
+                'referenceAccount': None,
+                'type': type,
+                'currency': parsedTransaction['currency'],
+                'amount': parsedTransaction['amount'],
+                'before': None,
+                'after': None,
+                'status': parsedTransaction['status'],
+                'fee': parsedTransaction['fee'],
+            }
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privatePostUserTransactions(self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parse_ledger(response, currency, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None
@@ -936,15 +1324,11 @@ class bitstamp(Exchange):
         return code.lower()
 
     def is_fiat(self, code):
-        if code == 'USD':
-            return True
-        if code == 'EUR':
-            return True
-        return False
+        return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     def fetch_deposit_address(self, code, params={}):
         if self.is_fiat(code):
-            raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not implemented yet')
+            raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
@@ -965,20 +1349,28 @@ class bitstamp(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        # For fiat withdrawals please provide all required additional parameters in the 'params'
+        # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        self.load_markets()
         self.check_address(address)
-        if self.is_fiat(code):
-            raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
-        name = self.get_currency_name(code)
         request = {
             'amount': amount,
-            'address': address,
         }
-        v1 = (code == 'BTC')
-        method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name) + 'Withdrawal'
-        if code == 'XRP':
-            if tag is not None:
-                request['destination_tag'] = tag
+        method = None
+        if not self.is_fiat(code):
+            name = self.get_currency_name(code)
+            v1 = (code == 'BTC')
+            method = 'v1' if v1 else 'private'  # v1 or v2
+            method += 'Post' + self.capitalize(name) + 'Withdrawal'
+            if code == 'XRP':
+                if tag is not None:
+                    request['destination_tag'] = tag
+            request['address'] = address
+        else:
+            method = 'privatePostWithdrawalOpen'
+            currency = self.currency(code)
+            request['iban'] = address
+            request['account_currency'] = currency['id']
         response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -999,18 +1391,49 @@ class bitstamp(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
-            auth = nonce + self.uid + self.apiKey
-            signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
-            query = self.extend({
-                'key': self.apiKey,
-                'signature': signature.upper(),
-                'nonce': nonce,
-            }, query)
-            body = self.urlencode(query)
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+            authVersion = self.safe_value(self.options, 'auth', 'v2')
+            if (authVersion == 'v1') or (api == 'v1'):
+                nonce = str(self.nonce())
+                auth = nonce + self.uid + self.apiKey
+                signature = self.encode(self.hmac(self.encode(auth), self.encode(self.secret)))
+                query = self.extend({
+                    'key': self.apiKey,
+                    'signature': signature.upper(),
+                    'nonce': nonce,
+                }, query)
+                body = self.urlencode(query)
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            else:
+                xAuth = 'BITSTAMP ' + self.apiKey
+                xAuthNonce = self.uuid()
+                xAuthTimestamp = str(self.milliseconds())
+                xAuthVersion = 'v2'
+                contentType = ''
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                }
+                if method == 'POST':
+                    if query:
+                        body = self.urlencode(query)
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                    else:
+                        # sending an empty POST request will trigger
+                        # an API0020 error returned by the exchange
+                        # therefore for empty requests we send a dummy object
+                        # https://github.com/ccxt/ccxt/issues/6846
+                        body = self.urlencode({'foo': 'bar'})
+                        contentType = 'application/x-www-form-urlencoded'
+                        headers['Content-Type'] = contentType
+                authBody = body if body else ''
+                auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
+                signature = self.hmac(self.encode(auth), self.encode(self.secret))
+                headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

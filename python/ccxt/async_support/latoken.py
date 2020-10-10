@@ -101,6 +101,7 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MT': 'Monarch',
                 'TSL': 'Treasure SL',
             },
             'options': {
@@ -345,12 +346,8 @@ class latoken(Exchange):
         #         "priceChange":-0.1500
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -423,9 +420,8 @@ class latoken(Exchange):
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
-            if symbols is None or self.in_array(symbol, symbols):
-                result[symbol] = ticker
-        return result
+            result[symbol] = ticker
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
@@ -593,11 +589,7 @@ class latoken(Exchange):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_timestamp(order, 'timeCreated')
         marketId = self.safe_string(order, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
         price = self.safe_float(order, 'price')
@@ -616,8 +608,10 @@ class latoken(Exchange):
         lastTradeTimestamp = None
         if (timeFilled is not None) and (timeFilled > 0):
             lastTradeTimestamp = timeFilled
+        clientOrderId = self.safe_string(order, 'cliOrdId')
         return {
             'id': id,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -633,6 +627,7 @@ class latoken(Exchange):
             'average': None,
             'remaining': remaining,
             'fee': None,
+            'trades': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

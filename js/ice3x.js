@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,20 +16,24 @@ module.exports = class ice3x extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460809-1dd06c00-c616-11ea-98ad-7d5e1cb7fcdd.jpg',
                 'api': 'https://ice3x.com/api',
-                'www': [
-                    'https://ice3x.com',
-                    'https://ice3x.co.za',
-                ],
+                'www': 'https://ice3x.com', // 'https://ice3x.co.za',
                 'doc': 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
                 'fees': [
                     'https://help.ice3.com/support/solutions/articles/11000033293-trading-fees',
@@ -116,6 +120,7 @@ module.exports = class ice3x extends Exchange {
                     },
                 },
                 'info': currency,
+                'fee': undefined,
             };
         }
         return result;
@@ -148,6 +153,8 @@ module.exports = class ice3x extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -206,7 +213,7 @@ module.exports = class ice3x extends Exchange {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -218,7 +225,7 @@ module.exports = class ice3x extends Exchange {
             const type = this.safeString (params, 'type');
             if ((type !== 'ask') && (type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ExchangeError (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
+                throw new ArgumentsRequired (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
             } else {
                 request['items_per_page'] = limit;
             }
@@ -330,6 +337,7 @@ module.exports = class ice3x extends Exchange {
         }
         return {
             'id': this.safeString (order, 'order_id'),
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -345,6 +353,7 @@ module.exports = class ice3x extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
     }
 
@@ -368,8 +377,6 @@ module.exports = class ice3x extends Exchange {
             'remaining': amount,
             'info': response,
         }, market);
-        const id = order['id'];
-        this.orders[id] = order;
         return order;
     }
 
@@ -386,15 +393,21 @@ module.exports = class ice3x extends Exchange {
             'order _id': id,
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
-        const order = this.safeValue (response['response'], 'entity');
+        const data = this.safeValue (response, 'response', {});
+        const order = this.safeValue (data, 'entity');
         return this.parseOrder (order);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostOrderList (params);
-        const orders = this.safeValue (response['response'], 'entities');
-        return this.parseOrders (orders, undefined, since, limit);
+        const data = this.safeValue (response, 'response', {});
+        const orders = this.safeValue (data, 'entities', []);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -410,7 +423,8 @@ module.exports = class ice3x extends Exchange {
             request['date_from'] = parseInt (since / 1000);
         }
         const response = await this.privatePostTradeList (this.extend (request, params));
-        const trades = this.safeValue (response['response'], 'entities');
+        const data = this.safeValue (response, 'response', {});
+        const trades = this.safeValue (data, 'entities', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -421,7 +435,8 @@ module.exports = class ice3x extends Exchange {
             'currency_id': currency['id'],
         };
         const response = await this.privatePostBalanceInfo (this.extend (request, params));
-        const balance = this.safeValue (response['response'], 'entity');
+        const data = this.safeValue (response, 'response', {});
+        const balance = this.safeValue (data, 'entity', {});
         const address = this.safeString (balance, 'address');
         const status = address ? 'ok' : 'none';
         return {

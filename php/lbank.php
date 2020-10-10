@@ -6,23 +6,31 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class lbank extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lbank',
             'name' => 'LBank',
             'countries' => array( 'CN' ),
             'version' => 'v1',
             'has' => array(
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => false, // status 0 API doesn't work
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => false, // status 0 API doesn't work
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 'minute1',
@@ -105,6 +113,7 @@ class lbank extends Exchange {
             ),
             'commonCurrencies' => array(
                 'VET_ERC20' => 'VEN',
+                'PNT' => 'Penta',
             ),
             'options' => array(
                 'cacheSecretAsPem' => true,
@@ -112,7 +121,7 @@ class lbank extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetAccuracy ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -166,7 +175,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'symbol');
@@ -198,16 +207,16 @@ class lbank extends Exchange {
         $percentage = $this->safe_float($ticker, 'change');
         $open = null;
         if ($percentage !== null) {
-            $relativeChange = $this->sum (1, $percentage / 100);
+            $relativeChange = $this->sum(1, $percentage / 100);
             if ($relativeChange > 0) {
-                $open = $last / $this->sum (1, $relativeChange);
+                $open = $last / $this->sum(1, $relativeChange);
             }
         }
         $change = null;
         $average = null;
         if ($last !== null && $open !== null) {
             $change = $last - $open;
-            $average = $this->sum ($last, $open) / 2;
+            $average = $this->sum($last, $open) / 2;
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -215,7 +224,7 @@ class lbank extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => null,
@@ -236,9 +245,9 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -246,7 +255,7 @@ class lbank extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => 'all',
@@ -258,10 +267,10 @@ class lbank extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book ($symbol, $limit = 60, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = 60, $params = array ()) {
         $this->load_markets();
         $size = 60;
         if ($limit !== null) {
@@ -275,7 +284,7 @@ class lbank extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -286,7 +295,7 @@ class lbank extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string($trade, 'tid');
@@ -296,7 +305,7 @@ class lbank extends Exchange {
             'id' => $id,
             'info' => $this->safe_value($trade, 'info', $trade),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => $type,
@@ -309,15 +318,15 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'size' => 100,
         );
         if ($since !== null) {
-            $request['time'] = intval ($since);
+            $request['time'] = intval($since);
         }
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -326,37 +335,54 @@ class lbank extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000,
-            $ohlcv[1],
-            $ohlcv[2],
-            $ohlcv[3],
-            $ohlcv[4],
-            $ohlcv[5],
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1590969600,
+        //         0.02451657,
+        //         0.02452675,
+        //         0.02443701,
+        //         0.02447814,
+        //         238.38210000
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
+        );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         if ($since === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$since` argument');
         }
         if ($limit === null) {
-            throw new ExchangeError($this->id . ' fetchOHLCV requires a `$limit` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$limit` argument');
         }
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
             'size' => $limit,
-            'time' => intval ($since / 1000),
+            'time' => intval($since / 1000),
         );
         $response = $this->publicGetKline (array_merge($request, $params));
+        //
+        //     [
+        //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
+        //         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
+        //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
+        //     ]
+        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         //
@@ -390,7 +416,7 @@ class lbank extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freeze, $currencyId);
             $account['total'] = $this->safe_float($asset, $currencyId);
@@ -399,7 +425,7 @@ class lbank extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             '-1' => 'cancelled', // cancelled
             '0' => 'open', // not traded
@@ -410,7 +436,20 @@ class lbank extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "$symbol"："eth_btc",
+        //         "$amount"：10.000000,
+        //         "create_time"：1484289832081,
+        //         "$price"：5000.000000,
+        //         "avg_price"：5277.301200,
+        //         "$type"："sell",
+        //         "order_id"："ab704110-af0d-48fd-a083-c218f19a4a55",
+        //         "deal_amount"：10.000000,
+        //         "$status"：2
+        //     }
+        //
         $symbol = null;
         $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
         if ($responseMarket !== null) {
@@ -441,7 +480,8 @@ class lbank extends Exchange {
         }
         return array(
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -456,12 +496,13 @@ class lbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
+            'average' => null,
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $order = array(
             'symbol' => $market['id'],
             'type' => $side,
@@ -473,21 +514,18 @@ class lbank extends Exchange {
             $order['price'] = $price;
         }
         $response = $this->privatePostCreateOrder (array_merge($order, $params));
-        $order = $this->omit ($order, 'type');
+        $order = $this->omit($order, 'type');
         $order['order_id'] = $response['order_id'];
         $order['type'] = $side;
         $order['order_type'] = $type;
-        $order['create_time'] = $this->milliseconds ();
+        $order['create_time'] = $this->milliseconds();
         $order['info'] = $response;
-        $order = $this->parse_order($order, $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
-        return $order;
+        return $this->parse_order($order, $market);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'order_id' => $id,
@@ -496,16 +534,17 @@ class lbank extends Exchange {
         return $response;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         // Id can be a list of ids delimited by a comma
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'order_id' => $id,
         );
         $response = $this->privatePostOrdersInfo (array_merge($request, $params));
-        $orders = $this->parse_orders($response['orders'], $market);
+        $data = $this->safe_value($response, 'orders', array());
+        $orders = $this->parse_orders($data, $market);
         $numOrders = is_array($orders) ? count($orders) : 0;
         if ($numOrders === 1) {
             return $orders[0];
@@ -514,22 +553,23 @@ class lbank extends Exchange {
         }
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit === null) {
             $limit = 100;
         }
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'current_page' => 1,
             'page_length' => $limit,
         );
         $response = $this->privatePostOrdersInfoHistory (array_merge($request, $params));
-        return $this->parse_orders($response['orders'], null, $since, $limit);
+        $data = $this->safe_value($response, 'orders', array());
+        return $this->parse_orders($data, null, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $closed = $this->filter_by($orders, 'status', 'closed');
         $canceled = $this->filter_by($orders, 'status', 'cancelled'); // cancelled $orders may be partially filled
@@ -537,11 +577,11 @@ class lbank extends Exchange {
         return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
     }
 
-    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         // mark and fee are optional $params, mark is a note and must be less than 255 characters
         $this->check_address($address);
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'assetCode' => $currency['id'],
             'amount' => $amount,
@@ -552,62 +592,62 @@ class lbank extends Exchange {
         }
         $response = $this->privatePostWithdraw (array_merge($request, $params));
         return array(
-            'id' => $response['id'],
+            'id' => $this->safe_string($response, 'id'),
             'info' => $response,
         );
     }
 
-    public function convert_secret_to_pem ($secret) {
+    public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval ($secretLength / $lineLength);
-        $numLines = $this->sum ($numLines, 1);
+        $numLines = intval($secretLength / $lineLength);
+        $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {
             $start = $i * $lineLength;
-            $end = $this->sum ($start, $lineLength);
+            $end = $this->sum($start, $lineLength);
             $pem .= mb_substr($this->secret, $start, $end - $start) . "\n"; // eslint-disable-line
         }
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every endpoint ends with ".do"
         $url .= '.do';
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
-            $query = $this->keysort (array_merge(array(
+            $query = $this->keysort(array_merge(array(
                 'api_key' => $this->apiKey,
             ), $params));
-            $queryString = $this->rawencode ($query);
-            $message = strtoupper($this->hash ($this->encode ($queryString)));
+            $queryString = $this->rawencode($query);
+            $message = strtoupper($this->hash($this->encode($queryString)));
             $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
             $pem = null;
             if ($cacheSecretAsPem) {
                 $pem = $this->safe_value($this->options, 'pem');
                 if ($pem === null) {
-                    $pem = $this->convert_secret_to_pem ($this->secret);
+                    $pem = $this->convert_secret_to_pem($this->secret);
                     $this->options['pem'] = $pem;
                 }
             } else {
-                $pem = $this->convert_secret_to_pem ($this->secret);
+                $pem = $this->convert_secret_to_pem($this->secret);
             }
-            $sign = $this->binaryToBase64 ($this->rsa ($message, $this->encode ($pem), 'RS256'));
+            $sign = $this->binary_to_base64($this->rsa($message, $this->encode($pem), 'RS256'));
             $query['sign'] = $sign;
-            $body = $this->urlencode ($query);
+            $body = $this->urlencode($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
             $errorCode = $this->safe_string($response, 'error_code');
@@ -634,7 +674,7 @@ class lbank extends Exchange {
                 '10019' => 'withdrawal orders can not be more than 3 less than one',
                 '10020' => 'less than the minimum amount of the transaction limit of 0.001',
                 '10022' => 'Insufficient key authority',
-            ), $errorCode, $this->json ($response));
+            ), $errorCode, $this->json($response));
             $ErrorClass = $this->safe_value(array(
                 '10002' => '\\ccxt\\AuthenticationError',
                 '10004' => '\\ccxt\\DDoSProtection',

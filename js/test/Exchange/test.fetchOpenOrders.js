@@ -17,16 +17,16 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching open orders...')
 
-        let orders = await exchange.fetchOpenOrders (symbol)
+        const orders = await exchange.fetchOpenOrders (symbol)
 
         assert (orders instanceof Array)
 
         log ('fetched', orders.length.toString ().green, 'open orders')
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
+            const order = orders[i]
             testOrder (exchange, order, symbol, now)
             assert (order.status === 'open')
         }

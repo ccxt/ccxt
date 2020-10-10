@@ -33,20 +33,23 @@ module.exports = class stronghold extends Exchange {
                 'password': true,
             },
             'has': {
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
-                'fetchOrderBook': true,
-                'fetchOpenOrders': true,
-                'fetchTime': true,
-                'fetchTrades': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
-                'withdraw': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
+                'fetchDepositAddress': false,
+                'fetchCurrencies': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchAccounts': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
+                'withdraw': true,
             },
             'api': {
                 'public': {
@@ -222,6 +225,7 @@ module.exports = class stronghold extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'limits': limits,
+                'active': undefined,
             };
         }
         return result;
@@ -279,6 +283,7 @@ module.exports = class stronghold extends Exchange {
                 'active': undefined,
                 'name': undefined,
                 'limits': limits,
+                'fee': undefined,
             };
         }
         return result;
@@ -576,6 +581,7 @@ module.exports = class stronghold extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'info': order,
             'symbol': symbol,
             'datetime': datetime,
@@ -591,6 +597,7 @@ module.exports = class stronghold extends Exchange {
             'status': undefined,
             'type': undefined,
             'average': undefined,
+            'fee': undefined,
         };
     }
 

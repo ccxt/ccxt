@@ -22,16 +22,24 @@ class therock(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': 'emulated',
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': 'emulated',
+                'fetchWithdrawals': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -270,7 +278,7 @@ class therock(Exchange):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -319,8 +327,8 @@ class therock(Exchange):
         #                         currency: "EUR",
         #                         trade_id:  440492                     }   ]}
         #
-        if not market:
-            market = self.markets_by_id[trade['fund_id']]
+        marketId = self.safe_string(trade, 'fund_id')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
@@ -345,9 +353,6 @@ class therock(Exchange):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
@@ -878,11 +883,8 @@ class therock(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        symbol = None
         marketId = self.safe_string(order, 'fund_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.parse8601(self.safe_string(order, 'date'))
         type = self.safe_string(order, 'type')
@@ -918,6 +920,7 @@ class therock(Exchange):
                 cost = 0
         return {
             'id': id,
+            'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

@@ -8,31 +8,36 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 
 class ice3x extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'ice3x',
             'name' => 'ICE3X',
             'countries' => array( 'ZA' ), // South Africa
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87460809-1dd06c00-c616-11ea-98ad-7d5e1cb7fcdd.jpg',
                 'api' => 'https://ice3x.com/api',
-                'www' => array(
-                    'https://ice3x.com',
-                    'https://ice3x.co.za',
-                ),
+                'www' => 'https://ice3x.com', // 'https://ice3x.co.za',
                 'doc' => 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
                 'fees' => array(
                     'https://help.ice3.com/support/solutions/articles/11000033293-trading-fees',
@@ -88,7 +93,7 @@ class ice3x extends Exchange {
         ));
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCurrencyList ($params);
         $currencies = $response['response']['entities'];
         $precision = $this->precision['amount'];
@@ -119,12 +124,13 @@ class ice3x extends Exchange {
                     ),
                 ),
                 'info' => $currency,
+                'fee' => null,
             );
         }
         return $result;
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         if ($this->currencies_by_id === null) {
             $this->currencies = $this->fetch_currencies();
             $this->currencies_by_id = $this->index_by($this->currencies, 'id');
@@ -151,19 +157,21 @@ class ice3x extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => null,
                 'info' => $market,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+    public function parse_ticker($ticker, $market = null) {
+        $timestamp = $this->milliseconds();
         $symbol = $market['symbol'];
         $last = $this->safe_float($ticker, 'last_price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
             'bid' => $this->safe_float($ticker, 'max_bid'),
@@ -184,9 +192,9 @@ class ice3x extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair_id' => $market['id'],
         );
@@ -195,7 +203,7 @@ class ice3x extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetStatsMarketdepthfull ($params);
         $tickers = $this->safe_value($response['response'], 'entities');
@@ -209,10 +217,10 @@ class ice3x extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'pair_id' => $this->market_id($symbol),
@@ -221,7 +229,7 @@ class ice3x extends Exchange {
             $type = $this->safe_string($params, 'type');
             if (($type !== 'ask') && ($type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ExchangeError($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
+                throw new ArgumentsRequired($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
             } else {
                 $request['items_per_page'] = $limit;
             }
@@ -231,7 +239,7 @@ class ice3x extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'created');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
@@ -260,7 +268,7 @@ class ice3x extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => $type,
@@ -273,9 +281,9 @@ class ice3x extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair_id' => $market['id'],
         );
@@ -284,7 +292,7 @@ class ice3x extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalanceList ($params);
         $result = array( 'info' => $response );
@@ -294,14 +302,14 @@ class ice3x extends Exchange {
             // currency ids are numeric strings
             $currencyId = $this->safe_string($balance, 'currency_id');
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         $pairId = $this->safe_integer($order, 'pair_id');
         $symbol = null;
         if ($pairId && !$market && (is_array($this->marketsById) && array_key_exists($pairId, $this->marketsById))) {
@@ -333,7 +341,8 @@ class ice3x extends Exchange {
         }
         return array(
             'id' => $this->safe_string($order, 'order_id'),
-            'datetime' => $this->iso8601 ($timestamp),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -348,12 +357,13 @@ class ice3x extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
+            'average' => null,
         );
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair_id' => $market['id'],
             'type' => $side,
@@ -363,7 +373,7 @@ class ice3x extends Exchange {
         $response = $this->privatePostOrderNew (array_merge($request, $params));
         $order = $this->parse_order(array(
             'order_id' => $response['response']['entity']['order_id'],
-            'created' => $this->seconds (),
+            'created' => $this->seconds(),
             'active' => 1,
             'type' => $side,
             'price' => $price,
@@ -371,38 +381,42 @@ class ice3x extends Exchange {
             'remaining' => $amount,
             'info' => $response,
         ), $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
         return $order;
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'order_id' => $id,
         );
         return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order _id' => $id,
         );
         $response = $this->privatePostOrderInfo (array_merge($request, $params));
-        $order = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $order = $this->safe_value($data, 'entity');
         return $this->parse_order($order);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrderList ($params);
-        $orders = $this->safe_value($response['response'], 'entities');
-        return $this->parse_orders($orders, null, $since, $limit);
+        $data = $this->safe_value($response, 'response', array());
+        $orders = $this->safe_value($data, 'entities', array());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'pair_id' => $market['id'],
         );
@@ -410,21 +424,23 @@ class ice3x extends Exchange {
             $request['items_per_page'] = $limit;
         }
         if ($since !== null) {
-            $request['date_from'] = intval ($since / 1000);
+            $request['date_from'] = intval($since / 1000);
         }
         $response = $this->privatePostTradeList (array_merge($request, $params));
-        $trades = $this->safe_value($response['response'], 'entities');
+        $data = $this->safe_value($response, 'response', array());
+        $trades = $this->safe_value($data, 'entities', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = $this->currency($code);
         $request = array(
             'currency_id' => $currency['id'],
         );
         $response = $this->privatePostBalanceInfo (array_merge($request, $params));
-        $balance = $this->safe_value($response['response'], 'entity');
+        $data = $this->safe_value($response, 'response', array());
+        $balance = $this->safe_value($data, 'entity', array());
         $address = $this->safe_string($balance, 'address');
         $status = $address ? 'ok' : 'none';
         return array(
@@ -436,28 +452,28 @@ class ice3x extends Exchange {
         );
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode (array_merge(array(
-                'nonce' => $this->nonce (),
+            $body = $this->urlencode(array_merge(array(
+                'nonce' => $this->nonce(),
             ), $params));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
-                'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
+                'Sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         $errors = $this->safe_value($response, 'errors');
         $data = $this->safe_value($response, 'response');
         if ($errors || !$data) {
@@ -473,7 +489,7 @@ class ice3x extends Exchange {
                 }
                 throw new AuthenticationError($errorMessage);
             }
-            throw new ExchangeError($this->json ($errors));
+            throw new ExchangeError($this->json($errors));
         }
         return $response;
     }

@@ -16,14 +16,21 @@ module.exports = class zb extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -290,7 +297,7 @@ module.exports = class zb extends Exchange {
             const market = anotherMarketsById[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -453,7 +460,7 @@ module.exports = class zb extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + 'fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -481,7 +488,7 @@ module.exports = class zb extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -531,15 +538,8 @@ module.exports = class zb extends Exchange {
         if (createDateField in order) {
             timestamp = order[createDateField];
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'currency');
-        if (marketId in this.markets_by_id) {
-            // get symbol from currency
-            market = this.marketsById[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'trade_amount');
         const amount = this.safeFloat (order, 'total_amount');
@@ -559,6 +559,7 @@ module.exports = class zb extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -573,6 +574,7 @@ module.exports = class zb extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 

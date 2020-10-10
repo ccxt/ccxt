@@ -18,23 +18,25 @@ class coinmarketcap(Exchange):
             'version': 'v1',
             'countries': ['US'],
             'has': {
-                'CORS': True,
-                'privateAPI': False,
-                'createOrder': False,
-                'createMarketOrder': False,
-                'createLimitOrder': False,
                 'cancelOrder': False,
+                'CORS': True,
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createOrder': False,
                 'editOrder': False,
+                'privateAPI': False,
                 'fetchBalance': False,
-                'fetchOrderBook': False,
-                'fetchL2OrderBook': False,
-                'fetchOHLCV': False,
-                'fetchTrades': False,
-                'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchL2OrderBook': False,
+                'fetchMarkets': True,
+                'fetchOHLCV': False,
+                'fetchOrderBook': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api': {
                     'public': 'https://api.coinmarketcap.com',
                     'files': 'https://files.coinmarketcap.com',
@@ -96,12 +98,14 @@ class coinmarketcap(Exchange):
             'ACChain': 'ACChain',
             'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'CryptoBossCoin': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'CrowdCoin': 'CrowdCoin',  # conflict with CRC CryCash
@@ -114,6 +118,7 @@ class coinmarketcap(Exchange):
             'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             # 'GET Protocol': 'GET Protocol',
+            'GHOSTPRISM': 'GHOSTPRISM',  # conflict with GHOST
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
@@ -126,6 +131,8 @@ class coinmarketcap(Exchange):
             'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
             'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
+            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'Monarch': 'Monarch',  # conflict with MyToken(MT)
             'MTC Mesh Network': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
@@ -138,9 +145,8 @@ class coinmarketcap(Exchange):
             # https://github.com/ccxt/ccxt/issues/6081
             # https://github.com/ccxt/ccxt/issues/3365
             # https://github.com/ccxt/ccxt/issues/2873
+            'TerraCredit': 'TerraCredit',  # conflict with CREDIT(PROXI)
             'Themis': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
-            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
-            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
         }
         return self.safe_value(currencies, name, base)
 
@@ -168,6 +174,9 @@ class coinmarketcap(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 

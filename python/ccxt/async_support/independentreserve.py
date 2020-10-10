@@ -15,10 +15,21 @@ class independentreserve(Exchange):
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
                 'api': {
                     'public': 'https://api.independentreserve.com/Public',
                     'private': 'https://api.independentreserve.com/Private',
@@ -97,6 +108,9 @@ class independentreserve(Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
+                    'active': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
                 })
         return result
 
@@ -165,9 +179,43 @@ class independentreserve(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_order(self, order, market=None):
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        #         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        #         "Type": "MarketBid",
+        #         "VolumeOrdered": 5.0,
+        #         "VolumeFilled": 5.0,
+        #         "Price": null,
+        #         "AvgPrice": 100.0,
+        #         "ReservedAmount": 0.0,
+        #         "Status": "Filled",
+        #         "PrimaryCurrencyCode": "Xbt",
+        #         "SecondaryCurrencyCode": "Usd"
+        #     }
+        #
+        # fetchOpenOrders & fetchClosedOrders
+        #
+        #     {
+        #         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        #         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        #         "OrderType": "LimitOffer",
+        #         "Volume": 0.0005,
+        #         "Outstanding": 0.0005,
+        #         "Price": 113885.83,
+        #         "AvgPrice": 113885.83,
+        #         "Value": 56.94,
+        #         "Status": "Open",
+        #         "PrimaryCurrencyCode": "Xbt",
+        #         "SecondaryCurrencyCode": "Usd",
+        #         "FeePercent": 0.005,
+        #     }
+        #
         symbol = None
         baseId = self.safe_string(order, 'PrimaryCurrencyCode')
-        quoteId = self.safe_string(order, 'PrimaryCurrencyCode')
+        quoteId = self.safe_string(order, 'SecondaryCurrencyCode')
         base = None
         quote = None
         if (baseId is not None) and (quoteId is not None):
@@ -178,29 +226,30 @@ class independentreserve(Exchange):
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
-        orderType = self.safe_value(order, 'Type')
-        if orderType.find('Market') >= 0:
-            orderType = 'market'
-        elif orderType.find('Limit') >= 0:
-            orderType = 'limit'
+        orderType = self.safe_string_2(order, 'Type', 'OrderType')
         side = None
         if orderType.find('Bid') >= 0:
             side = 'buy'
         elif orderType.find('Offer') >= 0:
             side = 'sell'
+        if orderType.find('Market') >= 0:
+            orderType = 'market'
+        elif orderType.find('Limit') >= 0:
+            orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
-        amount = self.safe_float(order, 'VolumeOrdered')
-        if amount is None:
-            amount = self.safe_float(order, 'Volume')
+        amount = self.safe_float_2(order, 'VolumeOrdered', 'Volume')
         filled = self.safe_float(order, 'VolumeFilled')
-        remaining = None
+        remaining = self.safe_float(order, 'Outstanding')
+        if filled is None:
+            if (remaining is not None) and (amount is not None):
+                filled = max(0, amount - remaining)
+        if remaining is None:
+            if (filled is not None) and (amount is not None):
+                remaining = max(0, amount - filled)
         feeRate = self.safe_float(order, 'FeePercent')
         feeCost = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-                if feeRate is not None:
-                    feeCost = feeRate * filled
+        if feeRate is not None:
+            feeCost = feeRate * filled
         fee = {
             'rate': feeRate,
             'cost': feeCost,
@@ -214,6 +263,7 @@ class independentreserve(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -228,6 +278,7 @@ class independentreserve(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,
         }
 
     def parse_order_status(self, status):
@@ -251,6 +302,38 @@ class independentreserve(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         return self.parse_order(response, market)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = self.ordered({})
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['primaryCurrencyCode'] = market['baseId']
+            request['secondaryCurrencyCode'] = market['quoteId']
+        if limit is None:
+            limit = 50
+        request['pageIndex'] = 1
+        request['pageSize'] = limit
+        response = await self.privatePostGetOpenOrders(self.extend(request, params))
+        data = self.safe_value(response, 'Data', [])
+        return self.parse_orders(data, market, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = self.ordered({})
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['primaryCurrencyCode'] = market['baseId']
+            request['secondaryCurrencyCode'] = market['quoteId']
+        if limit is None:
+            limit = 50
+        request['pageIndex'] = 1
+        request['pageSize'] = limit
+        response = await self.privatePostGetClosedOrders(self.extend(request, params))
+        data = self.safe_value(response, 'Data', [])
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=50, params={}):
         await self.load_markets()

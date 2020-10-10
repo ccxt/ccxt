@@ -14,6 +14,7 @@ class binanceus(binance):
             'name': 'Binance US',
             'countries': ['US'],  # US
             'certified': False,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {
@@ -31,10 +32,13 @@ class binanceus(binance):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': 0.001,  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'maker': 0.001,  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
+            },
+            'options': {
+                'quoteOrderQty': False,
             },
         })

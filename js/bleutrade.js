@@ -15,35 +15,36 @@ module.exports = class bleutrade extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'cancelOrder': false, // todo
-                'createLimitOrder': false, // todo
-                'createMarketOrder': false, // todo
-                'createOrder': false, // todo
-                'editOrder': false, // todo
-                'withdraw': false, // todo
-                'fetchTrades': false,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOrders': false,
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'editOrder': false,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchWithdrawals': true,
-                'fetchOrderTrades': false,
-                'fetchLedger': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchWithdrawals': true,
+                'withdraw': false,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bleutrade.com',
             'urls': {
@@ -52,7 +53,7 @@ module.exports = class bleutrade extends Exchange {
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -72,6 +73,9 @@ module.exports = class bleutrade extends Exchange {
                     ],
                 },
                 'v3Private': {
+                    'get': [
+                        'statement',
+                    ],
                     'post': [
                         'getbalance',
                         'getbalances',
@@ -101,6 +105,7 @@ module.exports = class bleutrade extends Exchange {
                 'exact': {
                     'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
                     'ERR_LOW_VOLUME': BadRequest,
+                    'Invalid form': BadRequest,
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
@@ -162,6 +167,7 @@ module.exports = class bleutrade extends Exchange {
                 'fee': this.safeFloat (item, 'WithdrawTxFee'),
                 'precision': this.safeFloat (item, 'DecimalPlaces'),
                 'info': item,
+                'limits': this.limits,
             };
         }
         return result;
@@ -187,8 +193,8 @@ module.exports = class bleutrade extends Exchange {
             //     MarketCurrencyLong: 'Litecoin',
             //     BaseCurrencyLong: 'Tether' }
             const id = this.safeString (market, 'MarketName');
-            const baseId = this.safeString (market, 'MarketCurrency');
-            const quoteId = this.safeString (market, 'BaseCurrency');
+            const baseId = this.safeString (market, 'MarketAsset');
+            const quoteId = this.safeString (market, 'BaseAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -248,7 +254,7 @@ module.exports = class bleutrade extends Exchange {
             'market': market['id'],
         };
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
-        const ticker = response['result'][0];
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -333,10 +339,9 @@ module.exports = class bleutrade extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (ohlcv['TimeStamp'] + '+00:00');
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            timestamp,
+            this.parse8601 (ohlcv['TimeStamp'] + '+00:00'),
             this.safeFloat (ohlcv, 'Open'),
             this.safeFloat (ohlcv, 'High'),
             this.safeFloat (ohlcv, 'Low'),
@@ -354,7 +359,8 @@ module.exports = class bleutrade extends Exchange {
             'count': limit,
         };
         const response = await this.v3PublicGetGetcandles (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -679,6 +685,7 @@ module.exports = class bleutrade extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -693,6 +700,7 @@ module.exports = class bleutrade extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'trades': undefined,
         };
     }
 
@@ -811,22 +819,23 @@ module.exports = class bleutrade extends Exchange {
         //    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
         //    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
         //    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
+        //    {"success":false,"message":"Invalid form","result":null}
         //
-        if (body[0] === '{') {
-            const success = this.safeValue (response, 'success');
-            if (success === undefined) {
-                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            }
-            if (!success) {
-                const feedback = this.id + ' ' + body;
-                const errorCode = this.safeString (response, 'result');
+        const success = this.safeValue (response, 'success');
+        if (success === undefined) {
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        }
+        if (!success) {
+            const feedback = this.id + ' ' + body;
+            const errorCode = this.safeString (response, 'result');
+            if (errorCode !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const errorMessage = this.safeString (response, 'message');
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-                throw new ExchangeError (feedback);
             }
+            const errorMessage = this.safeString (response, 'message');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

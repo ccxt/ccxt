@@ -1,8 +1,9 @@
 # Contributing To The CCXT Library
 
-```diff
-- This file is a work in progress, guidelines for contributing are being developed right now!
-```
+- [How To Submit A Question Or Issue](#how-to-submit-an-issue)
+- [How To Contribute Code](#how-to-contribute-code)
+  - [What You Need To Have](#what-you-need-to-have)
+  - [What You Need To Know](#what-you-need-to-know)
 
 ## How To Submit An Issue
 
@@ -32,7 +33,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - which exchange it is
   - which method you're trying to call
 
-## Reporting Vulnerabilities And Critical Issues
+### Reporting Vulnerabilities And Critical Issues
 
 If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
 
@@ -48,6 +49,12 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/build/*` (these are generated automatically)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/ccxt.js`
+  - `/README.md` (exchange lists are generated automatically)
+  - `/package.json`
+  - `/package.lock`
+  - `/wiki/*` (except for real edits, exchange lists are generated automatically)
+  - `/dist/ccxt.browser.js` (this is also browserified automatically)
 
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
@@ -57,19 +64,20 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## Pending Tasks
 
-Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
+Below is a list of functionality we would like to have implemented and fully **unified** in the library in the first place at this time. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
-- Unified fetchOrder
-- Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
-- Unified fetchMyTrades, fetchOrderTrades
-- Unified fetchDepositAddress, createDepositAddress
-- Unified withdraw
-- Unified fees
-- Unified fetchTransactions, fetchDeposits, fetchWithdrawals
-- Improved proxy support
-- WebSocket interfaces:
-  - Pub: Methods for trading and private calls where supported
-  - Sub: Real-time balance, orderbooks and other properties with each exchange
+- Margin trading
+- Leverage
+- Derivatives (futures, options)
+- Main account / subaccounts
+- Conditional orders (stop loss, take profit)
+- `transfer` between subaccounts and main account
+- `fetchTransfer`
+- `fetchTransfers`
+- `fetchLedger`
+- `fetchPositions`
+- `closePosition`
+- `closePositions`
 
 If you want to contribute by submitting partial implementations be sure to look up examples of how it's done inside the library (where implemented already) and copy the adopted practices.
 
@@ -86,9 +94,34 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ## What You Need To Have
 
+If you're not going to develop CCXT and contribute code to the CCXT library, then you don't need the Docker image nor the CCXT repository. If you just want to use CCXT inside your project simply install it as a regular package into the project folder as documented in the Manual (https://github.com/ccxt/ccxt/wiki/Install):
+
+- [JavaScript / Node.js / NPM](https://github.com/ccxt/ccxt/wiki/Install#javascript-npm)
+
+  ```shell
+  # JavaScript / Node.js / NPM
+  npm install ccxt
+  ```
+
+- [Python / PIP](https://github.com/ccxt/ccxt/wiki/Install#python)
+
+  ```shell
+  # Python
+  pip install ccxt  # or pip3 install ccxt
+  ```
+
+- [PHP / Composer](https://github.com/ccxt/ccxt/wiki/Install#php)
+
+  ```shell
+  # PHP / Composer
+  composer install ccxt
+  ```
+
+### With Docker
+
 The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
 
-```
+```shell
 docker-compose run --rm ccxt
 ```
 
@@ -98,20 +131,43 @@ The CCXT folder is mapped inside of the container, except the `node_modules` fol
 
 This way you can keep the build tools and processes isolated, not having to work through the painful process of installing all those dependencies to your host machine manually.
 
-If you choose the hard way, here is the list of the dependencies you will need. It may be incomplete and outdated, so you may want to look into the [`Dockerfile`](https://github.com/ccxt/ccxt/blob/master/Dockerfile) and [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) scripts for the list of commands we use to install the state-of-the-art dependencies needed to build and test CCXT.
+### Without Docker
 
+#### Dependencies
+
+- Git
 - [Node.js](https://nodejs.org/en/download/) 8+
-- [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
-  - tox (`brew install tox` or `pip install tox`)
+- [Python](https://www.python.org/downloads/) 3.5.3+
   - requests (`pip install requests`)
-  - aiohttp (`pip install aiohttp`)
+  - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [tox](https://tox.readthedocs.io)
+    - via pip: `pip install tox`
+    - MacOS with [brew](https://brew.sh): `brew install tox`
+    - Ubuntu Linux: `apt-get install tox`
 - [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
   - bcmath (php<7.1)
-- [Pandoc](https://pandoc.org/installing.html) 1.19+
+
+#### Build Steps
+
+```shell
+git clone https://github.com/ccxt/ccxt.git
+```
+
+```shell
+cd ccxt
+```
+
+```shell
+npm install
+```
+
+```shell
+npm run build
+```
 
 ## What You Need To Know
 
@@ -127,7 +183,6 @@ The contents of the repository are structured as follows:
 /.gitignore                # ignore it
 /.npmignore                # files to exclude from the NPM package
 /.travis.yml               # a YAML config for travis-ci (continuous integration)
-/CHANGELOG.md              # self-explanatory
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
@@ -147,7 +202,7 @@ The contents of the repository are structured as follows:
 /python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
-/python/README.rst         # generated reStructuredText for PyPI
+/python/README.md          # a copy of README.md for PyPI
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
@@ -157,7 +212,7 @@ The contents of the repository are structured as follows:
 /examples/py               # ...
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
 /package.json              # npm package file, also used in setup.py for version single-sourcing
-/run-tests.js              # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
+/run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
 
@@ -226,7 +281,7 @@ Below are key notes on how to keep the JS code transpileable.
 Use the linter `npm run lint js/your-exchange-implementation.js` before you build. It will cover many (but not all) the issues,
 so manual checking will still be required if transpilation fails.
 
-If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisifes the following rules:
+If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisfies the following rules:
 
 - don't put empty lines inside your methods
 - always use Python-style indentation, it is preserved as is for all languages
@@ -240,7 +295,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - every opening bracket like `(` or `{` should have a space before it!
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
-- don't change the arguments of overrided inherited methods, keep them uniform across all exchanges
+- don't change the arguments of overridden inherited methods, keep them uniform across all exchanges
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
@@ -369,27 +424,14 @@ In order to handle the market-`id` properly it has to be looked-up in the info c
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
-   let symbol = undefined;
-   const marketId = this.safeString (trade, 'pair');
-   if (marketId !== undefined) {
-      if (marketId in this.markets_by_id) {
-         // look up by an exchange-specific id in the preloaded markets first
-         market = this.markets_by_id[market];
-         symbol = market['symbol'];
-      } else {
-         // try to parse it somehow, if the format is known
-         const [ baseId, quoteId ] = marketId.split ('/');
-         const base = this.safeCurrencyCode (baseId); // unified
-         const quote = this.safeCurrencyCode (quoteId);
-         symbol = base + '/' + quote;
-      }
-   }
-   // parsing code...
-   return {
-      'info': trade,
-      'symbol': symbol, // very good, a unified symbol here now
-      // other fields...
-   };
+    const marketId = this.safeString (trade, 'pair');
+    // safeSymbol is used to parse the market id to a unified symbol
+    const symbol = this.safeSymbol (marketId, market);
+    return {
+       'info': trade,
+       'symbol': symbol, // very good, a unified symbol here now
+       // other fields...
+    };
 }
 ```
 
@@ -404,7 +446,7 @@ Both work almost identically, and one is implicitly converted to another upon ex
 
 While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
-To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
+To keep the code transpileable, please, remember this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
 #### Sanitizing Input With `safe`-Methods
 
@@ -532,7 +574,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 **All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
 
-In order to convert to milliseconds timestamps, CCXT implementes the following methods:
+In order to convert to milliseconds timestamps, CCXT implements the following methods:
 
 ```JavaScript
 const data = {
@@ -701,6 +743,7 @@ foo += this.c ();
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
 - when implementing a unified method that has some arguments – we can't ignore or miss any of those arguments
 - all structures returned from the unified methods must conform to their specifications from the Manual
+- all API endpoints have to be listed out with proper support for params substituted in the URLs
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 
@@ -816,7 +859,7 @@ You can hide the changes in the generated files by running this command (after t
 npm run git-ignore-generated-files
 ```
 
-Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occured in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
+Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occurred in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
 
 ```
 npm run git-unignore-generated-files

@@ -156,8 +156,16 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "data": {
+        //             "epoch": 1589295679,
+        //             "iso": "2020-05-12T15:01:19Z"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        return this.parse8601 (this.safeString (data, 'iso'));
+        return this.safeTimestamp (data, 'epoch');
     }
 
     async fetchAccounts (params = {}) {
@@ -459,8 +467,8 @@ module.exports = class coinbase extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeValue (trade, 'created_at'));
         if (market === undefined) {
-            const baseId = this.safeString (totalObject, 'currency');
-            const quoteId = this.safeString (amountObject, 'currency');
+            const baseId = this.safeString (amountObject, 'currency');
+            const quoteId = this.safeString (totalObject, 'currency');
             if ((baseId !== undefined) && (quoteId !== undefined)) {
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
@@ -474,7 +482,7 @@ module.exports = class coinbase extends Exchange {
         const amount = this.safeFloat (amountObject, 'amount');
         let price = undefined;
         if (cost !== undefined) {
-            if (amount !== undefined) {
+            if ((amount !== undefined) && (amount > 0)) {
                 price = cost / amount;
             }
         }
@@ -722,13 +730,17 @@ module.exports = class coinbase extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
         const response = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
-        return this.parseLedger (response['data'], undefined, since, limit);
+        return this.parseLedger (response['data'], currency, since, limit);
     }
 
     parseLedgerEntryStatus (status) {

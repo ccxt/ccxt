@@ -27,14 +27,21 @@ class zb(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -289,7 +296,7 @@ class zb(Exchange):
         for i in range(0, len(ids)):
             market = anotherMarketsById[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -435,7 +442,7 @@ class zb(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + 'fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -458,7 +465,7 @@ class zb(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
+            raise ArgumentsRequired(self.id + 'fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -502,13 +509,8 @@ class zb(Exchange):
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
-        symbol = None
         marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
-            # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
@@ -525,6 +527,7 @@ class zb(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -539,6 +542,7 @@ class zb(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'trades': None,
         }
 
     def parse_order_status(self, status):

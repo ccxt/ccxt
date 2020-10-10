@@ -12,6 +12,7 @@ class coinbaseprime(coinbasepro):
         return self.deep_extend(super(coinbaseprime, self).describe(), {
             'id': 'coinbaseprime',
             'name': 'Coinbase Prime',
+            'pro': True,
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.prime.coinbase.com',

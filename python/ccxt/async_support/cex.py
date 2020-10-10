@@ -20,6 +20,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 
@@ -33,15 +34,23 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -146,6 +155,7 @@ class cex(Exchange):
                     'Rate limit exceeded': RateLimitExceeded,
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
+                    'Sorry, too many clients already': DDoSProtection,
                 },
             },
             'options': {
@@ -155,7 +165,7 @@ class cex(Exchange):
                     'status': {
                         'c': 'canceled',
                         'd': 'closed',
-                        'cd': 'closed',
+                        'cd': 'canceled',
                         'a': 'open',
                     },
                 },
@@ -365,6 +375,7 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'active': None,
             })
         return result
 
@@ -397,14 +408,24 @@ class cex(Exchange):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1591403940,
+        #         0.024972,
+        #         0.024972,
+        #         0.024969,
+        #         0.024969,
+        #         0.49999900
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -424,8 +445,15 @@ class cex(Exchange):
         }
         try:
             response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
+            #
+            #     {
+            #         "time":20200606,
+            #         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            #     }
+            #
             key = 'data' + self.timeframes[timeframe]
-            ohlcvs = json.loads(response[key])
+            data = self.safe_string(response, key)
+            ohlcvs = json.loads(data)
             return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
         except Exception as e:
             if isinstance(e, NullResponse):
@@ -479,7 +507,7 @@ class cex(Exchange):
             symbol = ticker['pair'].replace(':', '/')
             market = self.markets[symbol]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -548,9 +576,44 @@ class cex(Exchange):
         else:
             request['order_type'] = type
         response = await self.privatePostPlaceOrderPair(self.extend(request, params))
+        #
+        #     {
+        #         "id": "12978363524",
+        #         "time": 1586610022259,
+        #         "type": "buy",
+        #         "price": "0.033934",
+        #         "amount": "0.10722802",
+        #         "pending": "0.10722802",
+        #         "complete": False
+        #     }
+        #
+        placedAmount = self.safe_float(response, 'amount')
+        remaining = self.safe_float(response, 'pending')
+        timestamp = self.safe_value(response, 'time')
+        complete = self.safe_value(response, 'complete')
+        status = 'closed' if complete else 'open'
+        filled = None
+        if (placedAmount is not None) and (remaining is not None):
+            filled = max(placedAmount - remaining, 0)
         return {
+            'id': self.safe_string(response, 'id'),
             'info': response,
-            'id': response['id'],
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'type': type,
+            'side': self.safe_string(response, 'type'),
+            'symbol': symbol,
+            'status': status,
+            'price': self.safe_float(response, 'price'),
+            'amount': placedAmount,
+            'cost': None,
+            'average': None,
+            'remaining': remaining,
+            'filled': filled,
+            'fee': None,
+            'trades': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -774,9 +837,12 @@ class cex(Exchange):
                         'currency': market['quote'],
                     },
                     'info': item,
+                    'type': None,
+                    'takerOrMaker': None,
                 })
         return {
             'id': orderId,
+            'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -792,6 +858,7 @@ class cex(Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': None,
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1099,10 +1166,10 @@ class cex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if isinstance(response, list):
             return response  # public endpoints may return []-arrays
+        if body == 'true':
+            return
         if response is None:
             raise NullResponse(self.id + ' returned ' + self.json(response))
-        if response is True or response == 'true':
-            return
         if 'e' in response:
             if 'ok' in response:
                 if response['ok'] == 'ok':

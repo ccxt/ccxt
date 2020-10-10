@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -27,16 +26,23 @@ class timex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
-                'CORS': False,
+                'cancelOrder': True,
                 'cancelOrders': True,
+                'CORS': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
             },
             'timeframes': {
@@ -57,6 +63,7 @@ class timex(Exchange):
                 'api': 'https://plasma-relay-backend.timex.io',
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
+                'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
                 'custody': {
@@ -867,7 +874,21 @@ class timex(Exchange):
         #         "active": True,
         #         "withdrawalFee": "50000000000000000",
         #         "purchaseCommissions": []
-        #     },
+        #     }
+        #
+        # https://github.com/ccxt/ccxt/issues/6878
+        #
+        #     {
+        #         "symbol":"XRP",
+        #         "name":"Ripple",
+        #         "address":"0x0dc8882914f3ddeebf4cec6dc20edb99df3def6c",
+        #         "decimals":6,
+        #         "tradeDecimals":16,
+        #         "depositEnabled":true,
+        #         "withdrawalEnabled":true,
+        #         "transferEnabled":true,
+        #         "active":true
+        #     }
         #
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
@@ -876,19 +897,20 @@ class timex(Exchange):
         active = self.safe_value(currency, 'active')
         # fee = self.safe_float(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
-        feeStringLen = len(feeString)
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
         fee = None
-        dotIndex = feeStringLen - tradeDecimals
-        if dotIndex > 0:
-            whole = feeString[0:dotIndex]
-            fraction = feeString[-dotIndex:]
-            fee = float(whole + '.' + fraction)
-        else:
-            fraction = '.'
-            for i in range(0, -dotIndex):
-                fraction += '0'
-            fee = float(fraction + feeString)
+        if (feeString is not None) and (tradeDecimals is not None):
+            feeStringLen = len(feeString)
+            dotIndex = feeStringLen - tradeDecimals
+            if dotIndex > 0:
+                whole = feeString[0:dotIndex]
+                fraction = feeString[-dotIndex:]
+                fee = float(whole + '.' + fraction)
+            else:
+                fraction = '.'
+                for i in range(0, -dotIndex):
+                    fraction += '0'
+                fee = float(fraction + feeString)
         return {
             'id': code,
             'code': code,
@@ -928,19 +950,8 @@ class timex(Exchange):
         #         "volumeQuote": 0.07312
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_float(ticker, 'last')
         open = self.safe_float(ticker, 'open')
@@ -1002,13 +1013,8 @@ class timex(Exchange):
         #         "timestamp": "2019-12-08T04:54:11.171Z"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
@@ -1045,7 +1051,7 @@ class timex(Exchange):
             'fee': fee,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "timestamp":"2019-12-04T23:00:00",
@@ -1063,7 +1069,7 @@ class timex(Exchange):
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volumeQuote'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     def parse_order(self, order, market=None):
@@ -1090,13 +1096,8 @@ class timex(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'quantity')
@@ -1125,9 +1126,11 @@ class timex(Exchange):
             numTrades = len(trades)
             if numTrades > 0:
                 lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1151,7 +1154,7 @@ class timex(Exchange):
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':
             self.check_required_credentials()
-            auth = base64.b64encode(self.encode(self.apiKey + ':' + self.secret))
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             secret = 'Basic ' + self.decode(auth)
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

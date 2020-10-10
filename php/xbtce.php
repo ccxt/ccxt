@@ -12,18 +12,25 @@ use \ccxt\NotSupported;
 
 class xbtce extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'xbtce',
             'name' => 'xBTCe',
             'countries' => array( 'RU' ),
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => false,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'referral' => 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
@@ -113,7 +120,7 @@ class xbtce extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->privateGetSymbol ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -133,12 +140,15 @@ class xbtce extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'active' => null,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ($params);
         $result = array( 'info' => $balances );
@@ -156,9 +166,9 @@ class xbtce extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'filter' => $market['id'],
         );
@@ -168,7 +178,7 @@ class xbtce extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = 0;
         $last = null;
         if (is_array($ticker) && array_key_exists('LastBuyTimestamp', $ticker)) {
@@ -184,7 +194,7 @@ class xbtce extends Exchange {
             }
         }
         if (!$timestamp) {
-            $timestamp = $this->milliseconds ();
+            $timestamp = $this->milliseconds();
         }
         $symbol = null;
         if ($market) {
@@ -193,7 +203,7 @@ class xbtce extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $ticker['DailyBestBuyPrice'],
             'low' => $ticker['DailyBestSellPrice'],
             'bid' => $ticker['BestBid'],
@@ -214,7 +224,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $tickers = $this->index_by($response, 'Symbol');
@@ -237,12 +247,12 @@ class xbtce extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'filter' => $market['id'],
         );
@@ -256,30 +266,30 @@ class xbtce extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // no method for trades?
         return $this->privateGetTrade ($params);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['Timestamp'],
-            $ohlcv['Open'],
-            $ohlcv['High'],
-            $ohlcv['Low'],
-            $ohlcv['Close'],
-            $ohlcv['Volume'],
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 'Timestamp'),
+            $this->safe_float($ohlcv, 'Open'),
+            $this->safe_float($ohlcv, 'High'),
+            $this->safe_float($ohlcv, 'Low'),
+            $this->safe_float($ohlcv, 'Close'),
+            $this->safe_float($ohlcv, 'Volume'),
+        );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        //     $minutes = intval ($timeframe / 60); // 1 minute by default
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        //     $minutes = intval($timeframe / 60); // 1 minute by default
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
-        //     $market = $this->market ($symbol);
+        //     $market = $this->market($symbol);
         //     if ($since === null)
-        //         $since = $this->seconds () - 86400 * 7; // last day by defulat
+        //         $since = $this->seconds() - 86400 * 7; // last day by defulat
         //     if ($limit === null)
         //         $limit = 1000; // default
         //     $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge(array(
@@ -292,7 +302,7 @@ class xbtce extends Exchange {
         throw new NotSupported($this->id . ' fetchOHLCV is disabled by the exchange');
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -310,7 +320,7 @@ class xbtce extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
             'Type' => 'Cancel',
             'Id' => $id,
@@ -318,11 +328,11 @@ class xbtce extends Exchange {
         return $this->privateDeleteTrade (array_merge($request, $params));
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey) {
             throw new AuthenticationError($this->id . ' requires apiKey for all requests, their public API is always busy');
         }
@@ -334,29 +344,29 @@ class xbtce extends Exchange {
             $url .= '/' . $api;
         }
         $url .= '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
-                $url .= '?' . $this->urlencode ($query);
+                $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             $headers = array( 'Accept-Encoding' => 'gzip, deflate' );
-            $nonce = (string) $this->nonce ();
+            $nonce = (string) $this->nonce();
             if ($method === 'POST') {
                 if ($query) {
                     $headers['Content-Type'] = 'application/json';
-                    $body = $this->json ($query);
+                    $body = $this->json($query);
                 } else {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->urlencode($query);
                 }
             }
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
             if ($body) {
                 $auth .= $body;
             }
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->decode ($signature);
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $signature;
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

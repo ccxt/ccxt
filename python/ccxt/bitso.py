@@ -27,13 +27,23 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -149,6 +159,7 @@ class bitso(Exchange):
                 'info': market,
                 'limits': limits,
                 'precision': precision,
+                'active': None,
             })
         return result
 
@@ -218,13 +229,8 @@ class bitso(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'book')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'book')
+        symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string_2(trade, 'side', 'maker_side')
         amount = self.safe_float_2(trade, 'amount', 'major')
         if amount is not None:
@@ -329,19 +335,8 @@ class bitso(Exchange):
         id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'book')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         orderType = self.safe_string(order, 'type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
@@ -351,9 +346,11 @@ class bitso(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
+        clientOrderId = self.safe_string(order, 'client_id')
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -367,6 +364,8 @@ class bitso(Exchange):
             'filled': filled,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
@@ -425,10 +424,10 @@ class bitso(Exchange):
         response = self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
         tag = None
-        if code == 'XRP':
+        if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
-            address = parts[0]
-            tag = parts[1]
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
             'currency': code,

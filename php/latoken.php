@@ -11,8 +11,8 @@ use \ccxt\ArgumentsRequired;
 
 class latoken extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'latoken',
             'name' => 'Latoken',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -94,6 +94,7 @@ class latoken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'MT' => 'Monarch',
                 'TSL' => 'Treasure SL',
             ),
             'options' => array(
@@ -120,11 +121,11 @@ class latoken extends Exchange {
         ));
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function nonce() {
+        return $this->milliseconds();
     }
 
-    public function fetch_time ($params = array ()) {
+    public function fetch_time($params = array ()) {
         $response = $this->publicGetExchangeInfoTime ($params);
         //
         //     {
@@ -136,7 +137,7 @@ class latoken extends Exchange {
         return $this->safe_integer($response, 'unixTimeMiliseconds');
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetExchangeInfoPairs ($params);
         //
         //     array(
@@ -199,7 +200,7 @@ class latoken extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicGetExchangeInfoCurrencies ($params);
         //
         //     array(
@@ -254,7 +255,7 @@ class latoken extends Exchange {
         return $result;
     }
 
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
@@ -271,11 +272,11 @@ class latoken extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
         );
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountBalances ($params);
         //
@@ -300,7 +301,7 @@ class latoken extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $frozen = $this->safe_float($balance, 'frozen');
             $pending = $this->safe_float($balance, 'pending');
-            $used = $this->sum ($frozen, $pending);
+            $used = $this->sum($frozen, $pending);
             $account = array(
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $used,
@@ -311,9 +312,9 @@ class latoken extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'limit' => 10,
@@ -338,7 +339,7 @@ class latoken extends Exchange {
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         //     {
         //         "pairId":"63b41092-f3f6-4ea4-9e7c-4525ed250dad",
@@ -351,14 +352,8 @@ class latoken extends Exchange {
         //         "priceChange":-0.1500
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $open = $this->safe_float($ticker, 'open');
         $close = $this->safe_float($ticker, 'close');
         $change = null;
@@ -366,11 +361,11 @@ class latoken extends Exchange {
             $change = $close - $open;
         }
         $percentage = $this->safe_float($ticker, 'priceChange');
-        $timestamp = $this->nonce ();
+        $timestamp = $this->nonce();
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'low' => $this->safe_float($ticker, 'low'),
             'high' => $this->safe_float($ticker, 'high'),
             'bid' => null,
@@ -391,9 +386,9 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -413,7 +408,7 @@ class latoken extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetMarketDataTickers ($params);
         //
@@ -434,14 +429,12 @@ class latoken extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
-            if ($symbols === null || $this->in_array($symbol, $symbols)) {
-                $result[$symbol] = $ticker;
-            }
+            $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -498,7 +491,7 @@ class latoken extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
@@ -512,9 +505,9 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -541,12 +534,12 @@ class latoken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -573,7 +566,7 @@ class latoken extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_order_status ($status) {
+    public function parse_order_status($status) {
         $statuses = array(
             'active' => 'open',
             'partiallyFilled' => 'open',
@@ -583,7 +576,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order ($order, $market = null) {
+    public function parse_order($order, $market = null) {
         //
         // createOrder
         //
@@ -619,13 +612,7 @@ class latoken extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_timestamp($order, 'timeCreated');
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
         $price = $this->safe_float($order, 'price');
@@ -649,11 +636,13 @@ class latoken extends Exchange {
         if (($timeFilled !== null) && ($timeFilled > 0)) {
             $lastTradeTimestamp = $timeFilled;
         }
+        $clientOrderId = $this->safe_string($order, 'cliOrdId');
         return array(
             'id' => $id,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
@@ -666,34 +655,35 @@ class latoken extends Exchange {
             'average' => null,
             'remaining' => $remaining,
             'fee' => null,
+            'trades' => null,
         );
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_with_method ('private_get_order_active', $symbol, $since, $limit, $params);
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_with_method('private_get_order_active', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('filled', $symbol, $since, $limit, $params);
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_status('filled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_canceled_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('cancelled', $symbol, $since, $limit, $params);
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_status('cancelled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
             'status' => $status,
         );
-        return $this->fetch_orders_with_method ('private_get_order_status', $symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_with_method('private_get_order_status', $symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersWithMethod requires a $symbol argument');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -723,7 +713,7 @@ class latoken extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -749,7 +739,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
@@ -778,7 +768,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -804,7 +794,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
         }
@@ -836,22 +826,22 @@ class latoken extends Exchange {
         return $result;
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = null, $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = null, $headers = null, $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
             $query = array_merge(array(
                 'timestamp' => $nonce,
             ), $query);
         }
-        $urlencodedQuery = $this->urlencode ($query);
+        $urlencodedQuery = $this->urlencode($query);
         if ($query) {
             $request .= '?' . $urlencodedQuery;
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
+            $signature = $this->hmac($this->encode($request), $this->encode($this->secret));
             $headers = array(
                 'X-LA-KEY' => $this->apiKey,
                 'X-LA-SIGNATURE' => $signature,
@@ -865,7 +855,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return;
         }

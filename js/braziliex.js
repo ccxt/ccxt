@@ -15,12 +15,19 @@ module.exports = class braziliex extends Exchange {
             'countries': [ 'BR' ],
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -337,11 +344,11 @@ module.exports = class braziliex extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const marketId = ids[i];
-            const market = this.markets_by_id[marketId];
+            const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[marketId], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -423,16 +430,8 @@ module.exports = class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
@@ -452,6 +451,7 @@ module.exports = class braziliex extends Exchange {
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -467,6 +467,7 @@ module.exports = class braziliex extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': info,
+            'average': undefined,
         };
     }
 
@@ -482,30 +483,49 @@ module.exports = class braziliex extends Exchange {
             'amount': amount,
         };
         const response = await this[method] (this.extend (request, params));
+        //
+        // sell
+        //
+        //     {
+        //         "success":1,
+        //         "message":" ##RESERVED FOR ORDER / SELL / XMR_BTC / AMOUNT: 0.01 XMR / PRICE: 0.017 BTC / TOTAL: 0.00017000 BTC / FEE: 0.00002500 XMR ",
+        //         "order_number":"590b962ba5b98335965fa0a8"
+        //     }
+        //
+        // buy
+        //
+        //     {
+        //         "success":1,
+        //         "message":" ##RESERVED FOR ORDER / BUY / XMR_BTC / AMOUNT: 0.005 XMR / PRICE: 0.017 BTC / TOTAL: 0.00008500 BTC / FEE: 0.00000021 BTC ",
+        //         "order_number":"590b962ba5b98335965fa0c0"
+        //     }
+        //
         const success = this.safeInteger (response, 'success');
         if (success !== 1) {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
-        let parts = response['message'].split (' / ');
+        const message = this.safeString (response, 'message');
+        let parts = message.split (' / ');
         parts = parts.slice (1);
         const feeParts = parts[5].split (' ');
+        const amountParts = parts[2].split (' ');
+        const priceParts = parts[3].split (' ');
+        const totalParts = parts[4].split (' ');
         const order = this.parseOrder ({
             'timestamp': this.milliseconds (),
             'order_number': response['order_number'],
-            'type': parts[0].toLowerCase (),
+            'type': this.safeStringLower (parts, 0),
             'market': parts[0].toLowerCase (),
-            'amount': parts[2].split (' ')[1],
-            'price': parts[3].split (' ')[1],
-            'total': parts[4].split (' ')[1],
+            'amount': this.safeString (amountParts, 1),
+            'price': this.safeString (priceParts, 1),
+            'total': this.safeString (totalParts, 1),
             'fee': {
-                'cost': parseFloat (feeParts[1]),
-                'currency': feeParts[2],
+                'cost': this.safeFloat (feeParts, 1),
+                'currency': this.safeString (feeParts, 2),
             },
             'progress': '0.0',
             'info': response,
         }, market);
-        const id = order['id'];
-        this.orders[id] = order;
         return order;
     }
 
@@ -540,7 +560,8 @@ module.exports = class braziliex extends Exchange {
             'market': market['id'],
         };
         const response = await this.privatePostOpenOrders (this.extend (request, params));
-        return this.parseOrders (response['order_open'], market, since, limit);
+        const orders = this.safeValue (response, 'order_open', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -550,7 +571,8 @@ module.exports = class braziliex extends Exchange {
             'market': market['id'],
         };
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        return this.parseTrades (response['trade_history'], market, since, limit);
+        const trades = this.safeValue (response, 'trade_history', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -590,7 +612,7 @@ module.exports = class braziliex extends Exchange {
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.decode (signature),
+                'Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,15 +16,30 @@ module.exports = class bitstamp extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'pro': true,
             'has': {
                 'CORS': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
+                'fetchFundingFees': true,
+                'fetchFees': true,
+                'fetchLedger': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -36,6 +51,20 @@ module.exports = class bitstamp extends Exchange {
                 'www': 'https://www.bitstamp.net',
                 'doc': 'https://www.bitstamp.net/api',
             },
+            'timeframes': {
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '259200',
+            },
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -44,6 +73,7 @@ module.exports = class bitstamp extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ohlc/{pair}/',
                         'order_book/{pair}/',
                         'ticker_hour/{pair}/',
                         'ticker/{pair}/',
@@ -75,6 +105,10 @@ module.exports = class bitstamp extends Exchange {
                         'eth_address/',
                         'xrp_withdrawal/',
                         'xrp_address/',
+                        'xlm_withdrawal/',
+                        'xlm_address/',
+                        'pax_withdrawal/',
+                        'pax_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -113,7 +147,13 @@ module.exports = class bitstamp extends Exchange {
                             [2000000, 0.13 / 100],
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
-                            [20000001, 0.10 / 100],
+                            [50000000, 0.10 / 100],
+                            [100000000, 0.07 / 100],
+                            [500000000, 0.05 / 100],
+                            [2000000000, 0.03 / 100],
+                            [6000000000, 0.01 / 100],
+                            [10000000000, 0.005 / 100],
+                            [10000000001, 0.0],
                         ],
                         'maker': [
                             [0, 0.5 / 100],
@@ -126,7 +166,13 @@ module.exports = class bitstamp extends Exchange {
                             [2000000, 0.13 / 100],
                             [4000000, 0.12 / 100],
                             [20000000, 0.11 / 100],
-                            [20000001, 0.10 / 100],
+                            [50000000, 0.10 / 100],
+                            [100000000, 0.07 / 100],
+                            [500000000, 0.05 / 100],
+                            [2000000000, 0.03 / 100],
+                            [6000000000, 0.01 / 100],
+                            [10000000000, 0.005 / 100],
+                            [10000000001, 0.0],
                         ],
                     },
                 },
@@ -134,13 +180,15 @@ module.exports = class bitstamp extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0,
-                        'BCH': 0,
-                        'LTC': 0,
-                        'ETH': 0,
-                        'XRP': 0,
+                        'BTC': 0.0005,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'ETH': 0.001,
+                        'XRP': 0.02,
+                        'XLM': 0.005,
+                        'PAX': 0.5,
                         'USD': 25,
-                        'EUR': 0.90,
+                        'EUR': 3.0,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -148,7 +196,9 @@ module.exports = class bitstamp extends Exchange {
                         'LTC': 0,
                         'ETH': 0,
                         'XRP': 0,
-                        'USD': 25,
+                        'XLM': 0,
+                        'PAX': 0,
+                        'USD': 7.5,
                         'EUR': 0,
                     },
                 },
@@ -166,6 +216,7 @@ module.exports = class bitstamp extends Exchange {
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
                     'Price is more than 20% below market price.': InvalidOrder,
+                    'Bitstamp.net is under scheduled maintenance.': OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.
@@ -177,7 +228,7 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTradingPairsInfo (params);
+        const response = await this.fetchMarketsFromCache (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -228,14 +279,111 @@ module.exports = class bitstamp extends Exchange {
         return result;
     }
 
+    constructCurrencyObject (id, code, name, precision, minCost, originalPayload) {
+        let currencyType = 'crypto';
+        const description = this.describe ();
+        if (this.isFiat (code)) {
+            currencyType = 'fiat';
+        }
+        return {
+            'id': id,
+            'code': code,
+            'info': originalPayload, // the original payload
+            'type': currencyType,
+            'name': name,
+            'active': true,
+            'fee': this.safeFloat (description['fees']['funding']['withdraw'], code),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': Math.pow (10, -precision),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        };
+    }
+
+    async fetchMarketsFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetTradingPairsInfo (params);
+            this.options['fetchMarkets'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchMarkets'], 'response');
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.fetchMarketsFromCache (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const name = this.safeString (market, 'name');
+            let [ base, quote ] = name.split ('/');
+            const baseId = base.toLowerCase ();
+            const quoteId = quote.toLowerCase ();
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
+            const description = this.safeString (market, 'description');
+            const [ baseDescription, quoteDescription ] = description.split (' / ');
+            const parts = market['minimum_order'].split (' ');
+            const cost = parts[0];
+            if (!(base in result)) {
+                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, market['base_decimals'], undefined, market);
+            }
+            if (!(quote in result)) {
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, market['counter_decimals'], parseFloat (cost), market);
+            }
+        }
+        return result;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        //
+        //     {
+        //         "timestamp": "1583652948",
+        //         "microtimestamp": "1583652948955826",
+        //         "bids": [
+        //             [ "8750.00", "1.33685271" ],
+        //             [ "8749.39", "0.07700000" ],
+        //             [ "8746.98", "0.07400000" ],
+        //         ]
+        //         "asks": [
+        //             [ "8754.10", "1.51995636" ],
+        //             [ "8754.71", "1.40000000" ],
+        //             [ "8754.72", "2.50000000" ],
+        //         ]
+        //     }
+        //
+        const microtimestamp = this.safeInteger (response, 'microtimestamp');
+        const timestamp = parseInt (microtimestamp / 1000);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = microtimestamp;
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -481,6 +629,16 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
+    parseTradingFee (balances, symbol) {
+        const market = this.market (symbol);
+        const tradeFee = this.safeFloat (balances, market['id'] + '_fee');
+        return {
+            'symbol': symbol,
+            'maker': tradeFee,
+            'taker': tradeFee,
+        };
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -510,6 +668,71 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "high": "9064.77",
+        //         "timestamp": "1593961440",
+        //         "volume": "18.49436608",
+        //         "low": "9040.87",
+        //         "close": "9064.77",
+        //         "open": "9040.87"
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'step': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+            } else {
+                limit = 1000;
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+                request['limit'] = limit;
+            }
+        } else {
+            if (since !== undefined) {
+                const start = parseInt (since / 1000);
+                request['start'] = start;
+                request['end'] = this.sum (start, limit * duration);
+            }
+            request['limit'] = Math.min (limit, 1000); // min 1, max 1000
+        }
+        const response = await this.publicGetOhlcPair (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "pair": "BTC/USD",
+        //             "ohlc": [
+        //                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+        //                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+        //                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ohlc = this.safeValue (data, 'ohlc', []);
+        return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
@@ -528,6 +751,80 @@ module.exports = class bitstamp extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let method = 'privatePostBalance';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+            method += 'Pair';
+        }
+        const balance = await this[method] (this.extend (request, params));
+        return {
+            'info': balance,
+            'symbol': symbol,
+            'maker': balance.fee,
+            'taker': balance.fee,
+        };
+    }
+
+    praseTradingFees (balance) {
+        const result = { 'info': balance };
+        const markets = Object.keys (this.markets);
+        for (let i = 0; i < markets.length; i++) {
+            const symbol = markets[i];
+            const fee = this.parseTradingFee (balance, symbol);
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const balance = await this.privatePostBalance (params);
+        return this.praseTradingFees (balance);
+    }
+
+    parseFundingFees (balance) {
+        const withdraw = {};
+        const ids = Object.keys (balance);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
+                const currencyId = id.split ('_')[0];
+                const code = this.safeCurrencyCode (currencyId);
+                withdraw[code] = this.safeFloat (balance, id);
+            }
+        }
+        return {
+            'info': balance,
+            'withdraw': withdraw,
+            'deposit': {},
+        };
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const balance = await this.privatePostBalance (params);
+        return this.parseFundingFees (balance);
+    }
+
+    async fetchFees (params = {}) {
+        await this.loadMarkets ();
+        const balance = await this.privatePostBalance (params);
+        const tradingFees = this.praseTradingFees (balance);
+        delete tradingFees['info'];
+        const fundingFees = this.parseFundingFees (balance);
+        delete fundingFees['info'];
+        return {
+            'info': balance,
+            'trading': tradingFees,
+            'funding': fundingFees,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -538,6 +835,8 @@ module.exports = class bitstamp extends Exchange {
         };
         if (type === 'market') {
             method += 'Market';
+        } else if (type === 'instant') {
+            method += 'Instant';
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -667,6 +966,8 @@ module.exports = class bitstamp extends Exchange {
         const request = {};
         if (since !== undefined) {
             request['timedelta'] = this.milliseconds () - since;
+        } else {
+            request['timedelta'] = 50000000; // use max bitstamp approved value
         }
         const response = await this.privatePostWithdrawalRequests (this.extend (request, params));
         //
@@ -947,6 +1248,7 @@ module.exports = class bitstamp extends Exchange {
         }
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -962,7 +1264,126 @@ module.exports = class bitstamp extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+            'average': undefined,
         };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            '0': 'transaction',
+            '1': 'transaction',
+            '2': 'trade',
+            '14': 'transfer',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     [
+        //         {
+        //             "fee": "0.00000000",
+        //             "btc_usd": "0.00",
+        //             "id": 1234567894,
+        //             "usd": 0,
+        //             "btc": 0,
+        //             "datetime": "2018-09-08 09:00:31",
+        //             "type": "1",
+        //             "xrp": "-20.00000000",
+        //             "eur": 0,
+        //         },
+        //         {
+        //             "fee": "0.00000000",
+        //             "btc_usd": "0.00",
+        //             "id": 1134567891,
+        //             "usd": 0,
+        //             "btc": 0,
+        //             "datetime": "2018-09-07 18:47:52",
+        //             "type": "0",
+        //             "xrp": "20.00000000",
+        //             "eur": 0,
+        //         },
+        //     ]
+        //
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        if (type === 'trade') {
+            const parsedTrade = this.parseTrade (item);
+            let market = undefined;
+            const keys = Object.keys (item);
+            for (let i = 0; i < keys.length; i++) {
+                if (keys[i].indexOf ('_') >= 0) {
+                    const marketId = keys[i].replace ('_', '');
+                    if (marketId in this.markets_by_id) {
+                        market = this.markets_by_id[marketId];
+                    }
+                }
+            }
+            // if the market is still not defined
+            // try to deduce it from used keys
+            if (market === undefined) {
+                market = this.getMarketFromTrade (item);
+            }
+            const direction = parsedTrade['side'] === 'buy' ? 'in' : 'out';
+            return {
+                'id': parsedTrade['id'],
+                'info': item,
+                'timestamp': parsedTrade['timestamp'],
+                'datetime': parsedTrade['datetime'],
+                'direction': direction,
+                'account': undefined,
+                'referenceId': parsedTrade['order'],
+                'referenceAccount': undefined,
+                'type': type,
+                'currency': market['base'],
+                'amount': parsedTrade['amount'],
+                'before': undefined,
+                'after': undefined,
+                'status': 'ok',
+                'fee': parsedTrade['fee'],
+            };
+        } else {
+            const parsedTransaction = this.parseTransaction (item);
+            let direction = undefined;
+            if ('amount' in item) {
+                const amount = this.safeFloat (item, 'amount');
+                direction = amount > 0 ? 'in' : 'out';
+            } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
+                const currencyId = this.currencyId (parsedTransaction['currency']);
+                const amount = this.safeFloat (item, currencyId);
+                direction = amount > 0 ? 'in' : 'out';
+            }
+            return {
+                'id': parsedTransaction['id'],
+                'info': item,
+                'timestamp': parsedTransaction['timestamp'],
+                'datetime': parsedTransaction['datetime'],
+                'direction': direction,
+                'account': undefined,
+                'referenceId': parsedTransaction['txid'],
+                'referenceAccount': undefined,
+                'type': type,
+                'currency': parsedTransaction['currency'],
+                'amount': parsedTransaction['amount'],
+                'before': undefined,
+                'after': undefined,
+                'status': parsedTransaction['status'],
+                'fee': parsedTransaction['fee'],
+            };
+        }
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostUserTransactions (this.extend (request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1005,18 +1426,12 @@ module.exports = class bitstamp extends Exchange {
     }
 
     isFiat (code) {
-        if (code === 'USD') {
-            return true;
-        }
-        if (code === 'EUR') {
-            return true;
-        }
-        return false;
+        return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
     async fetchDepositAddress (code, params = {}) {
         if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not implemented yet');
+            throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName (code);
         const v1 = (code === 'BTC');
@@ -1040,22 +1455,30 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // For fiat withdrawals please provide all required additional parameters in the 'params'
+        // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+        await this.loadMarkets ();
         this.checkAddress (address);
-        if (this.isFiat (code)) {
-            throw new NotSupported (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');
-        }
-        const name = this.getCurrencyName (code);
         const request = {
             'amount': amount,
-            'address': address,
         };
-        const v1 = (code === 'BTC');
-        let method = v1 ? 'v1' : 'private'; // v1 or v2
-        method += 'Post' + this.capitalize (name) + 'Withdrawal';
-        if (code === 'XRP') {
-            if (tag !== undefined) {
-                request['destination_tag'] = tag;
+        let method = undefined;
+        if (!this.isFiat (code)) {
+            const name = this.getCurrencyName (code);
+            const v1 = (code === 'BTC');
+            method = v1 ? 'v1' : 'private'; // v1 or v2
+            method += 'Post' + this.capitalize (name) + 'Withdrawal';
+            if (code === 'XRP') {
+                if (tag !== undefined) {
+                    request['destination_tag'] = tag;
+                }
             }
+            request['address'] = address;
+        } else {
+            method = 'privatePostWithdrawalOpen';
+            const currency = this.currency (code);
+            request['iban'] = address;
+            request['account_currency'] = currency['id'];
         }
         const response = await this[method] (this.extend (request, params));
         return {
@@ -1081,18 +1504,52 @@ module.exports = class bitstamp extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
-            query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
-            }, query);
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            const authVersion = this.safeValue (this.options, 'auth', 'v2');
+            if ((authVersion === 'v1') || (api === 'v1')) {
+                const nonce = this.nonce ().toString ();
+                const auth = nonce + this.uid + this.apiKey;
+                const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+                query = this.extend ({
+                    'key': this.apiKey,
+                    'signature': signature.toUpperCase (),
+                    'nonce': nonce,
+                }, query);
+                body = this.urlencode (query);
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+            } else {
+                const xAuth = 'BITSTAMP ' + this.apiKey;
+                const xAuthNonce = this.uuid ();
+                const xAuthTimestamp = this.milliseconds ().toString ();
+                const xAuthVersion = 'v2';
+                let contentType = '';
+                headers = {
+                    'X-Auth': xAuth,
+                    'X-Auth-Nonce': xAuthNonce,
+                    'X-Auth-Timestamp': xAuthTimestamp,
+                    'X-Auth-Version': xAuthVersion,
+                };
+                if (method === 'POST') {
+                    if (Object.keys (query).length) {
+                        body = this.urlencode (query);
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    } else {
+                        // sending an empty POST request will trigger
+                        // an API0020 error returned by the exchange
+                        // therefore for empty requests we send a dummy object
+                        // https://github.com/ccxt/ccxt/issues/6846
+                        body = this.urlencode ({ 'foo': 'bar' });
+                        contentType = 'application/x-www-form-urlencoded';
+                        headers['Content-Type'] = contentType;
+                    }
+                }
+                const authBody = body ? body : '';
+                const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers['X-Auth-Signature'] = signature;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -229,11 +229,11 @@ module.exports = class oceanex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const marketId = this.safeString (ticker, 'market');
-            const market = this.markets_by_id[marketId];
+            const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (data, market = undefined) {
@@ -351,8 +351,7 @@ module.exports = class oceanex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const orderbook = data[i];
             const marketId = this.safeString (orderbook, 'market');
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId);
             const timestamp = this.safeTimestamp (orderbook, 'timestamp');
             result[symbol] = this.parseOrderBook (orderbook, timestamp);
         }
@@ -380,21 +379,8 @@ module.exports = class oceanex extends Exchange {
         } else if (side === 'ask') {
             side = 'sell';
         }
-        let symbol = undefined;
         const marketId = this.safeValue (trade, 'market');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let timestamp = this.safeTimestamp (trade, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
@@ -433,10 +419,7 @@ module.exports = class oceanex extends Exchange {
             const maker = this.safeValue (group, 'ask_fee', {});
             const taker = this.safeValue (group, 'bid_fee', {});
             const marketId = this.safeString (group, 'market');
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                symbol = this.markets_by_id[marketId]['symbol'];
-            }
+            const symbol = this.safeSymbol (marketId);
             result[symbol] = {
                 'info': group,
                 'symbol': symbol,
@@ -556,22 +539,26 @@ module.exports = class oceanex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "created_at": "2019-01-18T00:38:18Z",
+        //         "trades_count": 0,
+        //         "remaining_volume": "0.2",
+        //         "price": "1001.0",
+        //         "created_on": "1547771898",
+        //         "side": "buy",
+        //         "volume": "0.2",
+        //         "state": "wait",
+        //         "ord_type": "limit",
+        //         "avg_price": "0.0",
+        //         "executed_volume": "0.0",
+        //         "id": 473797,
+        //         "market": "veteth"
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeValue (order, 'state'));
-        const marketId = this.safeValue2 (order, 'market', 'market_id');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const marketId = this.safeString2 (order, 'market', 'market_id');
+        const symbol = this.safeSymbol (marketId);
         let timestamp = this.safeTimestamp (order, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
@@ -579,6 +566,7 @@ module.exports = class oceanex extends Exchange {
         return {
             'info': order,
             'id': this.safeString (order, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

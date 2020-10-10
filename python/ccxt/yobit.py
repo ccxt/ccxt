@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -33,18 +34,23 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createDepositAddress': True,
                 'createMarketOrder': False,
-                'fetchClosedOrders': 'emulated',
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': 'emulated',
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': False,
                 'withdraw': True,
@@ -106,10 +112,12 @@ class yobit(Exchange):
                 'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
+                'CBC': 'CryptoBossCoin',
                 'CMT': 'CometCoin',
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
+                'CREDIT': 'Creditbit',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DFT': 'DraftCoin',
@@ -159,6 +167,7 @@ class yobit(Exchange):
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'TTC': 'TittieCoin',
+                'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
             },
             'options': {
@@ -184,16 +193,21 @@ class yobit(Exchange):
                     'api key dont have trade permission': AuthenticationError,
                     'invalid parameter': InvalidOrder,
                     'invalid order': InvalidOrder,
+                    'The given order has already been cancelled': InvalidOrder,
                     'Requests too often': DDoSProtection,
                     'not available': ExchangeNotAvailable,
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
-                    'Total transaction amount': ExchangeError,  # {"success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
+                    'Total transaction amount': InvalidOrder,  # {"success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
+                    'The given order has already been closed and cannot be cancelled': InvalidOrder,
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
                     'invalid nonce': InvalidNonce,  # {"success":0,"error":"invalid nonce(has already been used)"}'
+                    'Total order amount is less than minimal amount': InvalidOrder,
+                    'Rate Limited': RateLimitExceeded,
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     def fetch_balance(self, params={}):
@@ -327,10 +341,7 @@ class yobit(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(id)
             result[symbol] = self.parse_order_book(response[id])
         return result
 
@@ -396,13 +407,10 @@ class yobit(Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)
@@ -418,15 +426,10 @@ class yobit(Exchange):
         price = self.safe_float_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, 'order_id')
-        if 'pair' in trade:
-            marketId = self.safe_string(trade, 'pair')
-            market = self.safe_value(self.markets_by_id, marketId, market)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
-        takerOrMaker = None
         fee = None
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
@@ -438,11 +441,8 @@ class yobit(Exchange):
             }
         isYourOrder = self.safe_value(trade, 'is_your_order')
         if isYourOrder is not None:
-            takerOrMaker = 'taker'
-            if isYourOrder:
-                takerOrMaker = 'maker'
             if fee is None:
-                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+                fee = self.calculate_fee(symbol, type, side, amount, price, 'taker')
         cost = None
         if amount is not None:
             if price is not None:
@@ -455,7 +455,7 @@ class yobit(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -504,7 +504,7 @@ class yobit(Exchange):
             filled = self.safe_float(response['return'], 'received', 0.0)
             remaining = self.safe_float(response['return'], 'remains', amount)
         timestamp = self.milliseconds()
-        order = {
+        return {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -520,19 +520,18 @@ class yobit(Exchange):
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
+            'info': response,
+            'clientOrderId': None,
+            'average': None,
+            'trades': None,
         }
-        self.orders[id] = order
-        return self.extend({'info': response}, order)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         request = {
             'order_id': int(id),
         }
-        response = self.privatePostCancelOrder(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return response
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -547,26 +546,16 @@ class yobit(Exchange):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'timestamp_created')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         remaining = self.safe_float(order, 'amount')
-        amount = None
+        amount = self.safe_float(order, 'start_amount')
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
-        if 'start_amount' in order:
-            amount = self.safe_float(order, 'start_amount')
-        else:
-            if id in self.orders:
-                amount = self.orders[id]['amount']
         if amount is not None:
             if remaining is not None:
-                filled = amount - remaining
+                filled = max(0, amount - remaining)
                 cost = price * filled
         fee = None
         type = 'limit'
@@ -574,6 +563,7 @@ class yobit(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -587,6 +577,8 @@ class yobit(Exchange):
             'filled': filled,
             'status': status,
             'fee': fee,
+            'average': None,
+            'trades': None,
         }
         return result
 
@@ -609,48 +601,12 @@ class yobit(Exchange):
         }
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
-        newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in self.orders) else {}
-        self.orders[id] = self.extend(oldOrder, newOrder)
-        return self.orders[id]
+        orders = self.safe_value(response, 'return', {})
+        return self.parse_order(self.extend({'id': id}, orders[id]))
 
-    def update_cached_orders(self, openOrders, symbol):
-        # update local cache with open orders
-        # self will add unseen orders and overwrite existing ones
-        for j in range(0, len(openOrders)):
-            id = openOrders[j]['id']
-            self.orders[id] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        for k in range(0, len(cachedOrderIds)):
-            # match each cached order to an order in the open orders array
-            # possible reasons why a cached order may be missing in the open orders array:
-            # - order was closed or canceled -> update cache
-            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            cachedOrderId = cachedOrderIds[k]
-            cachedOrder = self.orders[cachedOrderId]
-            if not (cachedOrderId in openOrdersIndexedById):
-                # cached order is not in open orders array
-                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != cachedOrder['symbol']:
-                    continue
-                # cached order is absent from the list of open orders -> mark the cached order as closed
-                if cachedOrder['status'] == 'open':
-                    cachedOrder = self.extend(cachedOrder, {
-                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
-                        'cost': None,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    })
-                    if cachedOrder['cost'] is None:
-                        if cachedOrder['filled'] is not None:
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
-                    self.orders[cachedOrderId] = cachedOrder
-        return self.to_array(self.orders)
-
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         request = {}
         market = None
@@ -658,21 +614,8 @@ class yobit(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        # can only return 'open' orders(i.e. no way to fetch 'closed' orders)
-        openOrders = []
-        if 'return' in response:
-            openOrders = self.parse_orders(response['return'], market)
-        allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_by_symbol(allOrders, symbol)
-        return self.filter_by_since_limit(result, since, limit)
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'open')
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        orders = self.safe_value(response, 'return', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

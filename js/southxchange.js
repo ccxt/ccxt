@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,10 +15,21 @@ module.exports = class southxchange extends Exchange {
             'countries': [ 'AR' ], // Argentina
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
                 'createDepositAddress': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
@@ -59,8 +71,10 @@ module.exports = class southxchange extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'SMT': 'SmartNode',
+                'BHD': 'Bithold',
+                'GHOST': 'GHOSTPRISM',
                 'MTC': 'Marinecoin',
+                'SMT': 'SmartNode',
             },
         });
     }
@@ -85,6 +99,8 @@ module.exports = class southxchange extends Exchange {
                 'quoteId': quoteId,
                 'active': undefined,
                 'info': market,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -165,7 +181,7 @@ module.exports = class southxchange extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -245,6 +261,7 @@ module.exports = class southxchange extends Exchange {
         const result = {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -258,6 +275,8 @@ module.exports = class southxchange extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
         };
         return result;
     }
@@ -306,9 +325,21 @@ module.exports = class southxchange extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privatePostGeneratenewaddress (this.extend (request, params));
-        const parts = response.split ('|');
+        //
+        // the exchange API returns a quoted-quoted-string
+        //
+        //     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        //
+        let address = response;
+        if (address[0] === '"') {
+            address = JSON.parse (address);
+            if (address[0] === '"') {
+                address = JSON.parse (address);
+            }
+        }
+        const parts = address.split ('|');
         const numParts = parts.length;
-        const address = parts[0];
+        address = parts[0];
         this.checkAddress (address);
         let tag = undefined;
         if (numParts > 1) {
@@ -339,6 +370,311 @@ module.exports = class southxchange extends Exchange {
             'info': response,
             'id': undefined,
         };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'trade': 'trade',
+            'tradefee': 'fee',
+            'withdraw': 'transaction',
+            'deposit': 'transaction',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
+        //     }
+        //
+        const id = this.safeString (item, 'MovementId');
+        let direction = undefined;
+        const account = undefined;
+        let referenceId = this.safeString2 (item, 'TradeId', 'OrderCode');
+        referenceId = this.safeString (item, 'Hash', referenceId);
+        const referenceAccount = this.safeString (item, 'Address');
+        const type = this.safeString (item, 'Type');
+        const ledgerEntryType = this.parseLedgerEntryType (type);
+        const code = this.safeCurrencyCode (this.safeString (item, 'CurrencyCode'), currency);
+        let amount = this.safeFloat (item, 'Amount');
+        const after = this.safeFloat (item, 'TotalBalance');
+        let before = undefined;
+        if (amount !== undefined) {
+            if (after !== undefined) {
+                before = after - amount;
+            }
+            if (type === 'withdrawal') {
+                direction = 'out';
+            } else if (type === 'deposit') {
+                direction = 'in';
+            } else if ((type === 'trade') || (type === 'tradefee')) {
+                direction = (amount < 0) ? 'out' : 'in';
+                amount = Math.abs (amount);
+            }
+        }
+        const timestamp = this.parse8601 (this.safeString (item, 'Date'));
+        const fee = undefined;
+        const status = this.safeString (item, 'Status');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': ledgerEntryType,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        limit = (limit === undefined) ? 50 : limit;
+        const request = {
+            'Currency': currency['id'],
+            // 'TransactionType': 'transactions', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex': 0,
+            'PageSize': limit, // max 50
+            'SortField': 'Date',
+            // 'Descending': true,
+        };
+        const pageIndex = this.safeInteger (params, 'PageIndex');
+        if (pageIndex === undefined) {
+            request['Descending'] = true;
+        }
+        const response = await this.privatePostListTransactions (this.extend (request, params));
+        //
+        // fetchLedger ('BTC')
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":[
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":-0.000000301000000000,
+        //                 "TotalBalance":0.000100099000000000,
+        //                 "Type":"tradefee",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             },
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.117",
+        //                 "CurrencyCode":"BTC",
+        //                 "Amount":0.000100400000000000,
+        //                 "TotalBalance":0.000100400000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":1.185872,
+        //                 "OtherCurrency":"USDT",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             }
+        //         ]
+        //     }
+        //
+        // fetchLedger ('BTC'), same trade, other side
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":[
+        //             {
+        //                 "Date":"2020-08-07T13:06:22.133",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":-1.185872000000000000,
+        //                 "TotalBalance":26.428806000000000000,
+        //                 "Type":"trade",
+        //                 "Status":"confirmed",
+        //                 "Address":null,
+        //                 "Hash":null,
+        //                 "Price":11811.474849000000000000,
+        //                 "OtherAmount":0.000100400,
+        //                 "OtherCurrency":"BTC",
+        //                 "OrderCode":"78389610",
+        //                 "TradeId":5298215,
+        //                 "MovementId":null
+        //             },
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'Result', []);
+        return this.parseLedger (result, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'processed': 'pending',
+            'confirmed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "Date":"2020-08-07T12:36:52.72",
+        //         "CurrencyCode":"USDT",
+        //         "Amount":27.614678000000000000,
+        //         "TotalBalance":27.614678000000000000,
+        //         "Type":"deposit",
+        //         "Status":"confirmed",
+        //         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //         "Price":0.0,
+        //         "OtherAmount":0.0,
+        //         "OtherCurrency":null,
+        //         "OrderCode":null,
+        //         "TradeId":null,
+        //         "MovementId":2732259
+        //     }
+        //
+        const id = this.safeString (transaction, 'MovementId');
+        const amount = this.safeFloat (transaction, 'Amount');
+        const address = this.safeString (transaction, 'Address');
+        const addressTo = address;
+        const addressFrom = undefined;
+        const tag = undefined;
+        const tagTo = tag;
+        const tagFrom = undefined;
+        const txid = this.safeString (transaction, 'Hash');
+        const type = this.safeString (transaction, 'Type');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Date'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'Status'));
+        const currencyId = this.safeString (transaction, 'CurrencyCode');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        limit = (limit === undefined) ? 50 : limit;
+        const request = {
+            'Currency': currency['id'],
+            'TransactionType': 'depositswithdrawals', // deposits, withdrawals, depositswithdrawals, transactions
+            // 'PageIndex': 0,
+            'PageSize': limit, // max 50
+            'SortField': 'Date',
+            // 'Descending': true,
+        };
+        const pageIndex = this.safeInteger (params, 'PageIndex');
+        if (pageIndex === undefined) {
+            request['Descending'] = true;
+        }
+        const response = await this.privatePostListTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "TotalElements":2,
+        //         "Result":[
+        //             {
+        //                 "Date":"2020-08-07T12:36:52.72",
+        //                 "CurrencyCode":"USDT",
+        //                 "Amount":27.614678000000000000,
+        //                 "TotalBalance":27.614678000000000000,
+        //                 "Type":"deposit",
+        //                 "Status":"confirmed",
+        //                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        //                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        //                 "Price":0.0,
+        //                 "OtherAmount":0.0,
+        //                 "OtherCurrency":null,
+        //                 "OrderCode":null,
+        //                 "TradeId":null,
+        //                 "MovementId":2732259
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'Result', []);
+        return this.parseTransactions (result, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'TransactionType': 'deposits',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'TransactionType': 'withdrawals',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

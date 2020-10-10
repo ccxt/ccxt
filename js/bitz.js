@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection, OnMaintenance, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,16 +17,25 @@ module.exports = class bitz extends Exchange {
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'fetchTickers': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'createMarketOrder': false,
+                'fetchBalance': true,
+                'fetchDeposits': true,
+                'fetchClosedOrders': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
-                'createMarketOrder': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -42,7 +51,7 @@ module.exports = class bitz extends Exchange {
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -62,6 +71,7 @@ module.exports = class bitz extends Exchange {
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -160,6 +170,7 @@ module.exports = class bitz extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3881
                 // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
                 'BOX': 'BOX Token',
+                'LEO': 'LeoCoin',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
                 'VTC': 'VoteCoin',
@@ -175,7 +186,9 @@ module.exports = class bitz extends Exchange {
                 '-109': AuthenticationError, // Invalid scretKey
                 '-110': DDoSProtection, // The number of access requests exceeded
                 '-111': PermissionDenied, // Current IP is not in the range of trusted IP
-                '-112': ExchangeNotAvailable, // Service is under maintenance
+                '-112': OnMaintenance, // Service is under maintenance
+                '-114': RateLimitExceeded, // The number of daily requests has reached the limit
+                '-117': AuthenticationError, // The apikey expires
                 '-100015': AuthenticationError, // Trade password error
                 '-100044': ExchangeError, // Fail to request data
                 '-100101': ExchangeError, // Invalid symbol
@@ -349,14 +362,8 @@ module.exports = class bitz extends Exchange {
         //                    krw: "318655.82"   }
         //
         const timestamp = undefined;
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeFloat (ticker, 'now');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
@@ -509,7 +516,22 @@ module.exports = class bitz extends Exchange {
                 });
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.marketGetGetServerTime (params);
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":[],
+        //         "time":1555490875,
+        //         "microtime":"0.35994200 1555490875",
+        //         "source":"api"
+        //     }
+        //
+        return this.safeTimestamp (response, 'time');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -614,15 +636,17 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
-        //      {     time: "1535973420000",
-        //            open: "0.03975084",
-        //            high: "0.03975084",
-        //             low: "0.03967700",
-        //           close: "0.03967700",
-        //          volume: "12.4733",
-        //        datetime: "2018-09-03 19:17:00" }
+        //     {
+        //         time: "1535973420000",
+        //         open: "0.03975084",
+        //         high: "0.03975084",
+        //         low: "0.03967700",
+        //         close: "0.03967700",
+        //         volume: "12.4733",
+        //         datetime: "2018-09-03 19:17:00"
+        //     }
         //
         return [
             this.safeInteger (ohlcv, 'time'),
@@ -649,40 +673,32 @@ module.exports = class bitz extends Exchange {
             }
         } else {
             if (since !== undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
             }
         }
         const response = await this.marketGetKline (this.extend (request, params));
         //
-        //     {    status:    200,
-        //             msg:   "",
-        //            data: {       bars: [ {     time: "1535973420000",
-        //                                        open: "0.03975084",
-        //                                        high: "0.03975084",
-        //                                         low: "0.03967700",
-        //                                       close: "0.03967700",
-        //                                      volume: "12.4733",
-        //                                    datetime: "2018-09-03 19:17:00" },
-        //                                  {     time: "1535955480000",
-        //                                        open: "0.04009900",
-        //                                        high: "0.04016745",
-        //                                         low: "0.04009900",
-        //                                       close: "0.04012074",
-        //                                      volume: "74.4803",
-        //                                    datetime: "2018-09-03 14:18:00" }  ],
-        //                    resolution:   "1min",
-        //                        symbol:   "eth_btc",
-        //                          from:   "1535973420000",
-        //                            to:   "1535955480000",
-        //                          size:    300                                    },
-        //            time:    1535973435,
-        //       microtime:   "0.56462100 1535973435",
-        //          source:   "api"                                                    }
+        //     {
+        //         status: 200,
+        //         msg: "",
+        //         data: {
+        //             bars: [
+        //                 { time: "1535973420000", open: "0.03975084", high: "0.03975084", low: "0.03967700", close: "0.03967700", volume: "12.4733", datetime: "2018-09-03 19:17:00" },
+        //                 { time: "1535955480000", open: "0.04009900", high: "0.04016745", low: "0.04009900", close: "0.04012074", volume: "74.4803", datetime: "2018-09-03 14:18:00" },
+        //             ],
+        //             resolution: "1min",
+        //             symbol: "eth_btc",
+        //             from: "1535973420000",
+        //             to: "1535955480000",
+        //             size: 300
+        //         },
+        //         time: 1535973435,
+        //         microtime: "0.56462100 1535973435",
+        //         source: "api"
+        //     }
         //
-        const bars = this.safeValue (response['data'], 'bars', undefined);
-        if (bars === undefined) {
-            return [];
-        }
+        const data = this.safeValue (response, 'data', {});
+        const bars = this.safeValue (data, 'bars', []);
         return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
@@ -753,6 +769,7 @@ module.exports = class bitz extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': id,
+            'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -768,6 +785,7 @@ module.exports = class bitz extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
+            'average': undefined,
         };
     }
 

@@ -10,31 +10,33 @@ use \ccxt\ExchangeError;
 
 class coinmarketcap extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinmarketcap',
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
             'countries' => array( 'US' ),
             'has' => array(
-                'CORS' => true,
-                'privateAPI' => false,
-                'createOrder' => false,
-                'createMarketOrder' => false,
-                'createLimitOrder' => false,
                 'cancelOrder' => false,
+                'CORS' => true,
+                'createLimitOrder' => false,
+                'createMarketOrder' => false,
+                'createOrder' => false,
                 'editOrder' => false,
+                'privateAPI' => false,
                 'fetchBalance' => false,
-                'fetchOrderBook' => false,
-                'fetchL2OrderBook' => false,
-                'fetchOHLCV' => false,
-                'fetchTrades' => false,
-                'fetchTickers' => true,
                 'fetchCurrencies' => true,
+                'fetchL2OrderBook' => false,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => false,
+                'fetchOrderBook' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => false,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182086-1cd4cd00-c2ec-11ea-9ec4-d0cf2a2abf62.jpg',
                 'api' => array(
                     'public' => 'https://api.coinmarketcap.com',
                     'files' => 'https://files.coinmarketcap.com',
@@ -89,21 +91,23 @@ class coinmarketcap extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         throw new ExchangeError('Fetching order books is not supported by the API of ' . $this->id);
     }
 
-    public function currency_code ($base, $name) {
+    public function currency_code($base, $name) {
         $currencies = array(
             'ACChain' => 'ACChain',
             'AdCoin' => 'AdCoin',
             'BatCoin' => 'BatCoin',
+            'BigONE Token' => 'BigONE Token', // conflict with Harmony (ONE)
             'Bitgem' => 'Bitgem',
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Blocktrade Token' => 'Blocktrade Token',
             'Catcoin' => 'Catcoin',
             'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'CryptoBossCoin' => 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
             'Comet' => 'Comet', // conflict with CMT (CyberMiles)
             'CPChain' => 'CPChain',
             'CrowdCoin' => 'CrowdCoin', // conflict with CRC CryCash
@@ -116,6 +120,7 @@ class coinmarketcap extends Exchange {
             'FairCoin' => 'FairCoin', // conflict with FAIR (FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token' => 'Fabric Token',
             // 'GET Protocol' => 'GET Protocol',
+            'GHOSTPRISM' => 'GHOSTPRISM', // conflict with GHOST
             'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin' => 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
@@ -128,6 +133,8 @@ class coinmarketcap extends Exchange {
             'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
+            'Menlo One' => 'Menlo One', // conflict with Harmony (ONE)
+            'Monarch' => 'Monarch', // conflict with MyToken (MT)
             'MTC Mesh Network' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
@@ -140,14 +147,13 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'TerraCredit' => 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
-            'Menlo One' => 'Menlo One', // conflict with Harmony (ONE)
-            'BigONE Token' => 'BigONE Token', // conflict with Harmony (ONE)
         );
         return $this->safe_value($currencies, $name, $base);
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $request = array(
             'limit' => 0,
         );
@@ -160,7 +166,7 @@ class coinmarketcap extends Exchange {
                 $quote = $currencies[$j];
                 $quoteId = strtolower($quote);
                 $baseId = $market['id'];
-                $base = $this->currency_code ($market['symbol'], $market['name']);
+                $base = $this->currency_code($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
                 $result[] = array(
@@ -171,13 +177,16 @@ class coinmarketcap extends Exchange {
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'info' => $market,
+                    'active' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
                 );
             }
         }
         return $result;
     }
 
-    public function fetch_global ($currency = 'USD') {
+    public function fetch_global($currency = 'USD') {
         $this->load_markets();
         $request = array();
         if ($currency) {
@@ -186,10 +195,10 @@ class coinmarketcap extends Exchange {
         return $this->publicGetGlobal ($request);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'last_updated');
         if ($timestamp === null) {
-            $timestamp = $this->milliseconds ();
+            $timestamp = $this->milliseconds();
         }
         $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
@@ -205,7 +214,7 @@ class coinmarketcap extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -226,7 +235,7 @@ class coinmarketcap extends Exchange {
         );
     }
 
-    public function fetch_tickers ($currency = 'USD', $params = array ()) {
+    public function fetch_tickers($currency = 'USD', $params = array ()) {
         $this->load_markets();
         $request = array(
             'limit' => 10000,
@@ -251,9 +260,9 @@ class coinmarketcap extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'convert' => $market['quote'],
             'id' => $market['baseId'],
@@ -263,7 +272,7 @@ class coinmarketcap extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $request = array(
             'limit' => 0,
         );
@@ -277,7 +286,7 @@ class coinmarketcap extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->currency_code ($id, $name);
+            $code = $this->currency_code($id, $name);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -309,20 +318,20 @@ class coinmarketcap extends Exchange {
         return $result;
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
-        $query = $this->omit ($params, $this->extract_params($path));
+        $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('error', $response)) {
             if ($response['error']) {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }
         return $response;

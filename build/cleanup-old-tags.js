@@ -26,9 +26,9 @@ function cleanupOldTags () {
 
     const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
 
-    // Preserve all tags for first 3 minor versions
+    // Preserve all tags for first 5 minor versions
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
 
         const tags = tagsByMajorMinor.pop ()
 

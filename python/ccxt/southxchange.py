@@ -5,6 +5,8 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import json
+from ccxt.base.errors import ArgumentsRequired
 
 
 class southxchange(Exchange):
@@ -16,10 +18,21 @@ class southxchange(Exchange):
             'countries': ['AR'],  # Argentina
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -61,8 +74,10 @@ class southxchange(Exchange):
                 },
             },
             'commonCurrencies': {
-                'SMT': 'SmartNode',
+                'BHD': 'Bithold',
+                'GHOST': 'GHOSTPRISM',
                 'MTC': 'Marinecoin',
+                'SMT': 'SmartNode',
             },
         })
 
@@ -86,6 +101,8 @@ class southxchange(Exchange):
                 'quoteId': quoteId,
                 'active': None,
                 'info': market,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
@@ -157,7 +174,7 @@ class southxchange(Exchange):
                 symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -228,6 +245,7 @@ class southxchange(Exchange):
         result = {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -241,6 +259,8 @@ class southxchange(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': None,
+            'average': None,
+            'trades': None,
         }
         return result
 
@@ -283,7 +303,17 @@ class southxchange(Exchange):
             'currency': currency['id'],
         }
         response = self.privatePostGeneratenewaddress(self.extend(request, params))
-        parts = response.split('|')
+        #
+        # the exchange API returns a quoted-quoted-string
+        #
+        #     "\"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93\""
+        #
+        address = response
+        if address[0] == '"':
+            address = json.loads(address)
+            if address[0] == '"':
+                address = json.loads(address)
+        parts = address.split('|')
         numParts = len(parts)
         address = parts[0]
         self.check_address(address)
@@ -313,6 +343,296 @@ class southxchange(Exchange):
             'info': response,
             'id': None,
         }
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'tradefee': 'fee',
+            'withdraw': 'transaction',
+            'deposit': 'transaction',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         "Date":"2020-08-07T12:36:52.72",
+        #         "CurrencyCode":"USDT",
+        #         "Amount":27.614678000000000000,
+        #         "TotalBalance":27.614678000000000000,
+        #         "Type":"deposit",
+        #         "Status":"confirmed",
+        #         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #         "Price":0.0,
+        #         "OtherAmount":0.0,
+        #         "OtherCurrency":null,
+        #         "OrderCode":null,
+        #         "TradeId":null,
+        #         "MovementId":2732259
+        #     }
+        #
+        id = self.safe_string(item, 'MovementId')
+        direction = None
+        account = None
+        referenceId = self.safe_string_2(item, 'TradeId', 'OrderCode')
+        referenceId = self.safe_string(item, 'Hash', referenceId)
+        referenceAccount = self.safe_string(item, 'Address')
+        type = self.safe_string(item, 'Type')
+        ledgerEntryType = self.parse_ledger_entry_type(type)
+        code = self.safe_currency_code(self.safe_string(item, 'CurrencyCode'), currency)
+        amount = self.safe_float(item, 'Amount')
+        after = self.safe_float(item, 'TotalBalance')
+        before = None
+        if amount is not None:
+            if after is not None:
+                before = after - amount
+            if type == 'withdrawal':
+                direction = 'out'
+            elif type == 'deposit':
+                direction = 'in'
+            elif (type == 'trade') or (type == 'tradefee'):
+                direction = 'out' if (amount < 0) else 'in'
+                amount = abs(amount)
+        timestamp = self.parse8601(self.safe_string(item, 'Date'))
+        fee = None
+        status = self.safe_string(item, 'Status')
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': ledgerEntryType,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+        }
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
+        self.load_markets()
+        currency = self.currency(code)
+        limit = 50 if (limit is None) else limit
+        request = {
+            'Currency': currency['id'],
+            # 'TransactionType': 'transactions',  # deposits, withdrawals, depositswithdrawals, transactions
+            # 'PageIndex': 0,
+            'PageSize': limit,  # max 50
+            'SortField': 'Date',
+            # 'Descending': True,
+        }
+        pageIndex = self.safe_integer(params, 'PageIndex')
+        if pageIndex is None:
+            request['Descending'] = True
+        response = self.privatePostListTransactions(self.extend(request, params))
+        #
+        # fetchLedger('BTC')
+        #
+        #     {
+        #         "TotalElements":2,
+        #         "Result":[
+        #             {
+        #                 "Date":"2020-08-07T13:06:22.117",
+        #                 "CurrencyCode":"BTC",
+        #                 "Amount":-0.000000301000000000,
+        #                 "TotalBalance":0.000100099000000000,
+        #                 "Type":"tradefee",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":0.0,
+        #                 "OtherAmount":0.0,
+        #                 "OtherCurrency":null,
+        #                 "OrderCode":null,
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             },
+        #             {
+        #                 "Date":"2020-08-07T13:06:22.117",
+        #                 "CurrencyCode":"BTC",
+        #                 "Amount":0.000100400000000000,
+        #                 "TotalBalance":0.000100400000000000,
+        #                 "Type":"trade",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":11811.474849000000000000,
+        #                 "OtherAmount":1.185872,
+        #                 "OtherCurrency":"USDT",
+        #                 "OrderCode":"78389610",
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             }
+        #         ]
+        #     }
+        #
+        # fetchLedger('BTC'), same trade, other side
+        #
+        #     {
+        #         "TotalElements":2,
+        #         "Result":[
+        #             {
+        #                 "Date":"2020-08-07T13:06:22.133",
+        #                 "CurrencyCode":"USDT",
+        #                 "Amount":-1.185872000000000000,
+        #                 "TotalBalance":26.428806000000000000,
+        #                 "Type":"trade",
+        #                 "Status":"confirmed",
+        #                 "Address":null,
+        #                 "Hash":null,
+        #                 "Price":11811.474849000000000000,
+        #                 "OtherAmount":0.000100400,
+        #                 "OtherCurrency":"BTC",
+        #                 "OrderCode":"78389610",
+        #                 "TradeId":5298215,
+        #                 "MovementId":null
+        #             },
+        #             {
+        #                 "Date":"2020-08-07T12:36:52.72",
+        #                 "CurrencyCode":"USDT",
+        #                 "Amount":27.614678000000000000,
+        #                 "TotalBalance":27.614678000000000000,
+        #                 "Type":"deposit",
+        #                 "Status":"confirmed",
+        #                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #                 "Price":0.0,
+        #                 "OtherAmount":0.0,
+        #                 "OtherCurrency":null,
+        #                 "OrderCode":null,
+        #                 "TradeId":null,
+        #                 "MovementId":2732259
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'Result', [])
+        return self.parse_ledger(result, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'pending': 'pending',
+            'processed': 'pending',
+            'confirmed': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "Date":"2020-08-07T12:36:52.72",
+        #         "CurrencyCode":"USDT",
+        #         "Amount":27.614678000000000000,
+        #         "TotalBalance":27.614678000000000000,
+        #         "Type":"deposit",
+        #         "Status":"confirmed",
+        #         "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #         "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #         "Price":0.0,
+        #         "OtherAmount":0.0,
+        #         "OtherCurrency":null,
+        #         "OrderCode":null,
+        #         "TradeId":null,
+        #         "MovementId":2732259
+        #     }
+        #
+        id = self.safe_string(transaction, 'MovementId')
+        amount = self.safe_float(transaction, 'Amount')
+        address = self.safe_string(transaction, 'Address')
+        addressTo = address
+        addressFrom = None
+        tag = None
+        tagTo = tag
+        tagFrom = None
+        txid = self.safe_string(transaction, 'Hash')
+        type = self.safe_string(transaction, 'Type')
+        timestamp = self.parse8601(self.safe_string(transaction, 'Date'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'Status'))
+        currencyId = self.safe_string(transaction, 'CurrencyCode')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'tagFrom': tagFrom,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a code argument')
+        self.load_markets()
+        currency = self.currency(code)
+        limit = 50 if (limit is None) else limit
+        request = {
+            'Currency': currency['id'],
+            'TransactionType': 'depositswithdrawals',  # deposits, withdrawals, depositswithdrawals, transactions
+            # 'PageIndex': 0,
+            'PageSize': limit,  # max 50
+            'SortField': 'Date',
+            # 'Descending': True,
+        }
+        pageIndex = self.safe_integer(params, 'PageIndex')
+        if pageIndex is None:
+            request['Descending'] = True
+        response = self.privatePostListTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "TotalElements":2,
+        #         "Result":[
+        #             {
+        #                 "Date":"2020-08-07T12:36:52.72",
+        #                 "CurrencyCode":"USDT",
+        #                 "Amount":27.614678000000000000,
+        #                 "TotalBalance":27.614678000000000000,
+        #                 "Type":"deposit",
+        #                 "Status":"confirmed",
+        #                 "Address":"0x4d43674209fcb66cc21469a6e5e52de7dd5bcd93",
+        #                 "Hash":"0x1809f1950c51a2f64fd2c4a27d4b06450fd249883fd91c852b79a99a124837f3",
+        #                 "Price":0.0,
+        #                 "OtherAmount":0.0,
+        #                 "OtherCurrency":null,
+        #                 "OrderCode":null,
+        #                 "TradeId":null,
+        #                 "MovementId":2732259
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'Result', [])
+        return self.parse_transactions(result, currency, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'TransactionType': 'deposits',
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'TransactionType': 'withdrawals',
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

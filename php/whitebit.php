@@ -11,8 +11,8 @@ use \ccxt\DDoSProtection;
 
 class whitebit extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
@@ -37,6 +37,7 @@ class whitebit extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'privateAPI' => false,
                 'publicAPI' => true,
             ),
@@ -65,7 +66,7 @@ class whitebit extends Exchange {
                     'publicV1' => 'https://whitebit.com/api/v1/public',
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/SVSPomwS?version=latest#intro',
+                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
@@ -110,6 +111,7 @@ class whitebit extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '503' => '\\ccxt\\ExchangeNotAvailable', // array("response":null,"status":503,"errors":array("message":[""]),"notification":null,"warning":null,"_token":null)
                 ),
                 'broad' => array(
                     'Market is not available' => '\\ccxt\\BadSymbol', // array("success":false,"message":array("market":["Market is not available"]),"result":array())
@@ -118,7 +120,7 @@ class whitebit extends Exchange {
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicV2GetMarkets ($params);
         //
         //     {
@@ -183,7 +185,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies ($params = array ()) {
+    public function fetch_currencies($params = array ()) {
         $response = $this->publicV2GetAssets ($params);
         //
         //     {
@@ -247,7 +249,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees ($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $response = $this->publicV2GetFee ($params);
         $fees = $this->safe_value($response, 'result');
         return array(
@@ -256,9 +258,9 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -284,7 +286,7 @@ class whitebit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null) {
         //
         // fetchTicker
         //
@@ -316,7 +318,7 @@ class whitebit extends Exchange {
         //         }
         //     }
         //
-        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds ());
+        $timestamp = $this->safe_timestamp($ticker, 'at', $this->milliseconds());
         $ticker = $this->safe_value($ticker, 'ticker', $ticker);
         $symbol = null;
         if ($market !== null) {
@@ -331,7 +333,7 @@ class whitebit extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -352,7 +354,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicV1GetTickers ($params);
         //
@@ -381,26 +383,17 @@ class whitebit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = null;
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $market = $this->safe_market($marketId);
             $ticker = $this->parse_ticker($data[$marketId], $market);
-            $result[$symbol] = array_merge($ticker, array( 'symbol' => $symbol ));
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -428,13 +421,13 @@ class whitebit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $timestamp = $this->parse8601 ($this->safe_string($result, 'lastUpdateTimestamp'));
+        $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
         return $this->parse_order_book($result, $timestamp);
     }
 
-    public function fetch_trades_v1 ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades_v1($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'lastId' => 1, // todo add $since
@@ -462,9 +455,9 @@ class whitebit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_trades_v2 ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades_v2($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
@@ -491,12 +484,12 @@ class whitebit extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchTradesMethod', 'fetchTradesV2');
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         //
         // fetchTradesV1
         //
@@ -520,9 +513,9 @@ class whitebit extends Exchange {
         //
         $timestamp = $this->safe_value($trade, 'time');
         if (gettype($timestamp) === 'string') {
-            $timestamp = $this->parse8601 ($timestamp);
+            $timestamp = $this->parse8601($timestamp);
         } else {
-            $timestamp = intval ($timestamp * 1000);
+            $timestamp = intval($timestamp * 1000);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'amount', 'volume');
@@ -543,7 +536,7 @@ class whitebit extends Exchange {
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'id' => $id,
             'order' => null,
@@ -557,37 +550,59 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            $request['start'] = intval ($since / 1000);
+            $request['start'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default == max == 500
         }
         $response = $this->publicV1GetKline (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "$result":[
+        //             [1591488000,"0.025025","0.025025","0.025029","0.025023","6.181","0.154686629"],
+        //             [1591488060,"0.025028","0.025033","0.025035","0.025026","8.067","0.201921167"],
+        //             [1591488120,"0.025034","0.02505","0.02505","0.025034","20.089","0.503114696"],
+        //         ]
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv[0] * 1000, // timestamp
-            floatval ($ohlcv[1]), // open
-            floatval ($ohlcv[3]), // high
-            floatval ($ohlcv[4]), // low
-            floatval ($ohlcv[2]), // close
-            floatval ($ohlcv[5]), // volume
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1591488000,
+        //         "0.025025",
+        //         "0.025025",
+        //         "0.025029",
+        //         "0.025023",
+        //         "6.181",
+        //         "0.154686629"
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0), // timestamp
+            $this->safe_float($ohlcv, 1), // open
+            $this->safe_float($ohlcv, 3), // high
+            $this->safe_float($ohlcv, 4), // low
+            $this->safe_float($ohlcv, 2), // close
+            $this->safe_float($ohlcv, 5), // volume
+        );
     }
 
-    public function fetch_status ($params = array ()) {
-        $response = $this->webGetV1Healthcheck ();
+    public function fetch_status($params = array ()) {
+        $response = $this->webGetV1Healthcheck ($params);
         $status = $this->safe_integer($response, 'status');
         $formattedStatus = 'ok';
         if ($status === 503) {
@@ -595,21 +610,21 @@ class whitebit extends Exchange {
         }
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
-            'updated' => $this->milliseconds (),
+            'updated' => $this->milliseconds(),
         ));
         return $this->status;
     }
 
-    public function sign ($path, $api = 'publicV1', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = $this->omit ($params, $this->extract_params($path));
+    public function sign($path, $api = 'publicV1', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         if ($query) {
-            $url .= '?' . $this->urlencode ($query);
+            $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -620,9 +635,9 @@ class whitebit extends Exchange {
             $success = $this->safe_value($response, 'success');
             if (!$success) {
                 $feedback = $this->id . ' ' . $body;
-                $message = $this->safe_value($response, 'message');
-                if (gettype($message) === 'string') {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+                $status = $this->safe_string($response, 'status');
+                if (gettype($status) === 'string') {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
                 }
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 throw new ExchangeError($feedback);

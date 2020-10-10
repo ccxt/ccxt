@@ -10,16 +10,24 @@ use \ccxt\ExchangeError;
 
 class lakebtc extends Exchange {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
             'countries' => array( 'US' ),
             'version' => 'api_v2',
+            'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -57,10 +65,18 @@ class lakebtc extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
             ),
+            'exceptions' => array(
+                'broad' => array(
+                    'Signature' => '\\ccxt\\AuthenticationError',
+                    'invalid symbol' => '\\ccxt\\BadSymbol',
+                    'Volume doit' => '\\ccxt\\InvalidOrder',
+                    'insufficient_balance' => '\\ccxt\\InsufficientFunds',
+                ),
+            ),
         ));
     }
 
-    public function fetch_markets ($params = array ()) {
+    public function fetch_markets($params = array ()) {
         $response = $this->publicGetTicker ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
@@ -80,12 +96,15 @@ class lakebtc extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
+                'active' => null,
+                'precision' => $this->precision,
+                'limits' => $this->limits,
             );
         }
         return $result;
     }
 
-    public function fetch_balance ($params = array ()) {
+    public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ($params);
         $balances = $this->safe_value($response, 'balance', array());
@@ -94,14 +113,14 @@ class lakebtc extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
+            $account = $this->account();
             $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -110,8 +129,8 @@ class lakebtc extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->milliseconds ();
+    public function parse_ticker($ticker, $market = null) {
+        $timestamp = $this->milliseconds();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -120,7 +139,7 @@ class lakebtc extends Exchange {
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
@@ -141,7 +160,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $ids = is_array($response) ? array_keys($response) : array();
@@ -156,17 +175,17 @@ class lakebtc extends Exchange {
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
+    public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $tickers = $this->publicGetTicker ($params);
         return $this->parse_ticker($tickers[$market['id']], $market);
     }
 
-    public function parse_trade ($trade, $market = null) {
+    public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $price = $this->safe_float($trade, 'price');
@@ -185,7 +204,7 @@ class lakebtc extends Exchange {
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
@@ -198,9 +217,9 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
@@ -208,13 +227,13 @@ class lakebtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
         }
-        $method = 'privatePost' . $this->capitalize ($side) . 'Order';
-        $market = $this->market ($symbol);
+        $method = 'privatePost' . $this->capitalize($side) . 'Order';
+        $market = $this->market($symbol);
         $order = array(
             'params' => [ $price, $amount, $market['id'] ],
         );
@@ -225,7 +244,7 @@ class lakebtc extends Exchange {
         );
     }
 
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'params' => array( $id ),
@@ -233,54 +252,82 @@ class lakebtc extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function nonce () {
-        return $this->microseconds ();
+    public function nonce() {
+        return $this->microseconds();
     }
 
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api === 'public') {
             $url .= '/' . $path;
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
+            $nonce = $this->nonce();
+            $nonceAsString = (string) $nonce;
+            $requestId = $this->seconds();
             $queryParams = '';
             if (is_array($params) && array_key_exists('params', $params)) {
                 $paramsList = $params['params'];
-                $queryParams = implode(',', $paramsList);
+                $stringParams = array();
+                for ($i = 0; $i < count($paramsList); $i++) {
+                    $param = $paramsList[$i];
+                    if (gettype($paramsList) !== 'string') {
+                        $param = (string) $param;
+                    }
+                    $stringParams[] = $param;
+                }
+                $queryParams = implode(',', $stringParams);
+                $body = array(
+                    'method' => $path,
+                    'params' => $params['params'],
+                    'id' => $requestId,
+                );
+            } else {
+                $body = array(
+                    'method' => $path,
+                    'params' => '',
+                    'id' => $requestId,
+                );
             }
-            $query = $this->urlencode (array(
-                'tonce' => $nonce,
-                'accesskey' => $this->apiKey,
-                'requestmethod' => strtolower($method),
-                'id' => $nonce,
-                'method' => $path,
-                'params' => $queryParams,
-            ));
-            $body = $this->json (array(
-                'method' => $path,
-                'params' => $queryParams,
-                'id' => $nonce,
-            ));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
-            $auth = $this->encode ($this->apiKey . ':' . $signature);
+            $body = $this->json($body);
+            $query = array(
+                'tonce=' . $nonceAsString,
+                'accesskey=' . $this->apiKey,
+                'requestmethod=' . strtolower($method),
+                'id=' . (string) $requestId,
+                'method=' . $path,
+                'params=' . $queryParams,
+            );
+            $query = implode('&', $query);
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
+            $auth = $this->apiKey . ':' . $signature;
+            $signature64 = $this->decode(base64_encode($auth));
             $headers = array(
-                'Json-Rpc-Tonce' => (string) $nonce,
-                'Authorization' => 'Basic ' . $this->decode (base64_encode($auth)),
+                'Json-Rpc-Tonce' => $nonceAsString,
+                'Authorization' => 'Basic ' . $signature64,
                 'Content-Type' => 'application/json',
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response)) {
-            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return; // fallback to the default $error handler
         }
-        return $response;
+        //
+        //     array("$error":"Failed to submit order => invalid symbol")
+        //     array("$error":"Failed to submit order => La validation a échoué : Volume doit être supérieur ou égal à 1.0")
+        //     array("$error":"Failed to submit order => insufficient_balance")
+        //
+        $feedback = $this->id . ' ' . $body;
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown message
+        }
     }
 }

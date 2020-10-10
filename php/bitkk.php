@@ -9,8 +9,8 @@ use Exception; // a common import
 
 class bitkk extends zb {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'bitkk',
             'name' => 'bitkk',
             'comment' => 'a Chinese ZB clone',

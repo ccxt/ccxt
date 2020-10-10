@@ -9,10 +9,11 @@ use Exception; // a common import
 
 class coinbaseprime extends coinbasepro {
 
-    public function describe () {
-        return array_replace_recursive(parent::describe (), array(
+    public function describe() {
+        return $this->deep_extend(parent::describe (), array(
             'id' => 'coinbaseprime',
             'name' => 'Coinbase Prime',
+            'pro' => true,
             'urls' => array(
                 'test' => array(
                     'public' => 'https://api-public.sandbox.prime.coinbase.com',

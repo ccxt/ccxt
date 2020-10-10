@@ -7,6 +7,9 @@ include_once (__DIR__.'/../../ccxt.php');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
+
+include_once (__DIR__.'/fail_on_all_errors.php');
+
 // testDecimalToPrecisionErrorHandling
 //
 // $this->expectException ('ccxt\\BaseError');
@@ -25,6 +28,61 @@ function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = 
 function number_to_string ($x) {
     return Exchange::number_to_string ($x);
 }
+function toWei ($amount, $decimals) {
+    return Exchange::to_wei ($amount, $decimals);
+}
+function fromWei ($amount, $decimals) {
+    return Exchange::from_wei ($amount, $decimals);
+}
+
+// ----------------------------------------------------------------------------
+// toWei / fromWei
+
+assert (toWei (1, 18) === '1000000000000000000');
+assert (toWei (1, 17) === '100000000000000000');
+assert (toWei (1, 16) === '10000000000000000');
+assert (toWei ('1', 18) === '1000000000000000000');
+assert (toWei ('1', 17) === '100000000000000000');
+assert (toWei ('1', 16) === '10000000000000000');
+assert (toWei (0, 18) === '0');
+assert (toWei (1, 0) === '1');
+assert (toWei (1, 1) === '10');
+assert (toWei (1.3, 18) === '1300000000000000000');
+assert (toWei ('1.3', 18) === '1300000000000000000');
+assert (toWei (1.999, 17) === '199900000000000000');
+assert (toWei ('1.999', 17) === '199900000000000000');
+assert (toWei ('0.1', 18) === '100000000000000000');
+assert (toWei ('0.01', 18) === '10000000000000000');
+assert (toWei ('0.001', 18) === '1000000000000000');
+assert (toWei (0.1, 18) === '100000000000000000');
+assert (toWei (0.01, 18) === '10000000000000000');
+assert (toWei (0.001, 18) === '1000000000000000');
+assert (toWei ('0.3323340739', 18) === '332334073900000000');
+assert (toWei (0.3323340739, 18) === '332334073900000000');
+assert (toWei ('0.009428', 18) === '9428000000000000');
+assert (toWei (0.009428, 18) === '9428000000000000');
+
+// $us test that we get the inverse for all these test
+assert (fromWei ('1000000000000000000', 18) === 1.0);
+assert (fromWei ('100000000000000000', 17) === 1.0);
+assert (fromWei ('10000000000000000', 16) === 1.0);
+assert (fromWei (1000000000000000000, 18) === 1.0);
+assert (fromWei (100000000000000000, 17) === 1.0);
+assert (fromWei (10000000000000000, 16) === 1.0);
+assert (fromWei ('1300000000000000000', 18) === 1.3);
+assert (fromWei (1300000000000000000, 18) === 1.3);
+assert (fromWei ('199900000000000000', 17) === 1.999);
+assert (fromWei (199900000000000000, 17) === 1.999);
+assert (fromWei ('100000000000000000', 18) === 0.1);
+assert (fromWei ('10000000000000000', 18) === 0.01);
+assert (fromWei ('1000000000000000', 18) === 0.001);
+assert (fromWei (100000000000000000, 18) === 0.1);
+assert (fromWei (10000000000000000, 18) === 0.01);
+assert (fromWei (1000000000000000, 18) === 0.001);
+assert (fromWei ('332334073900000000', 18) === 0.3323340739);
+assert (fromWei (332334073900000000, 18) === 0.3323340739);
+assert (fromWei ('9428000000000000', 18) === 0.009428);
+assert (fromWei (9428000000000000, 18) === 0.009428);
 
 // ----------------------------------------------------------------------------
 // number_to_string
@@ -40,9 +98,10 @@ assert (number_to_string (7.9e27) === '7900000000000000000000000000');
 assert (number_to_string (-12.345) === '-12.345');
 assert (number_to_string (12.345) === '12.345');
 assert (number_to_string (0) === '0');
-// this line breaks the test
-// see https://github.com/ccxt/ccxt/issues/5744
-// assert (number_to_string (0.00000001) === '0.00000001');
+assert (number_to_string (7.35946e21) === '7359460000000000000000');
+assert (number_to_string (0.00000001) === '0.00000001');
+assert (number_to_string (1e-7) === '0.0000001');
+assert (number_to_string (-1e-7) === '-0.0000001');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot
@@ -172,6 +231,7 @@ assert (decimal_to_precision ('3210', TRUNCATE, 1110, TICK_SIZE) === '2220');
 assert (decimal_to_precision ('165', ROUND, 110, TICK_SIZE) === '220');
 assert (decimal_to_precision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
 assert (decimal_to_precision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
+assert (decimal_to_precision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
 
 assert (decimal_to_precision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
 assert (decimal_to_precision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
@@ -193,6 +253,11 @@ assert (decimal_to_precision ('1.2', ROUND, 0.02, TICK_SIZE) === '1.2');
 assert (decimal_to_precision ('-1.2', ROUND, 0.02, TICK_SIZE) === '-1.2');
 assert (decimal_to_precision ('44', ROUND, 4.4, TICK_SIZE) === '44');
 assert (decimal_to_precision ('-44', ROUND, 4.4, TICK_SIZE) === '-44');
+assert (decimal_to_precision ('44.00000001', ROUND, 4.4, TICK_SIZE) === '44');
+assert (decimal_to_precision ('-44.00000001', ROUND, 4.4, TICK_SIZE) === '-44');
+
+// https://github.com/ccxt/ccxt/issues/6731
+assert (decimal_to_precision ('20', TRUNCATE, 0.00000001, TICK_SIZE) === '20');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers

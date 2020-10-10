@@ -16,20 +16,22 @@ module.exports = class idex extends Exchange {
             'rateLimit': 1500,
             'certified': true,
             'requiresWeb3': true,
+            'version': 'v1',
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchMarkets': true,
-                'fetchBalance': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchOpenOrders': true,
-                'fetchTransactions': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
+                'fetchTransactions': true,
                 'withdraw': true,
-                'fetchOHLCV': false,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -97,10 +99,12 @@ module.exports = class idex extends Exchange {
                 'secret': false,
             },
             'commonCurrencies': {
-                'ONE': 'Menlo One',
                 'FT': 'Fabric Token',
+                'MT': 'Monarch',
+                'ONE': 'Menlo One',
                 'PLA': 'PlayChip',
                 'WAX': 'WAXP',
+                'FTT': 'FarmaTrust',
             },
         });
     }
@@ -384,13 +388,13 @@ module.exports = class idex extends Exchange {
             if (side === 'buy') {
                 tokenBuy = market['baseId'];
                 tokenSell = market['quoteId'];
-                amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
-                amountSell = this.toWei (quoteAmount, 'ether', 18);
+                amountBuy = this.toWei (amount, market['precision']['amount']);
+                amountSell = this.toWei (quoteAmount, 18);
             } else {
                 tokenBuy = market['quoteId'];
                 tokenSell = market['baseId'];
-                amountBuy = this.toWei (quoteAmount, 'ether', 18);
-                amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
+                amountBuy = this.toWei (quoteAmount, 18);
+                amountSell = this.toWei (amount, market['precision']['amount']);
             }
             const nonce = await this.getNonce ();
             const orderToHash = {
@@ -534,7 +538,7 @@ module.exports = class idex extends Exchange {
             'address': this.walletAddress,
         };
         if (since !== undefined) {
-            request['start'] = parseInt (Math.floor (since / 1000));
+            request['start'] = parseInt (since / 1000);
         }
         const response = await this.publicPostReturnDepositsWithdrawals (this.extend (request, params));
         // { deposits:
@@ -635,6 +639,9 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.publicPostReturnOpenOrders (this.extend (request, params));
         // [ { timestamp: 1564041428,
         //     orderHash:
@@ -699,30 +706,34 @@ module.exports = class idex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // { filled: '0',
-        //   initialAmount: '210',
-        //   timestamp: 1564041428,
-        //   orderHash:
-        //    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
-        //   orderNumber: 1562323021,
-        //   market: 'ETH_LIT',
-        //   type: 'buy',
-        //   params:
-        //    { tokenBuy: '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
-        //      buySymbol: 'LIT',
-        //      buyPrecision: 18,
-        //      amountBuy: '210000000000000000000',
-        //      tokenSell: '0x0000000000000000000000000000000000000000',
-        //      sellSymbol: 'ETH',
-        //      sellPrecision: 18,
-        //      amountSell: '153300000000000000',
-        //      expires: 100000,
-        //      nonce: 1,
-        //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' },
-        //   price: '0.00073',
-        //   amount: '210',
-        //   status: 'open',
-        //   total: '0.1533' }
+        //
+        //     {
+        //         "filled": "0",
+        //         "initialAmount": "210",
+        //         "timestamp": 1564041428,
+        //         "orderHash": "0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4",
+        //         "orderNumber": 1562323021,
+        //         "market": "ETH_LIT",
+        //         "type": "buy",
+        //         "params": {
+        //             "tokenBuy": "0x763fa6806e1acf68130d2d0f0df754c93cc546b2",
+        //             "buySymbol": "LIT",
+        //             "buyPrecision": 18,
+        //             "amountBuy": "210000000000000000000",
+        //             "tokenSell": "0x0000000000000000000000000000000000000000",
+        //             "sellSymbol": "ETH",
+        //             "sellPrecision": 18,
+        //             "amountSell": "153300000000000000",
+        //             "expires": 100000,
+        //             "nonce": 1,
+        //             "user": "0x0ab991497116f7f5532a4c2f4f7b1784488628e1"
+        //         },
+        //         "price": "0.00073",
+        //         "amount": "210",
+        //         "status": "open",
+        //         "total": "0.1533"
+        //     }
+        //
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const side = this.safeString (order, 'type');
         let symbol = undefined;
@@ -735,8 +746,11 @@ module.exports = class idex extends Exchange {
             amount = this.safeFloat (order, 'amount');
         }
         const filled = this.safeFloat (order, 'filled');
-        const cost = this.safeFloat (order, 'total');
         const price = this.safeFloat (order, 'price');
+        let cost = this.safeFloat (order, 'total');
+        if ((cost === undefined) && (filled !== undefined) && (price !== undefined)) {
+            cost = filled * price;
+        }
         if ('market' in order) {
             const marketId = order['market'];
             symbol = this.markets_by_id[marketId]['symbol'];
@@ -756,6 +770,7 @@ module.exports = class idex extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -767,6 +782,10 @@ module.exports = class idex extends Exchange {
             'remaining': remaining,
             'cost': cost,
             'status': status,
+            'lastTradeTimestamp': undefined,
+            'average': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 
@@ -790,8 +809,11 @@ module.exports = class idex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
+        if (since !== undefined) {
+            request['start'] = parseInt (since / 1000);
+        }
         if (limit !== undefined) {
-            request['start'] = parseInt (Math.floor (limit));
+            request['count'] = limit;
         }
         const response = await this.publicPostReturnTradeHistory (this.extend (request, params));
         // { ETH_IDEX:
@@ -990,7 +1012,7 @@ module.exports = class idex extends Exchange {
         const currency = this.currency (code);
         const tokenAddress = currency['id'];
         const nonce = await this.getNonce ();
-        amount = this.toWei (amount, 'ether', currency['precision']);
+        amount = this.toWei (amount, currency['precision']);
         const requestToHash = {
             'contractAddress': await this.getContractAddress (),
             'token': tokenAddress,

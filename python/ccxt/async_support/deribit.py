@@ -4,16 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -24,18 +28,50 @@ class deribit(Exchange):
             'id': 'deribit',
             'name': 'Deribit',
             'countries': ['NL'],  # Netherlands
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': None,
-            'rateLimit': 2000,
+            'rateLimit': 500,
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': True,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'editOrder': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchTickers': False,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchStatus': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '10m': '10',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
             },
             'urls': {
                 'test': 'https://test.deribit.com',
@@ -43,7 +79,7 @@ class deribit(Exchange):
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com',
+                    'https://docs.deribit.com/v2',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -52,182 +88,448 @@ class deribit(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'ping',
+                        # Authentication
+                        'auth',
+                        'exchange_token',
+                        'fork_token',
+                        # Session management
+                        'set_heartbeat',
+                        'disable_heartbeat',
+                        # Supporting
+                        'get_time',
+                        'hello',
                         'test',
-                        'getinstruments',
-                        'index',
-                        'getcurrencies',
-                        'getorderbook',
-                        'getlasttrades',
-                        'getsummary',
-                        'stats',
-                        'getannouncments',
+                        # Subscription management
+                        'subscribe',
+                        'unsubscribe',
+                        # Account management
+                        'get_announcements',
+                        # Market data
+                        'get_book_summary_by_currency',
+                        'get_book_summary_by_instrument',
+                        'get_contract_size',
+                        'get_currencies',
+                        'get_funding_chart_data',
+                        'get_funding_rate_history',
+                        'get_funding_rate_value',
+                        'get_historical_volatility',
+                        'get_index',
+                        'get_instruments',
+                        'get_last_settlements_by_currency',
+                        'get_last_settlements_by_instrument',
+                        'get_last_trades_by_currency',
+                        'get_last_trades_by_currency_and_time',
+                        'get_last_trades_by_instrument',
+                        'get_last_trades_by_instrument_and_time',
+                        'get_order_book',
+                        'get_trade_volumes',
+                        'get_tradingview_chart_data',
+                        'ticker',
                     ],
                 },
                 'private': {
                     'get': [
-                        'account',
-                        'getopenorders',
-                        'positions',
-                        'orderhistory',
-                        'orderstate',
-                        'tradehistory',
-                        'newannouncements',
-                    ],
-                    'post': [
+                        # Authentication
+                        'logout',
+                        # Session management
+                        'enable_cancel_on_disconnect',
+                        'disable_cancel_on_disconnect',
+                        'get_cancel_on_disconnect',
+                        # Subscription management
+                        'subscribe',
+                        'unsubscribe',
+                        # Account management
+                        'change_api_key_name',
+                        'change_scope_in_api_key',
+                        'change_subaccount_name',
+                        'create_api_key',
+                        'create_subaccount',
+                        'disable_api_key',
+                        'disable_tfa_for_subaccount',
+                        'enable_api_key',
+                        'get_account_summary',
+                        'get_email_language',
+                        'get_new_announcements',
+                        'get_position',
+                        'get_positions',
+                        'get_subaccounts',
+                        'list_api_keys',
+                        'remove_api_key',
+                        'reset_api_key',
+                        'set_announcement_as_read',
+                        'set_api_key_as_default',
+                        'set_email_for_subaccount',
+                        'set_email_language',
+                        'set_password_for_subaccount',
+                        'toggle_notifications_from_subaccount',
+                        'toggle_subaccount_login',
+                        # Block Trade
+                        'execute_block_trade',
+                        'get_block_trade',
+                        'get_last_block_trades_by_currency',
+                        'invalidate_block_trade_signature',
+                        'verify_block_trade',
+                        # Trading
                         'buy',
                         'sell',
                         'edit',
                         'cancel',
-                        'cancelall',
+                        'cancel_all',
+                        'cancel_all_by_currency',
+                        'cancel_all_by_instrument',
+                        'cancel_by_label',
+                        'close_position',
+                        'get_margins',
+                        'get_open_orders_by_currency',
+                        'get_open_orders_by_instrument',
+                        'get_order_history_by_currency',
+                        'get_order_history_by_instrument',
+                        'get_order_margin_by_ids',
+                        'get_order_state',
+                        'get_stop_order_history',
+                        'get_user_trades_by_currency',
+                        'get_user_trades_by_currency_and_time',
+                        'get_user_trades_by_instrument',
+                        'get_user_trades_by_instrument_and_time',
+                        'get_user_trades_by_order',
+                        'get_settlement_history_by_instrument',
+                        'get_settlement_history_by_currency',
+                        # Wallet
+                        'cancel_transfer_by_id',
+                        'cancel_withdrawal',
+                        'create_deposit_address',
+                        'get_current_deposit_address',
+                        'get_deposits',
+                        'get_transfers',
+                        'get_withdrawals',
+                        'submit_transfer_to_subaccount',
+                        'submit_transfer_to_user',
+                        'withdraw',
                     ],
                 },
             },
             'exceptions': {
-                # 0 or absent Success, No error
-                '9999': PermissionDenied,   # "api_not_enabled" User didn't enable API for the Account
-                '10000': AuthenticationError,  # "authorization_required" Authorization issue, invalid or absent signature etc
-                '10001': ExchangeError,     # "error" Some general failure, no public information available
-                '10002': InvalidOrder,      # "qty_too_low" Order quantity is too low
-                '10003': InvalidOrder,      # "order_overlap" Rejection, order overlap is found and self-trading is not enabled
-                '10004': OrderNotFound,     # "order_not_found" Attempt to operate with order that can't be found by specified id
-                '10005': InvalidOrder,      # "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation
-                '10006': InvalidOrder,      # "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation
-                '10007': InvalidOrder,  # "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation
-                '10008': InvalidOrder,  # "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation
-                '10009': InsufficientFunds,  # "not_enough_funds" Account has not enough funds for the operation
-                '10010': OrderNotFound,  # "already_closed" Attempt of doing something with closed order
-                '10011': InvalidOrder,  # "price_not_allowed" This price is not allowed for some reason
-                '10012': InvalidOrder,  # "book_closed" Operation for instrument which order book had been closed
-                '10013': PermissionDenied,  # "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users
-                '10014': PermissionDenied,  # "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users
-                '10015': PermissionDenied,  # "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users
-                '10016': PermissionDenied,  # "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users
-                '10017': PermissionDenied,  # "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users
-                '10019': PermissionDenied,  # "locked_by_admin" Trading is temporary locked by admin
-                '10020': ExchangeError,  # "invalid_or_unsupported_instrument" Instrument name is not valid
-                '10022': InvalidOrder,  # "invalid_quantity" quantity was not recognized as a valid number
-                '10023': InvalidOrder,  # "invalid_price" price was not recognized as a valid number
-                '10024': InvalidOrder,  # "invalid_max_show" max_show parameter was not recognized as a valid number
-                '10025': InvalidOrder,  # "invalid_order_id" Order id is missing or its format was not recognized as valid
-                '10026': InvalidOrder,  # "price_precision_exceeded" Extra precision of the price is not supported
-                '10027': InvalidOrder,  # "non_integer_contract_amount" Futures contract amount was not recognized as integer
-                '10028': DDoSProtection,  # "too_many_requests" Allowed request rate has been exceeded
-                '10029': OrderNotFound,  # "not_owner_of_order" Attempt to operate with not own order
-                '10030': ExchangeError,  # "must_be_websocket_request" REST request where Websocket is expected
-                '10031': ExchangeError,  # "invalid_args_for_instrument" Some of arguments are not recognized as valid
-                '10032': InvalidOrder,  # "whole_cost_too_low" Total cost is too low
-                '10033': NotSupported,  # "not_implemented" Method is not implemented yet
-                '10034': InvalidOrder,  # "stop_price_too_high" Stop price is too high
-                '10035': InvalidOrder,  # "stop_price_too_low" Stop price is too low
-                '11035': InvalidOrder,  # "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded
-                '11036': InvalidOrder,  # "invalid_stoppx_for_index_or_last" Invalid StopPx(too high or too low) as to current index or market
-                '11037': InvalidOrder,  # "outdated_instrument_for_IV_order" Instrument already not available for trading
-                '11038': InvalidOrder,  # "no_adv_for_futures" Advanced orders are not available for futures
-                '11039': InvalidOrder,  # "no_adv_postonly" Advanced post-only orders are not supported yet
-                '11040': InvalidOrder,  # "impv_not_in_range 0..499%" Implied volatility is out of allowed range
-                '11041': InvalidOrder,  # "not_adv_order" Advanced order properties can't be set if the order is not advanced
-                '11042': PermissionDenied,  # "permission_denied" Permission for the operation has been denied
-                '11044': OrderNotFound,  # "not_open_order" Attempt to do open order operations with the not open order
-                '11045': ExchangeError,  # "invalid_event" Event name has not been recognized
-                '11046': ExchangeError,  # "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed
-                '11047': ExchangeError,  # "unsupported_arg_combination" The specified combination of arguments is not supported
-                '11048': ExchangeError,  # "not_on_self_server" The requested operation is not available on self server.
-                '11050': ExchangeError,  # "invalid_request" Request has not been parsed properly
-                '11051': ExchangeNotAvailable,  # "system_maintenance" System is under maintenance
-                '11030': ExchangeError,  # "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
-                '11031': ExchangeError,  # "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
+                # 0 or absent Success, No error.
+                '9999': PermissionDenied,  # 'api_not_enabled' User didn't enable API for the Account.
+                '10000': AuthenticationError,  # 'authorization_required' Authorization issue, invalid or absent signature etc.
+                '10001': ExchangeError,  # 'error' Some general failure, no public information available.
+                '10002': InvalidOrder,  # 'qty_too_low' Order quantity is too low.
+                '10003': InvalidOrder,  # 'order_overlap' Rejection, order overlap is found and self-trading is not enabled.
+                '10004': OrderNotFound,  # 'order_not_found' Attempt to operate with order that can't be found by specified id.
+                '10005': InvalidOrder,  # 'price_too_low <Limit>' Price is too low, <Limit> defines current limit for the operation.
+                '10006': InvalidOrder,  # 'price_too_low4idx <Limit>' Price is too low for current index, <Limit> defines current bottom limit for the operation.
+                '10007': InvalidOrder,  # 'price_too_high <Limit>' Price is too high, <Limit> defines current up limit for the operation.
+                '10008': InvalidOrder,  # 'price_too_high4idx <Limit>' Price is too high for current index, <Limit> defines current up limit for the operation.
+                '10009': InsufficientFunds,  # 'not_enough_funds' Account has not enough funds for the operation.
+                '10010': OrderNotFound,  # 'already_closed' Attempt of doing something with closed order.
+                '10011': InvalidOrder,  # 'price_not_allowed' This price is not allowed for some reason.
+                '10012': InvalidOrder,  # 'book_closed' Operation for instrument which order book had been closed.
+                '10013': PermissionDenied,  # 'pme_max_total_open_orders <Limit>' Total limit of open orders has been exceeded, it is applicable for PME users.
+                '10014': PermissionDenied,  # 'pme_max_future_open_orders <Limit>' Limit of count of futures' open orders has been exceeded, it is applicable for PME users.
+                '10015': PermissionDenied,  # 'pme_max_option_open_orders <Limit>' Limit of count of options' open orders has been exceeded, it is applicable for PME users.
+                '10016': PermissionDenied,  # 'pme_max_future_open_orders_size <Limit>' Limit of size for futures has been exceeded, it is applicable for PME users.
+                '10017': PermissionDenied,  # 'pme_max_option_open_orders_size <Limit>' Limit of size for options has been exceeded, it is applicable for PME users.
+                '10018': PermissionDenied,  # 'non_pme_max_future_position_size <Limit>' Limit of size for futures has been exceeded, it is applicable for non-PME users.
+                '10019': PermissionDenied,  # 'locked_by_admin' Trading is temporary locked by admin.
+                '10020': ExchangeError,  # 'invalid_or_unsupported_instrument' Instrument name is not valid.
+                '10021': InvalidOrder,  # 'invalid_amount' Amount is not valid.
+                '10022': InvalidOrder,  # 'invalid_quantity' quantity was not recognized as a valid number(for API v1).
+                '10023': InvalidOrder,  # 'invalid_price' price was not recognized as a valid number.
+                '10024': InvalidOrder,  # 'invalid_max_show' max_show parameter was not recognized as a valid number.
+                '10025': InvalidOrder,  # 'invalid_order_id' Order id is missing or its format was not recognized as valid.
+                '10026': InvalidOrder,  # 'price_precision_exceeded' Extra precision of the price is not supported.
+                '10027': InvalidOrder,  # 'non_integer_contract_amount' Futures contract amount was not recognized as integer.
+                '10028': DDoSProtection,  # 'too_many_requests' Allowed request rate has been exceeded.
+                '10029': OrderNotFound,  # 'not_owner_of_order' Attempt to operate with not own order.
+                '10030': ExchangeError,  # 'must_be_websocket_request' REST request where Websocket is expected.
+                '10031': ExchangeError,  # 'invalid_args_for_instrument' Some of arguments are not recognized as valid.
+                '10032': InvalidOrder,  # 'whole_cost_too_low' Total cost is too low.
+                '10033': NotSupported,  # 'not_implemented' Method is not implemented yet.
+                '10034': InvalidOrder,  # 'stop_price_too_high' Stop price is too high.
+                '10035': InvalidOrder,  # 'stop_price_too_low' Stop price is too low.
+                '10036': InvalidOrder,  # 'invalid_max_show_amount' Max Show Amount is not valid.
+                '10040': ExchangeNotAvailable,  # 'retry' Request can't be processed right now and should be retried.
+                '10041': OnMaintenance,  # 'settlement_in_progress' Settlement is in progress. Every day at settlement time for several seconds, the system calculates user profits and updates balances. That time trading is paused for several seconds till the calculation is completed.
+                '10043': InvalidOrder,  # 'price_wrong_tick' Price has to be rounded to a certain tick size.
+                '10044': InvalidOrder,  # 'stop_price_wrong_tick' Stop Price has to be rounded to a certain tick size.
+                '10045': InvalidOrder,  # 'can_not_cancel_liquidation_order' Liquidation order can't be canceled.
+                '10046': InvalidOrder,  # 'can_not_edit_liquidation_order' Liquidation order can't be edited.
+                '10047': DDoSProtection,  # 'matching_engine_queue_full' Reached limit of pending Matching Engine requests for user.
+                '10048': ExchangeError,  # 'not_on_self_server' The requested operation is not available on self server.
+                '11008': InvalidOrder,  # 'already_filled' This request is not allowed in regards to the filled order.
+                '11029': BadRequest,  # 'invalid_arguments' Some invalid input has been detected.
+                '11030': ExchangeError,  # 'other_reject <Reason>' Some rejects which are not considered as very often, more info may be specified in <Reason>.
+                '11031': ExchangeError,  # 'other_error <Error>' Some errors which are not considered as very often, more info may be specified in <Error>.
+                '11035': DDoSProtection,  # 'no_more_stops <Limit>' Allowed amount of stop orders has been exceeded.
+                '11036': InvalidOrder,  # 'invalid_stoppx_for_index_or_last' Invalid StopPx(too high or too low) as to current index or market.
+                '11037': BadRequest,  # 'outdated_instrument_for_IV_order' Instrument already not available for trading.
+                '11038': InvalidOrder,  # 'no_adv_for_futures' Advanced orders are not available for futures.
+                '11039': InvalidOrder,  # 'no_adv_postonly' Advanced post-only orders are not supported yet.
+                '11041': InvalidOrder,  # 'not_adv_order' Advanced order properties can't be set if the order is not advanced.
+                '11042': PermissionDenied,  # 'permission_denied' Permission for the operation has been denied.
+                '11043': BadRequest,  # 'bad_argument' Bad argument has been passed.
+                '11044': InvalidOrder,  # 'not_open_order' Attempt to do open order operations with the not open order.
+                '11045': BadRequest,  # 'invalid_event' Event name has not been recognized.
+                '11046': BadRequest,  # 'outdated_instrument' At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed.
+                '11047': BadRequest,  # 'unsupported_arg_combination' The specified combination of arguments is not supported.
+                '11048': ExchangeError,  # 'wrong_max_show_for_option' Wrong Max Show for options.
+                '11049': BadRequest,  # 'bad_arguments' Several bad arguments have been passed.
+                '11050': BadRequest,  # 'bad_request' Request has not been parsed properly.
+                '11051': OnMaintenance,  # 'system_maintenance' System is under maintenance.
+                '11052': ExchangeError,  # 'subscribe_error_unsubscribed' Subscription error. However, subscription may fail without self error, please check list of subscribed channels returned, as some channels can be not subscribed due to wrong input or lack of permissions.
+                '11053': ExchangeError,  # 'transfer_not_found' Specified transfer is not found.
+                '11090': InvalidAddress,  # 'invalid_addr' Invalid address.
+                '11091': InvalidAddress,  # 'invalid_transfer_address' Invalid addres for the transfer.
+                '11092': InvalidAddress,  # 'address_already_exist' The address already exists.
+                '11093': DDoSProtection,  # 'max_addr_count_exceeded' Limit of allowed addresses has been reached.
+                '11094': ExchangeError,  # 'internal_server_error' Some unhandled error on server. Please report to admin. The details of the request will help to locate the problem.
+                '11095': ExchangeError,  # 'disabled_deposit_address_creation' Deposit address creation has been disabled by admin.
+                '11096': ExchangeError,  # 'address_belongs_to_user' Withdrawal instead of transfer.
+                '12000': AuthenticationError,  # 'bad_tfa' Wrong TFA code
+                '12001': DDoSProtection,  # 'too_many_subaccounts' Limit of subbacounts is reached.
+                '12002': ExchangeError,  # 'wrong_subaccount_name' The input is not allowed as name of subaccount.
+                '12998': AuthenticationError,  # 'tfa_over_limit' The number of failed TFA attempts is limited.
+                '12003': AuthenticationError,  # 'login_over_limit' The number of failed login attempts is limited.
+                '12004': AuthenticationError,  # 'registration_over_limit' The number of registration requests is limited.
+                '12005': AuthenticationError,  # 'country_is_banned' The country is banned(possibly via IP check).
+                '12100': ExchangeError,  # 'transfer_not_allowed' Transfer is not allowed. Possible wrong direction or other mistake.
+                '12999': AuthenticationError,  # 'tfa_used' TFA code is correct but it is already used. Please, use next code.
+                '13000': AuthenticationError,  # 'invalid_login' Login name is invalid(not allowed or it contains wrong characters).
+                '13001': AuthenticationError,  # 'account_not_activated' Account must be activated.
+                '13002': PermissionDenied,  # 'account_blocked' Account is blocked by admin.
+                '13003': AuthenticationError,  # 'tfa_required' This action requires TFA authentication.
+                '13004': AuthenticationError,  # 'invalid_credentials' Invalid credentials has been used.
+                '13005': AuthenticationError,  # 'pwd_match_error' Password confirmation error.
+                '13006': AuthenticationError,  # 'security_error' Invalid Security Code.
+                '13007': AuthenticationError,  # 'user_not_found' User's security code has been changed or wrong.
+                '13008': ExchangeError,  # 'request_failed' Request failed because of invalid input or internal failure.
+                '13009': AuthenticationError,  # 'unauthorized' Wrong or expired authorization token or bad signature. For example, please check scope of the token, 'connection' scope can't be reused for other connections.
+                '13010': BadRequest,  # 'value_required' Invalid input, missing value.
+                '13011': BadRequest,  # 'value_too_short' Input is too short.
+                '13012': PermissionDenied,  # 'unavailable_in_subaccount' Subaccount restrictions.
+                '13013': BadRequest,  # 'invalid_phone_number' Unsupported or invalid phone number.
+                '13014': BadRequest,  # 'cannot_send_sms' SMS sending failed -- phone number is wrong.
+                '13015': BadRequest,  # 'invalid_sms_code' Invalid SMS code.
+                '13016': BadRequest,  # 'invalid_input' Invalid input.
+                '13017': ExchangeError,  # 'subscription_failed' Subscription hailed, invalid subscription parameters.
+                '13018': ExchangeError,  # 'invalid_content_type' Invalid content type of the request.
+                '13019': ExchangeError,  # 'orderbook_closed' Closed, expired order book.
+                '13020': ExchangeError,  # 'not_found' Instrument is not found, invalid instrument name.
+                '13021': PermissionDenied,  # 'forbidden' Not enough permissions to execute the request, forbidden.
+                '13025': ExchangeError,  # 'method_switched_off_by_admin' API method temporarily switched off by administrator.
+                '-32602': BadRequest,  # 'Invalid params' see JSON-RPC spec.
+                '-32601': BadRequest,  # 'Method not found' see JSON-RPC spec.
+                '-32700': BadRequest,  # 'Parse error' see JSON-RPC spec.
+                '-32000': BadRequest,  # 'Missing params' see JSON-RPC spec.
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'fetchTickerQuotes': True,
+                'code': 'BTC',
+                'fetchBalance': {
+                    'code': 'BTC',
+                },
             },
         })
 
+    async def fetch_time(self, params={}):
+        response = await self.publicGetGetTime(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: 1583922446019,
+        #         usIn: 1583922446019955,
+        #         usOut: 1583922446019956,
+        #         usDiff: 1,
+        #         testnet: False
+        #     }
+        #
+        return self.safe_integer(response, 'result')
+
+    def code_from_options(self, methodName):
+        defaultCode = self.safe_value(self.options, 'code', 'BTC')
+        options = self.safe_value(self.options, methodName, {})
+        return self.safe_value(options, 'code', defaultCode)
+
+    async def fetch_status(self, params={}):
+        request = {
+            # 'expected_result': False,  # True will trigger an error for testing purposes
+        }
+        await self.publicGetTest(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {version: '1.2.26'},
+        #         usIn: 1583922623964485,
+        #         usOut: 1583922623964487,
+        #         usDiff: 2,
+        #         testnet: False
+        #     }
+        #
+        self.status = self.extend(self.status, {
+            'status': 'ok',
+            'updated': self.milliseconds(),
+        })
+        return self.status
+
     async def fetch_markets(self, params={}):
-        response = await self.publicGetGetinstruments(params)
-        markets = self.safe_value(response, 'result')
+        currenciesResponse = await self.publicGetGetCurrencies(params)
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: [
+        #             {
+        #                 withdrawal_priorities: [
+        #                     {value: 0.15, name: 'very_low'},
+        #                     {value: 1.5, name: 'very_high'},
+        #                 ],
+        #                 withdrawal_fee: 0.0005,
+        #                 min_withdrawal_fee: 0.0005,
+        #                 min_confirmations: 1,
+        #                 fee_precision: 4,
+        #                 currency_long: 'Bitcoin',
+        #                 currency: 'BTC',
+        #                 coin_type: 'BITCOIN'
+        #             }
+        #         ],
+        #         usIn: 1583761588590479,
+        #         usOut: 1583761588590544,
+        #         usDiff: 65,
+        #         testnet: False
+        #     }
+        #
+        currenciesResult = self.safe_value(currenciesResponse, 'result', [])
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'instrumentName')
-            baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string(market, 'currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            type = self.safe_string(market, 'kind')
-            future = (type == 'future')
-            option = (type == 'option')
-            active = self.safe_value(market, 'isActive')
-            precision = {
-                'amount': self.safe_float(market, 'minTradeAmount'),
-                'price': self.safe_float(market, 'tickSize'),
+        for i in range(0, len(currenciesResult)):
+            currencyId = self.safe_string(currenciesResult[i], 'currency')
+            request = {
+                'currency': currencyId,
             }
-            result.append({
-                'id': id,
-                'symbol': id,
-                'base': base,
-                'quote': quote,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_float(market, 'minTradeAmount'),
-                        'max': None,
+            instrumentsResponse = await self.publicGetGetInstruments(self.extend(request, params))
+            #
+            #     {
+            #         jsonrpc: '2.0',
+            #         result: [
+            #             {
+            #                 tick_size: 0.0005,
+            #                 taker_commission: 0.0004,
+            #                 strike: 300,
+            #                 settlement_period: 'week',
+            #                 quote_currency: 'USD',
+            #                 option_type: 'call',
+            #                 min_trade_amount: 1,
+            #                 maker_commission: 0.0004,
+            #                 kind: 'option',
+            #                 is_active: True,
+            #                 instrument_name: 'ETH-13MAR20-300-C',
+            #                 expiration_timestamp: 1584086400000,
+            #                 creation_timestamp: 1582790403000,
+            #                 contract_size: 1,
+            #                 base_currency: 'ETH'
+            #             },
+            #         ],
+            #         usIn: 1583761889500586,
+            #         usOut: 1583761889505066,
+            #         usDiff: 4480,
+            #         testnet: False
+            #     }
+            #
+            instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
+            for k in range(0, len(instrumentsResult)):
+                market = instrumentsResult[k]
+                id = self.safe_string(market, 'instrument_name')
+                baseId = self.safe_string(market, 'base_currency')
+                quoteId = self.safe_string(market, 'quote_currency')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                type = self.safe_string(market, 'kind')
+                future = (type == 'future')
+                option = (type == 'option')
+                active = self.safe_value(market, 'is_active')
+                minTradeAmount = self.safe_float(market, 'min_trade_amount')
+                tickSize = self.safe_float(market, 'tick_size')
+                precision = {
+                    'amount': minTradeAmount,
+                    'price': tickSize,
+                }
+                result.append({
+                    'id': id,
+                    'symbol': id,
+                    'base': base,
+                    'quote': quote,
+                    'active': active,
+                    'precision': precision,
+                    'taker': self.safe_float(market, 'taker_commission'),
+                    'maker': self.safe_float(market, 'maker_commission'),
+                    'limits': {
+                        'amount': {
+                            'min': minTradeAmount,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': tickSize,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'price': {
-                        'min': self.safe_float(market, 'tickSize'),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'type': type,
-                'spot': False,
-                'future': future,
-                'option': option,
-                'info': market,
-            })
+                    'type': type,
+                    'spot': False,
+                    'future': future,
+                    'option': option,
+                    'info': market,
+                })
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccount(params)
+        code = self.code_from_options('fetchBalance')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
-        #         "usOut":1569048827943520,
-        #         "usIn":1569048827943020,
-        #         "usDiff":500,
-        #         "testnet":false,
-        #         "success":true,
-        #         "result":{
-        #             "equity":2e-9,
-        #             "maintenanceMargin":0.0,
-        #             "initialMargin":0.0,
-        #             "availableFunds":0.0,
-        #             "balance":0.0,
-        #             "marginBalance":0.0,
-        #             "SUPL":0.0,
-        #             "SRPL":0.0,
-        #             "PNL":0.0,
-        #             "optionsPNL":0.0,
-        #             "optionsSUPL":0.0,
-        #             "optionsSRPL":0.0,
-        #             "optionsD":0.0,
-        #             "optionsG":0.0,
-        #             "optionsV":0.0,
-        #             "optionsTh":0.0,
-        #             "futuresPNL":0.0,
-        #             "futuresSUPL":0.0,
-        #             "futuresSRPL":0.0,
-        #             "deltaTotal":0.0,
-        #             "sessionFunding":0.0,
-        #             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
-        #             "currency":"BTC"
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             total_pl: 0,
+        #             session_upl: 0,
+        #             session_rpl: 0,
+        #             session_funding: 0,
+        #             portfolio_margining_enabled: False,
+        #             options_vega: 0,
+        #             options_theta: 0,
+        #             options_session_upl: 0,
+        #             options_session_rpl: 0,
+        #             options_pl: 0,
+        #             options_gamma: 0,
+        #             options_delta: 0,
+        #             margin_balance: 0.00062359,
+        #             maintenance_margin: 0,
+        #             limits: {
+        #                 non_matching_engine_burst: 300,
+        #                 non_matching_engine: 200,
+        #                 matching_engine_burst: 20,
+        #                 matching_engine: 2
+        #             },
+        #             initial_margin: 0,
+        #             futures_session_upl: 0,
+        #             futures_session_rpl: 0,
+        #             futures_pl: 0,
+        #             equity: 0.00062359,
+        #             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        #             delta_total: 0,
+        #             currency: 'BTC',
+        #             balance: 0.00062359,
+        #             available_withdrawal_funds: 0.00062359,
+        #             available_funds: 0.00062359
         #         },
-        #         "message":""
+        #         usIn: 1583775838115975,
+        #         usOut: 1583775838116520,
+        #         usDiff: 545,
+        #         testnet: False
         #     }
         #
         result = {
@@ -235,13 +537,42 @@ class deribit(Exchange):
         }
         balance = self.safe_value(response, 'result', {})
         currencyId = self.safe_string(balance, 'currency')
-        code = self.safe_currency_code(currencyId)
+        currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_float(balance, 'availableFunds')
         account['used'] = self.safe_float(balance, 'maintenanceMargin')
         account['total'] = self.safe_float(balance, 'equity')
-        result[code] = account
+        result[currencyCode] = account
         return self.parse_balance(result)
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetCreateDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         'jsonrpc': '2.0',
+        #         'id': 7538,
+        #         'result': {
+        #             'address': '2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB',
+        #             'creation_timestamp': 1550575165170,
+        #             'currency': 'BTC',
+        #             'type': 'deposit'
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        address = self.safe_string(result, 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': None,
+            'info': response,
+        }
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -249,9 +580,27 @@ class deribit(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = await self.privateGetAccount(self.extend(request, params))
+        response = await self.privateGetGetCurrentDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             type: 'deposit',
+        #             status: 'ready',
+        #             requires_confirmation: True,
+        #             currency: 'BTC',
+        #             creation_timestamp: 1514694684651,
+        #             address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw'
+        #         },
+        #         usIn: 1583785137274288,
+        #         usOut: 1583785137274454,
+        #         usDiff: 166,
+        #         testnet: False
+        #     }
+        #
         result = self.safe_value(response, 'result', {})
-        address = self.safe_string(result, 'depositAddress')
+        address = self.safe_string(result, 'address')
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -261,44 +610,66 @@ class deribit(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # fetchTicker /public/ticker
+        #
         #     {
-        #         "currentFunding":0.0,
-        #         "funding8h":0.0000017213784611422821,
-        #         "instrumentName":"BTC-PERPETUAL",
-        #         "openInterest":7600223,
-        #         "openInterestAmount":76002230,
-        #         "high":7665.5,
-        #         "low":7450.0,
-        #         "volume":12964792.0,
-        #         "volumeUsd":129647920,
-        #         "volumeBtc":17214.63595316,
-        #         "last":7520.5,
-        #         "bidPrice":7520.0,
-        #         "askPrice":7520.5,
-        #         "midPrice":7520.25,
-        #         "estDelPrice":"",
-        #         "markPrice":7521.0,
-        #         "created":"2019-12-09 15:17:00 GMT"
+        #         timestamp: 1583778859480,
+        #         stats: {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #         state: 'open',
+        #         settlement_price: 7903.21,
+        #         open_interest: 111543850,
+        #         min_price: 7634,
+        #         max_price: 7866.51,
+        #         mark_price: 7750.02,
+        #         last_price: 7750.5,
+        #         instrument_name: 'BTC-PERPETUAL',
+        #         index_price: 7748.01,
+        #         funding_8h: 0.0000026,
+        #         current_funding: 0,
+        #         best_bid_price: 7750,
+        #         best_bid_amount: 19470,
+        #         best_ask_price: 7750.5,
+        #         best_ask_amount: 343280
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'created')
-        symbol = None
-        marketId = self.safe_string(ticker, 'instrumentName')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        # fetchTicker /public/get_book_summary_by_instrument
+        # fetchTickers /public/get_book_summary_by_currency
+        #
+        #     {
+        #         volume: 124.1,
+        #         underlying_price: 7856.445926872601,
+        #         underlying_index: 'SYN.BTC-10MAR20',
+        #         quote_currency: 'USD',
+        #         open_interest: 121.8,
+        #         mid_price: 0.01975,
+        #         mark_price: 0.01984559,
+        #         low: 0.0095,
+        #         last: 0.0205,
+        #         interest_rate: 0,
+        #         instrument_name: 'BTC-10MAR20-7750-C',
+        #         high: 0.0295,
+        #         estimated_delivery_price: 7856.29,
+        #         creation_timestamp: 1583783678366,
+        #         bid_price: 0.0185,
+        #         base_currency: 'BTC',
+        #         ask_price: 0.021
+        #     },
+        #
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
+        marketId = self.safe_string(ticker, 'instrument_name')
+        symbol = self.safe_symbol(marketId, market)
+        last = self.safe_float_2(ticker, 'last_price', 'last')
+        stats = self.safe_value(ticker, 'stats', ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bidPrice'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'askPrice'),
-            'askVolume': None,
+            'high': self.safe_float_2(stats, 'high', 'max_price'),
+            'low': self.safe_float_2(stats, 'low', 'min_price'),
+            'bid': self.safe_float_2(ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': self.safe_float(ticker, 'best_bid_amount'),
+            'ask': self.safe_float_2(ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': self.safe_float(ticker, 'best_ask_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -308,7 +679,7 @@ class deribit(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(stats, 'volume'),
             'info': ticker,
         }
 
@@ -316,95 +687,192 @@ class deribit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'instrument': market['id'],
+            'instrument_name': market['id'],
         }
-        response = await self.publicGetGetsummary(self.extend(request, params))
+        response = await self.publicGetTicker(self.extend(request, params))
         #
         #     {
-        #         "usOut":1575904620528163,
-        #         "usIn":1575904620528129,
-        #         "usDiff":34,
-        #         "testnet":false,
-        #         "success":true,
-        #         "result": {
-        #             "currentFunding":0.0,
-        #             "funding8h":0.0000017213784611422821,
-        #             "instrumentName":"BTC-PERPETUAL",
-        #             "openInterest":7600223,
-        #             "openInterestAmount":76002230,
-        #             "high":7665.5,
-        #             "low":7450.0,
-        #             "volume":12964792.0,
-        #             "volumeUsd":129647920,
-        #             "volumeBtc":17214.63595316,
-        #             "last":7520.5,
-        #             "bidPrice":7520.0,
-        #             "askPrice":7520.5,
-        #             "midPrice":7520.25,
-        #             "estDelPrice":"",
-        #             "markPrice":7521.0,
-        #             "created":"2019-12-09 15:17:00 GMT"
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             timestamp: 1583778859480,
+        #             stats: {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #             state: 'open',
+        #             settlement_price: 7903.21,
+        #             open_interest: 111543850,
+        #             min_price: 7634,
+        #             max_price: 7866.51,
+        #             mark_price: 7750.02,
+        #             last_price: 7750.5,
+        #             instrument_name: 'BTC-PERPETUAL',
+        #             index_price: 7748.01,
+        #             funding_8h: 0.0000026,
+        #             current_funding: 0,
+        #             best_bid_price: 7750,
+        #             best_bid_amount: 19470,
+        #             best_ask_price: 7750.5,
+        #             best_ask_amount: 343280
         #         },
-        #         "message":""
+        #         usIn: 1583778859483941,
+        #         usOut: 1583778859484075,
+        #         usDiff: 134,
+        #         testnet: False
         #     }
         #
-        return self.parse_ticker(response['result'], market)
+        result = self.safe_value(response, 'result')
+        return self.parse_ticker(result, market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        code = self.code_from_options('fetchTickers')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: [
+        #             {
+        #                 volume: 124.1,
+        #                 underlying_price: 7856.445926872601,
+        #                 underlying_index: 'SYN.BTC-10MAR20',
+        #                 quote_currency: 'USD',
+        #                 open_interest: 121.8,
+        #                 mid_price: 0.01975,
+        #                 mark_price: 0.01984559,
+        #                 low: 0.0095,
+        #                 last: 0.0205,
+        #                 interest_rate: 0,
+        #                 instrument_name: 'BTC-10MAR20-7750-C',
+        #                 high: 0.0295,
+        #                 estimated_delivery_price: 7856.29,
+        #                 creation_timestamp: 1583783678366,
+        #                 bid_price: 0.0185,
+        #                 base_currency: 'BTC',
+        #                 ask_price: 0.021
+        #             },
+        #         ],
+        #         usIn: 1583783678361966,
+        #         usOut: 1583783678372069,
+        #         usDiff: 10103,
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        tickers = {}
+        for i in range(0, len(result)):
+            ticker = self.parse_ticker(result[i])
+            symbol = ticker['symbol']
+            tickers[symbol] = ticker
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        now = self.milliseconds()
+        if since is None:
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+            else:
+                request['start_timestamp'] = now - (limit - 1) * duration * 1000
+                request['end_timestamp'] = now
+        else:
+            request['start_timestamp'] = since
+            if limit is None:
+                request['end_timestamp'] = now
+            else:
+                request['end_timestamp'] = self.sum(since, limit * duration * 1000)
+        response = await self.publicGetGetTradingviewChartData(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             volume: [3.6680847969999992, 22.682721123, 3.011587939, 0],
+        #             ticks: [1583916960000, 1583917020000, 1583917080000, 1583917140000],
+        #             status: 'ok',
+        #             open: [7834, 7839, 7833.5, 7833],
+        #             low: [7834, 7833.5, 7832.5, 7833],
+        #             high: [7839.5, 7839, 7833.5, 7833],
+        #             cost: [28740, 177740, 23590, 0],
+        #             close: [7839.5, 7833.5, 7833, 7833]
+        #         },
+        #         usIn: 1583917166709801,
+        #         usOut: 1583917166710175,
+        #         usDiff: 374,
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #
         #     {
-        #         "tradeId":23197559,
-        #         "instrument":"BTC-28JUN19",
-        #         "timeStamp":1559643011379,
-        #         "tradeSeq":1997200,
-        #         "quantity":2,
-        #         "amount":20.0,
-        #         "price":8010.0,
-        #         "direction":"sell",
-        #         "tickDirection":2,
-        #         "indexPrice":7969.01
+        #         'trade_seq': 39201926,
+        #         'trade_id':' 64135724',
+        #         'timestamp': 1583174775400,
+        #         'tick_direction': 1,
+        #         'price': 8865.0,
+        #         'instrument_name': 'BTC-PERPETUAL',
+        #         'index_price': 8863.31,
+        #         'direction': 'buy',
+        #         'amount': 10.0
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades, fetchOrderTrades(private)
         #
         #     {
-        #         "quantity":54,
-        #         "amount":540.0,
-        #         "tradeId":23087297,
-        #         "instrument":"BTC-PERPETUAL",
-        #         "timeStamp":1559604178803,
-        #         "tradeSeq":8265011,
-        #         "price":8213.0,
-        #         "side":"sell",
-        #         "orderId":12373631800,
-        #         "matchingId":0,
-        #         "liquidity":"T",
-        #         "fee":0.000049312,
-        #         "feeCurrency":"BTC",
-        #         "tickDirection":3,
-        #         "indexPrice":8251.94,
-        #         "selfTrade":false
+        #         "trade_seq": 3,
+        #         "trade_id": "ETH-34066",
+        #         "timestamp": 1550219814585,
+        #         "tick_direction": 1,
+        #         "state": "open",
+        #         "self_trade": False,
+        #         "reduce_only": False,
+        #         "price": 0.04,
+        #         "post_only": False,
+        #         "order_type": "limit",
+        #         "order_id": "ETH-334607",
+        #         "matching_id": null,
+        #         "liquidity": "M",
+        #         "iv": 56.83,
+        #         "instrument_name": "ETH-22FEB19-120-C",
+        #         "index_price": 121.37,
+        #         "fee_currency": "ETH",
+        #         "fee": 0.0011,
+        #         "direction": "buy",
+        #         "amount": 11
         #     }
         #
-        id = self.safe_string(trade, 'tradeId')
-        orderId = self.safe_string(trade, 'orderId')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timeStamp')
-        side = self.safe_string_2(trade, 'side', 'direction')
+        id = self.safe_string(trade, 'trade_id')
+        marketId = self.safe_string(trade, 'instrument_name')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(trade, 'timestamp')
+        side = self.safe_string(trade, 'direction')
         price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        amount = self.safe_float(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        fee = None
+        liquidity = self.safe_string(trade, 'liquidity')
+        takerOrMaker = None
+        if liquidity is not None:
+            # M = maker, T = taker, MT = both
+            takerOrMaker = 'maker' if (liquidity == 'M') else 'taker'
         feeCost = self.safe_float(trade, 'fee')
+        fee = None
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
@@ -416,10 +884,10 @@ class deribit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': orderId,
-            'type': None,
+            'order': self.safe_string(trade, 'order_id'),
+            'type': self.safe_string(trade, 'order_type'),
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -430,98 +898,148 @@ class deribit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'instrument': market['id'],
+            'instrument_name': market['id'],
+            'include_old': True,
         }
+        method = 'publicGetGetLastTradesByInstrument' if (since is None) else 'publicGetGetLastTradesByInstrumentAndTime'
+        if since is not None:
+            request['start_timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
-        else:
-            request['limit'] = 10000
-        response = await self.publicGetGetlasttrades(self.extend(request, params))
+            request['count'] = limit  # default 10
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         "usOut":1559643108984527,
-        #         "usIn":1559643108984470,
-        #         "usDiff":57,
-        #         "testnet":false,
-        #         "success":true,
-        #         "result": [
-        #             {
-        #                 "tradeId":23197559,
-        #                 "instrument":"BTC-28JUN19",
-        #                 "timeStamp":1559643011379,
-        #                 "tradeSeq":1997200,
-        #                 "quantity":2,
-        #                 "amount":20.0,
-        #                 "price":8010.0,
-        #                 "direction":"sell",
-        #                 "tickDirection":2,
-        #                 "indexPrice":7969.01
-        #             }
-        #         ],
-        #         "message":""
+        #         'jsonrpc': '2.0',
+        #         'result': {
+        #             'trades': [
+        #                 {
+        #                     'trade_seq': 39201926,
+        #                     'trade_id':' 64135724',
+        #                     'timestamp': 1583174775400,
+        #                     'tick_direction': 1,
+        #                     'price': 8865.0,
+        #                     'instrument_name': 'BTC-PERPETUAL',
+        #                     'index_price': 8863.31,
+        #                     'direction': 'buy',
+        #                     'amount': 10.0
+        #                 },
+        #             ],
+        #             'has_more': True,
+        #         },
+        #         'usIn': 1583779594843931,
+        #         'usOut': 1583779594844446,
+        #         'usDiff': 515,
+        #         'testnet': False
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_trades(result, market, since, limit)
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'instrument': market['id'],
+            'instrument_name': market['id'],
         }
-        response = await self.publicGetGetorderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'usOut') / 1000
-        orderbook = self.parse_order_book(response['result'], timestamp, 'bids', 'asks', 'price', 'quantity')
-        return self.extend(orderbook, {
-            'nonce': self.safe_integer(response, 'tstamp'),
-        })
+        if limit is not None:
+            request['depth'] = limit
+        response = await self.publicGetGetOrderBook(self.extend(request, params))
+        #
+        #     {
+        #         jsonrpc: '2.0',
+        #         result: {
+        #             timestamp: 1583781354740,
+        #             stats: {volume: 61249.66735634, low: 7631.5, high: 8311.5},
+        #             state: 'open',
+        #             settlement_price: 7903.21,
+        #             open_interest: 111536690,
+        #             min_price: 7695.13,
+        #             max_price: 7929.49,
+        #             mark_price: 7813.06,
+        #             last_price: 7814.5,
+        #             instrument_name: 'BTC-PERPETUAL',
+        #             index_price: 7810.12,
+        #             funding_8h: 0.0000031,
+        #             current_funding: 0,
+        #             change_id: 17538025952,
+        #             bids: [
+        #                 [7814, 351820],
+        #                 [7813.5, 207490],
+        #                 [7813, 32160],
+        #             ],
+        #             best_bid_price: 7814,
+        #             best_bid_amount: 351820,
+        #             best_ask_price: 7814.5,
+        #             best_ask_amount: 11880,
+        #             asks: [
+        #                 [7814.5, 11880],
+        #                 [7815, 18100],
+        #                 [7815.5, 2640],
+        #             ],
+        #         },
+        #         usIn: 1583781354745804,
+        #         usOut: 1583781354745932,
+        #         usDiff: 128,
+        #         testnet: False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        timestamp = self.safe_integer(result, 'timestamp')
+        nonce = self.safe_integer(result, 'change_id')
+        orderbook = self.parse_order_book(result, timestamp)
+        orderbook['nonce'] = nonce
+        return orderbook
 
     def parse_order_status(self, status):
         statuses = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
+            'rejected': 'rejected',
+            # 'untriggered': 'open',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
+        # createOrder
+        #
         #     {
-        #         "orderId": 5258039,          # ID of the order
-        #         "type": "limit",             # not documented, but present in the actual response
-        #         "instrument": "BTC-26MAY17",  # instrument name(market id)
-        #         "direction": "sell",         # order direction, "buy" or "sell"
-        #         "price": 1860,               # float, USD for futures, BTC for options
-        #         "label": "",                 # label set by the owner, up to 32 chars
-        #         "quantity": 10,              # quantity, in contracts($10 per contract for futures, ฿1 — for options)
-        #         "filledQuantity": 3,         # filled quantity, in contracts($10 per contract for futures, ฿1 — for options)
-        #         "avgPrice": 1860,            # average fill price of the order
-        #         "commission": -0.000001613,  # in BTC units
-        #         "created": 1494491899308,    # creation timestamp
-        #         "state": "open",             # open, cancelled, etc
-        #         "postOnly": False            # True for post-only orders only
-        # open orders --------------------------------------------------------
-        #         "lastUpdate": 1494491988754,  # timestamp of the last order state change(before self cancelorder of course)
-        # closed orders ------------------------------------------------------
-        #         "tstamp": 1494492913288,     # timestamp of the last order state change, documented, but may be missing in the actual response
-        #         "modified": 1494492913289,   # timestamp of the last db write operation, e.g. trade that doesn't change order status, documented, but may missing in the actual response
-        #         "adv": False                 # advanced type(False, or "usd" or "implv")
-        #         "trades": [],                # not documented, injected from the outside of the parseOrder method into the order
+        #         "time_in_force": "good_til_cancelled",
+        #         "reduce_only": False,
+        #         "profit_loss": 0,
+        #         "price": "market_price",
+        #         "post_only": False,
+        #         "order_type": "market",
+        #         "order_state": "filled",
+        #         "order_id": "ETH-349249",
+        #         "max_show": 40,
+        #         "last_update_timestamp": 1550657341322,
+        #         "label": "market0000234",
+        #         "is_liquidation": False,
+        #         "instrument_name": "ETH-PERPETUAL",
+        #         "filled_amount": 40,
+        #         "direction": "buy",
+        #         "creation_timestamp": 1550657341322,
+        #         "commission": 0.000139,
+        #         "average_price": 143.81,
+        #         "api": True,
+        #         "amount": 40,
+        #         "trades": [],  # injected by createOrder
         #     }
         #
-        timestamp = self.safe_integer(order, 'created')
-        lastUpdate = self.safe_integer(order, 'lastUpdate')
-        lastTradeTimestamp = self.safe_integer_2(order, 'tstamp', 'modified')
-        id = self.safe_string(order, 'orderId')
+        timestamp = self.safe_integer(order, 'creation_timestamp')
+        lastUpdate = self.safe_integer(order, 'last_update_timestamp')
+        id = self.safe_string(order, 'order_id')
         price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'avgPrice')
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'filledQuantity')
-        if lastTradeTimestamp is None:
-            if filled is not None:
-                if filled > 0:
-                    lastTradeTimestamp = lastUpdate
+        average = self.safe_float(order, 'average_price')
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'filled_amount')
+        lastTradeTimestamp = None
+        if filled is not None:
+            if filled > 0:
+                lastTradeTimestamp = lastUpdate
         remaining = None
         cost = None
         if filled is not None:
@@ -529,28 +1047,31 @@ class deribit(Exchange):
                 remaining = amount - filled
             if price is not None:
                 cost = price * filled
-        status = self.parse_order_status(self.safe_string(order, 'state'))
+        status = self.parse_order_status(self.safe_string(order, 'order_state'))
+        marketId = self.safe_string(order, 'instrument_name')
+        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
+        fee = None
         if feeCost is not None:
             feeCost = abs(feeCost)
-        fee = {
-            'cost': feeCost,
-            'currency': 'BTC',
-        }
-        type = self.safe_string(order, 'type')
-        marketId = self.safe_string(order, 'instrument')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+            fee = {
+                'cost': feeCost,
+                'currency': market['base'],
+            }
+        type = self.safe_string(order, 'order_type')
+        # injected in createOrder
+        trades = self.safe_value(order, 'trades')
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
@@ -561,158 +1082,543 @@ class deribit(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': None,  # todo: parse trades
+            'trades': trades,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
-            'orderId': id,
+            'order_id': id,
         }
-        response = await self.privateGetOrderstate(self.extend(request, params))
+        response = await self.privateGetGetOrderState(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 4316,
+        #         "result": {
+        #             "time_in_force": "good_til_cancelled",
+        #             "reduce_only": False,
+        #             "profit_loss": 0.051134,
+        #             "price": 118.94,
+        #             "post_only": False,
+        #             "order_type": "limit",
+        #             "order_state": "filled",
+        #             "order_id": "ETH-331562",
+        #             "max_show": 37,
+        #             "last_update_timestamp": 1550219810944,
+        #             "label": "",
+        #             "is_liquidation": False,
+        #             "instrument_name": "ETH-PERPETUAL",
+        #             "filled_amount": 37,
+        #             "direction": "sell",
+        #             "creation_timestamp": 1550219749176,
+        #             "commission": 0.000031,
+        #             "average_price": 118.94,
+        #             "api": False,
+        #             "amount": 37
+        #         }
+        #     }
+        #
         result = self.safe_value(response, 'result')
-        if result is None:
-            raise OrderNotFound(self.id + ' fetchOrder() ' + self.json(response))
         return self.parse_order(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'instrument': self.market_id(symbol),
-            'quantity': amount,
-            'type': type,
-            # 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
+            'instrument_name': market['id'],
+            # for perpetual and futures the amount is in USD
+            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+            'amount': self.amount_to_precision(symbol, amount),
+            'type': type,  # limit, stop_limit, market, stop_market, default is limit
+            # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
+            # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
+            # 'time_in_force' : 'good_til_cancelled',  # fill_or_kill, immediate_or_cancel
+            # 'max_show': 123.45,  # max amount within an order to be shown to other customers, 0 for invisible order
+            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
+            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
+            # 'stop_price': False,  # stop price, required for stop_limit orders
+            # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
+            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
-        if price is not None:
-            request['price'] = price
-        method = 'privatePost' + self.capitalize(side)
+        priceIsRequired = False
+        stopPriceIsRequired = False
+        if type == 'limit':
+            priceIsRequired = True
+        elif type == 'stop_limit':
+            priceIsRequired = True
+            stopPriceIsRequired = True
+        if priceIsRequired:
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            else:
+                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+        if stopPriceIsRequired:
+            stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order')
+            else:
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+        method = 'privateGet' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
-        order = self.safe_value(response['result'], 'order')
-        if order is None:
-            return response
-        return self.parse_order(order)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 5275,
+        #         "result": {
+        #             "trades": [
+        #                 {
+        #                     "trade_seq": 14151,
+        #                     "trade_id": "ETH-37435",
+        #                     "timestamp": 1550657341322,
+        #                     "tick_direction": 2,
+        #                     "state": "closed",
+        #                     "self_trade": False,
+        #                     "price": 143.81,
+        #                     "order_type": "market",
+        #                     "order_id": "ETH-349249",
+        #                     "matching_id": null,
+        #                     "liquidity": "T",
+        #                     "label": "market0000234",
+        #                     "instrument_name": "ETH-PERPETUAL",
+        #                     "index_price": 143.73,
+        #                     "fee_currency": "ETH",
+        #                     "fee": 0.000139,
+        #                     "direction": "buy",
+        #                     "amount": 40
+        #                 }
+        #             ],
+        #             "order": {
+        #                 "time_in_force": "good_til_cancelled",
+        #                 "reduce_only": False,
+        #                 "profit_loss": 0,
+        #                 "price": "market_price",
+        #                 "post_only": False,
+        #                 "order_type": "market",
+        #                 "order_state": "filled",
+        #                 "order_id": "ETH-349249",
+        #                 "max_show": 40,
+        #                 "last_update_timestamp": 1550657341322,
+        #                 "label": "market0000234",
+        #                 "is_liquidation": False,
+        #                 "instrument_name": "ETH-PERPETUAL",
+        #                 "filled_amount": 40,
+        #                 "direction": "buy",
+        #                 "creation_timestamp": 1550657341322,
+        #                 "commission": 0.000139,
+        #                 "average_price": 143.81,
+        #                 "api": True,
+        #                 "amount": 40
+        #             }
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        order = self.safe_value(result, 'order')
+        trades = self.safe_value(result, 'trades', [])
+        order['trades'] = trades
+        return self.parse_order(order, market)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' editOrder requires an amount argument')
+        if price is None:
+            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
         await self.load_markets()
         request = {
-            'orderId': id,
+            'order_id': id,
+            # for perpetual and futures the amount is in USD
+            # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+            'amount': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),  # required
+            # 'post_only': False,  # if the new price would cause the order to be filled immediately(as taker), the price will be changed to be just below the spread.
+            # 'reject_post_only': False,  # if True the order is put to order book unmodified or request is rejected
+            # 'reduce_only': False,  # if True, the order is intended to only reduce a current position
+            # 'stop_price': False,  # stop price, required for stop_limit orders
+            # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
-        if amount is not None:
-            request['quantity'] = amount
-        if price is not None:
-            request['price'] = price
-        response = await self.privatePostEdit(self.extend(request, params))
-        return self.parse_order(response['result']['order'])
+        response = await self.privateGetEdit(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        order = self.safe_value(result, 'order')
+        trades = self.safe_value(result, 'trades', [])
+        order['trades'] = trades
+        return self.parse_order(order)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
-            'orderId': id,
+            'order_id': id,
         }
-        response = await self.privatePostCancel(self.extend(request, params))
-        return self.parse_order(response['result']['order'])
+        response = await self.privateGetCancel(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        return self.parse_order(result)
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        method = None
+        if symbol is None:
+            method = 'privateGetCancelAll'
+        else:
+            method = 'privateGetCancelAllByInstrument'
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
+        response = await getattr(self, method)(self.extend(request, params))
+        return response
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'instrument': market['id'],
-        }
-        response = await self.privateGetGetopenorders(self.extend(request, params))
-        return self.parse_orders(response['result'], market, since, limit)
+        request = {}
+        market = None
+        method = None
+        if symbol is None:
+            code = self.code_from_options('fetchOpenOrders')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'privateGetGetOpenOrdersByCurrency'
+        else:
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
+            method = 'privateGetGetOpenOrdersByInstrument'
+        response = await getattr(self, method)(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        return self.parse_orders(result, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
+        request = {}
+        market = None
+        method = None
+        if symbol is None:
+            code = self.code_from_options('fetchClosedOrders')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'privateGetGetOrderHistoryByCurrency'
+        else:
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
+            method = 'privateGetGetOrderHistoryByInstrument'
+        response = await getattr(self, method)(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        return self.parse_orders(result, market, since, limit)
+
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         request = {
-            'instrument': market['id'],
+            'order_id': id,
         }
-        response = await self.privateGetOrderhistory(self.extend(request, params))
-        return self.parse_orders(response['result'], market, since, limit)
+        response = await self.privateGetGetUserTradesByOrder(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 9367,
+        #         "result": {
+        #             "trades": [
+        #                 {
+        #                     "trade_seq": 3,
+        #                     "trade_id": "ETH-34066",
+        #                     "timestamp": 1550219814585,
+        #                     "tick_direction": 1,
+        #                     "state": "open",
+        #                     "self_trade": False,
+        #                     "reduce_only": False,
+        #                     "price": 0.04,
+        #                     "post_only": False,
+        #                     "order_type": "limit",
+        #                     "order_id": "ETH-334607",
+        #                     "matching_id": null,
+        #                     "liquidity": "M",
+        #                     "iv": 56.83,
+        #                     "instrument_name": "ETH-22FEB19-120-C",
+        #                     "index_price": 121.37,
+        #                     "fee_currency": "ETH",
+        #                     "fee": 0.0011,
+        #                     "direction": "buy",
+        #                     "amount": 11
+        #                 },
+        #             ],
+        #             "has_more": True
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'trades', [])
+        return self.parse_trades(trades, None, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
         request = {
-            'instrument': market['id'],
+            'include_old': True,
         }
+        market = None
+        method = None
+        if symbol is None:
+            code = self.code_from_options('fetchMyTrades')
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            if since is None:
+                method = 'privateGetGetUserTradesByCurrency'
+            else:
+                method = 'privateGetGetUserTradesByCurrencyAndTime'
+                request['start_timestamp'] = since
+        else:
+            market = self.market(symbol)
+            request['instrument_name'] = market['id']
+            if since is None:
+                method = 'privateGetGetUserTradesByInstrument'
+            else:
+                method = 'privateGetGetUserTradesByInstrumentAndTime'
+                request['start_timestamp'] = since
         if limit is not None:
-            request['count'] = limit  # default = 20
-        response = await self.privateGetTradehistory(self.extend(request, params))
+            request['count'] = limit  # default 10
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         "usOut":1559611553394836,
-        #         "usIn":1559611553394000,
-        #         "usDiff":836,
-        #         "testnet":false,
-        #         "success":true,
-        #         "result": [
-        #             {
-        #                 "quantity":54,
-        #                 "amount":540.0,
-        #                 "tradeId":23087297,
-        #                 "instrument":"BTC-PERPETUAL",
-        #                 "timeStamp":1559604178803,
-        #                 "tradeSeq":8265011,
-        #                 "price":8213.0,
-        #                 "side":"sell",
-        #                 "orderId":12373631800,
-        #                 "matchingId":0,
-        #                 "liquidity":"T",
-        #                 "fee":0.000049312,
-        #                 "feeCurrency":"BTC",
-        #                 "tickDirection":3,
-        #                 "indexPrice":8251.94,
-        #                 "selfTrade":false
-        #             }
-        #         ],
-        #         "message":"",
-        #         "has_more":true
+        #         "jsonrpc": "2.0",
+        #         "id": 9367,
+        #         "result": {
+        #             "trades": [
+        #                 {
+        #                     "trade_seq": 3,
+        #                     "trade_id": "ETH-34066",
+        #                     "timestamp": 1550219814585,
+        #                     "tick_direction": 1,
+        #                     "state": "open",
+        #                     "self_trade": False,
+        #                     "reduce_only": False,
+        #                     "price": 0.04,
+        #                     "post_only": False,
+        #                     "order_type": "limit",
+        #                     "order_id": "ETH-334607",
+        #                     "matching_id": null,
+        #                     "liquidity": "M",
+        #                     "iv": 56.83,
+        #                     "instrument_name": "ETH-22FEB19-120-C",
+        #                     "index_price": 121.37,
+        #                     "fee_currency": "ETH",
+        #                     "fee": 0.0011,
+        #                     "direction": "buy",
+        #                     "amount": 11
+        #                 },
+        #             ],
+        #             "has_more": True
+        #         }
         #     }
         #
-        trades = self.safe_value(response, 'result', [])
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privateGetGetDeposits(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 5611,
+        #         "result": {
+        #             "count": 1,
+        #             "data": [
+        #                 {
+        #                     "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        #                     "amount": 5,
+        #                     "currency": "BTC",
+        #                     "received_timestamp": 1549295017670,
+        #                     "state": "completed",
+        #                     "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
+        #                     "updated_timestamp": 1549295130159
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privateGetGetWithdrawals(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 2745,
+        #         "result": {
+        #             "count": 1,
+        #             "data": [
+        #                 {
+        #                     "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        #                     "amount": 0.5,
+        #                     "confirmed_timestamp": null,
+        #                     "created_timestamp": 1550571443070,
+        #                     "currency": "BTC",
+        #                     "fee": 0.0001,
+        #                     "id": 1,
+        #                     "priority": 0.15,
+        #                     "state": "unconfirmed",
+        #                     "transaction_id": null,
+        #                     "updated_timestamp": 1550571443070
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, params)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'completed': 'ok',
+            'unconfirmed': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "address": "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        #         "amount": 0.5,
+        #         "confirmed_timestamp": null,
+        #         "created_timestamp": 1550571443070,
+        #         "currency": "BTC",
+        #         "fee": 0.0001,
+        #         "id": 1,
+        #         "priority": 0.15,
+        #         "state": "unconfirmed",
+        #         "transaction_id": null,
+        #         "updated_timestamp": 1550571443070
+        #     }
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        #         "amount": 5,
+        #         "currency": "BTC",
+        #         "received_timestamp": 1549295017670,
+        #         "state": "completed",
+        #         "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
+        #         "updated_timestamp": 1549295130159
+        #     }
+        #
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.safe_integer_2(transaction, 'created_timestamp', 'received_timestamp')
+        updated = self.safe_integer(transaction, 'updated_timestamp')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        address = self.safe_string(transaction, 'address')
+        feeCost = self.safe_float(transaction, 'fee')
+        type = 'deposit'
+        fee = None
+        if feeCost is not None:
+            type = 'withdrawal'
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'transaction_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': type,
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'address': address,  # must be in the address book
+            'amount': amount,
+            # 'priority': 'high',  # low, mid, high, very_high, extreme_high, insane
+            # 'tfa': '123456',  # if enabled
+        }
+        if self.twofa is not None:
+            request['tfa'] = self.oath()
+        response = await self.privateGetWithdraw(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'id'),
+        }
 
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        query = '/' + 'api/' + self.version + '/' + api + '/' + path
-        url = self.urls['api'] + query
+        request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
-                url += '?' + self.urlencode(params)
-        else:
+                request += '?' + self.urlencode(params)
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            auth = '_=' + nonce + '&_ackey=' + self.apiKey + '&_acsec=' + self.secret + '&_action=' + query
+            timestamp = str(self.milliseconds())
+            requestBody = ''
             if params:
-                params = self.keysort(params)
-                auth += '&' + self.urlencode(params)
-            hash = self.hash(self.encode(auth), 'sha256', 'base64')
-            signature = self.apiKey + '.' + nonce + '.' + self.decode(hash)
+                request += '?' + self.urlencode(params)
+            requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
+            auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
-                'x-deribit-sig': signature,
+                'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
-            if method != 'GET':
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
-                body = self.urlencode(params)
-            elif params:
-                url += '?' + self.urlencode(params)
+        url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
         #
-        #     {"usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","error":10004}
+        #     {
+        #         jsonrpc: '2.0',
+        #         error: {
+        #             message: 'Invalid params',
+        #             data: {reason: 'invalid currency', param: 'currency'},
+        #             code: -32602
+        #         },
+        #         testnet: False,
+        #         usIn: 1583763842150374,
+        #         usOut: 1583763842150410,
+        #         usDiff: 36
+        #     }
         #
-        error = self.safe_string(response, 'error')
-        if (error is not None) and (error != '0'):
+        error = self.safe_value(response, 'error')
+        if error is not None:
+            errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message

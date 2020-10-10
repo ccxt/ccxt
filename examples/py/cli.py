@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import json
+import platform
 from pprint import pprint
 
 # ------------------------------------------------------------------------------
@@ -18,9 +19,15 @@ import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
+print('Python v' + platform.python_version())
+print('CCXT v' + ccxt.__version__)
+
+# ------------------------------------------------------------------------------
+
 
 class Argv(object):
 
+    table = False
     verbose = False
     nonce = None
     exchange_id = None
@@ -32,12 +39,25 @@ argv = Argv()
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--table', action='store_true', help='output as table')
+parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
 
 parser.parse_args(namespace=argv)
+
+# ------------------------------------------------------------------------------
+
+
+def table(values):
+    first = values[0]
+    keys = list(first.keys()) if isinstance(first, dict) else range(0, len(first))
+    widths = [max([len(str(v[k])) for v in values]) for k in keys]
+    string = ' | '.join(['{:<' + str(w) + '}' for w in widths])
+    return "\n".join([string.format(*[str(v[k]) for k in keys]) for v in values])
+
 
 # ------------------------------------------------------------------------------
 
@@ -53,7 +73,7 @@ def print_usage():
     print('Usage:\n')
     print('python ' + sys.argv[0] + ' exchange_id method "param1" param2 "param3" param4 ...\n')
     print('Examples:\n')
-    print('python ' + sys.argv[0] + ' okcoinusd fetch_ohlcv BTC/USD 15m')
+    print('python ' + sys.argv[0] + ' okcoin fetch_ohlcv BTC/USD 15m')
     print('python ' + sys.argv[0] + ' bitfinex fetch_balance')
     print('python ' + sys.argv[0] + ' kraken fetch_order_book ETH/BTC\n')
     print_supported_exchanges()
@@ -77,7 +97,7 @@ config = {
     'enableRateLimit': True,
 }
 
-if not (argv.method and argv.exchange_id):
+if not argv.exchange_id:
     print_usage()
     sys.exit()
 
@@ -92,6 +112,12 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+if argv.cors:
+    exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
+    exchange.origin = exchange.uuid ()
+
+# pprint(dir(exchange))
 
 # ------------------------------------------------------------------------------
 
@@ -117,14 +143,18 @@ exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
-method = getattr(exchange, argv.method)
+if argv.method:
+    method = getattr(exchange, argv.method)
+    # if it is a method, call it
+    if callable(method):
+        result = method(*args)
+    else:  # otherwise it's a property, print it
+        result = method
+    if argv.table:
+        result = list(result.values()) if isinstance(result, dict) else result
+        print(table([exchange.omit(v, 'info') for v in result]))
+    else:
+        pprint(result)
+else:
+    pprint(dir(exchange))
 
-# if it is a method, call it
-if callable(method):
-
-    result = method(*args)
-    pprint(result)
-
-else:  # otherwise it's a property, print it
-
-    pprint(method)

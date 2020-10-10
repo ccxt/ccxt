@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, NotSupported, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -15,17 +15,19 @@ module.exports = class bitfinex2 extends bitfinex {
             'countries': [ 'VG' ],
             'version': 'v2',
             'certified': false,
+            'pro': false,
             // new metainfo interface
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
+                'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
@@ -286,6 +288,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     '20060': OnMaintenance,
                 },
                 'broad': {
+                    'address': InvalidAddress,
+                    'available balance is only': InsufficientFunds,
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
@@ -344,7 +348,7 @@ module.exports = class bitfinex2 extends bitfinex {
             quoteId = this.getCurrencyId (quoteId);
             const precision = {
                 'price': this.safeInteger (market, 'price_precision'),
-                'amount': this.safeInteger (market, 'price_precision'),
+                'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
             };
             const limits = {
                 'amount': {
@@ -641,7 +645,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -652,6 +656,26 @@ module.exports = class bitfinex2 extends bitfinex {
         };
         const ticker = await this.publicGetTickerSymbol (this.extend (request, params));
         return this.parseTicker (ticker, market);
+    }
+
+    parseSymbol (marketId) {
+        if (marketId === undefined) {
+            return marketId;
+        }
+        marketId = marketId.replace ('t', '');
+        let baseId = undefined;
+        let quoteId = undefined;
+        if (marketId.indexOf (':') >= 0) {
+            const parts = marketId.split (':');
+            baseId = parts[0];
+            quoteId = parts[1];
+        } else {
+            baseId = marketId.slice (0, 3);
+            quoteId = marketId.slice (3, 6);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return base + '/' + quote;
     }
 
     parseTrade (trade, market = undefined) {
@@ -700,21 +724,29 @@ module.exports = class bitfinex2 extends bitfinex {
         const timestamp = trade[timestampIndex];
         if (isPrivate) {
             const marketId = trade[1];
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    symbol = marketId;
-                }
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
             }
             orderId = trade[3].toString ();
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
-            const feeCost = trade[9];
+            let feeCost = trade[9];
             const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
+                feeCost = -feeCost;
+                if (symbol in this.markets) {
+                    feeCost = this.feeToPrecision (symbol, feeCost);
+                } else {
+                    const currencyId = 'f' + feeCurrency;
+                    if (currencyId in this.currencies_by_id) {
+                        const currency = this.currencies_by_id[currencyId];
+                        feeCost = this.currencyToPrecision (currency['code'], feeCost);
+                    }
+                }
                 fee = {
-                    'cost': parseFloat (this.feeToPrecision (symbol, Math.abs (feeCost))),
+                    'cost': parseFloat (feeCost),
                     'currency': feeCurrency,
                 };
             }
@@ -799,20 +831,32 @@ module.exports = class bitfinex2 extends bitfinex {
             'limit': limit,
         };
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
+        //
+        //     [
+        //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        //         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
+        if (status === undefined) {
+            return status;
+        }
+        const parts = status.split (' ');
+        const state = this.safeString (parts, 0);
         const statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, state, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -821,11 +865,15 @@ module.exports = class bitfinex2 extends bitfinex {
         const marketId = this.safeString (order, 3);
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
+        } else {
+            symbol = this.parseSymbol (marketId);
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeTimestamp (order, 5);
+        // https://github.com/ccxt/ccxt/issues/6686
+        // const timestamp = this.safeTimestamp (order, 5);
+        const timestamp = this.safeInteger (order, 5);
         const remaining = Math.abs (this.safeFloat (order, 6));
         const amount = Math.abs (this.safeFloat (order, 7));
         const filled = amount - remaining;
@@ -841,9 +889,11 @@ module.exports = class bitfinex2 extends bitfinex {
         const price = this.safeFloat (order, 16);
         const average = this.safeFloat (order, 17);
         const cost = price * filled;
+        const clientOrderId = this.safeString (order, 2);
         return {
             'info': order,
             'id': id,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -875,6 +925,11 @@ module.exports = class bitfinex2 extends bitfinex {
         };
         if (type !== 'market') {
             request['price'] = this.numberToString (price);
+        }
+        const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['cid'] = clientOrderId;
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         //
@@ -945,17 +1000,18 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const cid = this.safeValue (params, 'cid'); // client order id
+        const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
             const cidDate = this.safeValue (params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
-                throw new InvalidOrder (this.id + " canceling an order by client order id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+                throw new InvalidOrder (this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             };
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         } else {
             request = {
                 'id': parseInt (id),
@@ -1043,16 +1099,6 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        throw new NotSupported (this.id + ' withdraw not implemented yet');
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -1073,6 +1119,175 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'op_renew': 1,
+        };
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
+        const name = this.getCurrencyName (code);
+        const request = {
+            'method': name,
+            'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+            'op_renew': 0, // a value of 1 will generate a new address
+        };
+        const response = await this.privatePostAuthWDepositAddress (this.extend (request, params));
+        //
+        //     [
+        //         1582269616687, // MTS Millisecond Time Stamp of the update
+        //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             null, // PLACEHOLDER
+        //             'BITCOIN', // METHOD Method of deposit
+        //             'BTC', // CURRENCY_CODE Currency code of new address
+        //             null, // PLACEHOLDER
+        //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+        //             null, // POOL_ADDRESS
+        //         ],
+        //         null, // CODE null or integer work in progress
+        //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        //         'success', // TEXT Text of the notification
+        //     ]
+        //
+        const result = this.safeValue (response, 4, []);
+        const poolAddress = this.safeString (result, 5);
+        const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
+        const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     [
+        //         1582271520931, // MTS Millisecond Time Stamp of the update
+        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        //             null, // PLACEHOLDER
+        //             "bitcoin", // METHOD Method of withdrawal
+        //             null, // PAYMENT_ID Payment ID if relevant
+        //             "exchange", // WALLET Sending wallet
+        //             1, // AMOUNT Amount of Withdrawal less fee
+        //             null, // PLACEHOLDER
+        //             null, // PLACEHOLDER
+        //             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
+        //         ],
+        //         null, // CODE null or integer Work in progress
+        //         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
+        //     ]
+        //
+        // todo add support for all movements, deposits and withdrawals
+        //
+        const data = this.safeValue (transaction, 4, []);
+        const timestamp = this.safeInteger (transaction, 0);
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let feeCost = this.safeFloat (data, 8);
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        const amount = this.safeFloat (data, 5);
+        let id = this.safeValue (data, 0);
+        let status = 'ok';
+        if (id === 0) {
+            id = undefined;
+            status = 'failed';
+        }
+        const tag = this.safeString (data, 3);
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
+            'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': tag, // refix it properly for the tag from description
+            'tagTo': tag,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
+        const name = this.getCurrencyName (code);
+        const request = {
+            'method': name,
+            'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+            'amount': this.numberToString (amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['payment_id'] = tag;
+        }
+        const response = await this.privatePostAuthWWithdraw (this.extend (request, params));
+        //
+        //     [
+        //         1582271520931, // MTS Millisecond Time Stamp of the update
+        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         null, // MESSAGE_ID unique ID of the message
+        //         null, // not documented
+        //         [
+        //             0, // WITHDRAWAL_ID Unique Withdrawal ID
+        //             null, // PLACEHOLDER
+        //             "bitcoin", // METHOD Method of withdrawal
+        //             null, // PAYMENT_ID Payment ID if relevant
+        //             "exchange", // WALLET Sending wallet
+        //             1, // AMOUNT Amount of Withdrawal less fee
+        //             null, // PLACEHOLDER
+        //             null, // PLACEHOLDER
+        //             0.0004, // WITHDRAWAL_FEE Fee on withdrawal
+        //         ],
+        //         null, // CODE null or integer Work in progress
+        //         "SUCCESS", // STATUS Status of the notification, it may vary over time SUCCESS, ERROR, FAILURE
+        //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
+        //     ]
+        //
+        const text = this.safeString (response, 7);
+        if (text !== 'success') {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], text, text);
+        }
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'address': address,
+        });
     }
 
     nonce () {

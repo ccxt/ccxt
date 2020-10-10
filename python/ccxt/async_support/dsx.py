@@ -34,31 +34,38 @@ class dsx(Exchange):
             'rateLimit': 1500,
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'createMarketOrder': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
-                'fetchOrderBooks': False,
                 'createDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': False,
                 'fetchDepositAddress': True,
-                'fetchTransactions': True,
-                'fetchTickers': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTransactions': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/76909626-cb2bb100-68bc-11ea-99e0-28ba54f04792.jpg',
                 'api': {
-                    'public': 'https://dsx.uk/mapi',  # market data
-                    'private': 'https://dsx.uk/tapi',  # trading
-                    'dwapi': 'https://dsx.uk/dwapi',  # deposit/withdraw
+                    'public': 'https://dsxglobal.com/mapi',  # market data
+                    'private': 'https://dsxglobal.com/tapi',  # trading
+                    'dwapi': 'https://dsxglobal.com/dwapi',  # deposit/withdraw
                 },
-                'www': 'https://dsx.uk',
+                'www': 'https://dsxglobal.com',
                 'doc': [
-                    'https://dsx.uk/developers/publicApi',
+                    'https://dsxglobal.com/developers/publicApi',
                 ],
             },
             'fees': {
@@ -135,6 +142,7 @@ class dsx(Exchange):
                     'data unavailable': ExchangeNotAvailable,
                     'external service unavailable': ExchangeNotAvailable,
                     'nonce is invalid': InvalidNonce,  # {"success":0,"error":"Parameter: nonce is invalid"}
+                    'Incorrect volume': InvalidOrder,  # {"success": 0,"error":"Order was rejected. Incorrect volume."}
                 },
             },
             'options': {
@@ -520,7 +528,7 @@ class dsx(Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         tickers = await self.fetch_tickers([symbol], params)
@@ -541,7 +549,7 @@ class dsx(Exchange):
                 return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         #     {
         #         "high" : 0.01955,
@@ -780,6 +788,7 @@ class dsx(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -908,8 +917,6 @@ class dsx(Exchange):
             'orderId': id,
         }
         response = await self.privatePostOrderCancel(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
         return response
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -1107,7 +1114,7 @@ class dsx(Exchange):
             body = self.urlencode(self.extend({
                 'nonce': nonce,
             }, query))
-            signature = self.decode(self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64'))
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,

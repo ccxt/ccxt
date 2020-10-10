@@ -232,10 +232,10 @@ class oceanex(Exchange):
         for i in range(0, len(data)):
             ticker = data[i]
             marketId = self.safe_string(ticker, 'market')
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, data, market=None):
         #
@@ -347,8 +347,7 @@ class oceanex(Exchange):
         for i in range(0, len(data)):
             orderbook = data[i]
             marketId = self.safe_string(orderbook, 'market')
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId)
             timestamp = self.safe_timestamp(orderbook, 'timestamp')
             result[symbol] = self.parse_order_book(orderbook, timestamp)
         return result
@@ -371,17 +370,8 @@ class oceanex(Exchange):
             side = 'buy'
         elif side == 'ask':
             side = 'sell'
-        symbol = None
         marketId = self.safe_value(trade, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = marketId
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(trade, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
@@ -417,9 +407,7 @@ class oceanex(Exchange):
             maker = self.safe_value(group, 'ask_fee', {})
             taker = self.safe_value(group, 'bid_fee', {})
             marketId = self.safe_string(group, 'market')
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                symbol = self.markets_by_id[marketId]['symbol']
+            symbol = self.safe_symbol(marketId)
             result[symbol] = {
                 'info': group,
                 'symbol': symbol,
@@ -520,24 +508,33 @@ class oceanex(Exchange):
         return result
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "created_at": "2019-01-18T00:38:18Z",
+        #         "trades_count": 0,
+        #         "remaining_volume": "0.2",
+        #         "price": "1001.0",
+        #         "created_on": "1547771898",
+        #         "side": "buy",
+        #         "volume": "0.2",
+        #         "state": "wait",
+        #         "ord_type": "limit",
+        #         "avg_price": "0.0",
+        #         "executed_volume": "0.0",
+        #         "id": 473797,
+        #         "market": "veteth"
+        #     }
+        #
         status = self.parse_order_status(self.safe_value(order, 'state'))
-        marketId = self.safe_value_2(order, 'market', 'market_id')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = marketId
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        marketId = self.safe_string_2(order, 'market', 'market_id')
+        symbol = self.safe_symbol(marketId)
         timestamp = self.safe_timestamp(order, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         return {
             'info': order,
             'id': self.safe_string(order, 'id'),
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

@@ -15,8 +15,15 @@ module.exports = class coingi extends Exchange {
             'rateLimit': 1000,
             'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'referral': 'https://www.coingi.com/?r=XTPPMC',
@@ -226,7 +233,7 @@ module.exports = class coingi extends Exchange {
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -250,13 +257,7 @@ module.exports = class coingi extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const id = this.safeString (trade, 'id');
         const marketId = this.safeString (trade, 'currencyPair');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         return {
             'id': id,
             'info': trade,

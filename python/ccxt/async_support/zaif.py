@@ -20,10 +20,17 @@ class zaif(Exchange):
             'rateLimit': 2000,
             'version': '1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchOpenOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -246,13 +253,8 @@ class zaif(Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        if market is None:
-            marketId = self.safe_string(trade, 'currency_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'currency_pair')
+        symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
             'info': trade,
@@ -306,13 +308,21 @@ class zaif(Exchange):
         return await self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "currency_pair": "btc_jpy",
+        #         "action": "ask",
+        #         "amount": 0.03,
+        #         "price": 56000,
+        #         "timestamp": 1402021125,
+        #         "comment" : "demo"
+        #     }
+        #
         side = self.safe_string(order, 'action')
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(order, 'timestamp')
-        if not market:
-            marketId = self.safe_string(order, 'currency_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'currency_pair')
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         cost = None
@@ -320,11 +330,9 @@ class zaif(Exchange):
             if amount is not None:
                 cost = price * amount
         id = self.safe_string(order, 'id')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         return {
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -339,6 +347,8 @@ class zaif(Exchange):
             'remaining': None,
             'trades': None,
             'fee': None,
+            'info': order,
+            'average': None,
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):

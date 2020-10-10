@@ -17,7 +17,7 @@ module.exports = class coss extends Exchange {
             'version': 'v1',
             'certified': false,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -331,14 +331,24 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1545138960000,
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.02705000",
+        //         "0.00000000"
+        //     ]
+        //
         return [
-            parseInt (ohlcv[0]),   // timestamp
-            parseFloat (ohlcv[1]), // Open
-            parseFloat (ohlcv[2]), // High
-            parseFloat (ohlcv[3]), // Low
-            parseFloat (ohlcv[4]), // Close
-            parseFloat (ohlcv[5]), // base Volume
+            this.safeInteger (ohlcv, 0),   // timestamp
+            this.safeFloat (ohlcv, 1), // Open
+            this.safeFloat (ohlcv, 2), // High
+            this.safeFloat (ohlcv, 3), // Low
+            this.safeFloat (ohlcv, 4), // Close
+            this.safeFloat (ohlcv, 5), // base Volume
         ];
     }
 
@@ -351,25 +361,25 @@ module.exports = class coss extends Exchange {
         };
         const response = await this.engineGetCs (this.extend (request, params));
         //
-        //     {       tt:   "1m",
-        //         symbol:   "ETH_BTC",
-        //       nextTime:    1545138960000,
-        //         series: [ [  1545138960000,
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.02705000",
-        //                     "0.00000000"    ],
-        //                   ...
-        //                   [  1545168900000,
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.02684000",
-        //                     "0.00000000"    ]  ],
-        //          limit:    500                    }
+        //     {
+        //         tt: "1m",
+        //         symbol: "ETH_BTC",
+        //         nextTime: 1545138960000,
+        //         series: [
+        //             [
+        //                 1545138960000,
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.02705000",
+        //                 "0.00000000"
+        //             ],
+        //         ],
+        //         limit: 500
+        //     }
         //
-        return this.parseOHLCVs (response['series'], market, timeframe, since, limit);
+        const series = this.safeValue (response, 'series', []);
+        return this.parseOHLCVs (series, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -411,23 +421,11 @@ module.exports = class coss extends Exchange {
         //           PrevDay:  0.000636                   }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
-        let symbol = undefined;
         let marketId = this.safeString (ticker, 'MarketName');
         if (marketId !== undefined) {
             marketId = marketId.replace ('-', '_');
         }
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market === undefined) {
-            if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const previous = this.safeFloat (ticker, 'PrevDay');
         const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
@@ -511,7 +509,7 @@ module.exports = class coss extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -594,19 +592,8 @@ module.exports = class coss extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const orderId = this.safeString (trade, 'order_id');
         const side = this.safeStringLower (trade, 'order_side');
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            market = this.safeValue (this.markets_by_id, marketId, market);
-            if (market === undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        } else if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat2 (trade, 'qty', 'quantity');
@@ -793,26 +780,11 @@ module.exports = class coss extends Exchange {
         //                total: "0.00659000 ETH"                        }
         //
         const id = this.safeString (order, 'order_id');
-        let symbol = undefined;
         let marketId = this.safeString (order, 'order_symbol');
-        if (marketId === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        } else {
-            // a minor workaround for lowercase eth-btc symbols
-            marketId = marketId.toUpperCase ();
+        if (marketId !== undefined) {
             marketId = marketId.replace ('-', '_');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-            if (market === undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = market['symbol'];
-            }
         }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeInteger (order, 'createTime');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeFloat (order, 'order_price');
@@ -833,6 +805,7 @@ module.exports = class coss extends Exchange {
         return {
             'info': order,
             'id': id,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,

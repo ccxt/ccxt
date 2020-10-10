@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -33,18 +32,25 @@ class fcoin(Exchange):
             'accountsById': None,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingLimits': False,
                 'withdraw': False,
-                'fetchCurrencies': False,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -432,6 +438,16 @@ class fcoin(Exchange):
             'fee': fee,
         }
 
+    def fetch_time(self, params={}):
+        response = self.publicGetServerTime(params)
+        #
+        #     {
+        #         "status": 0,
+        #         "data": 1523430502977
+        #     }
+        #
+        return self.safe_integer(response, 'data')
+
     def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -494,6 +510,22 @@ class fcoin(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": "string",
+        #         "symbol": "string",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "string",
+        #         "amount": "string",
+        #         "state": "submitted",
+        #         "executed_value": "string",
+        #         "fill_fees": "string",
+        #         "filled_amount": "string",
+        #         "created_at": 0,
+        #         "source": "web"
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -533,6 +565,7 @@ class fcoin(Exchange):
         return {
             'info': order,
             'id': id,
+            'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -583,7 +616,7 @@ class fcoin(Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'id'),
             self.safe_float(ohlcv, 'open'),
@@ -608,7 +641,8 @@ class fcoin(Exchange):
             timerange = limit * self.parse_timeframe(timeframe)
             request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -639,9 +673,9 @@ class fcoin(Exchange):
                 if query:
                     body = self.json(query)
                     auth += self.urlencode(query)
-            payload = base64.b64encode(self.encode(auth))
+            payload = self.string_to_base64(auth)
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha1, 'binary')
-            signature = self.decode(base64.b64encode(signature))
+            signature = self.decode(self.string_to_base64(signature))
             headers = {
                 'FC-ACCESS-KEY': self.apiKey,
                 'FC-ACCESS-SIGNATURE': signature,
