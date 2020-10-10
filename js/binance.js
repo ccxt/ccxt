@@ -229,7 +229,8 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         const marketId = this.safeString (message, 's');
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const orderbook = this.safeValue (this.orderbooks, symbol);
@@ -412,7 +413,8 @@ module.exports = class binance extends ccxt.binance {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
