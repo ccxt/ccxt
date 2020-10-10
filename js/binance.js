@@ -229,14 +229,7 @@ module.exports = class binance extends ccxt.binance {
         //     }
         //
         const marketId = this.safeString (message, 's');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketID);
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
         const orderbook = this.safeValue (this.orderbooks, symbol);
@@ -389,14 +382,8 @@ module.exports = class binance extends ccxt.binance {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        let symbol = undefined;
         const marketId = this.safeString (trade, 's');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         let side = undefined;
         let takerOrMaker = undefined;
         const orderId = undefined;
@@ -425,12 +412,7 @@ module.exports = class binance extends ccxt.binance {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
-        let market = undefined;
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
@@ -499,11 +481,7 @@ module.exports = class binance extends ccxt.binance {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -584,12 +562,8 @@ module.exports = class binance extends ccxt.binance {
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
         const timestamp = this.safeInteger (message, 'C');
-        let symbol = undefined;
         const marketId = this.safeString (message, 's');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const last = this.safeFloat (message, 'c');
         const result = {
             'symbol': symbol,
@@ -736,11 +710,7 @@ module.exports = class binance extends ccxt.binance {
         const messageHash = this.safeString (message, 'e');
         const orderId = this.safeString (message, 'i');
         const marketId = this.safeString (message, 's');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (message, 'O');
         const lastTradeTimestamp = this.safeString (message, 'T');
         const feeAmount = this.safeFloat (message, 'n');
