@@ -382,16 +382,6 @@ module.exports = class coinfalcon extends Exchange {
         return this.parseOrder (data);
     }
 
-    filterOrdersByStatus (orders, status) {
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === status) {
-                result.push (orders[i]);
-            }
-        }
-        return result;
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -407,7 +397,7 @@ module.exports = class coinfalcon extends Exchange {
         const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const orders = this.parseOrders (data, market, since, limit);
-        return this.filterOrdersByStatus (orders, 'open');
+        return this.filterBy (orders, 'status', 'open');
     }
 
     nonce () {
