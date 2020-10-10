@@ -148,11 +148,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         seq = self.safe_string(trade, 2)
         parts = seq.split('-')
         marketId = self.safe_string(parts, 1)
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         takerOrMaker = None
         orderId = None
         return {
@@ -189,8 +185,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #
         timestamp = self.milliseconds()
         marketId = self.safe_string(subscription, 'pair')
-        market = self.markets_by_id[marketId]
-        symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         channel = 'ticker'
         messageHash = channel + ':' + marketId
         last = self.safe_float(message, 7)
@@ -267,8 +262,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #     ]
         #
         marketId = self.safe_string(subscription, 'pair')
-        market = self.markets_by_id[marketId]
-        symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         channel = 'book'
         messageHash = channel + ':' + marketId
         prec = self.safe_string(subscription, 'prec', 'P0')
@@ -492,12 +486,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         #     0]
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 1)
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        else:
-            symbol = marketId
+        symbol = self.safe_symbol(marketId)
         amount = self.safe_float(order, 2)
         remaining = self.safe_float(order, 3)
         side = 'buy'

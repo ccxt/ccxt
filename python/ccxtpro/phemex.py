@@ -227,8 +227,11 @@ class phemex(Exchange, ccxt.phemex):
                 for i in range(0, len(ohlcvs)):
                     candle = ohlcvs[i]
                     length = len(stored)
-                    if length and (candle[0] == stored[length - 1][0]):
-                        stored[length - 1] = candle
+                    if length:
+                        if candle[0] == stored[length - 1][0]:
+                            stored[length - 1] = candle
+                        elif candle[0] > stored[length - 1][0]:
+                            stored.append(candle)
                     else:
                         stored.append(candle)
                 client.resolve(stored, messageHash)
