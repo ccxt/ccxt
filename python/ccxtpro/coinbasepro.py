@@ -147,18 +147,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         type = self.safe_string(ticker, 'type')
         if type is None:
             return super(coinbasepro, self).parse_ticker(ticker, market)
-        symbol = None
         marketId = self.safe_string(ticker, 'product_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         last = self.safe_float(ticker, 'price')
         return {
