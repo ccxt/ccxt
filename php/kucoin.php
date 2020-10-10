@@ -389,14 +389,7 @@ class kucoin extends \ccxt\kucoin {
         $messageHash = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'symbol');
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, null, '-');
         $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] === null) {
             $subscription = $this->safe_value($client->subscriptions, $messageHash);
