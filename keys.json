@@ -9,6 +9,7 @@
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
     "coinmarketcap": { "skip": true },
+    "coss":          { "skip": true },
     "digifinex":     { "skip": true },
     "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
