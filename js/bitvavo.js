@@ -84,14 +84,12 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
-            if (marketId in this.markets_by_id) {
-                const messageHash = event + '@' + marketId;
-                const market = this.markets_by_id[marketId];
-                const ticker = this.parseTicker (data, market);
-                const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                client.resolve (ticker, messageHash);
-            }
+            const market = this.safeMarket (marketId, undefined, '-');
+            const messageHash = event + '@' + marketId;
+            const ticker = this.parseTicker (data, market);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, messageHash);
         }
         return message;
     }
@@ -114,12 +112,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //     }
         //
         const marketId = this.safeString (message, 'market');
-        let market = undefined;
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
         const name = 'trades';
         const messageHash = name + '@' + marketId;
         const trade = this.parseTrade (message, market);
@@ -176,12 +170,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //
         const name = 'candles';
         const marketId = this.safeString (message, 'market');
-        let symbol = undefined;
-        let market = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
         const interval = this.safeString (message, 'interval');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
@@ -289,14 +279,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //
         const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'market');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
         const messageHash = event + '@' + market['id'];
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -539,10 +523,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'market');
         const messageHash = name + '@' + marketId + '_' + event;
-        let market = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const market = this.safeMarket (marketId, undefined, '-');
         const trade = this.parseTrade (message, market);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
