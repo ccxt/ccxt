@@ -307,10 +307,10 @@ module.exports = class coinfalcon extends Exchange {
         let cost = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
-                remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+                remaining = Math.max (0, amount - filled);
             }
             if (price !== undefined) {
-                cost = parseFloat (this.priceToPrecision (symbol, filled * price));
+                cost = filled * price;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
