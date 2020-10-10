@@ -237,8 +237,8 @@ class bytetrade extends Exchange {
             $quote = $this->safe_string($market, 'quoteName');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $normalBase = explode('@', $base)[0];
-            $normalQuote = explode('@', $quote)[0];
+            $normalBase = explode('@' . $baseId, $base)[0];
+            $normalQuote = explode('@' . $quoteId, $quote)[0];
             if ($quoteId === '126') {
                 $normalQuote = 'ZAR'; // The $id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
             }
