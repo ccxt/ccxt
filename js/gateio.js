@@ -371,7 +371,7 @@ module.exports = class gateio extends ccxt.gateio {
             const authenticateMessage = {
                 'id': requestId,
                 'method': method,
-                'params': [ this.apiKey, this.decode (signature), requestId ],
+                'params': [ this.apiKey, signature, requestId ],
             };
             const subscribe = {
                 'id': requestId,
