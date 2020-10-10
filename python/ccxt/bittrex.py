@@ -760,8 +760,7 @@ class bittrex(Exchange):
             market = self.market(symbol)
             request['marketSymbol'] = market['id']
         response = self.privateGetOrdersOpen(self.extend(request, params))
-        orders = self.parse_orders(response, market, since, limit)
-        return self.filter_by_symbol(orders, symbol)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1156,10 +1155,7 @@ class bittrex(Exchange):
         response = self.privateGetOrdersClosed(self.extend(request, params))
         orders = self.parse_orders(response, market)
         trades = self.orders_to_trades(orders)
-        if symbol is not None:
-            return self.filter_by_since_limit(trades, since, limit)
-        else:
-            return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1180,10 +1176,7 @@ class bittrex(Exchange):
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
         response = self.privateGetOrdersClosed(self.extend(request, params))
-        orders = self.parse_orders(response, market, since, limit)
-        if symbol is not None:
-            return self.filter_by_symbol(orders, symbol)
-        return orders
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
