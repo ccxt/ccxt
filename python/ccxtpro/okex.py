@@ -332,7 +332,7 @@ class okex(Exchange, ccxt.okex):
                     self.apiKey,
                     self.password,
                     timestamp,
-                    self.decode(signature),
+                    signature,
                 ],
             }
             self.spawn(self.watch, url, messageHash, request, messageHash, future)

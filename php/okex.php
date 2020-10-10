@@ -359,7 +359,7 @@ class okex extends \ccxt\okex {
                     $this->apiKey,
                     $this->password,
                     $timestamp,
-                    $this->decode($signature),
+                    $signature,
                 ),
             );
             $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
