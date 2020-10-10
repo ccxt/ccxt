@@ -214,12 +214,8 @@ class binance(Exchange, ccxt.binance):
         #     }
         #
         marketId = self.safe_string(message, 's')
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -353,12 +349,8 @@ class binance(Exchange, ccxt.binance):
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
-        symbol = None
         marketId = self.safe_string(trade, 's')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         side = None
         takerOrMaker = None
         orderId = None
@@ -385,11 +377,8 @@ class binance(Exchange, ccxt.binance):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
         marketId = self.safe_string(message, 's')
-        market = None
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
         lowerCaseId = self.safe_string_lower(message, 's')
         event = self.safe_string(message, 'e')
         messageHash = lowerCaseId + '@' + event
@@ -455,10 +444,7 @@ class binance(Exchange, ccxt.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
@@ -534,11 +520,8 @@ class binance(Exchange, ccxt.binance):
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
         timestamp = self.safe_integer(message, 'C')
-        symbol = None
         marketId = self.safe_string(message, 's')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         last = self.safe_float(message, 'c')
         result = {
             'symbol': symbol,
@@ -677,10 +660,7 @@ class binance(Exchange, ccxt.binance):
         messageHash = self.safe_string(message, 'e')
         orderId = self.safe_string(message, 'i')
         marketId = self.safe_string(message, 's')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(message, 'O')
         lastTradeTimestamp = self.safe_string(message, 'T')
         feeAmount = self.safe_float(message, 'n')
