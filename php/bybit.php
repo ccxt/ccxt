@@ -815,7 +815,7 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $amount = $this->safe_float_2($trade, 'qty', 'exec_qty');
         $cost = $this->safe_float($trade, 'exec_value');
-        $price = $this->safe_float_2($trade, 'price', 'exec_price');
+        $price = $this->safe_float_2($trade, 'exec_price', 'price');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];

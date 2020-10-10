@@ -800,7 +800,7 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         amount = self.safe_float_2(trade, 'qty', 'exec_qty')
         cost = self.safe_float(trade, 'exec_value')
-        price = self.safe_float_2(trade, 'price', 'exec_price')
+        price = self.safe_float_2(trade, 'exec_price', 'price')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
