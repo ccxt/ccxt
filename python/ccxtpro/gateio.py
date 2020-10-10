@@ -353,7 +353,7 @@ class gateio(Exchange, ccxt.gateio):
             authenticateMessage = {
                 'id': requestId,
                 'method': method,
-                'params': [self.apiKey, self.decode(signature), requestId],
+                'params': [self.apiKey, signature, requestId],
             }
             subscribe = {
                 'id': requestId,

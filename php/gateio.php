@@ -375,7 +375,7 @@ class gateio extends \ccxt\gateio {
             $authenticateMessage = array(
                 'id' => $requestId,
                 'method' => $method,
-                'params' => array( $this->apiKey, $this->decode($signature), $requestId ),
+                'params' => array( $this->apiKey, $signature, $requestId ),
             );
             $subscribe = array(
                 'id' => $requestId,
