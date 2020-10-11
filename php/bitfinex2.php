@@ -26,22 +26,23 @@ class bitfinex2 extends bitfinex {
             'has' => array(
                 'CORS' => false,
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'cancelOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
-                'fetchDepositAddress' => true,
+                'fetchClosedOrder' => true,
                 'fetchClosedOrders' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => false,
-                'fetchOpenOrder' => true,
-                'fetchClosedOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
@@ -100,6 +101,7 @@ class bitfinex2 extends bitfinex {
                         'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
@@ -329,6 +331,8 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_markets($params = array ()) {
+        // todo drop v1 in favor of v2 configs
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
         $response = $this->v1GetSymbolsDetails ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -382,6 +386,155 @@ class bitfinex2 extends bitfinex {
                 'swap' => false,
                 'spot' => false,
                 'futures' => false,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $labels = array(
+            'pub:list:currency',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745
+        );
+        $config = implode(',', $labels);
+        $request = array(
+            'config' => $config,
+        );
+        $response = $this->publicGetConfConfig (array_merge($request, $params));
+        //
+        //     [
+        //
+        //         a list of symbols
+        //         ["AAA","ABS","ADA"],
+        //
+        //         // sym
+        //         // maps symbols to their API symbols, BAB > BCH
+        //         array(
+        //             array( 'BAB', 'BCH' ),
+        //             array( 'CNHT', 'CNHt' ),
+        //             array( 'DSH', 'DASH' ),
+        //             array( 'IOT', 'IOTA' ),
+        //             array( 'LES', 'LEO-EOS' ),
+        //             array( 'LET', 'LEO-ERC20' ),
+        //             array( 'STJ', 'STORJ' ),
+        //             array( 'TSD', 'TUSD' ),
+        //             array( 'UDC', 'USDC' ),
+        //             array( 'USK', 'USDK' ),
+        //             array( 'UST', 'USDt' ),
+        //             array( 'USTF0', 'USDt0' ),
+        //             array( 'XCH', 'XCHF' ),
+        //             array( 'YYW', 'YOYOW' ),
+        //             // ...
+        //         ),
+        //         // $label
+        //         // verbose friendly names, BNT > Bancor
+        //         array(
+        //             array( 'BAB', 'Bitcoin Cash' ),
+        //             array( 'BCH', 'Bitcoin Cash' ),
+        //             array( 'LEO', 'Unus Sed LEO' ),
+        //             array( 'LES', 'Unus Sed LEO (EOS)' ),
+        //             array( 'LET', 'Unus Sed LEO (ERC20)' ),
+        //             // ...
+        //         ),
+        //         // unit
+        //         // maps symbols to unit of measure where applicable
+        //         array(
+        //             array( 'IOT', 'Mi|MegaIOTA' ),
+        //         ),
+        //         // undl
+        //         // maps derivatives symbols to their underlying currency
+        //         array(
+        //             array( 'USTF0', 'UST' ),
+        //             array( 'BTCF0', 'BTC' ),
+        //             array( 'ETHF0', 'ETH' ),
+        //         ),
+        //         // $pool
+        //         // maps symbols to underlying network/protocol they operate on
+        //         array(
+        //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( 'EDO', 'ETH' ),
+        //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( 'MTO', 'EOS' ),
+        //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( 'VLD', 'ETH' ),
+        //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( 'GNO', 'ETH' ),
+        //             // ...
+        //         ),
+        //         // explorer
+        //         // maps symbols to their recognised block explorer URLs
+        //         array(
+        //             array(
+        //                 'AIO',
+        //                 array(
+        //                     "https://mainnet.aion.network",
+        //                     "https://mainnet.aion.network/#/account/VAL",
+        //                     "https://mainnet.aion.network/#/transaction/VAL"
+        //                 )
+        //             ),
+        //             // ...
+        //         ),
+        //         // $fee
+        //         // maps currencies to their withdrawal $fees
+        //         [
+        //             ["AAA",[0,0]],
+        //             ["ABS",[0,131.3]],
+        //             ["ADA",[0,0.3]],
+        //         ],
+        //     ]
+        //
+        $indexed = array(
+            'sym' => $this->index_by($this->safe_value($response, 1, array()), 0),
+            'label' => $this->index_by($this->safe_value($response, 2, array()), 0),
+            'unit' => $this->index_by($this->safe_value($response, 3, array()), 0),
+            'undl' => $this->index_by($this->safe_value($response, 4, array()), 0),
+            'pool' => $this->index_by($this->safe_value($response, 5, array()), 0),
+            'explorer' => $this->index_by($this->safe_value($response, 6, array()), 0),
+            'fees' => $this->index_by($this->safe_value($response, 7, array()), 0),
+        );
+        $ids = $this->safe_value($response, 0, array());
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->safe_currency_code($id);
+            $label = $this->safe_value($indexed['label'], $id, array());
+            $name = $this->safe_string($label, 1);
+            $pool = $this->safe_value($indexed['pool'], $id, array());
+            $type = $this->safe_string($pool, 1);
+            $feeValues = $this->safe_value($indexed['fees'], $id, array());
+            $fees = $this->safe_value($feeValues, 1, array());
+            $fee = $this->safe_float($fees, 1);
+            $precision = 8; // default $precision, todo => fix "magic constants"
+            $id = 'f' . $id;
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'info' => array( $id, $label, $pool, $feeValues ),
+                'type' => $type,
+                'name' => $name,
+                'active' => true,
+                'fee' => $fee,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => 1 / pow(10, $precision),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => 1 / pow(10, $precision),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $fee,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;

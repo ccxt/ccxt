@@ -33,22 +33,23 @@ class bitfinex2(bitfinex):
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'cancelOrder': True,
                 'deposit': False,
                 'editOrder': False,
-                'fetchDepositAddress': True,
+                'fetchClosedOrder': True,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchFundingFees': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': False,
-                'fetchOpenOrder': True,
-                'fetchClosedOrder': True,
                 'fetchOrderTrades': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
@@ -107,6 +108,7 @@ class bitfinex2(bitfinex):
                         'conf/pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
@@ -332,6 +334,8 @@ class bitfinex2(bitfinex):
         return self.status
 
     async def fetch_markets(self, params={}):
+        # todo drop v1 in favor of v2 configs
+        # pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
         response = await self.v1GetSymbolsDetails(params)
         result = []
         for i in range(0, len(response)):
@@ -385,6 +389,153 @@ class bitfinex2(bitfinex):
                 'spot': False,
                 'futures': False,
             })
+        return result
+
+    async def fetch_currencies(self, params={}):
+        labels = [
+            'pub:list:currency',
+            'pub:map:currency:sym',  # maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label',  # verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit',  # maps symbols to unit of measure where applicable
+            'pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+        ]
+        config = ','.join(labels)
+        request = {
+            'config': config,
+        }
+        response = await self.publicGetConfConfig(self.extend(request, params))
+        #
+        #     [
+        #
+        #         a list of symbols
+        #         ["AAA","ABS","ADA"],
+        #
+        #         # sym
+        #         # maps symbols to their API symbols, BAB > BCH
+        #         [
+        #             ['BAB', 'BCH'],
+        #             ['CNHT', 'CNHt'],
+        #             ['DSH', 'DASH'],
+        #             ['IOT', 'IOTA'],
+        #             ['LES', 'LEO-EOS'],
+        #             ['LET', 'LEO-ERC20'],
+        #             ['STJ', 'STORJ'],
+        #             ['TSD', 'TUSD'],
+        #             ['UDC', 'USDC'],
+        #             ['USK', 'USDK'],
+        #             ['UST', 'USDt'],
+        #             ['USTF0', 'USDt0'],
+        #             ['XCH', 'XCHF'],
+        #             ['YYW', 'YOYOW'],
+        #             # ...
+        #         ],
+        #         # label
+        #         # verbose friendly names, BNT > Bancor
+        #         [
+        #             ['BAB', 'Bitcoin Cash'],
+        #             ['BCH', 'Bitcoin Cash'],
+        #             ['LEO', 'Unus Sed LEO'],
+        #             ['LES', 'Unus Sed LEO(EOS)'],
+        #             ['LET', 'Unus Sed LEO(ERC20)'],
+        #             # ...
+        #         ],
+        #         # unit
+        #         # maps symbols to unit of measure where applicable
+        #         [
+        #             ['IOT', 'Mi|MegaIOTA'],
+        #         ],
+        #         # undl
+        #         # maps derivatives symbols to their underlying currency
+        #         [
+        #             ['USTF0', 'UST'],
+        #             ['BTCF0', 'BTC'],
+        #             ['ETHF0', 'ETH'],
+        #         ],
+        #         # pool
+        #         # maps symbols to underlying network/protocol they operate on
+        #         [
+        #             ['SAN', 'ETH'], ['OMG', 'ETH'], ['AVT', 'ETH'], ['EDO', 'ETH'],
+        #             ['ESS', 'ETH'], ['ATD', 'EOS'], ['ADD', 'EOS'], ['MTO', 'EOS'],
+        #             ['PNK', 'ETH'], ['BAB', 'BCH'], ['WLO', 'XLM'], ['VLD', 'ETH'],
+        #             ['BTT', 'TRX'], ['IMP', 'ETH'], ['SCR', 'ETH'], ['GNO', 'ETH'],
+        #             # ...
+        #         ],
+        #         # explorer
+        #         # maps symbols to their recognised block explorer URLs
+        #         [
+        #             [
+        #                 'AIO',
+        #                 [
+        #                     "https://mainnet.aion.network",
+        #                     "https://mainnet.aion.network/#/account/VAL",
+        #                     "https://mainnet.aion.network/#/transaction/VAL"
+        #                 ]
+        #             ],
+        #             # ...
+        #         ],
+        #         # fee
+        #         # maps currencies to their withdrawal fees
+        #         [
+        #             ["AAA",[0,0]],
+        #             ["ABS",[0,131.3]],
+        #             ["ADA",[0,0.3]],
+        #         ],
+        #     ]
+        #
+        indexed = {
+            'sym': self.index_by(self.safe_value(response, 1, []), 0),
+            'label': self.index_by(self.safe_value(response, 2, []), 0),
+            'unit': self.index_by(self.safe_value(response, 3, []), 0),
+            'undl': self.index_by(self.safe_value(response, 4, []), 0),
+            'pool': self.index_by(self.safe_value(response, 5, []), 0),
+            'explorer': self.index_by(self.safe_value(response, 6, []), 0),
+            'fees': self.index_by(self.safe_value(response, 7, []), 0),
+        }
+        ids = self.safe_value(response, 0, [])
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            label = self.safe_value(indexed['label'], id, [])
+            name = self.safe_string(label, 1)
+            pool = self.safe_value(indexed['pool'], id, [])
+            type = self.safe_string(pool, 1)
+            feeValues = self.safe_value(indexed['fees'], id, [])
+            fees = self.safe_value(feeValues, 1, [])
+            fee = self.safe_float(fees, 1)
+            precision = 8  # default precision, todo: fix "magic constants"
+            id = 'f' + id
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': [id, label, pool, feeValues],
+                'type': type,
+                'name': name,
+                'active': True,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': 1 / math.pow(10, precision),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': 1 / math.pow(10, precision),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': None,
+                    },
+                },
+            }
         return result
 
     async def fetch_balance(self, params={}):
