@@ -4,17 +4,26 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
@@ -206,6 +215,11 @@ class livecoin(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetInfoCoinInfo(params)
+        if isinstance(response, basestring):
+            if response.find('site is under maintenance') >= 0:
+                raise OnMaintenance(self.id + ' fetchCurrencies() failed to fetch the currencies, the exchange is on maintenance')
+            else:
+                raise BadResponse(self.id + ' fetchCurrencies() failed to fetch the currencies')
         currencies = self.safe_value(response, 'info')
         result = {}
         for i in range(0, len(currencies)):

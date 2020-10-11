@@ -319,6 +319,14 @@ class indodax(Exchange):
         response = await self.publicGetPairTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -333,11 +341,7 @@ class indodax(Exchange):
         side = None
         if 'type' in order:
             side = order['type']
-        status = self.safe_string(order, 'status', 'open')
-        if status == 'filled':
-            status = 'closed'
-        elif status == 'cancelled':
-            status = 'canceled'
+        status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
         price = self.safe_float(order, 'price')

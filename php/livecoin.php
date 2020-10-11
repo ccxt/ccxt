@@ -8,9 +8,11 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadResponse;
 use \ccxt\InsufficientFunds;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
+use \ccxt\OnMaintenance;
 
 class livecoin extends Exchange {
 
@@ -203,6 +205,13 @@ class livecoin extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetInfoCoinInfo ($params);
+        if (gettype($response) === 'string') {
+            if (mb_strpos($response, 'site is under maintenance') !== false) {
+                throw new OnMaintenance($this->id . ' fetchCurrencies() failed to fetch the $currencies, the exchange is on maintenance');
+            } else {
+                throw new BadResponse($this->id . ' fetchCurrencies() failed to fetch the currencies');
+            }
+        }
         $currencies = $this->safe_value($response, 'info');
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
