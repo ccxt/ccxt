@@ -20,22 +20,23 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
-                'fetchDepositAddress': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOpenOrder': true,
-                'fetchClosedOrder': true,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
@@ -94,6 +95,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
@@ -323,6 +325,8 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMarkets (params = {}) {
+        // todo drop v1 in favor of v2 configs
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
         const response = await this.v1GetSymbolsDetails (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -377,6 +381,155 @@ module.exports = class bitfinex2 extends bitfinex {
                 'spot': false,
                 'futures': false,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const labels = [
+            'pub:list:currency',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+        ];
+        const config = labels.join (',');
+        const request = {
+            'config': config,
+        };
+        const response = await this.publicGetConfConfig (this.extend (request, params));
+        //
+        //     [
+        //
+        //         a list of symbols
+        //         ["AAA","ABS","ADA"],
+        //
+        //         // sym
+        //         // maps symbols to their API symbols, BAB > BCH
+        //         [
+        //             [ 'BAB', 'BCH' ],
+        //             [ 'CNHT', 'CNHt' ],
+        //             [ 'DSH', 'DASH' ],
+        //             [ 'IOT', 'IOTA' ],
+        //             [ 'LES', 'LEO-EOS' ],
+        //             [ 'LET', 'LEO-ERC20' ],
+        //             [ 'STJ', 'STORJ' ],
+        //             [ 'TSD', 'TUSD' ],
+        //             [ 'UDC', 'USDC' ],
+        //             [ 'USK', 'USDK' ],
+        //             [ 'UST', 'USDt' ],
+        //             [ 'USTF0', 'USDt0' ],
+        //             [ 'XCH', 'XCHF' ],
+        //             [ 'YYW', 'YOYOW' ],
+        //             // ...
+        //         ],
+        //         // label
+        //         // verbose friendly names, BNT > Bancor
+        //         [
+        //             [ 'BAB', 'Bitcoin Cash' ],
+        //             [ 'BCH', 'Bitcoin Cash' ],
+        //             [ 'LEO', 'Unus Sed LEO' ],
+        //             [ 'LES', 'Unus Sed LEO (EOS)' ],
+        //             [ 'LET', 'Unus Sed LEO (ERC20)' ],
+        //             // ...
+        //         ],
+        //         // unit
+        //         // maps symbols to unit of measure where applicable
+        //         [
+        //             [ 'IOT', 'Mi|MegaIOTA' ],
+        //         ],
+        //         // undl
+        //         // maps derivatives symbols to their underlying currency
+        //         [
+        //             [ 'USTF0', 'UST' ],
+        //             [ 'BTCF0', 'BTC' ],
+        //             [ 'ETHF0', 'ETH' ],
+        //         ],
+        //         // pool
+        //         // maps symbols to underlying network/protocol they operate on
+        //         [
+        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ 'EDO', 'ETH' ],
+        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ 'MTO', 'EOS' ],
+        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ 'VLD', 'ETH' ],
+        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ 'GNO', 'ETH' ],
+        //             // ...
+        //         ],
+        //         // explorer
+        //         // maps symbols to their recognised block explorer URLs
+        //         [
+        //             [
+        //                 'AIO',
+        //                 [
+        //                     "https://mainnet.aion.network",
+        //                     "https://mainnet.aion.network/#/account/VAL",
+        //                     "https://mainnet.aion.network/#/transaction/VAL"
+        //                 ]
+        //             ],
+        //             // ...
+        //         ],
+        //         // fee
+        //         // maps currencies to their withdrawal fees
+        //         [
+        //             ["AAA",[0,0]],
+        //             ["ABS",[0,131.3]],
+        //             ["ADA",[0,0.3]],
+        //         ],
+        //     ]
+        //
+        const indexed = {
+            'sym': this.indexBy (this.safeValue (response, 1, []), 0),
+            'label': this.indexBy (this.safeValue (response, 2, []), 0),
+            'unit': this.indexBy (this.safeValue (response, 3, []), 0),
+            'undl': this.indexBy (this.safeValue (response, 4, []), 0),
+            'pool': this.indexBy (this.safeValue (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
+            'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+        };
+        const ids = this.safeValue (response, 0, []);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            const label = this.safeValue (indexed['label'], id, []);
+            const name = this.safeString (label, 1);
+            const pool = this.safeValue (indexed['pool'], id, []);
+            const type = this.safeString (pool, 1);
+            const feeValues = this.safeValue (indexed['fees'], id, []);
+            const fees = this.safeValue (feeValues, 1, []);
+            const fee = this.safeFloat (fees, 1);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            id = 'f' + id;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': [ id, label, pool, feeValues ],
+                'type': type,
+                'name': name,
+                'active': true,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': 1 / Math.pow (10, precision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': 1 / Math.pow (10, precision),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
