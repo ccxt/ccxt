@@ -398,9 +398,8 @@ class coinfalcon extends Exchange {
         // TODO => test status=all if it works for closed $orders too
         $response = $this->privateGetUserOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->parse_orders($data, $market);
-        $orders = $this->filter_by($orders, 'status', 'open');
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        $orders = $this->filter_by_array($data, 'status', array( 'pending', 'open', 'partially_filled' ));
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function nonce() {
