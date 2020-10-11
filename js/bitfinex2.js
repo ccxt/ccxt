@@ -20,22 +20,23 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
-                'fetchDepositAddress': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOpenOrder': true,
-                'fetchClosedOrder': true,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
@@ -94,6 +95,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
@@ -385,12 +387,14 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchCurrencies (params = {}) {
         const labels = [
+            'pub:list:currency',
             'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
             'pub:map:currency:label', // verbose friendly names, BNT > Bancor
             'pub:map:currency:unit', // maps symbols to unit of measure where applicable
             'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
             'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
         ];
         const config = labels.join (',');
         const request = {
@@ -399,18 +403,19 @@ module.exports = class bitfinex2 extends bitfinex {
         const response = await this.publicGetConfConfig (this.extend (request, params));
         //
         //     [
+        //
+        //         a list of symbols
+        //         ["AAA","ABS","ADA"],
+        //
         //         // sym
         //         // maps symbols to their API symbols, BAB > BCH
         //         [
-        //             [ 'ATO', 'ATOM' ],
         //             [ 'BAB', 'BCH' ],
         //             [ 'CNHT', 'CNHt' ],
         //             [ 'DSH', 'DASH' ],
         //             [ 'IOT', 'IOTA' ],
         //             [ 'LES', 'LEO-EOS' ],
         //             [ 'LET', 'LEO-ERC20' ],
-        //             [ 'QTM', 'QTUM' ],
-        //             [ 'SNG', 'SNGLS' ],
         //             [ 'STJ', 'STORJ' ],
         //             [ 'TSD', 'TUSD' ],
         //             [ 'UDC', 'USDC' ],
@@ -465,47 +470,54 @@ module.exports = class bitfinex2 extends bitfinex {
         //             ],
         //             // ...
         //         ],
+        //         // fee
+        //         // maps currencies to their withdrawal fees
+        //         [
+        //             ["AAA",[0,0]],
+        //             ["ABS",[0,131.3]],
+        //             ["ADA",[0,0.3]],
+        //         ],
         //     ]
         //
         const indexed = {
-            'sym': this.indexBy (this.safeValue (response, 0, []), 0),
-            'label': this.indexBy (this.safeValue (response, 1, []), 0),
-            'unit': this.indexBy (this.safeValue (response, 2, []), 0),
-            'undl': this.indexBy (this.safeValue (response, 3, []), 0),
-            'pool': this.indexBy (this.safeValue (response, 4, []), 0),
-            'explorer': this.indexBy (this.safeValue (response, 5, []), 0),
+            'sym': this.indexBy (this.safeValue (response, 1, []), 0),
+            'label': this.indexBy (this.safeValue (response, 2, []), 0),
+            'unit': this.indexBy (this.safeValue (response, 3, []), 0),
+            'undl': this.indexBy (this.safeValue (response, 4, []), 0),
+            'pool': this.indexBy (this.safeValue (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
+            'fees': this.indexBy (this.safeValue (response, 7, []), 0),
         };
-        console.log (indexed);
-        process.exit ();
-        const currencies = this.safeValue (response, 'result', []);
+        const ids = this.safeValue (response, 0, []);
         const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'Currency');
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
             const code = this.safeCurrencyCode (id);
+            const label = this.safeValue (indexed['label'], id, []);
+            const name = this.safeString (label, 1);
+            const pool = this.safeValue (indexed['pool'], id, []);
+            const type = this.safeString (pool, 1);
+            const feeValues = this.safeValue (indexed['fees'], id, []);
+            const fees = this.safeValue (feeValues, 1, []);
+            const fee = this.safeFloat (fees, 1);
             const precision = 8; // default precision, todo: fix "magic constants"
-            const address = this.safeValue (currency, 'BaseAddress');
-            const fee = this.safeFloat (currency, 'TxFee'); // todo: redesign
+            id = 'f' + id;
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': address,
-                'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
+                'info': [ id, label, pool, feeValues ],
+                'type': type,
+                'name': name,
+                'active': true,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
+                        'min': 1 / Math.pow (10, precision),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
+                        'min': 1 / Math.pow (10, precision),
                         'max': undefined,
                     },
                     'cost': {
