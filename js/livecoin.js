@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, OnMaintenance, BadResponse, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -198,6 +198,13 @@ module.exports = class livecoin extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetInfoCoinInfo (params);
+        if (typeof response === 'string') {
+            if (response.indexOf ('site is under maintenance') >= 0) {
+                throw new OnMaintenance (this.id + ' fetchCurrencies() failed to fetch the currencies, the exchange is on maintenance');
+            } else {
+                throw new BadResponse (this.id + ' fetchCurrencies() failed to fetch the currencies');
+            }
+        }
         const currencies = this.safeValue (response, 'info');
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
