@@ -326,6 +326,15 @@ module.exports = class indodax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -341,12 +350,7 @@ module.exports = class indodax extends Exchange {
         if ('type' in order) {
             side = order['type'];
         }
-        let status = this.safeString (order, 'status', 'open');
-        if (status === 'filled') {
-            status = 'closed';
-        } else if (status === 'cancelled') {
-            status = 'canceled';
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol = undefined;
         let cost = undefined;
         const price = this.safeFloat (order, 'price');
