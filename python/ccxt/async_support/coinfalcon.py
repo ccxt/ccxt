@@ -291,9 +291,9 @@ class coinfalcon(Exchange):
         cost = None
         if amount is not None:
             if filled is not None:
-                remaining = float(self.amount_to_precision(symbol, amount - filled))
+                remaining = max(0, amount - filled)
             if price is not None:
-                cost = float(self.price_to_precision(symbol, filled * price))
+                cost = filled * price
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'operation_type')
         if type is not None:
@@ -369,7 +369,8 @@ class coinfalcon(Exchange):
         # TODO: test status=all if it works for closed orders too
         response = await self.privateGetUserOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        return self.parse_orders(data, market, since, limit)
+        orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'])
+        return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()

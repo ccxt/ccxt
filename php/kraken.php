@@ -1150,22 +1150,6 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
-        $result = array();
-        $ids = is_array($orders) ? array_keys($orders) : array();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $order = array_merge(array( 'id' => $id ), $orders[$id]);
-            $result[] = array_merge($this->parse_order($order, $market), $params);
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
-    }
-
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1316,7 +1300,7 @@ class kraken extends Exchange {
             // 'trades' => false, // whether or not to include $trades related to position in output
             // 'start' => 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
-            // 'ofs' = $result offset
+            // 'ofs' = result offset
         );
         if ($since !== null) {
             $request['start'] = intval($since / 1000);
@@ -1325,7 +1309,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error" => array(),
-        //         "$result" => array(
+        //         "result" => array(
         //             "$trades" => array(
         //                 "GJ3NYQ-XJRTF-THZABF" => array(
         //                     "ordertxid" => "TKH2SE-ZIF5E-CFI7LT",
@@ -1352,11 +1336,11 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }
-        $result = $this->parse_trades($trades, null, $since, $limit);
-        if ($symbol === null) {
-            return $result;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
         }
-        return $this->filter_by_symbol($result, $symbol);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1384,11 +1368,13 @@ class kraken extends Exchange {
             $request['start'] = intval($since / 1000);
         }
         $response = $this->privatePostOpenOrders (array_merge($request, $params));
-        $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
-        if ($symbol === null) {
-            return $orders;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
         }
-        return $this->filter_by_symbol($orders, $symbol);
+        $result = $this->safe_value($response, 'result', array());
+        $orders = $this->safe_value($result, 'open', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1398,11 +1384,52 @@ class kraken extends Exchange {
             $request['start'] = intval($since / 1000);
         }
         $response = $this->privatePostClosedOrders (array_merge($request, $params));
-        $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
-        if ($symbol === null) {
-            return $orders;
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":{
+        //             "closed":array(
+        //                 "OETZYO-UL524-QJMXCT":array(
+        //                     "refid":null,
+        //                     "userref":null,
+        //                     "status":"canceled",
+        //                     "reason":"User requested",
+        //                     "opentm":1601489313.3898,
+        //                     "closetm":1601489346.5507,
+        //                     "starttm":0,
+        //                     "expiretm":0,
+        //                     "descr":array(
+        //                         "pair":"ETHUSDT",
+        //                         "type":"buy",
+        //                         "ordertype":"$limit",
+        //                         "price":"330.00",
+        //                         "price2":"0",
+        //                         "leverage":"none",
+        //                         "order":"buy 0.02100000 ETHUSDT @ $limit 330.00",
+        //                         "close":""
+        //                     ),
+        //                     "vol":"0.02100000",
+        //                     "vol_exec":"0.00000000",
+        //                     "cost":"0.00000",
+        //                     "fee":"0.00000",
+        //                     "price":"0.00000",
+        //                     "stopprice":"0.00000",
+        //                     "limitprice":"0.00000",
+        //                     "misc":"",
+        //                     "oflags":"fciq"
+        //                 ),
+        //             ),
+        //             "count":16
+        //         }
+        //     }
+        //
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
         }
-        return $this->filter_by_symbol($orders, $symbol);
+        $result = $this->safe_value($response, 'result', array());
+        $orders = $this->safe_value($result, 'closed', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_deposit_methods($code, $params = array ()) {
@@ -1412,7 +1439,7 @@ class kraken extends Exchange {
             'asset' => $currency['id'],
         );
         $response = $this->privatePostDepositMethods (array_merge($request, $params));
-        return $response['result'];
+        return $this->safe_value($response, 'result');
     }
 
     public function parse_transaction_status($status) {

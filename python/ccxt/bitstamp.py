@@ -1307,16 +1307,10 @@ class bitstamp(Exchange):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            order = self.parse_order(response[i], market)
-            result.append(self.extend(order, {
-                'status': 'open',
-                'type': 'limit',
-            }))
-        if symbol is None:
-            return self.filter_by_since_limit(result, since, limit)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.parse_orders(response, market, since, limit, {
+            'status': 'open',
+            'type': 'limit',
+        })
 
     def get_currency_name(self, code):
         if code == 'BTC':

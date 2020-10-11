@@ -319,6 +319,14 @@ class indodax(Exchange):
         response = await self.publicGetPairTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -333,11 +341,7 @@ class indodax(Exchange):
         side = None
         if 'type' in order:
             side = order['type']
-        status = self.safe_string(order, 'status', 'open')
-        if status == 'filled':
-            status = 'closed'
-        elif status == 'cancelled':
-            status = 'canceled'
+        status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
         price = self.safe_float(order, 'price')
@@ -441,11 +445,9 @@ class indodax(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostOrderHistory(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        orders = self.parse_orders(response['return']['orders'], market)
         orders = self.filter_by(orders, 'status', 'closed')
-        if symbol is not None:
-            return self.filter_by_symbol(orders, symbol)
-        return orders
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -464,9 +466,11 @@ class indodax(Exchange):
             request[market['baseId']] = amount
         request[currency] = amount
         result = await self.privatePostTrade(self.extend(request, params))
+        data = self.safe_value(result, 'return', {})
+        id = self.safe_string(data, 'order_id')
         return {
             'info': result,
-            'id': str(result['return']['order_id']),
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):

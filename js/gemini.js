@@ -702,12 +702,11 @@ module.exports = class gemini extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostV1Orders (params);
-        let orders = this.parseOrders (response, undefined, since, limit);
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol); // throws on non-existent symbol
-            orders = this.filterBySymbol (orders, market['symbol']);
+            market = this.market (symbol); // throws on non-existent symbol
         }
-        return orders;
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

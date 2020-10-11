@@ -1082,19 +1082,6 @@ class kraken(Exchange):
             'trades': trades,
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        result = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
-
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
@@ -1267,10 +1254,10 @@ class kraken(Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
-        result = self.parse_trades(trades, None, since, limit)
-        if symbol is None:
-            return result
-        return self.filter_by_symbol(result, symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(trades, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -1292,10 +1279,12 @@ class kraken(Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['open'], None, since, limit)
-        if symbol is None:
-            return orders
-        return self.filter_by_symbol(orders, symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = self.safe_value(response, 'result', {})
+        orders = self.safe_value(result, 'open', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1303,10 +1292,51 @@ class kraken(Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostClosedOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['closed'], None, since, limit)
-        if symbol is None:
-            return orders
-        return self.filter_by_symbol(orders, symbol)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "closed":{
+        #                 "OETZYO-UL524-QJMXCT":{
+        #                     "refid":null,
+        #                     "userref":null,
+        #                     "status":"canceled",
+        #                     "reason":"User requested",
+        #                     "opentm":1601489313.3898,
+        #                     "closetm":1601489346.5507,
+        #                     "starttm":0,
+        #                     "expiretm":0,
+        #                     "descr":{
+        #                         "pair":"ETHUSDT",
+        #                         "type":"buy",
+        #                         "ordertype":"limit",
+        #                         "price":"330.00",
+        #                         "price2":"0",
+        #                         "leverage":"none",
+        #                         "order":"buy 0.02100000 ETHUSDT @ limit 330.00",
+        #                         "close":""
+        #                     },
+        #                     "vol":"0.02100000",
+        #                     "vol_exec":"0.00000000",
+        #                     "cost":"0.00000",
+        #                     "fee":"0.00000",
+        #                     "price":"0.00000",
+        #                     "stopprice":"0.00000",
+        #                     "limitprice":"0.00000",
+        #                     "misc":"",
+        #                     "oflags":"fciq"
+        #                 },
+        #             },
+        #             "count":16
+        #         }
+        #     }
+        #
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = self.safe_value(response, 'result', {})
+        orders = self.safe_value(result, 'closed', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_deposit_methods(self, code, params={}):
         self.load_markets()
@@ -1315,7 +1345,7 @@ class kraken(Exchange):
             'asset': currency['id'],
         }
         response = self.privatePostDepositMethods(self.extend(request, params))
-        return response['result']
+        return self.safe_value(response, 'result')
 
     def parse_transaction_status(self, status):
         # IFEX transaction states

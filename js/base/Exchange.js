@@ -1141,11 +1141,30 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        // this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (orders)) {
-        //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
-        // }
-        let result = Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params))
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
+        let result = Array.isArray (orders) ?
+            Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params)) :
+            Object.entries (orders).map ((id, order) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)

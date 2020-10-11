@@ -18,7 +18,6 @@ module.exports = class tidex extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -26,7 +25,6 @@ module.exports = class tidex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchOrders': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -520,7 +518,7 @@ module.exports = class tidex extends Exchange {
             remaining = this.safeFloat (response['return'], 'remains', amount);
         }
         const timestamp = this.milliseconds ();
-        const order = {
+        return {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -541,8 +539,6 @@ module.exports = class tidex extends Exchange {
             'average': undefined,
             'trades': undefined,
         };
-        this.orders[id] = order;
-        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -550,11 +546,7 @@ module.exports = class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await this.privatePostCancelOrder (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -591,9 +583,6 @@ module.exports = class tidex extends Exchange {
             remaining = this.safeFloat (order, 'amount');
         } else {
             remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders) {
-                amount = this.orders[id]['amount'];
-            }
         }
         if (amount !== undefined) {
             if (remaining !== undefined) {
@@ -624,21 +613,6 @@ module.exports = class tidex extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        const ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.extend (this.parseOrder (order, market), params));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -646,62 +620,12 @@ module.exports = class tidex extends Exchange {
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
-        const newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        const oldOrder = (id in this.orders) ? this.orders[id] : {};
-        this.orders[id] = this.extend (oldOrder, newOrder);
-        return this.orders[id];
+        const result = this.safeValue (response, 'return', {});
+        const order = this.safeValue (result, id);
+        return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        // this will add unseen orders and overwrite existing ones
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            const cachedOrderId = cachedOrderIds[k];
-            let cachedOrder = this.orders[cachedOrderId];
-            if (!(cachedOrderId in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== cachedOrder['symbol']) {
-                    continue;
-                }
-                // cached order is absent from the list of open orders -> mark the cached order as closed
-                if (cachedOrder['status'] === 'open') {
-                    cachedOrder = this.extend (cachedOrder, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (cachedOrder['cost'] === undefined) {
-                        if (cachedOrder['filled'] !== undefined) {
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
-                        }
-                    }
-                    this.orders[cachedOrderId] = cachedOrder;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options) {
-            if (this.options['fetchOrdersRequiresSymbol']) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
-                }
-            }
-        }
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -712,20 +636,7 @@ module.exports = class tidex extends Exchange {
         const response = await this.privatePostActiveOrders (this.extend (request, params));
         // it can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         const orders = this.safeValue (response, 'return', []);
-        const openOrders = this.parseOrders (orders, market);
-        const allOrders = this.updateCachedOrders (openOrders, symbol);
-        const result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

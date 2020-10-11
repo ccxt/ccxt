@@ -307,10 +307,10 @@ module.exports = class coinfalcon extends Exchange {
         let cost = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
-                remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+                remaining = Math.max (0, amount - filled);
             }
             if (price !== undefined) {
-                cost = parseFloat (this.priceToPrecision (symbol, filled * price));
+                cost = filled * price;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -396,7 +396,8 @@ module.exports = class coinfalcon extends Exchange {
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ]);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {

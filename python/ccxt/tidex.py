@@ -39,7 +39,6 @@ class tidex(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -47,7 +46,6 @@ class tidex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': 'emulated',
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -496,7 +494,7 @@ class tidex(Exchange):
             filled = self.safe_float(response['return'], 'received', 0.0)
             remaining = self.safe_float(response['return'], 'remains', amount)
         timestamp = self.milliseconds()
-        order = {
+        return {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -517,18 +515,13 @@ class tidex(Exchange):
             'average': None,
             'trades': None,
         }
-        self.orders[id] = order
-        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         request = {
             'order_id': int(id),
         }
-        response = self.privatePostCancelOrder(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return response
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -560,8 +553,6 @@ class tidex(Exchange):
             remaining = self.safe_float(order, 'amount')
         else:
             remaining = self.safe_float(order, 'amount')
-            if id in self.orders:
-                amount = self.orders[id]['amount']
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
@@ -588,18 +579,6 @@ class tidex(Exchange):
             'trades': None,
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
-
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         request = {
@@ -607,50 +586,11 @@ class tidex(Exchange):
         }
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
-        newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in self.orders) else {}
-        self.orders[id] = self.extend(oldOrder, newOrder)
-        return self.orders[id]
+        result = self.safe_value(response, 'return', {})
+        order = self.safe_value(result, id)
+        return self.parse_order(self.extend({'id': id}, order))
 
-    def update_cached_orders(self, openOrders, symbol):
-        # update local cache with open orders
-        # self will add unseen orders and overwrite existing ones
-        for j in range(0, len(openOrders)):
-            id = openOrders[j]['id']
-            self.orders[id] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        for k in range(0, len(cachedOrderIds)):
-            # match each cached order to an order in the open orders array
-            # possible reasons why a cached order may be missing in the open orders array:
-            # - order was closed or canceled -> update cache
-            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            cachedOrderId = cachedOrderIds[k]
-            cachedOrder = self.orders[cachedOrderId]
-            if not (cachedOrderId in openOrdersIndexedById):
-                # cached order is not in open orders array
-                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != cachedOrder['symbol']:
-                    continue
-                # cached order is absent from the list of open orders -> mark the cached order as closed
-                if cachedOrder['status'] == 'open':
-                    cachedOrder = self.extend(cachedOrder, {
-                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
-                        'cost': None,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    })
-                    if cachedOrder['cost'] is None:
-                        if cachedOrder['filled'] is not None:
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
-                    self.orders[cachedOrderId] = cachedOrder
-        return self.to_array(self.orders)
-
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if 'fetchOrdersRequiresSymbol' in self.options:
-            if self.options['fetchOrdersRequiresSymbol']:
-                if symbol is None:
-                    raise ArgumentsRequired(self.id + ' fetchOrders requires a `symbol` argument')
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -660,18 +600,7 @@ class tidex(Exchange):
         response = self.privatePostActiveOrders(self.extend(request, params))
         # it can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         orders = self.safe_value(response, 'return', [])
-        openOrders = self.parse_orders(orders, market)
-        allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_by_symbol(allOrders, symbol)
-        return self.filter_by_since_limit(result, since, limit)
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'open')
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.35.85'
+__version__ = '1.36.1'
 
 # -----------------------------------------------------------------------------
 
@@ -1701,8 +1701,11 @@ class Exchange(object):
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        array = self.to_array(orders)
-        array = [self.extend(self.parse_order(order, market), params) for order in array]
+        array = []
+        if isinstance(orders, list):
+            array = [self.extend(self.parse_order(order, market), params) for order in array]
+        else:
+            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in array.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)

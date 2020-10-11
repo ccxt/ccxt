@@ -1404,18 +1404,10 @@ module.exports = class bitstamp extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = this.parseOrder (response[i], market);
-            result.push (this.extend (order, {
-                'status': 'open',
-                'type': 'limit',
-            }));
-        }
-        if (symbol === undefined) {
-            return this.filterBySinceLimit (result, since, limit);
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.parseOrders (response, market, since, limit, {
+            'status': 'open',
+            'type': 'limit',
+        });
     }
 
     getCurrencyName (code) {
