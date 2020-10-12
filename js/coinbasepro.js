@@ -156,21 +156,8 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         if (type === undefined) {
             return super.parseTicker (ticker, market);
         }
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const last = this.safeFloat (ticker, 'price');
         return {

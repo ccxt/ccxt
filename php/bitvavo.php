@@ -88,14 +88,12 @@ class bitvavo extends \ccxt\bitvavo {
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
             $marketId = $this->safe_string($data, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $messageHash = $event . '@' . $marketId;
-                $market = $this->markets_by_id[$marketId];
-                $ticker = $this->parse_ticker($data, $market);
-                $symbol = $ticker['symbol'];
-                $this->tickers[$symbol] = $ticker;
-                $client->resolve ($ticker, $messageHash);
-            }
+            $market = $this->safe_market($marketId, null, '-');
+            $messageHash = $event . '@' . $marketId;
+            $ticker = $this->parse_ticker($data, $market);
+            $symbol = $ticker['symbol'];
+            $this->tickers[$symbol] = $ticker;
+            $client->resolve ($ticker, $messageHash);
         }
         return $message;
     }
@@ -118,12 +116,8 @@ class bitvavo extends \ccxt\bitvavo {
         //     }
         //
         $marketId = $this->safe_string($message, 'market');
-        $market = null;
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $market['symbol'];
         $name = 'trades';
         $messageHash = $name . '@' . $marketId;
         $trade = $this->parse_trade($message, $market);
@@ -180,12 +174,8 @@ class bitvavo extends \ccxt\bitvavo {
         //
         $name = 'candles';
         $marketId = $this->safe_string($message, 'market');
-        $symbol = null;
-        $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $market['symbol'];
         $interval = $this->safe_string($message, 'interval');
         // use a reverse lookup in a static map instead
         $timeframe = $this->find_timeframe($interval);
@@ -293,14 +283,8 @@ class bitvavo extends \ccxt\bitvavo {
         //
         $event = $this->safe_string($message, 'event');
         $marketId = $this->safe_string($message, 'market');
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
-        }
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $market['symbol'];
         $messageHash = $event . '@' . $market['id'];
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -543,10 +527,7 @@ class bitvavo extends \ccxt\bitvavo {
         $event = $this->safe_string($message, 'event');
         $marketId = $this->safe_string($message, 'market');
         $messageHash = $name . '@' . $marketId . '_' . $event;
-        $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $market = $this->safe_market($marketId, null, '-');
         $trade = $this->parse_trade($message, $market);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

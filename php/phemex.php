@@ -241,8 +241,12 @@ class phemex extends \ccxt\phemex {
                 for ($i = 0; $i < count($ohlcvs); $i++) {
                     $candle = $ohlcvs[$i];
                     $length = is_array($stored) ? count($stored) : 0;
-                    if ($length && ($candle[0] === $stored[$length - 1][0])) {
-                        $stored[$length - 1] = $candle;
+                    if ($length) {
+                        if ($candle[0] === $stored[$length - 1][0]) {
+                            $stored[$length - 1] = $candle;
+                        } else if ($candle[0] > $stored[$length - 1][0]) {
+                            $stored->append ($candle);
+                        }
                     } else {
                         $stored->append ($candle);
                     }

@@ -239,8 +239,12 @@ module.exports = class phemex extends ccxt.phemex {
                 for (let i = 0; i < ohlcvs.length; i++) {
                     const candle = ohlcvs[i];
                     const length = stored.length;
-                    if (length && (candle[0] === stored[length - 1][0])) {
-                        stored[length - 1] = candle;
+                    if (length) {
+                        if (candle[0] === stored[length - 1][0]) {
+                            stored[length - 1] = candle;
+                        } else if (candle[0] > stored[length - 1][0]) {
+                            stored.append (candle);
+                        }
                     } else {
                         stored.append (candle);
                     }

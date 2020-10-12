@@ -359,12 +359,7 @@ class kucoin(Exchange, ccxt.kucoin):
         messageHash = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'symbol')
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             subscription = self.safe_value(client.subscriptions, messageHash)

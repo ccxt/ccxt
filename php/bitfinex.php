@@ -162,13 +162,7 @@ class bitfinex extends \ccxt\bitfinex {
         $seq = $this->safe_string($trade, 2);
         $parts = explode('-', $seq);
         $marketId = $this->safe_string($parts, 1);
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $takerOrMaker = null;
         $orderId = null;
         return array(
@@ -206,8 +200,7 @@ class bitfinex extends \ccxt\bitfinex {
         //
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($subscription, 'pair');
-        $market = $this->markets_by_id[$marketId];
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $channel = 'ticker';
         $messageHash = $channel . ':' . $marketId;
         $last = $this->safe_float($message, 7);
@@ -289,8 +282,7 @@ class bitfinex extends \ccxt\bitfinex {
         //     )
         //
         $marketId = $this->safe_string($subscription, 'pair');
-        $market = $this->markets_by_id[$marketId];
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $channel = 'book';
         $messageHash = $channel . ':' . $marketId;
         $prec = $this->safe_string($subscription, 'prec', 'P0');
@@ -536,13 +528,7 @@ class bitfinex extends \ccxt\bitfinex {
         //     0 )
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 1);
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $marketId;
-        }
+        $symbol = $this->safe_symbol($marketId);
         $amount = $this->safe_float($order, 2);
         $remaining = $this->safe_float($order, 3);
         $side = 'buy';

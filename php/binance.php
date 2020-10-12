@@ -30,6 +30,7 @@ class binance extends \ccxt\binance {
                         'spot' => 'wss://testnet.binance.vision/ws',
                         'margin' => 'wss://testnet.binance.vision/ws',
                         'future' => 'wss://stream.binancefuture.com/ws',
+                        'delivery' => 'wss://dstream.binancefuture.com/ws',
                     ),
                 ),
                 'api' => array(
@@ -37,6 +38,7 @@ class binance extends \ccxt\binance {
                         'spot' => 'wss://stream.binance.com:9443/ws',
                         'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
+                        'delivery' => 'wss://dstream.binance.com/ws',
                     ),
                 ),
             ),
@@ -232,14 +234,8 @@ class binance extends \ccxt\binance {
         //     }
         //
         $marketId = $this->safe_string($message, 's');
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
-        }
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         $name = 'depth';
         $messageHash = $market['lowercaseId'] . '@' . $name;
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -392,14 +388,8 @@ class binance extends \ccxt\binance {
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
         }
-        $symbol = null;
         $marketId = $this->safe_string($trade, 's');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $side = null;
         $takerOrMaker = null;
         $orderId = null;
@@ -428,12 +418,8 @@ class binance extends \ccxt\binance {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
-        $market = null;
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         $lowerCaseId = $this->safe_string_lower($message, 's');
         $event = $this->safe_string($message, 'e');
         $messageHash = $lowerCaseId . '@' . $event;
@@ -502,11 +488,7 @@ class binance extends \ccxt\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
@@ -587,12 +569,8 @@ class binance extends \ccxt\binance {
         $wsMarketId = $this->safe_string_lower($message, 's');
         $messageHash = $wsMarketId . '@' . $event;
         $timestamp = $this->safe_integer($message, 'C');
-        $symbol = null;
         $marketId = $this->safe_string($message, 's');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $last = $this->safe_float($message, 'c');
         $result = array(
             'symbol' => $symbol,
@@ -739,11 +717,7 @@ class binance extends \ccxt\binance {
         $messageHash = $this->safe_string($message, 'e');
         $orderId = $this->safe_string($message, 'i');
         $marketId = $this->safe_string($message, 's');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($message, 'O');
         $lastTradeTimestamp = $this->safe_string($message, 'T');
         $feeAmount = $this->safe_float($message, 'n');
