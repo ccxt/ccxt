@@ -235,7 +235,6 @@ module.exports = class coinbasepro extends Exchange {
             const precision = this.safeFloat (currency, 'max_precision');
             const status = this.safeString (currency, 'status')
             const active = (active === 'online');
-            const 
             result[code] = {
                 'id': id,
                 'code': code,
