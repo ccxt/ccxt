@@ -27,6 +27,7 @@ module.exports = class binance extends ccxt.binance {
                         'spot': 'wss://testnet.binance.vision/ws',
                         'margin': 'wss://testnet.binance.vision/ws',
                         'future': 'wss://stream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
                     },
                 },
                 'api': {
@@ -34,6 +35,7 @@ module.exports = class binance extends ccxt.binance {
                         'spot': 'wss://stream.binance.com:9443/ws',
                         'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
+                        'delivery': 'wss://dstream.binance.com/ws',
                     },
                 },
             },
