@@ -140,6 +140,7 @@ class coinbasepro(Exchange):
                         'transfers/{transfer_id}',
                         'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'withdrawals/fee-estimate',
                     ],
                     'post': [
                         'conversions',
