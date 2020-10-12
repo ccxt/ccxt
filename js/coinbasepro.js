@@ -25,6 +25,7 @@ module.exports = class coinbasepro extends Exchange {
                 'deposit': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
@@ -194,6 +195,60 @@ module.exports = class coinbasepro extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            //     {
+            //       id: 'XTZ',
+            //       name: 'Tezos',
+            //       min_size: '0.000001',
+            //       status: 'online',
+            //       message: '',
+            //       max_precision: '0.000001',
+            //       convertible_to: [],
+            //       details: {
+            //         type: 'crypto',
+            //         symbol: 'Τ',
+            //         network_confirmations: 60,
+            //         sort_order: 53,
+            //         crypto_address_link: 'https://tzstats.com/{{address}}',
+            //         crypto_transaction_link: 'https://tzstats.com/{{txId}}',
+            //         push_payment_methods: [ 'crypto' ],
+            //         group_types: [],
+            //         display_name: '',
+            //         processing_time_seconds: 0,
+            //         min_withdrawal_amount: 1
+            //       }
+            //     }
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const name = this.safeString (currency, 'name');
+            const code = this.safeCurrencyCode (id);
+            const precision = 8; // todo
+            const active = this.safeString (currency, 'status') === 'online';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': undefined,
+                'name': name,
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {'min': undefined, 'max': undefined},
+                    'price': {'min': undefined, 'max': undefined},
+                    'cost': {'min': undefined, 'max': undefined},
+                    'withdraw': {
+                        'min': this.safeFloat(currency, 'min_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
     }
 
     async fetchMarkets (params = {}) {
