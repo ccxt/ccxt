@@ -464,7 +464,7 @@ module.exports = class gateio extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.market (id, undefined, '_');
+            const market = this.safeMarket (id, undefined, '_');
             result[market['symbol']] = this.parseTicker (response[id], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
