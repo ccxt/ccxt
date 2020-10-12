@@ -1202,10 +1202,10 @@ class bybit(Exchange):
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
             # 'stop_loss': 123.45,  # stop loss price, only take effect upon opening the position
-            # 'reduce_only': False,  # reduce only
+            # 'reduce_only': False,  # reduce only, required for linear orders
             # when creating a closing order, bybit recommends a True value for
             # close_on_trigger to avoid failing due to insufficient available margin
-            # 'close_on_trigger': False,
+            # 'close_on_trigger': False, required for linear orders
             # 'order_link_id': 'string',  # unique client order id, max 36 characters
             # conditional orders ---------------------------------------------
             # base_price is used to compare with the value of stop_px, to decide
@@ -1229,6 +1229,10 @@ class bybit(Exchange):
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
         method = 'privateLinearPostOrderCreate' if (marketType == 'linear') else 'privatePostOrderCreate'
+        if marketType == 'linear':
+            method = 'privateLinearPostOrderCreate'
+            request['reduce_only'] = False
+            request['close_on_trigger'] = False
         if stopPx is not None:
             if basePrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
