@@ -25,5 +25,5 @@ $side = 'buy';
 $amount = 0.000865;
 $price = 11560;
 
-$order = $exchange->create_order($symbol, $type, $side, $amount, $price, $params);
+$order = $exchange->create_order($symbol, $type, $side, $amount, $price);
 print_r ($order);
