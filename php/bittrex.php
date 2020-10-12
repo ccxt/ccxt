@@ -615,19 +615,7 @@ class bittrex extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $order = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'marketSymbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                $market = $this->safe_value($this->markets, $symbol, $market);
-                $quote = $market['quote'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
+        $market = $this->safe_market($marketId, $market, '-');
         $cost = null;
         $price = $this->safe_float($trade, 'rate');
         $amount = $this->safe_float($trade, 'quantity');
@@ -646,7 +634,7 @@ class bittrex extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $quote,
+                'currency' => $market['quote'],
             );
         }
         $side = $this->safe_string_lower($trade, 'takerSide');
@@ -654,7 +642,7 @@ class bittrex extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'id' => $id,
             'order' => $order,
             'takerOrMaker' => $takerOrMaker,

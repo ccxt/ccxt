@@ -456,10 +456,8 @@ class gateio(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = self.safe_symbol(id, None, '_')
-            market = None
-            if symbol in self.markets:
-                market = self.markets[symbol]
+            market = self.safe_market(id, None, '_')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 

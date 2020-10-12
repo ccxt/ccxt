@@ -611,17 +611,7 @@ class bittrex(Exchange):
         id = self.safe_string(trade, 'id')
         order = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'marketSymbol')
-        symbol = self.safe_symbol(marketId, market, '-')
-        quote = None
-        if marketId is not None:
-            if symbol in self.markets:
-                market = self.safe_value(self.markets, symbol, market)
-                quote = market['quote']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        market = self.safe_market(marketId, market, '-')
         cost = None
         price = self.safe_float(trade, 'rate')
         amount = self.safe_float(trade, 'quantity')
@@ -637,14 +627,14 @@ class bittrex(Exchange):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             }
         side = self.safe_string_lower(trade, 'takerSide')
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'takerOrMaker': takerOrMaker,

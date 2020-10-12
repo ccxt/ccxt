@@ -361,11 +361,8 @@ class hollaex extends Exchange {
             $key = $keys[$i];
             $ticker = $response[$key];
             $marketId = $this->safe_string($ticker, 'symbol', $key);
-            $symbol = $this->safe_symbol($marketId, null, '-');
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$symbol];
-            }
+            $market = $this->safe_market($marketId, null, '-');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);

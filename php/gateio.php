@@ -468,11 +468,8 @@ class gateio extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $this->safe_symbol($id, null, '_');
-            $market = null;
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                $market = $this->markets[$symbol];
-            }
+            $market = $this->safe_market($id, null, '_');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
