@@ -190,6 +190,7 @@ class stex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BC': 'Bitcoin Confidential',
                 'BHD': 'Bithold',
             },
             'options': {

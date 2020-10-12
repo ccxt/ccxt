@@ -185,6 +185,7 @@ class stex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BC' => 'Bitcoin Confidential',
                 'BHD' => 'Bithold',
             ),
             'options' => array(
