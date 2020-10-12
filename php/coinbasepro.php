@@ -30,6 +30,7 @@ class coinbasepro extends Exchange {
                 'deposit' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchMarkets' => true,
@@ -148,6 +149,7 @@ class coinbasepro extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'tierBased' => true, // complicated tier system per coin
@@ -201,8 +203,101 @@ class coinbasepro extends Exchange {
         ));
     }
 
+    public function fetch_currencies($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        //
+        //     array(
+        //         {
+        //             $id => 'XTZ',
+        //             $name => 'Tezos',
+        //             min_size => '0.000001',
+        //             $status => 'online',
+        //             message => '',
+        //             max_precision => '0.000001',
+        //             convertible_to => array(),
+        //             $details => {
+        //                 type => 'crypto',
+        //                 symbol => 'Τ',
+        //                 network_confirmations => 60,
+        //                 sort_order => 53,
+        //                 crypto_address_link => 'https://tzstats.com/array({address})',
+        //                 crypto_transaction_link => 'https://tzstats.com/array({txId})',
+        //                 push_payment_methods => array( 'crypto' ),
+        //                 group_types => array(),
+        //                 display_name => '',
+        //                 processing_time_seconds => 0,
+        //                 min_withdrawal_amount => 1
+        //             }
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'id');
+            $name = $this->safe_string($currency, 'name');
+            $code = $this->safe_currency_code($id);
+            $details = $this->safe_value($currency, 'details', array());
+            $precision = $this->safe_float($currency, 'max_precision');
+            $status = $this->safe_string($currency, 'status');
+            $active = ($status === 'online');
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'type' => $this->safe_string($details, 'type'),
+                'name' => $name,
+                'active' => $active,
+                'fee' => null,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->safe_float($details, 'min_size'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_float($details, 'min_withdrawal_amount'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetProducts ($params);
+        //
+        //     array(
+        //         {
+        //             "$id":"ZEC-BTC",
+        //             "base_currency":"ZEC",
+        //             "quote_currency":"BTC",
+        //             "base_min_size":"0.01000000",
+        //             "base_max_size":"1500.00000000",
+        //             "quote_increment":"0.00000100",
+        //             "base_increment":"0.00010000",
+        //             "display_name":"ZEC/BTC",
+        //             "min_market_funds":"0.001",
+        //             "max_market_funds":"30",
+        //             "margin_enabled":false,
+        //             "post_only":false,
+        //             "limit_only":false,
+        //             "cancel_only":false,
+        //             "trading_disabled":false,
+        //             "$status":"online",
+        //             "status_message":""
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -217,10 +312,11 @@ class coinbasepro extends Exchange {
                 'max' => null,
             );
             $precision = array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'base_increment')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
+                'amount' => $this->safe_float($market, 'base_increment'),
+                'price' => $this->safe_float($market, 'quote_increment'),
             );
-            $active = $market['status'] === 'online';
+            $status = $this->safe_string($market, 'status');
+            $active = ($status === 'online');
             $result[] = array_merge($this->fees['trading'], array(
                 'id' => $id,
                 'symbol' => $symbol,

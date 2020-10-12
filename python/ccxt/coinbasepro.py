@@ -23,6 +23,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coinbasepro(Exchange):
@@ -44,6 +45,7 @@ class coinbasepro(Exchange):
                 'deposit': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMarkets': True,
@@ -162,6 +164,7 @@ class coinbasepro(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
@@ -214,8 +217,99 @@ class coinbasepro(Exchange):
             },
         })
 
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCurrencies(params)
+        #
+        #     [
+        #         {
+        #             id: 'XTZ',
+        #             name: 'Tezos',
+        #             min_size: '0.000001',
+        #             status: 'online',
+        #             message: '',
+        #             max_precision: '0.000001',
+        #             convertible_to: [],
+        #             details: {
+        #                 type: 'crypto',
+        #                 symbol: 'Τ',
+        #                 network_confirmations: 60,
+        #                 sort_order: 53,
+        #                 crypto_address_link: 'https://tzstats.com/{{address}}',
+        #                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
+        #                 push_payment_methods: ['crypto'],
+        #                 group_types: [],
+        #                 display_name: '',
+        #                 processing_time_seconds: 0,
+        #                 min_withdrawal_amount: 1
+        #             }
+        #         }
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'id')
+            name = self.safe_string(currency, 'name')
+            code = self.safe_currency_code(id)
+            details = self.safe_value(currency, 'details', {})
+            precision = self.safe_float(currency, 'max_precision')
+            status = self.safe_string(currency, 'status')
+            active = (status == 'online')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': self.safe_string(details, 'type'),
+                'name': name,
+                'active': active,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(details, 'min_size'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(details, 'min_withdrawal_amount'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
     def fetch_markets(self, params={}):
         response = self.publicGetProducts(params)
+        #
+        #     [
+        #         {
+        #             "id":"ZEC-BTC",
+        #             "base_currency":"ZEC",
+        #             "quote_currency":"BTC",
+        #             "base_min_size":"0.01000000",
+        #             "base_max_size":"1500.00000000",
+        #             "quote_increment":"0.00000100",
+        #             "base_increment":"0.00010000",
+        #             "display_name":"ZEC/BTC",
+        #             "min_market_funds":"0.001",
+        #             "max_market_funds":"30",
+        #             "margin_enabled":false,
+        #             "post_only":false,
+        #             "limit_only":false,
+        #             "cancel_only":false,
+        #             "trading_disabled":false,
+        #             "status":"online",
+        #             "status_message":""
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -230,10 +324,11 @@ class coinbasepro(Exchange):
                 'max': None,
             }
             precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'base_increment')),
-                'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
+                'amount': self.safe_float(market, 'base_increment'),
+                'price': self.safe_float(market, 'quote_increment'),
             }
-            active = market['status'] == 'online'
+            status = self.safe_string(market, 'status')
+            active = (status == 'online')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
