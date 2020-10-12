@@ -608,19 +608,7 @@ module.exports = class bittrex extends Exchange {
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'marketSymbol');
-        let symbol = this.safeSymbol (marketId, market, '-');
-        let quote = undefined;
-        if (marketId !== undefined) {
-            if (symbol in this.markets) {
-                market = this.safeValue (this.markets, symbol, market);
-                quote = market['quote'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        market = this.market (marketId, market, '-');
         let cost = undefined;
         const price = this.safeFloat (trade, 'rate');
         const amount = this.safeFloat (trade, 'quantity');
@@ -639,7 +627,7 @@ module.exports = class bittrex extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             };
         }
         const side = this.safeStringLower (trade, 'takerSide');
@@ -647,7 +635,7 @@ module.exports = class bittrex extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'takerOrMaker': takerOrMaker,
