@@ -8,10 +8,10 @@ const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
-module.export = class latoken_v2 extends Exchange {
+module.export = class latoken2 extends Exchange {
     describe() {
         return this.deepExtend (super.describe (), {
-            'id': 'latoken',
+            'id': 'latoken2',
             'name': 'Latoken',
             'countries': [ 'KY' ], // Cayman Islands
             'version': 'v2',

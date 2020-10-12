@@ -518,7 +518,6 @@ declare module 'ccxt' {
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class latoken extends Exchange {}
-    export class latoken_v2 extends Exchange {}
     export class lbank extends Exchange {}
     export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
