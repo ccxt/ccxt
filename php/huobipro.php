@@ -1161,7 +1161,7 @@ class huobipro extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    $request['amount'] = $this->costtToPrecision ($symbol, floatval($amount) * floatval($price));
+                    $request['amount'] = $this->cost_to_precision($symbol, floatval($amount) * floatval($price));
                 }
             } else {
                 $request['amount'] = $this->cost_to_precision($symbol, $amount);

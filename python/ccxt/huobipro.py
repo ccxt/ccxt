@@ -1088,7 +1088,7 @@ class huobipro(Exchange):
                     # https://github.com/ccxt/ccxt/pull/4395
                     # https://github.com/ccxt/ccxt/issues/7611
                     # we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = self.costtToPrecision(symbol, float(amount) * float(price))
+                    request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
