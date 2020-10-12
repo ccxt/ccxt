@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ module.exports = class coinbasepro extends Exchange {
                 'deposit': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMarkets': true,
@@ -143,6 +145,7 @@ module.exports = class coinbasepro extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
@@ -196,8 +199,101 @@ module.exports = class coinbasepro extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             id: 'XTZ',
+        //             name: 'Tezos',
+        //             min_size: '0.000001',
+        //             status: 'online',
+        //             message: '',
+        //             max_precision: '0.000001',
+        //             convertible_to: [],
+        //             details: {
+        //                 type: 'crypto',
+        //                 symbol: 'Τ',
+        //                 network_confirmations: 60,
+        //                 sort_order: 53,
+        //                 crypto_address_link: 'https://tzstats.com/{{address}}',
+        //                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
+        //                 push_payment_methods: [ 'crypto' ],
+        //                 group_types: [],
+        //                 display_name: '',
+        //                 processing_time_seconds: 0,
+        //                 min_withdrawal_amount: 1
+        //             }
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const name = this.safeString (currency, 'name');
+            const code = this.safeCurrencyCode (id);
+            const details = this.safeValue (currency, 'details', {});
+            const precision = this.safeFloat (currency, 'max_precision');
+            const status = this.safeString (currency, 'status');
+            const active = (status === 'online');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': this.safeString (details, 'type'),
+                'name': name,
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (details, 'min_size'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (details, 'min_withdrawal_amount'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "id":"ZEC-BTC",
+        //             "base_currency":"ZEC",
+        //             "quote_currency":"BTC",
+        //             "base_min_size":"0.01000000",
+        //             "base_max_size":"1500.00000000",
+        //             "quote_increment":"0.00000100",
+        //             "base_increment":"0.00010000",
+        //             "display_name":"ZEC/BTC",
+        //             "min_market_funds":"0.001",
+        //             "max_market_funds":"30",
+        //             "margin_enabled":false,
+        //             "post_only":false,
+        //             "limit_only":false,
+        //             "cancel_only":false,
+        //             "trading_disabled":false,
+        //             "status":"online",
+        //             "status_message":""
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -212,10 +308,11 @@ module.exports = class coinbasepro extends Exchange {
                 'max': undefined,
             };
             const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
-                'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
+                'amount': this.safeFloat (market, 'base_increment'),
+                'price': this.safeFloat (market, 'quote_increment'),
             };
-            const active = market['status'] === 'online';
+            const status = this.safeString (market, 'status');
+            const active = (status === 'online');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
