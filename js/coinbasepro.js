@@ -266,6 +266,7 @@ module.exports = class coinbasepro extends Exchange {
                 },
             };
         }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
