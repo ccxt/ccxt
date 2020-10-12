@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -144,6 +145,7 @@ module.exports = class coinbasepro extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
@@ -268,6 +270,29 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "id":"ZEC-BTC",
+        //             "base_currency":"ZEC",
+        //             "quote_currency":"BTC",
+        //             "base_min_size":"0.01000000",
+        //             "base_max_size":"1500.00000000",
+        //             "quote_increment":"0.00000100",
+        //             "base_increment":"0.00010000",
+        //             "display_name":"ZEC/BTC",
+        //             "min_market_funds":"0.001",
+        //             "max_market_funds":"30",
+        //             "margin_enabled":false,
+        //             "post_only":false,
+        //             "limit_only":false,
+        //             "cancel_only":false,
+        //             "trading_disabled":false,
+        //             "status":"online",
+        //             "status_message":""
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -282,10 +307,11 @@ module.exports = class coinbasepro extends Exchange {
                 'max': undefined,
             };
             const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
-                'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
+                'amount': this.safeFloat (market, 'base_increment'),
+                'price': this.safeFloat (market, 'quote_increment'),
             };
-            const active = market['status'] === 'online';
+            const status = this.safeString (market, 'status');
+            const active = (status === 'online');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
