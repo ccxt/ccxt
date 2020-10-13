@@ -387,7 +387,8 @@ module.exports = class tidex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = this.safeMarket (id);
-            result[market['symbol']] = this.parseTicker (response[id], market);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (response[id], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
