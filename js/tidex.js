@@ -312,10 +312,7 @@ module.exports = class tidex extends Exchange {
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                symbol = this.markets_by_id[id]['symbol'];
-            }
+            const symbol = this.safeSymbol (id);
             result[symbol] = this.parseOrderBook (response[id]);
         }
         return result;
@@ -389,13 +386,8 @@ module.exports = class tidex extends Exchange {
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseTicker (response[id], market);
+            const market = this.safeMarket (id);
+            result[market['symbol']] = this.parseTicker (response[id], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -416,14 +408,8 @@ module.exports = class tidex extends Exchange {
         const price = this.safeFloat2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const orderId = this.safeString (trade, 'order_id');
-        if ('pair' in trade) {
-            const marketId = this.safeString (trade, 'pair');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'pair');
+        const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeFloat (trade, 'amount');
         const type = 'limit'; // all trades are still limit trades
         let takerOrMaker = undefined;
@@ -563,16 +549,8 @@ module.exports = class tidex extends Exchange {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'pair');
+        const symbol = this.safeMarket (marketId, market);
         let remaining = undefined;
         let amount = undefined;
         const price = this.safeFloat (order, 'rate');
