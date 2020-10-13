@@ -356,10 +356,8 @@ class hollaex(Exchange):
             key = keys[i]
             ticker = response[key]
             marketId = self.safe_string(ticker, 'symbol', key)
-            symbol = self.safe_symbol(marketId, None, '-')
-            market = None
-            if symbol in self.markets_by_id:
-                market = self.markets_by_id[symbol]
+            market = self.safe_market(marketId, None, '-')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 

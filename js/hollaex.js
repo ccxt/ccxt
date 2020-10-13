@@ -360,11 +360,8 @@ module.exports = class hollaex extends Exchange {
             const key = keys[i];
             const ticker = response[key];
             const marketId = this.safeString (ticker, 'symbol', key);
-            const symbol = this.safeSymbol (marketId, undefined, '-');
-            let market = undefined;
-            if (symbol in this.markets_by_id) {
-                market = this.markets_by_id[symbol];
-            }
+            const market = this.safeMarket (marketId, undefined, '-');
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
