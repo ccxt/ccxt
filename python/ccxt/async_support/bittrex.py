@@ -373,7 +373,7 @@ class bittrex(Exchange):
         }
         if limit is not None:
             if (limit != 1) and (limit != 25) and (limit != 500):
-                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 1, 25 or 100, default is 25')
+                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 1, 25 or 500, default is 25')
             request['depth'] = limit
         response = await self.publicGetMarketsMarketSymbolOrderbook(self.extend(request, params))
         #

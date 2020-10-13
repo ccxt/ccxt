@@ -365,7 +365,7 @@ class bittrex extends Exchange {
         );
         if ($limit !== null) {
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
-                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 1, 25 or 100, default is 25');
+                throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
             }
             $request['depth'] = $limit;
         }
