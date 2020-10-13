@@ -258,20 +258,7 @@ module.exports = class idex2 extends Exchange {
         //   sequence: 3902
         // }
         const marketId = this.safeString (ticker, 'market');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const baseVolume = this.safeFloat (ticker, 'baseVolume');
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const timestamp = this.safeInteger (ticker, 'time');
@@ -788,21 +775,8 @@ module.exports = class idex2 extends Exchange {
         const fills = this.safeValue (order, 'fills');
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'market');
-        let symbol = undefined;
         const side = this.safeString (order, 'side');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const trades = this.parseTrades (fills, market);
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'originalQuantity');
