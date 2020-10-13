@@ -156,6 +156,7 @@ module.exports = class digifinex extends Exchange {
                 'types': [ 'spot', 'margin', 'otc' ],
             },
             'commonCurrencies': {
+                'MBN': 'Mobilian Coin',
                 'BHT': 'Black House Test',
             },
         });
