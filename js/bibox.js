@@ -118,6 +118,7 @@ module.exports = class bibox extends Exchange {
                 '4003': DDoSProtection, // server busy please try again later
             },
             'commonCurrencies': {
+                'BPT': 'BlockPool Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
