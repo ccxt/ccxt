@@ -185,23 +185,21 @@ module.exports = class phemex extends ccxt.phemex {
         //
         const name = 'trade';
         const marketId = this.safeString (message, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const messageHash = name + ':' + symbol;
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.trades[symbol] = stored;
-            }
-            const trades = this.safeValue (message, 'trades', []);
-            const parsed = this.parseTrades (trades, market);
-            for (let i = 0; i < parsed.length; i++) {
-                stored.append (parsed[i]);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = name + ':' + symbol;
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
         }
+        const trades = this.safeValue (message, 'trades', []);
+        const parsed = this.parseTrades (trades, market);
+        for (let i = 0; i < parsed.length; i++) {
+            stored.append (parsed[i]);
+        }
+        client.resolve (stored, messageHash);
     }
 
     handleOHLCV (client, message) {
