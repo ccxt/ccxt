@@ -2348,11 +2348,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         return {
             'info': fee,
             'symbol': symbol,
