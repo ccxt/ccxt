@@ -260,17 +260,7 @@ class idex2(Exchange):
         #   sequence: 3902
         # }
         marketId = self.safe_string(ticker, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         baseVolume = self.safe_float(ticker, 'baseVolume')
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
@@ -752,18 +742,8 @@ class idex2(Exchange):
         fills = self.safe_value(order, 'fills')
         id = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'market')
-        symbol = None
         side = self.safe_string(order, 'side')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         trades = self.parse_trades(fills, market)
         type = self.safe_string(order, 'type')
         amount = self.safe_float(order, 'originalQuantity')

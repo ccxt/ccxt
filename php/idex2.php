@@ -261,20 +261,7 @@ class idex2 extends Exchange {
         //   sequence => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $baseVolume = $this->safe_float($ticker, 'baseVolume');
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $timestamp = $this->safe_integer($ticker, 'time');
@@ -791,21 +778,8 @@ class idex2 extends Exchange {
         $fills = $this->safe_value($order, 'fills');
         $id = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'market');
-        $symbol = null;
         $side = $this->safe_string($order, 'side');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $trades = $this->parse_trades($fills, $market);
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_float($order, 'originalQuantity');
