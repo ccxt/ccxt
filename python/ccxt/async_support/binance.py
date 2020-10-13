@@ -2219,10 +2219,7 @@ class binance(Exchange):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         return {
             'info': fee,
             'symbol': symbol,
