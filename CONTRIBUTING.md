@@ -199,7 +199,7 @@ The contents of the repository are structured as follows:
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
-/python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
+/python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
