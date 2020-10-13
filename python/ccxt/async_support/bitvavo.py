@@ -1093,17 +1093,7 @@ class bitvavo(Exchange):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
