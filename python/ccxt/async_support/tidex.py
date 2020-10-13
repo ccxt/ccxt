@@ -317,9 +317,7 @@ class tidex(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            if id in self.markets_by_id:
-                symbol = self.markets_by_id[id]['symbol']
+            symbol = self.safe_symbol(id)
             result[symbol] = self.parse_order_book(response[id])
         return result
 
@@ -386,11 +384,8 @@ class tidex(Exchange):
         keys = list(response.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -408,12 +403,8 @@ class tidex(Exchange):
         price = self.safe_float_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         orderId = self.safe_string(trade, 'order_id')
-        if 'pair' in trade:
-            marketId = self.safe_string(trade, 'pair')
-            market = self.safe_value(self.markets_by_id, marketId, market)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
         takerOrMaker = None
@@ -536,13 +527,8 @@ class tidex(Exchange):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'timestamp_created')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'pair')
+        symbol = self.safe_market(marketId, market)
         remaining = None
         amount = None
         price = self.safe_float(order, 'rate')
