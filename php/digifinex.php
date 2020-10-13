@@ -160,8 +160,9 @@ class digifinex extends Exchange {
                 'types' => array( 'spot', 'margin', 'otc' ),
             ),
             'commonCurrencies' => array(
-                'MBN' => 'Mobilian Coin',
                 'BHT' => 'Black House Test',
+                'MBN' => 'Mobilian Coin',
+                'TEL' => 'TEL666',
             ),
         ));
     }
