@@ -187,23 +187,21 @@ class phemex extends \ccxt\phemex {
         //
         $name = 'trade';
         $marketId = $this->safe_string($message, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $messageHash = $name . ':' . $symbol;
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $stored = new ArrayCache ($limit);
-                $this->trades[$symbol] = $stored;
-            }
-            $trades = $this->safe_value($message, 'trades', array());
-            $parsed = $this->parse_trades($trades, $market);
-            for ($i = 0; $i < count($parsed); $i++) {
-                $stored->append ($parsed[$i]);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $messageHash = $name . ':' . $symbol;
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
         }
+        $trades = $this->safe_value($message, 'trades', array());
+        $parsed = $this->parse_trades($trades, $market);
+        for ($i = 0; $i < count($parsed); $i++) {
+            $stored->append ($parsed[$i]);
+        }
+        $client->resolve ($stored, $messageHash);
     }
 
     public function handle_ohlcv($client, $message) {

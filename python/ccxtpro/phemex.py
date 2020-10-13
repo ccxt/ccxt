@@ -178,20 +178,19 @@ class phemex(Exchange, ccxt.phemex):
         #
         name = 'trade'
         marketId = self.safe_string(message, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            messageHash = name + ':' + symbol
-            stored = self.safe_value(self.trades, symbol)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                stored = ArrayCache(limit)
-                self.trades[symbol] = stored
-            trades = self.safe_value(message, 'trades', [])
-            parsed = self.parse_trades(trades, market)
-            for i in range(0, len(parsed)):
-                stored.append(parsed[i])
-            client.resolve(stored, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        messageHash = name + ':' + symbol
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
+        trades = self.safe_value(message, 'trades', [])
+        parsed = self.parse_trades(trades, market)
+        for i in range(0, len(parsed)):
+            stored.append(parsed[i])
+        client.resolve(stored, messageHash)
 
     def handle_ohlcv(self, client, message):
         #
