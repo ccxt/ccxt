@@ -1129,7 +1129,9 @@ class phemex(Exchange):
         cost = None
         type = None
         fee = None
-        symbol = None
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         orderId = None
         takerOrMaker = None
         if isinstance(trade, list):
@@ -1138,12 +1140,11 @@ class phemex(Exchange):
             if tradeLength > 4:
                 id = self.safe_string(trade, tradeLength - 4)
             side = self.safe_string_lower(trade, tradeLength - 3)
-            if market is not None:
-                price = self.from_ep(self.safe_float(trade, tradeLength - 2), market)
-                amount = self.from_ev(self.safe_float(trade, tradeLength - 1), market)
-                if market['spot']:
-                    if (price is not None) and (amount is not None):
-                        cost = price * amount
+            price = self.from_ep(self.safe_float(trade, tradeLength - 2), market)
+            amount = self.from_ev(self.safe_float(trade, tradeLength - 1), market)
+            if market['spot']:
+                if (price is not None) and (amount is not None):
+                    cost = price * amount
         else:
             timestamp = self.safe_integer_product(trade, 'transactTimeNs', 0.000001)
             id = self.safe_string_2(trade, 'execId', 'execID')
@@ -1153,8 +1154,6 @@ class phemex(Exchange):
             execStatus = self.safe_string(trade, 'execStatus')
             if execStatus == 'MakerFill':
                 takerOrMaker = 'maker'
-            marketId = self.safe_string(trade, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
             price = self.from_ep(self.safe_float(trade, 'execPriceEp'), market)
             amount = self.from_ev(self.safe_float(trade, 'execBaseQtyEv'), market)
             amount = self.safe_float(trade, 'execQty', amount)

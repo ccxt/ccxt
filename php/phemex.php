@@ -1160,7 +1160,9 @@ class phemex extends Exchange {
         $cost = null;
         $type = null;
         $fee = null;
-        $symbol = null;
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $orderId = null;
         $takerOrMaker = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
@@ -1170,13 +1172,11 @@ class phemex extends Exchange {
                 $id = $this->safe_string($trade, $tradeLength - 4);
             }
             $side = $this->safe_string_lower($trade, $tradeLength - 3);
-            if ($market !== null) {
-                $price = $this->from_ep($this->safe_float($trade, $tradeLength - 2), $market);
-                $amount = $this->from_ev($this->safe_float($trade, $tradeLength - 1), $market);
-                if ($market['spot']) {
-                    if (($price !== null) && ($amount !== null)) {
-                        $cost = $price * $amount;
-                    }
+            $price = $this->from_ep($this->safe_float($trade, $tradeLength - 2), $market);
+            $amount = $this->from_ev($this->safe_float($trade, $tradeLength - 1), $market);
+            if ($market['spot']) {
+                if (($price !== null) && ($amount !== null)) {
+                    $cost = $price * $amount;
                 }
             }
         } else {
@@ -1189,8 +1189,6 @@ class phemex extends Exchange {
             if ($execStatus === 'MakerFill') {
                 $takerOrMaker = 'maker';
             }
-            $marketId = $this->safe_string($trade, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
             $price = $this->from_ep($this->safe_float($trade, 'execPriceEp'), $market);
             $amount = $this->from_ev($this->safe_float($trade, 'execBaseQtyEv'), $market);
             $amount = $this->safe_float($trade, 'execQty', $amount);
