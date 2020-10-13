@@ -439,7 +439,7 @@ class bittrex(Exchange, ccxt.bittrex):
     async def watch_order_book(self, symbol, limit=None, params={}):
         limit = 25 if (limit is None) else limit  # 25 by default
         if (limit != 1) and (limit != 25) and (limit != 500):
-            raise BadRequest(self.id + ' watchOrderBook() limit argument must be None, 1, 25 or 100, default is 25')
+            raise BadRequest(self.id + ' watchOrderBook() limit argument must be None, 1, 25 or 500, default is 25')
         await self.load_markets()
         negotiate = self.negotiate()
         #
