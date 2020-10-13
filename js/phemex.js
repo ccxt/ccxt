@@ -1156,7 +1156,9 @@ module.exports = class phemex extends Exchange {
         let cost = undefined;
         let type = undefined;
         let fee = undefined;
-        let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let orderId = undefined;
         let takerOrMaker = undefined;
         if (Array.isArray (trade)) {
@@ -1166,13 +1168,11 @@ module.exports = class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            if (market !== undefined) {
-                price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
-                amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
-                if (market['spot']) {
-                    if ((price !== undefined) && (amount !== undefined)) {
-                        cost = price * amount;
-                    }
+            price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
+            amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
+            if (market['spot']) {
+                if ((price !== undefined) && (amount !== undefined)) {
+                    cost = price * amount;
                 }
             }
         } else {
@@ -1185,8 +1185,6 @@ module.exports = class phemex extends Exchange {
             if (execStatus === 'MakerFill') {
                 takerOrMaker = 'maker';
             }
-            const marketId = this.safeString (trade, 'symbol');
-            symbol = this.safeSymbol (marketId, market);
             price = this.fromEp (this.safeFloat (trade, 'execPriceEp'), market);
             amount = this.fromEv (this.safeFloat (trade, 'execBaseQtyEv'), market);
             amount = this.safeFloat (trade, 'execQty', amount);
