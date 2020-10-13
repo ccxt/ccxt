@@ -33,7 +33,7 @@ async def main(asyncio_loop):
         'binance': ['BTC/USDT', 'ETH/BTC'],
     }
     loops = [exchange_loop(asyncio_loop, exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
-    await asyncio.gather(*loops)
+    await gather(*loops)
 
 
 if __name__ == '__main__':
