@@ -123,6 +123,7 @@ class bibox extends Exchange {
                 '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
             ),
             'commonCurrencies' => array(
+                'BPT' => 'BlockPool Token',
                 'KEY' => 'Bihu',
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI' => 'PCHAIN',
