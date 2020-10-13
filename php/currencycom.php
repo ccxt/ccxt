@@ -517,20 +517,7 @@ class currencycom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $marketId;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if (mb_strpos($marketId, '/') !== false) {
-                list($baseId, $quoteId) = explode('/', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $last = $this->safe_float($ticker, 'lastPrice');
         $open = $this->safe_float($ticker, 'openPrice');
         $average = null;
@@ -726,14 +713,8 @@ class currencycom extends Exchange {
         if (is_array($trade) && array_key_exists('isMaker', $trade)) {
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -814,14 +795,8 @@ class currencycom extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');

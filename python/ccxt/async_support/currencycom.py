@@ -500,17 +500,7 @@ class currencycom(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif marketId.find('/') >= 0:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         last = self.safe_float(ticker, 'lastPrice')
         open = self.safe_float(ticker, 'openPrice')
         average = None
@@ -692,12 +682,8 @@ class currencycom(Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -774,12 +760,8 @@ class currencycom(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = None
         if 'time' in order:
             timestamp = self.safe_integer(order, 'time')
