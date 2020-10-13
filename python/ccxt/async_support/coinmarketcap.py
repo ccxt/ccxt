@@ -132,6 +132,7 @@ class coinmarketcap(Exchange):
             'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
             'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'Mobilian Coin': 'Mobilian Coin',  # conflict with Membrana(MBN)
             'Monarch': 'Monarch',  # conflict with MyToken(MT)
             'MTC Mesh Network': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all

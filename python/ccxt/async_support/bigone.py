@@ -154,6 +154,7 @@ class bigone(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
         })
