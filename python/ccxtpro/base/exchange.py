@@ -7,13 +7,12 @@ __version__ = '0.4.15'
 # -----------------------------------------------------------------------------
 
 from ccxtpro.base.functions import inflate, inflate64, gunzip
-from asyncio import ensure_future
-from ccxtpro.base.aiohttp_client import AiohttpClient
+from ccxtpro.base.fast_client import FastClient
 from ccxt.async_support import Exchange as BaseExchange
 from ccxt import NotSupported
 from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttle import throttle
-
+import asyncio
 
 # -----------------------------------------------------------------------------
 
@@ -71,9 +70,10 @@ class Exchange(BaseExchange):
                 'verbose': self.verbose,
                 'throttle': throttle(self.extend({
                     'loop': self.asyncio_loop,
-                }, self.tokenBucket))
+                }, self.tokenBucket)),
+                'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, options)
+            self.clients[url] = FastClient(url, on_message, on_error, on_close, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
@@ -103,10 +103,10 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        ensure_future(self.spawn_async(method, *args))
+        asyncio.ensure_future(self.spawn_async(method, *args))
 
     def delay(self, timeout, method, *args):
-        ensure_future(self.delay_async(timeout, method, *args))
+        asyncio.ensure_future(self.delay_async(timeout, method, *args))
 
     def handle_message(self, client, message):
         always = True
@@ -114,33 +114,22 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    async def connect_client(self, client, message_hash, message=None, subscribe_hash=None, subscription=None):
-        # todo: calculate the backoff using the clients cache
+    async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
-        try:
-            self.open()
-            await client.connect(self.session, backoff_delay)
-            if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
-                if self.enableRateLimit and client.throttle:
-                    options = self.safe_value(self.options, 'ws', {})
-                    rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                    await client.throttle(rateLimit)
-                # todo: decouple signing from subscriptions
-                if message:
-                    await client.send(message)
-        except Exception as e:
-            client.reject(e, message_hash)
-            if self.verbose:
-                self.print(self.iso8601(self.milliseconds()), 'connect_client', 'Exception', e)
-
-    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
         client = self.client(url)
-        future = client.future(message_hash)
-        # we intentionally do not use await here to avoid unhandled exceptions
-        # the policy is to make sure that 100% of promises are resolved or rejected
-        ensure_future(self.connect_client(client, message_hash, message, subscribe_hash, subscription))
-        return future
+        self.open()
+        await client.connect(self.session, backoff_delay)
+        if subscribe_hash not in client.subscriptions:
+            client.subscriptions[subscribe_hash] = subscription or True
+            if self.enableRateLimit:
+                options = self.safe_value(self.options, 'ws', {})
+                rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
+                await client.throttle(rateLimit)
+            # todo: decouple signing from subscriptions
+            if message:
+                await client.send(message)
+        return await client.future(message_hash)
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
@@ -155,16 +144,13 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    async def close(self):
-        keys = list(self.clients.keys())
-        for key in keys:
-            await self.clients[key].close()
-            if key in self.clients:
-                del self.clients[key]
-        return await super(Exchange, self).close()
-
     def limit_order_book(self, orderbook, symbol, limit=None, params={}):
         return orderbook.limit(limit)
+
+    async def close(self):
+        if self.clients:
+            await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
+        await super(Exchange, self).close()
 
     def find_timeframe(self, timeframe):
         for key, value in self.timeframes.items():
