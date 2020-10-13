@@ -235,12 +235,10 @@ class tidebit(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                ticker = tickers[id]
-                result[symbol] = self.parse_ticker(ticker, market)
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
@@ -376,12 +374,8 @@ class tidebit(Exchange):
         #         ]
         #     }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            marketId = order['market']
-            symbol = self.markets_by_id[marketId]['symbol']
+        marketId = self.safe_string(order, 'market')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
         id = self.safe_string(order, 'id')
@@ -427,8 +421,7 @@ class tidebit(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = self.privatePostOrders(self.extend(request, params))
-        market = self.markets_by_id[response['market']]
-        return self.parse_order(response, market)
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
