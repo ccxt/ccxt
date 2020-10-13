@@ -172,12 +172,8 @@ module.exports = class southxchange extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
