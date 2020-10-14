@@ -293,16 +293,14 @@ module.exports = class bitmex extends ccxt.bitmex {
         for (let i = 0; i < data.length; i++) {
             const update = data[i];
             const marketId = this.safeValue (update, 'symbol');
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const messageHash = table + ':' + marketId;
-                let ticker = this.safeValue (this.tickers, symbol, {});
-                const info = this.safeValue (ticker, 'info', {});
-                ticker = this.parseTicker (this.extend (info, update), market);
-                this.tickers[symbol] = ticker;
-                client.resolve (ticker, messageHash);
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const messageHash = table + ':' + marketId;
+            let ticker = this.safeValue (this.tickers, symbol, {});
+            const info = this.safeValue (ticker, 'info', {});
+            ticker = this.parseTicker (this.extend (info, update), market);
+            this.tickers[symbol] = ticker;
+            client.resolve (ticker, messageHash);
         }
         return message;
     }
@@ -493,22 +491,20 @@ module.exports = class bitmex extends ccxt.bitmex {
         const marketIds = Object.keys (dataByMarketIds);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const messageHash = table + ':' + marketId;
-                const symbol = market['symbol'];
-                const trades = this.parseTrades (dataByMarketIds[marketId], market);
-                let stored = this.safeValue (this.trades, symbol);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    stored = new ArrayCache (limit);
-                    this.trades[symbol] = stored;
-                }
-                for (let j = 0; j < trades.length; j++) {
-                    stored.append (trades[j]);
-                }
-                client.resolve (stored, messageHash);
+            const market = this.safeMarket (marketId);
+            const messageHash = table + ':' + marketId;
+            const symbol = market['symbol'];
+            const trades = this.parseTrades (dataByMarketIds[marketId], market);
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.trades[symbol] = stored;
             }
+            for (let j = 0; j < trades.length; j++) {
+                stored.append (trades[j]);
+            }
+            client.resolve (stored, messageHash);
         }
     }
 
@@ -784,33 +780,31 @@ module.exports = class bitmex extends ccxt.bitmex {
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const marketId = this.safeString (candle, 'symbol');
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const messageHash = table + ':' + market['id'];
-                const result = [
-                    this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
-                    this.safeFloat (candle, 'open'),
-                    this.safeFloat (candle, 'high'),
-                    this.safeFloat (candle, 'low'),
-                    this.safeFloat (candle, 'close'),
-                    this.safeFloat (candle, 'volume'),
-                ];
-                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    stored = new ArrayCache (limit);
-                    this.ohlcvs[symbol][timeframe] = stored;
-                }
-                const length = stored.length;
-                if (length && result[0] === stored[length - 1][0]) {
-                    stored[length - 1] = result;
-                } else {
-                    stored.append (result);
-                }
-                results[messageHash] = stored;
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const messageHash = table + ':' + market['id'];
+            const result = [
+                this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
+                this.safeFloat (candle, 'open'),
+                this.safeFloat (candle, 'high'),
+                this.safeFloat (candle, 'low'),
+                this.safeFloat (candle, 'close'),
+                this.safeFloat (candle, 'volume'),
+            ];
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
             }
+            const length = stored.length;
+            if (length && result[0] === stored[length - 1][0]) {
+                stored[length - 1] = result;
+            } else {
+                stored.append (result);
+            }
+            results[messageHash] = stored;
         }
         const messageHashes = Object.keys (results);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -872,55 +866,51 @@ module.exports = class bitmex extends ccxt.bitmex {
         if (action === 'partial') {
             const filter = this.safeValue (message, 'filter', {});
             const marketId = this.safeValue (filter, 'symbol');
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                if (table === 'orderBookL2') {
-                    this.orderbooks[symbol] = this.indexedOrderBook ();
-                } else if (table === 'orderBookL2_25') {
-                    this.orderbooks[symbol] = this.indexedOrderBook ({}, 25);
-                } else if (table === 'orderBook10') {
-                    this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
-                }
-                const orderbook = this.orderbooks[symbol];
-                for (let i = 0; i < data.length; i++) {
-                    const price = this.safeFloat (data[i], 'price');
-                    const size = this.safeFloat (data[i], 'size');
-                    const id = this.safeString (data[i], 'id');
-                    let side = this.safeString (data[i], 'side');
-                    side = (side === 'Buy') ? 'bids' : 'asks';
-                    const bookside = orderbook[side];
-                    bookside.store (price, size, id);
-                }
-                const messageHash = table + ':' + marketId;
-                client.resolve (orderbook, messageHash);
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            if (table === 'orderBookL2') {
+                this.orderbooks[symbol] = this.indexedOrderBook ();
+            } else if (table === 'orderBookL2_25') {
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, 25);
+            } else if (table === 'orderBook10') {
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
             }
+            const orderbook = this.orderbooks[symbol];
+            for (let i = 0; i < data.length; i++) {
+                const price = this.safeFloat (data[i], 'price');
+                const size = this.safeFloat (data[i], 'size');
+                const id = this.safeString (data[i], 'id');
+                let side = this.safeString (data[i], 'side');
+                side = (side === 'Buy') ? 'bids' : 'asks';
+                const bookside = orderbook[side];
+                bookside.store (price, size, id);
+            }
+            const messageHash = table + ':' + marketId;
+            client.resolve (orderbook, messageHash);
         } else {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue (data[i], 'symbol');
-                if (marketId in this.markets_by_id) {
-                    if (!(marketId in numUpdatesByMarketId)) {
-                        numUpdatesByMarketId[marketId] = 0;
-                    }
-                    numUpdatesByMarketId[marketId] = this.sum (numUpdatesByMarketId, 1);
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    const orderbook = this.orderbooks[symbol];
-                    const price = this.safeFloat (data[i], 'price');
-                    const size = this.safeFloat (data[i], 'size', 0);
-                    const id = this.safeString (data[i], 'id');
-                    let side = this.safeString (data[i], 'side');
-                    side = (side === 'Buy') ? 'bids' : 'asks';
-                    const bookside = orderbook[side];
-                    bookside.store (price, size, id);
+                if (!(marketId in numUpdatesByMarketId)) {
+                    numUpdatesByMarketId[marketId] = 0;
                 }
+                numUpdatesByMarketId[marketId] = this.sum (numUpdatesByMarketId, 1);
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const orderbook = this.orderbooks[symbol];
+                const price = this.safeFloat (data[i], 'price');
+                const size = this.safeFloat (data[i], 'size', 0);
+                const id = this.safeString (data[i], 'id');
+                let side = this.safeString (data[i], 'side');
+                side = (side === 'Buy') ? 'bids' : 'asks';
+                const bookside = orderbook[side];
+                bookside.store (price, size, id);
             }
             const marketIds = Object.keys (numUpdatesByMarketId);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const messageHash = table + ':' + marketId;
-                const market = this.markets_by_id[marketId];
+                const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
                 client.resolve (orderbook, messageHash);
