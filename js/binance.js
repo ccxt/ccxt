@@ -627,7 +627,10 @@ module.exports = class binance extends Exchange {
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[name] = withdrawFee;
-                fee = withdrawFee;
+                const isDefault = this.safeValue (networkItem, 'isDefault');
+                if (isDefault || fee === undefined) {
+                    fee = withdrawFee;
+                }
             }
             const active = (isWithdrawEnabled && isDepositEnabled);
             result[code] = {
