@@ -528,7 +528,7 @@ class tidex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'timestamp_created')
         marketId = self.safe_string(order, 'pair')
-        symbol = self.safe_market(marketId, market)
+        symbol = self.safe_symbol(marketId, market)
         remaining = None
         amount = None
         price = self.safe_float(order, 'rate')
@@ -553,7 +553,7 @@ class tidex(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'type': 'limit',
-            'side': order['type'],
+            'side': self.safe_string(order, 'type'),
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -584,6 +584,27 @@ class tidex(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
+        #
+        #     {
+        #         "success":1,
+        #         "return":{
+        #             "1255468911":{
+        #                 "status":0,
+        #                 "pair":"spike_usdt",
+        #                 "type":"sell",
+        #                 "amount":35028.44256388,
+        #                 "rate":0.00199989,
+        #                 "timestamp_created":1602684432
+        #             }
+        #         },
+        #         "stat":{
+        #             "isSuccess":true,
+        #             "serverTime":"00:00:00.0000826",
+        #             "time":"00:00:00.0091423",
+        #             "errors":null
+        #         }
+        #     }
+        #
         # it can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         orders = self.safe_value(response, 'return', [])
         return self.parse_orders(orders, market, since, limit)
