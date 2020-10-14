@@ -613,6 +613,27 @@ module.exports = class tidex extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "1255468911":{
+        //                 "status":0,
+        //                 "pair":"spike_usdt",
+        //                 "type":"sell",
+        //                 "amount":35028.44256388,
+        //                 "rate":0.00199989,
+        //                 "timestamp_created":1602684432
+        //             }
+        //         },
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0000826",
+        //             "time":"00:00:00.0091423",
+        //             "errors":null
+        //         }
+        //     }
+        //
         // it can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         const orders = this.safeValue (response, 'return', []);
         return this.parseOrders (orders, market, since, limit);
