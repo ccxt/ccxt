@@ -78,11 +78,14 @@ module.exports = class exmo extends Exchange {
                 'public': {
                     'get': [
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ],
                 },
                 'private': {
@@ -96,13 +99,14 @@ module.exports = class exmo extends Exchange {
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ],
                 },
             },
@@ -757,16 +761,18 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         const result = { 'info': response };
-        const codes = Object.keys (this.currencies);
+        const free = this.safeValue (response, 'balances', {});
+        const used = this.safeValue (response, 'reserved', {});
+        const codes = Object.keys (free);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currencyId = this.currencyId (code);
             const account = this.account ();
-            if (currencyId in response['balances']) {
-                account['free'] = this.safeFloat (response['balances'], currencyId);
+            if (currencyId in free) {
+                account['free'] = this.safeFloat (free, currencyId);
             }
-            if (currencyId in response['reserved']) {
-                account['used'] = this.safeFloat (response['reserved'], currencyId);
+            if (currencyId in used) {
+                account['used'] = this.safeFloat (used, currencyId);
             }
             result[code] = account;
         }

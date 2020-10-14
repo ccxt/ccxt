@@ -83,11 +83,14 @@ class exmo extends Exchange {
                 'public' => array(
                     'get' => array(
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ),
                 ),
                 'private' => array(
@@ -101,13 +104,14 @@ class exmo extends Exchange {
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ),
                 ),
             ),
@@ -762,16 +766,18 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $free = $this->safe_value($response, 'balances', array());
+        $used = $this->safe_value($response, 'reserved', array());
+        $codes = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currencyId = $this->currency_id($code);
             $account = $this->account();
-            if (is_array($response['balances']) && array_key_exists($currencyId, $response['balances'])) {
-                $account['free'] = $this->safe_float($response['balances'], $currencyId);
+            if (is_array($free) && array_key_exists($currencyId, $free)) {
+                $account['free'] = $this->safe_float($free, $currencyId);
             }
-            if (is_array($response['reserved']) && array_key_exists($currencyId, $response['reserved'])) {
-                $account['used'] = $this->safe_float($response['reserved'], $currencyId);
+            if (is_array($used) && array_key_exists($currencyId, $used)) {
+                $account['used'] = $this->safe_float($used, $currencyId);
             }
             $result[$code] = $account;
         }

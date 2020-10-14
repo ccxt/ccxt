@@ -98,11 +98,14 @@ class exmo(Exchange):
                 'public': {
                     'get': [
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ],
                 },
                 'private': {
@@ -116,13 +119,14 @@ class exmo(Exchange):
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ],
                 },
             },
@@ -750,15 +754,17 @@ class exmo(Exchange):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
         result = {'info': response}
-        codes = list(self.currencies.keys())
+        free = self.safe_value(response, 'balances', {})
+        used = self.safe_value(response, 'reserved', {})
+        codes = list(free.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currencyId = self.currency_id(code)
             account = self.account()
-            if currencyId in response['balances']:
-                account['free'] = self.safe_float(response['balances'], currencyId)
-            if currencyId in response['reserved']:
-                account['used'] = self.safe_float(response['reserved'], currencyId)
+            if currencyId in free:
+                account['free'] = self.safe_float(free, currencyId)
+            if currencyId in used:
+                account['used'] = self.safe_float(used, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
