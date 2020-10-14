@@ -478,7 +478,7 @@ class bittrex extends \ccxt\bittrex {
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $limit = ($limit === null) ? 25 : $limit; // 25 by default
         if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
-            throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 100, default is 25');
+            throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
         }
         $this->load_markets();
         $negotiate = $this->negotiate();
