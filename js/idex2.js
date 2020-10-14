@@ -102,10 +102,7 @@ module.exports = class idex2 extends ccxt.idex2 {
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const messageHash = type + ':' + marketId;
         const timestamp = this.safeInteger (data, 't');
         const close = this.safeFloat (data, 'c');
@@ -193,10 +190,7 @@ module.exports = class idex2 extends ccxt.idex2 {
         //   l: 'maker',
         //   S: 'pending' }
         const marketId = this.safeString (trade, 'm');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const id = this.safeString (trade, 'i');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
@@ -267,10 +261,7 @@ module.exports = class idex2 extends ccxt.idex2 {
             this.safeFloat (data, 'c'),
             this.safeFloat (data, 'v'),
         ];
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            symbol = this.markets_by_id[marketId][symbol];
-        }
+        const symbol = this.safeSymbol (marketId);
         const interval = this.safeString (data, 'i');
         const timeframe = this.findTimeframe (interval);
         // TODO: move to base class
@@ -311,8 +302,8 @@ module.exports = class idex2 extends ccxt.idex2 {
                 for (let j = 0; j < markets.length; j++) {
                     const marketId = markets[j];
                     const orderBookSubscriptions = this.safeValue (this.options, 'orderBookSubscriptions', {});
-                    if (!(marketId in orderBookSubscriptions) && (marketId in this.markets_by_id)) {
-                        const symbol = this.markets_by_id[marketId]['symbol'];
+                    if (!(marketId in orderBookSubscriptions)) {
+                        const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.countedOrderBook ({});
                             orderbook.cache = [];
@@ -398,10 +389,7 @@ module.exports = class idex2 extends ccxt.idex2 {
     handleOrderBook (client, message) {
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             // 2. Buffer the incoming order book update subscription messages.
@@ -530,6 +518,7 @@ module.exports = class idex2 extends ccxt.idex2 {
         const type = this.safeString (message, 'type');
         const order = this.safeValue (message, 'data');
         const marketId = this.safeString (order, 'm');
+        const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (order, 't');
         const fills = this.safeValue (order, 'F');
         const trades = [];
@@ -537,11 +526,7 @@ module.exports = class idex2 extends ccxt.idex2 {
             trades.push (this.parseWsTrade (fills[i]));
         }
         const id = this.safeString (order, 'i');
-        let symbol = undefined;
         const side = this.safeString (order, 's');
-        if (marketId in this.markets_by_id) {
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
         const orderType = this.safeString (order, 'o');
         const amount = this.safeFloat (order, 'q');
         const filled = this.safeFloat (order, 'z');
