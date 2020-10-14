@@ -229,6 +229,7 @@ module.exports = class bitforex extends Exchange {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
+                '1017': AuthenticationError, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '3002': InsufficientFunds,
                 '10204': DDoSProtection,
             },
