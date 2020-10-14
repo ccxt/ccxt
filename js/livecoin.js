@@ -15,7 +15,7 @@ module.exports = class livecoin extends Exchange {
             'name': 'LiveCoin',
             'countries': [ 'US', 'UK', 'RU' ],
             'rateLimit': 1000,
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'cancelOrder': true,
                 'CORS': false,

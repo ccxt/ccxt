@@ -14,7 +14,7 @@ module.exports = class fcoin extends Exchange {
             'name': 'FCoin',
             'countries': [ 'CN' ],
             'rateLimit': 2000,
-            'userAgent': this.userAgents['chrome39'],
+            'userAgent': 'chrome39',
             'version': 'v2',
             'accounts': undefined,
             'accountsById': undefined,

@@ -15,7 +15,7 @@ module.exports = class bitz extends Exchange {
             'countries': [ 'HK' ],
             'rateLimit': 2000,
             'version': 'v2',
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,

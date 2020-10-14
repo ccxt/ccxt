@@ -14,7 +14,7 @@ module.exports = class exx extends Exchange {
             'name': 'EXX',
             'countries': [ 'CN' ],
             'rateLimit': 1000 / 10,
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'cancelOrder': true,
                 'createOrder': true,

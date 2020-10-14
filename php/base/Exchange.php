@@ -1044,6 +1044,8 @@ class Exchange {
             }
         }
 
+        $this->userAgent = $this->safe_string($this->userAgents, $this->userAgent, $this->userAgent);
+
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
                 throw new ExchangeError(this . id . ' warning! The glue symbol for HTTP queries ' .

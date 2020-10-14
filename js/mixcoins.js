@@ -15,7 +15,7 @@ module.exports = class mixcoins extends Exchange {
             'countries': [ 'GB', 'HK' ],
             'rateLimit': 1500,
             'version': 'v1',
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'cancelOrder': true,
                 'CORS': false,

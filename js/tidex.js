@@ -11,7 +11,7 @@ module.exports = class tidex extends Exchange {
             'countries': [ 'UK' ],
             'rateLimit': 2000,
             'version': '3',
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'cancelOrder': true,
                 'CORS': false,

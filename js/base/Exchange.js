@@ -286,6 +286,8 @@ module.exports = class Exchange {
             }
         }
 
+        this.userAgent = this.safeString (this.userAgents, this.userAgent, this.userAgent)
+
         const agentOptions = {
             'keepAlive': true,
         }

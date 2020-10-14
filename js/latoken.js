@@ -17,7 +17,7 @@ module.exports = class latoken extends Exchange {
             'version': 'v1',
             'rateLimit': 2000,
             'certified': false,
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': 'chrome',
             'has': {
                 'CORS': false,
                 'publicAPI': true,
