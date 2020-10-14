@@ -528,6 +528,123 @@ module.exports = class binance extends Exchange {
         return this.options['timeDifference'];
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.sapiGetCapitalConfigGetall (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            // {
+            //   coin: 'LINK',
+            //   depositAllEnable: true,
+            //   withdrawAllEnable: true,
+            //   name: 'ChainLink',
+            //   free: '0.06168',
+            //   locked: '0',
+            //   freeze: '0',
+            //   withdrawing: '0',
+            //   ipoing: '0',
+            //   ipoable: '0',
+            //   storage: '0',
+            //   isLegalMoney: false,
+            //   trading: true,
+            //   networkList: [
+            //     {
+            //       network: 'BNB',
+            //       coin: 'LINK',
+            //       withdrawIntegerMultiple: '0',
+            //       isDefault: false,
+            //       depositEnable: true,
+            //       withdrawEnable: true,
+            //       depositDesc: '',
+            //       withdrawDesc: '',
+            //       specialTips: 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
+            //       name: 'BEP2',
+            //       resetAddressStatus: false,
+            //       addressRegex: '^(bnb1)[0-9a-z]{38}$',
+            //       memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+            //       withdrawFee: '0.002',
+            //       withdrawMin: '0.01',
+            //       withdrawMax: '9999999',
+            //       minConfirm: 1,
+            //       unLockConfirm: 0
+            //     },
+            //     {
+            //       network: 'BSC',
+            //       coin: 'LINK',
+            //       withdrawIntegerMultiple: '0.00000001',
+            //       isDefault: false,
+            //       depositEnable: true,
+            //       withdrawEnable: true,
+            //       depositDesc: '',
+            //       withdrawDesc: '',
+            //       specialTips: '',
+            //       name: 'BEP20 (BSC)',
+            //       resetAddressStatus: false,
+            //       addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+            //       memoRegex: '',
+            //       withdrawFee: '0.005',
+            //       withdrawMin: '0.01',
+            //       withdrawMax: '9999999',
+            //       minConfirm: 15,
+            //       unLockConfirm: 0
+            //     },
+            //     {
+            //       network: 'ETH',
+            //       coin: 'LINK',
+            //       withdrawIntegerMultiple: '0.00000001',
+            //       isDefault: true,
+            //       depositEnable: true,
+            //       withdrawEnable: true,
+            //       depositDesc: '',
+            //       withdrawDesc: '',
+            //       name: 'ERC20',
+            //       resetAddressStatus: false,
+            //       addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+            //       memoRegex: '',
+            //       withdrawFee: '0.34',
+            //       withdrawMin: '0.68',
+            //       withdrawMax: '0',
+            //       minConfirm: 12,
+            //       unLockConfirm: 0
+            //     }
+            //   ]
+            // }
+            const entry = response[i];
+            const id = this.safeString (entry, 'coin');
+            const name = this.safeString (entry, 'name');
+            const code = this.safeCurrencyCode (id);
+            const precision = undefined;
+            let isWithdrawEnabled = true;
+            let isDepositEnabled = true;
+            const networkList = this.safeValue (entry, 'networkList', []);
+            const fees = {};
+            let fee = undefined;
+            for (let i = 0; i < networkList.length; i++) {
+                const networkItem = networkList[i];
+                const name = this.safeString (networkItem, 'name');
+                const withdrawFee = this.safeFloat (networkItem, 'withdrawFee');
+                const depositEnable = this.safeValue (networkItem, 'depositEnable');
+                const withdrawEnable = this.safeValue (networkItem, 'withdrawEnable');
+                isDepositEnabled = isDepositEnabled || depositEnable;
+                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
+                fees[name] = withdrawFee;
+                fee = withdrawFee;
+            }
+            const active = (isWithdrawEnabled && isDepositEnabled);
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': entry,
+                'active': active,
+                'fee': fee,
+                'fees': fees,
+                'limits': this.limits,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
