@@ -474,7 +474,7 @@ module.exports = class bittrex extends ccxt.bittrex {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
-            throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 100, default is 25');
+            throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
         }
         await this.loadMarkets ();
         const negotiate = this.negotiate ();

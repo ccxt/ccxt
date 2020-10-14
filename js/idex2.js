@@ -345,7 +345,8 @@ module.exports = class idex2 extends ccxt.idex2 {
             const lastData = this.safeValue (lastBuffered, 'data');
             const lastNonce = this.safeInteger (lastData, 'u');
             // ensure the snapshot is inside the range of our cached messages
-            if ((snapshot['nonce'] > firstNonce) && (snapshot['nonce'] < lastNonce)) {
+            const bothExist = (firstNonce !== undefined) && (lastNonce !== undefined);
+            if (bothExist && (snapshot['nonce'] > firstNonce) && (snapshot['nonce'] < lastNonce)) {
                 orderbook.reset (snapshot);
                 for (let i = 0; i < orderbook.cache.length; i++) {
                     const message = orderbook.cache[i];
