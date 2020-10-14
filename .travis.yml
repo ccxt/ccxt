@@ -16,7 +16,6 @@ before_install:
 - nvm use stable
 - rm -rf node_modules
 - npm install
-- npm install web3 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
 - sudo apt-get install python3-pip
 - python3 --version
@@ -27,7 +26,7 @@ before_install:
 - sudo -H pip install --ignore-installed six
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
-- pip install --upgrade web3 aiohttp requests cryptography pyopenssl
+- pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
 - git pull --tags
 script:
