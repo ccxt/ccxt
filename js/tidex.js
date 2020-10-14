@@ -551,7 +551,7 @@ module.exports = class tidex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
         let remaining = undefined;
         let amount = undefined;
         const price = this.safeFloat (order, 'rate');
@@ -579,7 +579,7 @@ module.exports = class tidex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'type': 'limit',
-            'side': order['type'],
+            'side': this.safeString (order, 'type'),
             'price': price,
             'cost': cost,
             'amount': amount,
