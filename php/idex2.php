@@ -348,7 +348,8 @@ class idex2 extends \ccxt\idex2 {
             $lastData = $this->safe_value($lastBuffered, 'data');
             $lastNonce = $this->safe_integer($lastData, 'u');
             // ensure the $snapshot is inside the range of our cached messages
-            if (($snapshot['nonce'] > $firstNonce) && ($snapshot['nonce'] < $lastNonce)) {
+            $bothExist = ($firstNonce !== null) && ($lastNonce !== null);
+            if ($bothExist && ($snapshot['nonce'] > $firstNonce) && ($snapshot['nonce'] < $lastNonce)) {
                 $orderbook->reset ($snapshot);
                 for ($i = 0; $i < count($orderbook->cache); $i++) {
                     $message = $orderbook->cache[$i];

@@ -324,7 +324,8 @@ class idex2(Exchange, ccxt.idex2):
             lastData = self.safe_value(lastBuffered, 'data')
             lastNonce = self.safe_integer(lastData, 'u')
             # ensure the snapshot is inside the range of our cached messages
-            if (snapshot['nonce'] > firstNonce) and (snapshot['nonce'] < lastNonce):
+            bothExist = (firstNonce is not None) and (lastNonce is not None)
+            if bothExist and (snapshot['nonce'] > firstNonce) and (snapshot['nonce'] < lastNonce):
                 orderbook.reset(snapshot)
                 for i in range(0, len(orderbook.cache)):
                     message = orderbook.cache[i]
