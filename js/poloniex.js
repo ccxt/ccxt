@@ -1053,7 +1053,6 @@ module.exports = class poloniex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
         const request = {};
         const clientOrderId = this.safeValue (params, 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -1062,8 +1061,7 @@ module.exports = class poloniex extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         params = this.omit (params, 'clientOrderId');
-        response = await this.privatePostCancelOrder (this.extend (request, params));
-        return response;
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
