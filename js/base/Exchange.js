@@ -1165,8 +1165,6 @@ module.exports = class Exchange {
         let result = Array.isArray (orders) ?
             Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params)) :
             Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
-        console.log (result);
-        process.exit ();
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
