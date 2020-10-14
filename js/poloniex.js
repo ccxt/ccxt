@@ -952,43 +952,7 @@ module.exports = class poloniex extends Exchange {
                 openOrders = this.parseOpenOrders (orders, m, openOrders);
             }
         }
-        for (let j = 0; j < openOrders.length; j++) {
-            this.orders[openOrders[j]['id']] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        const result = [];
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            const id = cachedOrderIds[k];
-            if (id in openOrdersIndexedById) {
-                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
-            } else {
-                let order = this.orders[id];
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed',
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
-            }
-            const order = this.orders[id];
-            if (market !== undefined) {
-                if (order['symbol'] === symbol) {
-                    result.push (order);
-                }
-            } else {
-                result.push (order);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit);
+        return this.filterBySinceLimit (openOrders, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1063,7 +1027,7 @@ module.exports = class poloniex extends Exchange {
         //         'currencyPair': 'BTC_MANA',
         //     }
         //
-        const order = this.parseOrder (this.extend ({
+        return this.parseOrder (this.extend ({
             'timestamp': timestamp,
             'status': 'open',
             'type': type,
@@ -1071,9 +1035,6 @@ module.exports = class poloniex extends Exchange {
             'price': price,
             'amount': amount,
         }, response), market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -1087,65 +1048,21 @@ module.exports = class poloniex extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         const response = await this.privatePostMoveOrder (this.extend (request, params));
-        let result = undefined;
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-            const newid = response['orderNumber'];
-            this.orders[newid] = this.extend (this.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
-                'trades': [],
-            });
-            if (amount !== undefined) {
-                this.orders[newid]['amount'] = amount;
-            }
-            result = this.extend (this.orders[newid], { 'info': response });
-        } else {
-            let market = undefined;
-            if (symbol !== undefined) {
-                market = this.market (symbol);
-            }
-            result = this.parseOrder (response, market);
-            this.orders[result['id']] = result;
-        }
-        return result;
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
-        try {
-            const request = {};
-            const clientOrderId = this.safeValue (params, 'clientOrderId');
-            if (clientOrderId === undefined) {
-                request['orderNumber'] = id;
-            } else {
-                request['clientOrderId'] = clientOrderId;
-            }
-            params = this.omit (params, 'clientOrderId');
-            response = await this.privatePostCancelOrder (this.extend (request, params));
-        } catch (e) {
-            if (e instanceof CancelPending) {
-                // A request to cancel the order has been sent already.
-                // If we then attempt to cancel the order the second time
-                // before the first request is processed the exchange will
-                // throw a CancelPending exception. Poloniex won't show the
-                // order in the list of active (open) orders and the cached
-                // order will be marked as 'closed' (see #1801 for details).
-                // To avoid that we proactively mark the order as 'canceled'
-                // here. If for some reason the order does not get canceled
-                // and still appears in the active list then the order cache
-                // will eventually get back in sync on a call to `fetchOrder`.
-                if (id in this.orders) {
-                    this.orders[id]['status'] = 'canceled';
-                }
-            }
-            throw e;
+        const request = {};
+        const clientOrderId = this.safeValue (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderNumber'] = id;
+        } else {
+            request['clientOrderId'] = clientOrderId;
         }
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
+        params = this.omit (params, 'clientOrderId');
+        response = await this.privatePostCancelOrder (this.extend (request, params));
         return response;
     }
 
@@ -1169,13 +1086,6 @@ module.exports = class poloniex extends Exchange {
         //         ]
         //     }
         //
-        const orderIds = this.safeValue (response, 'orderNumbers', []);
-        for (let i = 0; i < orderIds.length; i++) {
-            const id = orderIds[i].toString ();
-            if (id in this.orders) {
-                this.orders[id]['status'] = 'canceled';
-            }
-        }
         return response;
     }
 
@@ -1206,10 +1116,7 @@ module.exports = class poloniex extends Exchange {
         if (result === undefined) {
             throw new OrderNotFound (this.id + ' order id ' + id + ' not found');
         }
-        const order = this.parseOrder (result);
-        order['id'] = id;
-        this.orders[id] = order;
-        return order;
+        return this.parseOrder (result);
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
