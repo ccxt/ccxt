@@ -512,22 +512,8 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        let marketId = this.safeString (ticker, 'id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            marketId = this.safeString (ticker, 'symbol');
-            if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString2 (ticker, 'id', 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeFloat (ticker, 'last');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
@@ -892,22 +878,8 @@ module.exports = class stex extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
-        let marketId = this.safeString (order, 'currency_pair_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            marketId = this.safeString (order, 'currency_pair_name');
-            if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'initial_amount');
