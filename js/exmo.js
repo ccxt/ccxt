@@ -104,7 +104,7 @@ module.exports = class exmo extends Exchange {
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
-                        'code_check'
+                        'code_check',
                         'wallet_history',
                         'wallet_operations',
                     ],
