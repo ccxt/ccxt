@@ -512,19 +512,8 @@ class stex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        marketId = self.safe_string(ticker, 'id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(ticker, 'symbol')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string_2(ticker, 'id', 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float(ticker, 'last')
         open = self.safe_float(ticker, 'open')
         change = None
@@ -870,19 +859,8 @@ class stex(Exchange):
         #
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
-        marketId = self.safe_string(order, 'currency_pair_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(order, 'currency_pair_name')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string_2(order, 'currency_pair_id', 'currency_pair_name')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(order, 'timestamp')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'initial_amount')
