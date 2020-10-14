@@ -470,23 +470,9 @@ class hollaex extends Exchange {
         //         "$fee" => 0.1
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
@@ -501,13 +487,14 @@ class hollaex extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
+            $quote = $market['quote'];
             $feeCurrencyCode = ($market !== null) ? $market['quote'] : $quote;
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
         }
-        $result = array(
+        return array(
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
@@ -522,7 +509,6 @@ class hollaex extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {

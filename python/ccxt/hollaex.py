@@ -461,20 +461,9 @@ class hollaex(Exchange):
         #         "fee": 0.1
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
@@ -487,12 +476,13 @@ class hollaex(Exchange):
         feeCost = self.safe_float(trade, 'fee')
         fee = None
         if feeCost is not None:
+            quote = market['quote']
             feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        result = {
+        return {
             'info': trade,
             'id': None,
             'timestamp': timestamp,
@@ -507,7 +497,6 @@ class hollaex(Exchange):
             'cost': cost,
             'fee': fee,
         }
-        return result
 
     def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         self.load_markets()
