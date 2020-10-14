@@ -2148,8 +2148,8 @@ module.exports = class okex extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let clientOrderId = this.safeString (order, 'client_oid', '');
-        if (clientOrderId.length < 1) {
+        let clientOrderId = this.safeString (order, 'client_oid');
+        if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         return {
