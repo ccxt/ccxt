@@ -554,14 +554,12 @@ class huobipro(Exchange):
         result = {}
         for i in range(0, len(tickers)):
             marketId = self.safe_string(tickers[i], 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-            symbol = marketId
-            if market is not None:
-                symbol = market['symbol']
-                ticker = self.parse_ticker(tickers[i], market)
-                ticker['timestamp'] = timestamp
-                ticker['datetime'] = self.iso8601(timestamp)
-                result[symbol] = ticker
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            ticker = self.parse_ticker(tickers[i], market)
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+            result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
@@ -597,13 +595,8 @@ class huobipro(Exchange):
         #          'trade-id': 100050305348
         #     },
         #
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_2(trade, 'ts', 'created-at')
         order = self.safe_string(trade, 'order-id')
         side = self.safe_string(trade, 'direction')
@@ -1012,14 +1005,8 @@ class huobipro(Exchange):
             side = orderType[0]
             type = orderType[1]
             status = self.parse_order_status(self.safe_string(order, 'state'))
-        symbol = None
-        if market is None:
-            if 'symbol' in order:
-                if order['symbol'] in self.markets_by_id:
-                    marketId = order['symbol']
-                    market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount

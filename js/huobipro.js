@@ -561,15 +561,12 @@ module.exports = class huobipro extends Exchange {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString (tickers[i], 'symbol');
-            const market = this.safeValue (this.markets_by_id, marketId);
-            let symbol = marketId;
-            if (market !== undefined) {
-                symbol = market['symbol'];
-                const ticker = this.parseTicker (tickers[i], market);
-                ticker['timestamp'] = timestamp;
-                ticker['datetime'] = this.iso8601 (timestamp);
-                result[symbol] = ticker;
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const ticker = this.parseTicker (tickers[i], market);
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -607,16 +604,8 @@ module.exports = class huobipro extends Exchange {
         //          'trade-id': 100050305348
         //     },
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         const order = this.safeString (trade, 'order-id');
         let side = this.safeString (trade, 'direction');
@@ -1069,18 +1058,8 @@ module.exports = class huobipro extends Exchange {
             type = orderType[1];
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            if ('symbol' in order) {
-                if (order['symbol'] in this.markets_by_id) {
-                    const marketId = order['symbol'];
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount

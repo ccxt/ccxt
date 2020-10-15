@@ -2016,6 +2016,11 @@ class bybit(Exchange):
                 'timestamp': timestamp,
             })
             auth = self.rawencode(self.keysort(query))
+            # https://github.com/ccxt/ccxt/issues/7377
+            # https://github.com/ccxt/ccxt/issues/7515
+            # bybit encodes whole floats as integers without .0 for conditional stop-orders only
+            if path.find('stop-order') >= 0:
+                auth = auth.replace('.0&', '&')
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             if method == 'POST':
                 body = self.json(self.extend(query, {

@@ -151,6 +151,7 @@ module.exports = class yobit extends Exchange {
                 'TTC': 'TittieCoin',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XRA': 'Ratecoin',
             },
             'options': {
                 // 'fetchTickersMaxLength': 2048,

@@ -169,6 +169,7 @@ class yobit(Exchange):
                 'TTC': 'TittieCoin',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XRA': 'Ratecoin',
             },
             'options': {
                 # 'fetchTickersMaxLength': 2048,

@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.36.37';
+$version = '1.36.51';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.36.37';
+    const VERSION = '1.36.51';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2024,19 +2024,6 @@ class Exchange {
 
     public function fetchOrderStatus($id, $market = null) {
         return $this->fetch_order_status($id);
-    }
-
-    public function purge_cached_orders($before) {
-        if ($this->orders) {
-            $this->orders = static::index_by(array_filter($this->orders, function ($order) use ($before) {
-                return ('open' === $order['status']) || ($order['timestamp'] >= $before);
-            }), 'id');
-        }
-        return $this->orders;
-    }
-
-    public function purgeCachedOrders($before) {
-        return $this->purge_cached_orders($before);
     }
 
     public function fetch_order($id, $symbol = null, $params = array()) {

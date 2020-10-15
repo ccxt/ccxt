@@ -163,18 +163,21 @@ class hitbtc(Exchange):
             },
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
+                'BOX': 'BOX Token',
                 'CAT': 'BitClave',
                 'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
+                'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
+                'PNT': 'Penta',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
-                'PNT': 'Penta',
+                'XPNT': 'PNT',
             },
             'exceptions': {
                 '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}

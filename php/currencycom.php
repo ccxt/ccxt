@@ -140,6 +140,9 @@ class currencycom extends Exchange {
                     '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
                 ),
             ),
+            'commonCurrencies' => array(
+                'IQ' => 'iQIYI',
+            ),
         ));
     }
 

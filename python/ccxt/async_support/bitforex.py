@@ -236,6 +236,7 @@ class bitforex(Exchange):
             },
             'commonCurrencies': {
                 'CREDIT': 'TerraCredit',
+                'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
