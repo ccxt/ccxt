@@ -346,6 +346,16 @@ module.exports = class poloniex extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const fees = await this.privatePostReturnFeeInfo (params);
+        //
+        //     {
+        //         makerFee: '0.00100000',
+        //         takerFee: '0.00200000',
+        //         marginMakerFee: '0.00100000',
+        //         marginTakerFee: '0.00200000',
+        //         thirtyDayVolume: '106.08463302',
+        //         nextTier: 500000,
+        //     }
+        //
         return {
             'info': fees,
             'maker': this.safeFloat (fees, 'makerFee'),
