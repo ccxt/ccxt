@@ -389,6 +389,7 @@ class bitfinex(Exchange):
                     'BTC': 'bitcoin',
                     'BTG': 'bgold',
                     'CFI': 'cfi',
+                    'COMP': 'comp',
                     'DAI': 'dai',
                     'DADI': 'dad',
                     'DASH': 'dash',
@@ -407,6 +408,7 @@ class bitfinex(Exchange):
                     # https://github.com/ccxt/ccxt/issues/5833
                     'LEO': 'let',  # ETH chain
                     # 'LEO': 'les',  # EOS chain
+                    'LINK': 'link',
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -432,6 +434,7 @@ class bitfinex(Exchange):
                     'STORJ': 'stj',
                     'TNB': 'tnb',
                     'TRX': 'trx',
+                    'TUSD': 'tsd',
                     'USD': 'wire',
                     'USDC': 'udc',  # https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
