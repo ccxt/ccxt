@@ -14,7 +14,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -41,7 +40,6 @@ class poloniex(Exchange):
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -50,11 +48,8 @@ class poloniex(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,  # True endpoint for a single open order
                 'fetchOpenOrders': True,  # True endpoint for open orders
-                'fetchOrder': 'emulated',  # no endpoint for a single open-or-closed order(just for an open order only)
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': 'emulated',  # no endpoint for open-or-closed orders(just for open orders only)
-                'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -353,6 +348,16 @@ class poloniex(Exchange):
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         fees = await self.privatePostReturnFeeInfo(params)
+        #
+        #     {
+        #         makerFee: '0.00100000',
+        #         takerFee: '0.00200000',
+        #         marginMakerFee: '0.00100000',
+        #         marginTakerFee: '0.00200000',
+        #         thirtyDayVolume: '106.08463302',
+        #         nextTier: 500000,
+        #     }
+        #
         return {
             'info': fees,
             'maker': self.safe_float(fees, 'makerFee'),
@@ -775,11 +780,12 @@ class poloniex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(order, 'timestamp')
-        if not timestamp:
-            timestamp = self.parse8601(order['date'])
+        if timestamp is None:
+            timestamp = self.parse8601(self.safe_string(order, 'date'))
         trades = None
-        if 'resultingTrades' in order:
-            trades = self.parse_trades(order['resultingTrades'], market)
+        resultingTrades = self.safe_value(order, 'resultingTrades')
+        if resultingTrades is not None:
+            trades = self.parse_trades(resultingTrades, market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
         if marketId is not None:
@@ -875,7 +881,7 @@ class poloniex(Exchange):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -885,70 +891,18 @@ class poloniex(Exchange):
             'currencyPair': pair,
         }
         response = await self.privatePostReturnOpenOrders(self.extend(request, params))
-        openOrders = []
-        if market is not None:
-            openOrders = self.parse_open_orders(response, market, openOrders)
-        else:
+        extension = {'status': 'open'}
+        if market is None:
             marketIds = list(response.keys())
+            openOrders = []
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 orders = response[marketId]
                 m = self.markets_by_id[marketId]
-                openOrders = self.parse_open_orders(orders, m, openOrders)
-        for j in range(0, len(openOrders)):
-            self.orders[openOrders[j]['id']] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        result = []
-        for k in range(0, len(cachedOrderIds)):
-            id = cachedOrderIds[k]
-            if id in openOrdersIndexedById:
-                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
-            else:
-                order = self.orders[id]
-                if order['status'] == 'open':
-                    order = self.extend(order, {
-                        'status': 'closed',
-                        'cost': None,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    })
-                    if order['cost'] is None:
-                        if order['filled'] is not None:
-                            order['cost'] = order['filled'] * order['price']
-                    self.orders[id] = order
-            order = self.orders[id]
-            if market is not None:
-                if order['symbol'] == symbol:
-                    result.append(order)
-            else:
-                result.append(order)
-        return self.filter_by_since_limit(result, since, limit)
-
-    async def fetch_order(self, id, symbol=None, params={}):
-        since = self.safe_value(params, 'since')
-        limit = self.safe_value(params, 'limit')
-        request = self.omit(params, ['since', 'limit'])
-        orders = await self.fetch_orders(symbol, since, limit, request)
-        for i in range(0, len(orders)):
-            if orders[i]['id'] == id:
-                return orders[i]
-        raise OrderNotCached(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
-
-    def filter_orders_by_status(self, orders, status):
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == status:
-                result.append(orders[i])
-        return result
-
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_orders_by_status(orders, 'open')
-
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_orders_by_status(orders, 'closed')
+                openOrders = self.parse_orders(orders, m, None, None, extension)
+            return self.filter_by_since_limit(openOrders, since, limit)
+        else:
+            return self.parse_orders(response, market, since, limit, extension)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -987,7 +941,7 @@ class poloniex(Exchange):
         #         'currencyPair': 'BTC_MANA',
         #     }
         #
-        order = self.parse_order(self.extend({
+        return self.parse_order(self.extend({
             'timestamp': timestamp,
             'status': 'open',
             'type': type,
@@ -995,9 +949,6 @@ class poloniex(Exchange):
             'price': price,
             'amount': amount,
         }, response), market)
-        id = order['id']
-        self.orders[id] = order
-        return self.extend({'info': response}, order)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -1009,57 +960,18 @@ class poloniex(Exchange):
         if amount is not None:
             request['amount'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostMoveOrder(self.extend(request, params))
-        result = None
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-            newid = response['orderNumber']
-            self.orders[newid] = self.extend(self.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
-                'trades': [],
-            })
-            if amount is not None:
-                self.orders[newid]['amount'] = amount
-            result = self.extend(self.orders[newid], {'info': response})
-        else:
-            market = None
-            if symbol is not None:
-                market = self.market(symbol)
-            result = self.parse_order(response, market)
-            self.orders[result['id']] = result
-        return result
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = None
-        try:
-            request = {}
-            clientOrderId = self.safe_value(params, 'clientOrderId')
-            if clientOrderId is None:
-                request['orderNumber'] = id
-            else:
-                request['clientOrderId'] = clientOrderId
-            params = self.omit(params, 'clientOrderId')
-            response = await self.privatePostCancelOrder(self.extend(request, params))
-        except Exception as e:
-            if isinstance(e, CancelPending):
-                # A request to cancel the order has been sent already.
-                # If we then attempt to cancel the order the second time
-                # before the first request is processed the exchange will
-                # raise a CancelPending exception. Poloniex won't show the
-                # order in the list of active(open) orders and the cached
-                # order will be marked as 'closed'(see  #1801 for details).
-                # To avoid that we proactively mark the order as 'canceled'
-                # here. If for some reason the order does not get canceled
-                # and still appears in the active list then the order cache
-                # will eventually get back in sync on a call to `fetchOrder`.
-                if id in self.orders:
-                    self.orders[id]['status'] = 'canceled'
-            raise e
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return response
+        request = {}
+        clientOrderId = self.safe_value(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['orderNumber'] = id
+        else:
+            request['clientOrderId'] = clientOrderId
+        params = self.omit(params, 'clientOrderId')
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
         request = {}
@@ -1080,19 +992,15 @@ class poloniex(Exchange):
         #         ]
         #     }
         #
-        orderIds = self.safe_value(response, 'orderNumbers', [])
-        for i in range(0, len(orderIds)):
-            id = str(orderIds[i])
-            if id in self.orders:
-                self.orders[id]['status'] = 'canceled'
         return response
 
     async def fetch_open_order(self, id, symbol=None, params={}):
         await self.load_markets()
         id = str(id)
-        response = await self.privatePostReturnOrderStatus(self.extend({
+        request = {
             'orderNumber': id,
-        }, params))
+        }
+        response = await self.privatePostReturnOrderStatus(self.extend(request, params))
         #
         #     {
         #         success: 1,
@@ -1113,10 +1021,7 @@ class poloniex(Exchange):
         result = self.safe_value(response['result'], id)
         if result is None:
             raise OrderNotFound(self.id + ' order id ' + id + ' not found')
-        order = self.parse_order(result)
-        order['id'] = id
-        self.orders[id] = order
-        return order
+        return self.parse_order(result)
 
     async def fetch_order_status(self, id, symbol=None, params={}):
         await self.load_markets()
