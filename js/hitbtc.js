@@ -87,21 +87,19 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         //
         const params = this.safeValue (message, 'params', {});
         const marketId = this.safeString (params, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-            const nonce = this.safeInteger (params, 'sequence');
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
-            const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
-            const orderbook = this.orderBook (snapshot);
-            orderbook['nonce'] = nonce;
-            this.orderbooks[symbol] = orderbook;
-            const messageHash = 'orderbook:' + marketId;
-            client.resolve (orderbook, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
+        const nonce = this.safeInteger (params, 'sequence');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
         }
+        const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
+        const orderbook = this.orderBook (snapshot);
+        orderbook['nonce'] = nonce;
+        this.orderbooks[symbol] = orderbook;
+        const messageHash = 'orderbook:' + marketId;
+        client.resolve (orderbook, messageHash);
     }
 
     handleOrderBookUpdate (client, message) {
@@ -128,24 +126,22 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         //
         const params = this.safeValue (message, 'params', {});
         const marketId = this.safeString (params, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            if (symbol in this.orderbooks) {
-                const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
-                const nonce = this.safeInteger (params, 'sequence');
-                const orderbook = this.orderbooks[symbol];
-                const asks = this.safeValue (params, 'ask', []);
-                const bids = this.safeValue (params, 'bid', []);
-                this.handleDeltas (orderbook['asks'], asks);
-                this.handleDeltas (orderbook['bids'], bids);
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
-                orderbook['nonce'] = nonce;
-                this.orderbooks[symbol] = orderbook;
-                const messageHash = 'orderbook:' + marketId;
-                client.resolve (orderbook, messageHash);
-            }
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (symbol in this.orderbooks) {
+            const timestamp = this.parse8601 (this.safeString (params, 'timestamp'));
+            const nonce = this.safeInteger (params, 'sequence');
+            const orderbook = this.orderbooks[symbol];
+            const asks = this.safeValue (params, 'ask', []);
+            const bids = this.safeValue (params, 'bid', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            orderbook['nonce'] = nonce;
+            this.orderbooks[symbol] = orderbook;
+            const messageHash = 'orderbook:' + marketId;
+            client.resolve (orderbook, messageHash);
         }
     }
 
@@ -186,15 +182,13 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         //
         const params = this.safeValue (message, 'params');
         const marketId = this.safeValue (params, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const result = this.parseTicker (params, market);
-            this.tickers[symbol] = result;
-            const method = this.safeValue (message, 'method');
-            const messageHash = method + ':' + marketId;
-            client.resolve (result, messageHash);
-        }
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const result = this.parseTicker (params, market);
+        this.tickers[symbol] = result;
+        const method = this.safeValue (message, 'method');
+        const messageHash = method + ':' + marketId;
+        client.resolve (result, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -231,27 +225,25 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', []);
         const marketId = this.safeString (params, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const messageHash = 'trades:' + marketId;
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.append (trades[i]);
-                }
-            } else {
-                const trade = this.parseTrade (message, market);
-                stored.append (trade);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'trades:' + marketId;
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        if (Array.isArray (data)) {
+            const trades = this.parseTrades (data, market);
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
+        } else {
+            const trade = this.parseTrade (message, market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -305,30 +297,28 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         const params = this.safeValue (message, 'params', {});
         const data = this.safeValue (params, 'data', []);
         const marketId = this.safeString (params, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const period = this.safeString (params, 'period');
-            const timeframe = this.findTimeframe (period);
-            const messageHash = 'ohlcv:' + marketId + ':' + period;
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            for (let i = 0; i < data.length; i++) {
-                const candle = data[i];
-                const parsed = this.parseOHLCV (candle, market);
-                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-                if (stored === undefined) {
-                    stored = new ArrayCache (limit);
-                    this.ohlcvs[symbol][timeframe] = stored;
-                }
-                const length = stored.length;
-                if (length && parsed[0] === stored[length - 1][0]) {
-                    stored[length - 1] = parsed;
-                } else {
-                    stored.append (parsed);
-                }
-                client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const period = this.safeString (params, 'period');
+        const timeframe = this.findTimeframe (period);
+        const messageHash = 'ohlcv:' + marketId + ':' + period;
+        const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+        for (let i = 0; i < data.length; i++) {
+            const candle = data[i];
+            const parsed = this.parseOHLCV (candle, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
             }
+            const length = stored.length;
+            if (length && parsed[0] === stored[length - 1][0]) {
+                stored[length - 1] = parsed;
+            } else {
+                stored.append (parsed);
+            }
+            client.resolve (stored, messageHash);
         }
         return message;
     }
