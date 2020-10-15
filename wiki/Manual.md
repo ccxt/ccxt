@@ -1343,15 +1343,15 @@ To fetch historical orders or trades, the user will need to traverse the data in
 
 In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently. If the user does not apply any pagination, most methods will return the exchanges' default, which may start from the beginning of history or may be a subset of most recent objects. The default behaviour (without pagination) is exchange-specific! The means of pagination are often used with the following methods in particular:
 
-- `fetchTrades`
-- `fetchOHLCV`
-- `fetchOrders`
-- `fetchOpenOrders`
-- `fetchClosedOrders`
-- `fetchMyTrades`
-- `fetchTransactions`
-- `fetchDeposits`
-- `fetchWithdrawals`
+- `fetchTrades()`
+- `fetchOHLCV()`
+- `fetchOrders()`
+- `fetchOpenOrders()`
+- `fetchClosedOrders()`
+- `fetchMyTrades()`
+- `fetchTransactions()`
+- `fetchDeposits()`
+- `fetchWithdrawals()`
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
@@ -2401,23 +2401,23 @@ The meanings of boolean `true` and `false` are obvious. A string value of `emula
 
 All methods returning lists of trades and lists of orders, accept the second `since` argument and the third `limit` argument:
 
-- `fetchTrades` (public)
-- `fetchMyTrades` (private)
-- `fetchOrders`
-- `fetchOpenOrders`
-- `fetchClosedOrders`
+- `fetchTrades()` (public)
+- `fetchMyTrades()` (private)
+- `fetchOrders()`
+- `fetchOpenOrders()`
+- `fetchClosedOrders()`
 
 The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
-If the user does not specify `since`, the `fetchTrades/fetchOrders` method will return the default set from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+If the user does not specify `since`, the `fetchTrades()/fetchOrders()` methods will return the default set of results from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
 
 **NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for `since ` and `limit` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra `params` argument.**
 
-Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the `fetchOpenOrders` endpoint, and sometimes also a `fetchOrder` endpoint as well. Those exchanges don't have any methods for fetching the order history. To maintain the order history for those exchanges the user has to store a dictionary or a database of orders in the userland and update the orders in the database after calling methods like `createOrder()`, `fetchOpenOrders`, `cancelOrder`, `cancelAllOrders()`.
+Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the `fetchOpenOrders()` endpoint, and sometimes also a `fetchOrder` endpoint as well. Those exchanges don't have any methods for fetching the order history. To maintain the order history for those exchanges the user has to store a dictionary or a database of orders in the userland and update the orders in the database after calling methods like `createOrder()`, `fetchOpenOrders()`, `cancelOrder()`, `cancelAllOrders()`.
 
 #### By Order Id
 
-To get the details of a particular order by its id, use the fetchOrder / fetch_order method. Some exchanges also require a symbol even when fetching a particular order by id.
+To get the details of a particular order by its id, use the `fetchOrder()` / `fetch_order()` method. Some exchanges also require a symbol even when fetching a particular order by id.
 
 The signature of the fetchOrder/fetch_order method is as follows:
 
@@ -3709,12 +3709,12 @@ This exception is raised when the connection with the exchange fails or data is 
 Thus it's advised to handle this type of exception in the following manner:
 
 - for fetching requests it is safe to retry the call
-- for a request to `cancelOrder` a user is required to retry the same call the second time. A subsequent retry to `cancelOrder` will return one of the following possible results:
+- for a request to `cancelOrder()` a user is required to retry the same call the second time. A subsequent retry to `cancelOrder()` will return one of the following possible results:
   - a request is completed successfully, meaning the order has been properly canceled now
   - an `OrderNotFound` exception is raised, which means the order was either already canceled on the first attempt or has been executed (filled and closed) in the meantime between the two attempts.
-- if a request to `createOrder` fails with a `RequestTimeout` the user should:
-  - call `fetchOrders`, `fetchOpenOrders`, `fetchClosedOrders` to check if the request to place the order has succeeded and the order is now open
-  - if the order is not `'open'` the user should `fetchBalance` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check. 
+- if a request to `createOrder()` fails with a `RequestTimeout` the user should:
+  - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
+  - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check. 
 
 ### ExchangeNotAvailable
 
