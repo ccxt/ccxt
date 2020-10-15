@@ -297,16 +297,14 @@ class bitmex extends \ccxt\bitmex {
         for ($i = 0; $i < count($data); $i++) {
             $update = $data[$i];
             $marketId = $this->safe_value($update, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $messageHash = $table . ':' . $marketId;
-                $ticker = $this->safe_value($this->tickers, $symbol, array());
-                $info = $this->safe_value($ticker, 'info', array());
-                $ticker = $this->parse_ticker(array_merge($info, $update), $market);
-                $this->tickers[$symbol] = $ticker;
-                $client->resolve ($ticker, $messageHash);
-            }
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $messageHash = $table . ':' . $marketId;
+            $ticker = $this->safe_value($this->tickers, $symbol, array());
+            $info = $this->safe_value($ticker, 'info', array());
+            $ticker = $this->parse_ticker(array_merge($info, $update), $market);
+            $this->tickers[$symbol] = $ticker;
+            $client->resolve ($ticker, $messageHash);
         }
         return $message;
     }
@@ -497,22 +495,20 @@ class bitmex extends \ccxt\bitmex {
         $marketIds = is_array($dataByMarketIds) ? array_keys($dataByMarketIds) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $messageHash = $table . ':' . $marketId;
-                $symbol = $market['symbol'];
-                $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
-                $stored = $this->safe_value($this->trades, $symbol);
-                if ($stored === null) {
-                    $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                    $stored = new ArrayCache ($limit);
-                    $this->trades[$symbol] = $stored;
-                }
-                for ($j = 0; $j < count($trades); $j++) {
-                    $stored->append ($trades[$j]);
-                }
-                $client->resolve ($stored, $messageHash);
+            $market = $this->safe_market($marketId);
+            $messageHash = $table . ':' . $marketId;
+            $symbol = $market['symbol'];
+            $trades = $this->parse_trades($dataByMarketIds[$marketId], $market);
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->trades[$symbol] = $stored;
             }
+            for ($j = 0; $j < count($trades); $j++) {
+                $stored->append ($trades[$j]);
+            }
+            $client->resolve ($stored, $messageHash);
         }
     }
 
@@ -788,33 +784,31 @@ class bitmex extends \ccxt\bitmex {
         for ($i = 0; $i < count($candles); $i++) {
             $candle = $candles[$i];
             $marketId = $this->safe_string($candle, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $messageHash = $table . ':' . $market['id'];
-                $result = array(
-                    $this->parse8601($this->safe_string($candle, 'timestamp')) - $duration * 1000,
-                    $this->safe_float($candle, 'open'),
-                    $this->safe_float($candle, 'high'),
-                    $this->safe_float($candle, 'low'),
-                    $this->safe_float($candle, 'close'),
-                    $this->safe_float($candle, 'volume'),
-                );
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-                if ($stored === null) {
-                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                    $stored = new ArrayCache ($limit);
-                    $this->ohlcvs[$symbol][$timeframe] = $stored;
-                }
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length && $result[0] === $stored[$length - 1][0]) {
-                    $stored[$length - 1] = $result;
-                } else {
-                    $stored->append ($result);
-                }
-                $results[$messageHash] = $stored;
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $messageHash = $table . ':' . $market['id'];
+            $result = array(
+                $this->parse8601($this->safe_string($candle, 'timestamp')) - $duration * 1000,
+                $this->safe_float($candle, 'open'),
+                $this->safe_float($candle, 'high'),
+                $this->safe_float($candle, 'low'),
+                $this->safe_float($candle, 'close'),
+                $this->safe_float($candle, 'volume'),
+            );
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
+            $length = is_array($stored) ? count($stored) : 0;
+            if ($length && $result[0] === $stored[$length - 1][0]) {
+                $stored[$length - 1] = $result;
+            } else {
+                $stored->append ($result);
+            }
+            $results[$messageHash] = $stored;
         }
         $messageHashes = is_array($results) ? array_keys($results) : array();
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -876,55 +870,51 @@ class bitmex extends \ccxt\bitmex {
         if ($action === 'partial') {
             $filter = $this->safe_value($message, 'filter', array());
             $marketId = $this->safe_value($filter, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                if ($table === 'orderBookL2') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book();
-                } else if ($table === 'orderBookL2_25') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
-                } else if ($table === 'orderBook10') {
-                    $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
-                }
-                $orderbook = $this->orderbooks[$symbol];
-                for ($i = 0; $i < count($data); $i++) {
-                    $price = $this->safe_float($data[$i], 'price');
-                    $size = $this->safe_float($data[$i], 'size');
-                    $id = $this->safe_string($data[$i], 'id');
-                    $side = $this->safe_string($data[$i], 'side');
-                    $side = ($side === 'Buy') ? 'bids' : 'asks';
-                    $bookside = $orderbook[$side];
-                    $bookside->store ($price, $size, $id);
-                }
-                $messageHash = $table . ':' . $marketId;
-                $client->resolve ($orderbook, $messageHash);
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            if ($table === 'orderBookL2') {
+                $this->orderbooks[$symbol] = $this->indexed_order_book();
+            } else if ($table === 'orderBookL2_25') {
+                $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
+            } else if ($table === 'orderBook10') {
+                $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
             }
+            $orderbook = $this->orderbooks[$symbol];
+            for ($i = 0; $i < count($data); $i++) {
+                $price = $this->safe_float($data[$i], 'price');
+                $size = $this->safe_float($data[$i], 'size');
+                $id = $this->safe_string($data[$i], 'id');
+                $side = $this->safe_string($data[$i], 'side');
+                $side = ($side === 'Buy') ? 'bids' : 'asks';
+                $bookside = $orderbook[$side];
+                $bookside->store ($price, $size, $id);
+            }
+            $messageHash = $table . ':' . $marketId;
+            $client->resolve ($orderbook, $messageHash);
         } else {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
                 $marketId = $this->safe_value($data[$i], 'symbol');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
-                        $numUpdatesByMarketId[$marketId] = 0;
-                    }
-                    $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId, 1);
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                    $orderbook = $this->orderbooks[$symbol];
-                    $price = $this->safe_float($data[$i], 'price');
-                    $size = $this->safe_float($data[$i], 'size', 0);
-                    $id = $this->safe_string($data[$i], 'id');
-                    $side = $this->safe_string($data[$i], 'side');
-                    $side = ($side === 'Buy') ? 'bids' : 'asks';
-                    $bookside = $orderbook[$side];
-                    $bookside->store ($price, $size, $id);
+                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
+                    $numUpdatesByMarketId[$marketId] = 0;
                 }
+                $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId, 1);
+                $market = $this->safe_market($marketId);
+                $symbol = $market['symbol'];
+                $orderbook = $this->orderbooks[$symbol];
+                $price = $this->safe_float($data[$i], 'price');
+                $size = $this->safe_float($data[$i], 'size', 0);
+                $id = $this->safe_string($data[$i], 'id');
+                $side = $this->safe_string($data[$i], 'side');
+                $side = ($side === 'Buy') ? 'bids' : 'asks';
+                $bookside = $orderbook[$side];
+                $bookside->store ($price, $size, $id);
             }
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $messageHash = $table . ':' . $marketId;
-                $market = $this->markets_by_id[$marketId];
+                $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 $client->resolve ($orderbook, $messageHash);
