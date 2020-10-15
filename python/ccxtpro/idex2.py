@@ -100,9 +100,7 @@ class idex2(Exchange, ccxt.idex2):
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
-        symbol = None
-        if marketId in self.markets_by_id:
-            symbol = self.markets_by_id[marketId]['symbol']
+        symbol = self.safe_symbol(marketId)
         messageHash = type + ':' + marketId
         timestamp = self.safe_integer(data, 't')
         close = self.safe_float(data, 'c')
@@ -185,9 +183,7 @@ class idex2(Exchange, ccxt.idex2):
         #   l: 'maker',
         #   S: 'pending'}
         marketId = self.safe_string(trade, 'm')
-        symbol = None
-        if marketId in self.markets_by_id:
-            symbol = self.markets_by_id[marketId]['symbol']
+        symbol = self.safe_symbol(marketId)
         id = self.safe_string(trade, 'i')
         price = self.safe_float(trade, 'p')
         amount = self.safe_float(trade, 'q')
@@ -256,9 +252,7 @@ class idex2(Exchange, ccxt.idex2):
             self.safe_float(data, 'c'),
             self.safe_float(data, 'v'),
         ]
-        symbol = None
-        if marketId in self.markets_by_id:
-            symbol = self.markets_by_id[marketId][symbol]
+        symbol = self.safe_symbol(marketId)
         interval = self.safe_string(data, 'i')
         timeframe = self.find_timeframe(interval)
         # TODO: move to base class
@@ -296,8 +290,8 @@ class idex2(Exchange, ccxt.idex2):
                 for j in range(0, len(markets)):
                     marketId = markets[j]
                     orderBookSubscriptions = self.safe_value(self.options, 'orderBookSubscriptions', {})
-                    if not (marketId in orderBookSubscriptions) and (marketId in self.markets_by_id):
-                        symbol = self.markets_by_id[marketId]['symbol']
+                    if not (marketId in orderBookSubscriptions):
+                        symbol = self.safe_symbol(marketId)
                         if not (symbol in self.orderbooks):
                             orderbook = self.counted_order_book({})
                             orderbook.cache = []
@@ -370,9 +364,7 @@ class idex2(Exchange, ccxt.idex2):
     def handle_order_book(self, client, message):
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
-        symbol = None
-        if marketId in self.markets_by_id:
-            symbol = self.markets_by_id[marketId]['symbol']
+        symbol = self.safe_symbol(marketId)
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             # 2. Buffer the incoming order book update subscription messages.
@@ -491,16 +483,14 @@ class idex2(Exchange, ccxt.idex2):
         type = self.safe_string(message, 'type')
         order = self.safe_value(message, 'data')
         marketId = self.safe_string(order, 'm')
+        symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(order, 't')
         fills = self.safe_value(order, 'F')
         trades = []
         for i in range(0, len(fills)):
             trades.append(self.parse_ws_trade(fills[i]))
         id = self.safe_string(order, 'i')
-        symbol = None
         side = self.safe_string(order, 's')
-        if marketId in self.markets_by_id:
-            symbol = self.markets_by_id[marketId]['symbol']
         orderType = self.safe_string(order, 'o')
         amount = self.safe_float(order, 'q')
         filled = self.safe_float(order, 'z')

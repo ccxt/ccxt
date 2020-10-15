@@ -105,10 +105,7 @@ class idex2 extends \ccxt\idex2 {
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = $type . ':' . $marketId;
         $timestamp = $this->safe_integer($data, 't');
         $close = $this->safe_float($data, 'c');
@@ -196,10 +193,7 @@ class idex2 extends \ccxt\idex2 {
         //   l => 'maker',
         //   S => 'pending' }
         $marketId = $this->safe_string($trade, 'm');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $id = $this->safe_string($trade, 'i');
         $price = $this->safe_float($trade, 'p');
         $amount = $this->safe_float($trade, 'q');
@@ -270,10 +264,7 @@ class idex2 extends \ccxt\idex2 {
             $this->safe_float($data, 'c'),
             $this->safe_float($data, 'v'),
         );
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $symbol = $this->markets_by_id[$marketId][$symbol];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $interval = $this->safe_string($data, 'i');
         $timeframe = $this->find_timeframe($interval);
         // TODO => move to base class
@@ -314,8 +305,8 @@ class idex2 extends \ccxt\idex2 {
                 for ($j = 0; $j < count($markets); $j++) {
                     $marketId = $markets[$j];
                     $orderBookSubscriptions = $this->safe_value($this->options, 'orderBookSubscriptions', array());
-                    if (!(is_array($orderBookSubscriptions) && array_key_exists($marketId, $orderBookSubscriptions)) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                        $symbol = $this->markets_by_id[$marketId]['symbol'];
+                    if (!(is_array($orderBookSubscriptions) && array_key_exists($marketId, $orderBookSubscriptions))) {
+                        $symbol = $this->safe_symbol($marketId);
                         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
                             $orderbook = $this->counted_order_book(array());
                             $orderbook->cache = array();
@@ -401,10 +392,7 @@ class idex2 extends \ccxt\idex2 {
     public function handle_order_book($client, $message) {
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] === null) {
             // 2. Buffer the incoming order book update subscription messages.
@@ -533,6 +521,7 @@ class idex2 extends \ccxt\idex2 {
         $type = $this->safe_string($message, 'type');
         $order = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($order, 'm');
+        $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 't');
         $fills = $this->safe_value($order, 'F');
         $trades = array();
@@ -540,11 +529,7 @@ class idex2 extends \ccxt\idex2 {
             $trades[] = $this->parse_ws_trade($fills[$i]);
         }
         $id = $this->safe_string($order, 'i');
-        $symbol = null;
         $side = $this->safe_string($order, 's');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
         $orderType = $this->safe_string($order, 'o');
         $amount = $this->safe_float($order, 'q');
         $filled = $this->safe_float($order, 'z');
