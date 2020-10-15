@@ -136,6 +136,9 @@ module.exports = class currencycom extends Exchange {
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
                 },
             },
+            'commonCurrencies': {
+                'IQ': 'iQIYI',
+            },
         });
     }
 
