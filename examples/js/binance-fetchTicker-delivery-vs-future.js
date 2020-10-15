@@ -3,13 +3,14 @@
 const ccxt = require ('../../ccxt.js')
 
 async function fetchTickers (exchange) {
+    let tickers = undefined
     try {
-        await exchange.loadMarkets ()
-        return await exchange.fetchTickers ()
+        // await exchange.loadMarkets () // optional
+        tickers = await exchange.fetchTickers ()
     } catch (e) {
         console.error (e.constructor.name, e.message)
-        return undefined
     }
+    return tickers
 }
 
 ;(async () => {
