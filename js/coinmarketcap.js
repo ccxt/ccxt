@@ -103,6 +103,7 @@ module.exports = class coinmarketcap extends Exchange {
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Blocktrade Token': 'Blocktrade Token',
+            'BOX Token': 'BOX Token', // conflict with BOX (ContentBox)
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'CryptoBossCoin': 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
@@ -112,6 +113,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Cryptaur': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'DefiBox': 'DefiBox', // conflict with BOX (ContentBox)
             'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
@@ -128,6 +130,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
             'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
+            'IQ.cash': 'IQ.cash', // conflict with IQ (Everipedia)
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
@@ -138,6 +141,7 @@ module.exports = class coinmarketcap extends Exchange {
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
+            'Penta': 'Penta', // conflict with PNT (pNetwork)
             'Plair': 'Plair', // conflict with PLA (PLANET)
             'PlayChip': 'PlayChip', // conflict with PLA (PLANET)
             'Polcoin': 'Polcoin',
