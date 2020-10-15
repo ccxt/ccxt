@@ -1116,6 +1116,10 @@ class binance extends Exchange {
             $method = 'dapiPublicGetTicker24hr';
         }
         $response = $this->$method (array_merge($request, $params));
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+            $firstTicker = $this->safe_value($response, 0, array());
+            return $this->parse_ticker($firstTicker, $market);
+        }
         return $this->parse_ticker($response, $market);
     }
 

@@ -1098,6 +1098,9 @@ class binance(Exchange):
         elif market['delivery']:
             method = 'dapiPublicGetTicker24hr'
         response = getattr(self, method)(self.extend(request, params))
+        if isinstance(response, list):
+            firstTicker = self.safe_value(response, 0, {})
+            return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
     def parse_tickers(self, rawTickers, symbols=None):
