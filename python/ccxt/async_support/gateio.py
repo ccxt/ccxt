@@ -175,6 +175,7 @@ class gateio(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
             },

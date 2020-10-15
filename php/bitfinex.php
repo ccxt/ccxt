@@ -321,6 +321,7 @@ class bitfinex extends Exchange {
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
+                'TRI' => 'TRIO',
                 'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',

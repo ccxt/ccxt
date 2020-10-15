@@ -154,6 +154,7 @@ class yobit extends Exchange {
                 'TTC' => 'TittieCoin',
                 'VOL' => 'VolumeCoin',
                 'XIN' => 'XINCoin',
+                'XRA' => 'Ratecoin',
             ),
             'options' => array(
                 // 'fetchTickersMaxLength' => 2048,
