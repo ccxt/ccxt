@@ -295,15 +295,14 @@ class bitmex(Exchange, ccxt.bitmex):
         for i in range(0, len(data)):
             update = data[i]
             marketId = self.safe_value(update, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                messageHash = table + ':' + marketId
-                ticker = self.safe_value(self.tickers, symbol, {})
-                info = self.safe_value(ticker, 'info', {})
-                ticker = self.parse_ticker(self.extend(info, update), market)
-                self.tickers[symbol] = ticker
-                client.resolve(ticker, messageHash)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            messageHash = table + ':' + marketId
+            ticker = self.safe_value(self.tickers, symbol, {})
+            info = self.safe_value(ticker, 'info', {})
+            ticker = self.parse_ticker(self.extend(info, update), market)
+            self.tickers[symbol] = ticker
+            client.resolve(ticker, messageHash)
         return message
 
     async def watch_balance(self, params={}):
@@ -490,19 +489,18 @@ class bitmex(Exchange, ccxt.bitmex):
         marketIds = list(dataByMarketIds.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                messageHash = table + ':' + marketId
-                symbol = market['symbol']
-                trades = self.parse_trades(dataByMarketIds[marketId], market)
-                stored = self.safe_value(self.trades, symbol)
-                if stored is None:
-                    limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                    stored = ArrayCache(limit)
-                    self.trades[symbol] = stored
-                for j in range(0, len(trades)):
-                    stored.append(trades[j])
-                client.resolve(stored, messageHash)
+            market = self.safe_market(marketId)
+            messageHash = table + ':' + marketId
+            symbol = market['symbol']
+            trades = self.parse_trades(dataByMarketIds[marketId], market)
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                stored = ArrayCache(limit)
+                self.trades[symbol] = stored
+            for j in range(0, len(trades)):
+                stored.append(trades[j])
+            client.resolve(stored, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -760,30 +758,29 @@ class bitmex(Exchange, ccxt.bitmex):
         for i in range(0, len(candles)):
             candle = candles[i]
             marketId = self.safe_string(candle, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                messageHash = table + ':' + market['id']
-                result = [
-                    self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
-                    self.safe_float(candle, 'open'),
-                    self.safe_float(candle, 'high'),
-                    self.safe_float(candle, 'low'),
-                    self.safe_float(candle, 'close'),
-                    self.safe_float(candle, 'volume'),
-                ]
-                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-                if stored is None:
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    stored = ArrayCache(limit)
-                    self.ohlcvs[symbol][timeframe] = stored
-                length = len(stored)
-                if length and result[0] == stored[length - 1][0]:
-                    stored[length - 1] = result
-                else:
-                    stored.append(result)
-                results[messageHash] = stored
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            messageHash = table + ':' + market['id']
+            result = [
+                self.parse8601(self.safe_string(candle, 'timestamp')) - duration * 1000,
+                self.safe_float(candle, 'open'),
+                self.safe_float(candle, 'high'),
+                self.safe_float(candle, 'low'),
+                self.safe_float(candle, 'close'),
+                self.safe_float(candle, 'volume'),
+            ]
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
+            length = len(stored)
+            if length and result[0] == stored[length - 1][0]:
+                stored[length - 1] = result
+            else:
+                stored.append(result)
+            results[messageHash] = stored
         messageHashes = list(results.keys())
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -841,49 +838,47 @@ class bitmex(Exchange, ccxt.bitmex):
         if action == 'partial':
             filter = self.safe_value(message, 'filter', {})
             marketId = self.safe_value(filter, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                if table == 'orderBookL2':
-                    self.orderbooks[symbol] = self.indexed_order_book()
-                elif table == 'orderBookL2_25':
-                    self.orderbooks[symbol] = self.indexed_order_book({}, 25)
-                elif table == 'orderBook10':
-                    self.orderbooks[symbol] = self.indexed_order_book({}, 10)
-                orderbook = self.orderbooks[symbol]
-                for i in range(0, len(data)):
-                    price = self.safe_float(data[i], 'price')
-                    size = self.safe_float(data[i], 'size')
-                    id = self.safe_string(data[i], 'id')
-                    side = self.safe_string(data[i], 'side')
-                    side = 'bids' if (side == 'Buy') else 'asks'
-                    bookside = orderbook[side]
-                    bookside.store(price, size, id)
-                messageHash = table + ':' + marketId
-                client.resolve(orderbook, messageHash)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            if table == 'orderBookL2':
+                self.orderbooks[symbol] = self.indexed_order_book()
+            elif table == 'orderBookL2_25':
+                self.orderbooks[symbol] = self.indexed_order_book({}, 25)
+            elif table == 'orderBook10':
+                self.orderbooks[symbol] = self.indexed_order_book({}, 10)
+            orderbook = self.orderbooks[symbol]
+            for i in range(0, len(data)):
+                price = self.safe_float(data[i], 'price')
+                size = self.safe_float(data[i], 'size')
+                id = self.safe_string(data[i], 'id')
+                side = self.safe_string(data[i], 'side')
+                side = 'bids' if (side == 'Buy') else 'asks'
+                bookside = orderbook[side]
+                bookside.store(price, size, id)
+            messageHash = table + ':' + marketId
+            client.resolve(orderbook, messageHash)
         else:
             numUpdatesByMarketId = {}
             for i in range(0, len(data)):
                 marketId = self.safe_value(data[i], 'symbol')
-                if marketId in self.markets_by_id:
-                    if not (marketId in numUpdatesByMarketId):
-                        numUpdatesByMarketId[marketId] = 0
-                    numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                    orderbook = self.orderbooks[symbol]
-                    price = self.safe_float(data[i], 'price')
-                    size = self.safe_float(data[i], 'size', 0)
-                    id = self.safe_string(data[i], 'id')
-                    side = self.safe_string(data[i], 'side')
-                    side = 'bids' if (side == 'Buy') else 'asks'
-                    bookside = orderbook[side]
-                    bookside.store(price, size, id)
+                if not (marketId in numUpdatesByMarketId):
+                    numUpdatesByMarketId[marketId] = 0
+                numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)
+                market = self.safe_market(marketId)
+                symbol = market['symbol']
+                orderbook = self.orderbooks[symbol]
+                price = self.safe_float(data[i], 'price')
+                size = self.safe_float(data[i], 'size', 0)
+                id = self.safe_string(data[i], 'id')
+                side = self.safe_string(data[i], 'side')
+                side = 'bids' if (side == 'Buy') else 'asks'
+                bookside = orderbook[side]
+                bookside.store(price, size, id)
             marketIds = list(numUpdatesByMarketId.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 messageHash = table + ':' + marketId
-                market = self.markets_by_id[marketId]
+                market = self.safe_market(marketId)
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
