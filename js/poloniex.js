@@ -24,7 +24,6 @@ module.exports = class poloniex extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -33,11 +32,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
                 'fetchOpenOrders': true, // true endpoint for open orders
-                'fetchOrder': 'emulated', // no endpoint for a single open-or-closed order (just for an open order only)
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchOrders': 'emulated', // no endpoint for open-or-closed orders (just for open orders only)
-                'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -809,12 +805,13 @@ module.exports = class poloniex extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (order, 'timestamp');
-        if (!timestamp) {
-            timestamp = this.parse8601 (order['date']);
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
         let trades = undefined;
-        if ('resultingTrades' in order) {
-            trades = this.parseTrades (order['resultingTrades'], market);
+        const resultingTrades = this.safeValue (order, 'resultingTrades');
+        if (resultingTrades !== undefined) {
+            trades = this.parseTrades (resultingTrades, market);
         }
         let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
@@ -929,7 +926,7 @@ module.exports = class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -940,52 +937,20 @@ module.exports = class poloniex extends Exchange {
             'currencyPair': pair,
         };
         const response = await this.privatePostReturnOpenOrders (this.extend (request, params));
-        let openOrders = [];
-        if (market !== undefined) {
-            openOrders = this.parseOpenOrders (response, market, openOrders);
-        } else {
+        const extension = { 'status': 'open' }
+        if (market === undefined) {
             const marketIds = Object.keys (response);
+            let openOrders = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const orders = response[marketId];
                 const m = this.markets_by_id[marketId];
-                openOrders = this.parseOpenOrders (orders, m, openOrders);
+                openOrders = this.parseOrders (orders, m, undefined, undefined, extension);
             }
+            return this.filterBySinceLimit (openOrders, since, limit);
+        } else {
+            return this.parseOrders (response, market, since, limit, extension);
         }
-        return this.filterBySinceLimit (openOrders, since, limit);
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        const since = this.safeValue (params, 'since');
-        const limit = this.safeValue (params, 'limit');
-        const request = this.omit (params, [ 'since', 'limit' ]);
-        const orders = await this.fetchOrders (symbol, since, limit, request);
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['id'] === id) {
-                return orders[i];
-            }
-        }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
-    }
-
-    filterOrdersByStatus (orders, status) {
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === status) {
-                result.push (orders[i]);
-            }
-        }
-        return result;
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterOrdersByStatus (orders, 'closed');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1090,9 +1055,10 @@ module.exports = class poloniex extends Exchange {
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         id = id.toString ();
-        const response = await this.privatePostReturnOrderStatus (this.extend ({
+        const request = {
             'orderNumber': id,
-        }, params));
+        };
+        const response = await this.privatePostReturnOrderStatus (this.extend (request, params));
         //
         //     {
         //         success: 1,
