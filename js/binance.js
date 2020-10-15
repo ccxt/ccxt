@@ -1109,6 +1109,10 @@ module.exports = class binance extends Exchange {
             method = 'dapiPublicGetTicker24hr';
         }
         const response = await this[method] (this.extend (request, params));
+        if (Array.isArray (response)) {
+            const firstTicker = this.safeValue (response, 0, {});
+            return this.parseTicker (firstTicker, market);
+        }
         return this.parseTicker (response, market);
     }
 
