@@ -1343,15 +1343,15 @@ To fetch historical orders or trades, the user will need to traverse the data in
 
 In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently. If the user does not apply any pagination, most methods will return the exchanges' default, which may start from the beginning of history or may be a subset of most recent objects. The default behaviour (without pagination) is exchange-specific! The means of pagination are often used with the following methods in particular:
 
-- `fetchTrades`
-- `fetchOHLCV`
-- `fetchOrders`
-- `fetchOpenOrders`
-- `fetchClosedOrders`
-- `fetchMyTrades`
-- `fetchTransactions`
-- `fetchDeposits`
-- `fetchWithdrawals`
+- `fetchTrades()`
+- `fetchOHLCV()`
+- `fetchOrders()`
+- `fetchOpenOrders()`
+- `fetchClosedOrders()`
+- `fetchMyTrades()`
+- `fetchTransactions()`
+- `fetchDeposits()`
+- `fetchWithdrawals()`
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
@@ -2329,10 +2329,6 @@ print (exchange.fetch_balance ())
 var_dump ($exchange->fetch_balance ());
 ```
 
-### Balance inference
-
-Some exchanges do not return the full set of balance information from their API. Those will only return just the `free` or just the `total` funds, i.e. funds `used` on orders unknown. In such cases ccxt will try to obtain the missing data from [.orders cache](#orders-cache) and will guess complete balance info from what is known for sure. However, in rare cases the available info may not be enough to deduce the missing part, thus, **the user shoud be aware of the possibility of not getting complete balance info from less sophisticated exchanges**.
-
 ## Orders
 
 ```diff
@@ -2399,82 +2395,29 @@ exchange.has = {
 }
 ```
 
-The meanings of boolean `true` and `false` are obvious. A string value of `emulated` means that particular method is missing in the exchange API and ccxt will workaround that where possible by adding a caching layer, the `.orders` cache. The next section describes the inner workings of the `.orders` cache, one has to understand it to do order management with ccxt effectively.
+The meanings of boolean `true` and `false` are obvious. A string value of `emulated` means that particular method is missing in the exchange API and ccxt will workaround that where possible on the client-side.
 
 #### Querying Multiple Orders And Trades
 
 All methods returning lists of trades and lists of orders, accept the second `since` argument and the third `limit` argument:
 
-- `fetchTrades` (public)
-- `fetchMyTrades` (private)
-- `fetchOrders`
-- `fetchOpenOrders`
-- `fetchClosedOrders`
+- `fetchTrades()` (public)
+- `fetchMyTrades()` (private)
+- `fetchOrders()`
+- `fetchOpenOrders()`
+- `fetchClosedOrders()`
 
 The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
 
-If the user does not specify `since`, the `fetchTrades/fetchOrders` method will return the default set from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+If the user does not specify `since`, the `fetchTrades()/fetchOrders()` methods will return the default set of results from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
 
 **NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for `since ` and `limit` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra `params` argument.**
 
-
-#### `.orders` cache
-
-Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the `fetchOpenOrders` endpoint, sometimes they are also generous to offer a `fetchOrder` endpoint as well. This means that they don't have any methods for fetching the order history. The ccxt library will try to emulate the order history for the user by keeping the cached `.orders` property containing all orders issued within a particular exchange class instance.
-
-Whenever a user creates a new order or cancels an existing open order or does some other action that would alter the order status, the ccxt library will remember the entire order info in its cache. Upon a subsequent call to an emulated `fetchOrder`, `fetchOrders` or `fetchClosedOrders` method, the exchange instance will send a single request to **`fetchOpenOrders`** and will compare currently fetched open orders with the orders stored in cache previously. The ccxt library will check each cached order and will try to match it with a corresponding fetched open order. When the cached order isn't present in the open orders fetched from the exchange anymore, the library marks the cached order as `closed` (filled). The call to a `fetchOrder`, `fetchOrders`, `fetchClosedOrders` will then return the updated orders from `.orders` cache to the user.
-
-The same logic can be put shortly: *if a cached order is not found in fetched open orders it isn't open anymore, therefore, closed*. This makes the library capable of tracking the order status and order history even with exchanges that don't have that functionality in their API natively. This is true for all methods that query orders or manipulate (place, cancel or edit) orders in any way.
-
-In most cases the `.orders` cache will work transparently for the user. Most often the exchanges themselves have a sufficient set of methods. However, with some exchanges not having a complete API, the `.orders` cache has the following known limitations:
-
-- If the user does not save the `.orders` cache between program runs and does not restore it upon launching a new run, the `.orders` cache will be lost, for obvious reasons. Therefore upon a call to fetchClosedOrders later on a different run, the exchange instance will return an empty list of orders. Without a properly restored cache a fresh new instance of the exchange won't be able to know anything about the orders that were closed and canceled (no history of orders).
-- If the API keypair is shared across multiple exchange instances (e.g. when the user accesses the same exchange account in a multithreaded environment or in simultaneously launched separate scripts). Each particular instance would not be able to know anything about the orders created or canceled by other instances. This means that the order cache is not shared, and, in general, the same API keypair should not be shared across multiple instances accessing the private API. Otherwise it will cause side-effects with nonces and cached data falling out of sync.
-- If the order was placed or canceled from outside of ccxt (on the exchange's website or by other means), the new order status won't arrive to the cache and ccxt won't be able to return it properly later.
-- If an order's cancelation request bypasses ccxt then the library will not be able to find the order in the list of open orders returned from a subsequent call to `fetchOpenOrders()`. Thus the library will mark the cached order with a `'closed'` status.
-- When `fetchOrder(id)` is emulated, the library will not be able to return a specific order, if it was not cached previously or if a change of the order' status was done bypassing ccxt. In that case the library will throw an `OrderNotFound` exception.
-- If an unhandled error leads to a crash of the application and the `.orders` cache isn't saved and restored upon restart, the cache will be lost. Handling the exceptions properly is the responsibility of the user. One has to pay **extra care** when implementing proper [error handling](#error-handling), otherwise the `.orders` cache may fall out of sync.
-
-*Note: the order cache functionality is to be reworked soon to obtain the order statuses from private trades history, where available. This is a work in progress, aimed at adding full-featured support for order fees, costs and other info. More about it here: https://github.com/ccxt/ccxt/issues/569*.
-
-#### Purging Cached Orders
-
-With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the `.orders` cache can grow pretty big, the ccxt library offers the `purgeCachedOrders/purge_cached_orders` method for clearing old non-open orders from cache where `(order['timestamp'] < before) && (order['status'] != 'open')` and freeing used memory for other purposes. The purging method accepts one single argument named `before`:
-
-```JavaScript
-// JavaScript
-
-// keep last 24 hours of history in cache
-before = exchange.milliseconds () - 24 * 60 * 60 * 1000
-
-// purge all closed and canceled orders "older" or issued "before" that time
-exchange.purgeCachedOrders (before)
-```
-
-```Python
-# Python
-
-# keep last hour of history in cache
-before = exchange.milliseconds () - 1 * 60 * 60 * 1000
-
-# purge all closed and canceled orders "older" or issued "before" that time
-exchange.purge_cached_orders (before)
-```
-
-```PHP
-// PHP
-
-// keep last 24 hours of history in cache
-$before = $exchange->milliseconds () - 24 * 60 * 60 * 1000;
-
-// purge all closed and canceled orders "older" or issued "before" that time
-$exchange->purge_cached_orders ($before);
-
-```
+Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the `fetchOpenOrders()` endpoint, and sometimes also a `fetchOrder` endpoint as well. Those exchanges don't have any methods for fetching the order history. To maintain the order history for those exchanges the user has to store a dictionary or a database of orders in the userland and update the orders in the database after calling methods like `createOrder()`, `fetchOpenOrders()`, `cancelOrder()`, `cancelAllOrders()`.
 
 #### By Order Id
 
-To get the details of a particular order by its id, use the fetchOrder / fetch_order method. Some exchanges also require a symbol even when fetching a particular order by id.
+To get the details of a particular order by its id, use the `fetchOrder()` / `fetch_order()` method. Some exchanges also require a symbol even when fetching a particular order by id.
 
 The signature of the fetchOrder/fetch_order method is as follows:
 
@@ -3766,12 +3709,12 @@ This exception is raised when the connection with the exchange fails or data is 
 Thus it's advised to handle this type of exception in the following manner:
 
 - for fetching requests it is safe to retry the call
-- for a request to `cancelOrder` a user is required to retry the same call the second time. If instead of a retry a user calls a `fetchOrder`, `fetchOrders`, `fetchOpenOrders` or `fetchClosedOrders` right away without a retry to call `cancelOrder`, this may cause the [`.orders` cache](#orders-cache) to fall out of sync. A subsequent retry to `cancelOrder` will return one of the following possible results:
+- for a request to `cancelOrder()` a user is required to retry the same call the second time. A subsequent retry to `cancelOrder()` will return one of the following possible results:
   - a request is completed successfully, meaning the order has been properly canceled now
-  - an `OrderNotFound` exception is raised, which means the order was either already canceled on the first attempt or has been executed (filled and closed) in the meantime between the two attempts. Note, that the order will still have an `'open'` status in the `.orders` cache. To determine the actual order status you'll need to call `fetchOrder` to update the cache properly (where available from the exchange). If the `fetchOrder` method is `'emulated'` the ccxt library will mark the order as `'closed'`. The user has to call `fetchBalance` and set the order status to `'canceled'` manually if the balance hasn't changed (a trade didn't not occur).
-- if a request to `createOrder` fails with a `RequestTimeout` the user should:
-  - update the `.orders` cache with a call to `fetchOrders`, `fetchOpenOrders`, `fetchClosedOrders` to check if the request to place the order has succeeded and the order is now open
-  - if the order is not `'open'` the user should `fetchBalance` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check. Note that `fetchBalance` relies on the `.orders` cache for [balance inference](#balance-inference) and thus should only be called after updating the cache!
+  - an `OrderNotFound` exception is raised, which means the order was either already canceled on the first attempt or has been executed (filled and closed) in the meantime between the two attempts.
+- if a request to `createOrder()` fails with a `RequestTimeout` the user should:
+  - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
+  - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check. 
 
 ### ExchangeNotAvailable
 
