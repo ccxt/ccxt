@@ -316,6 +316,7 @@ class bitfinex extends Exchange {
                 'POY' => 'POLY',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
+                'RBT' => 'RBTC',
                 'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
