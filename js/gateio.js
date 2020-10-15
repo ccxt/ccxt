@@ -164,6 +164,7 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
             },
