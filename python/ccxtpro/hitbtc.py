@@ -85,19 +85,18 @@ class hitbtc(Exchange, ccxt.hitbtc):
         #
         params = self.safe_value(message, 'params', {})
         marketId = self.safe_string(params, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
-            nonce = self.safe_integer(params, 'sequence')
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
-            snapshot = self.parse_order_book(params, timestamp, 'bid', 'ask', 'price', 'size')
-            orderbook = self.order_book(snapshot)
-            orderbook['nonce'] = nonce
-            self.orderbooks[symbol] = orderbook
-            messageHash = 'orderbook:' + marketId
-            client.resolve(orderbook, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
+        nonce = self.safe_integer(params, 'sequence')
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+        snapshot = self.parse_order_book(params, timestamp, 'bid', 'ask', 'price', 'size')
+        orderbook = self.order_book(snapshot)
+        orderbook['nonce'] = nonce
+        self.orderbooks[symbol] = orderbook
+        messageHash = 'orderbook:' + marketId
+        client.resolve(orderbook, messageHash)
 
     def handle_order_book_update(self, client, message):
         #
@@ -123,23 +122,22 @@ class hitbtc(Exchange, ccxt.hitbtc):
         #
         params = self.safe_value(message, 'params', {})
         marketId = self.safe_string(params, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            if symbol in self.orderbooks:
-                timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
-                nonce = self.safe_integer(params, 'sequence')
-                orderbook = self.orderbooks[symbol]
-                asks = self.safe_value(params, 'ask', [])
-                bids = self.safe_value(params, 'bid', [])
-                self.handle_deltas(orderbook['asks'], asks)
-                self.handle_deltas(orderbook['bids'], bids)
-                orderbook['timestamp'] = timestamp
-                orderbook['datetime'] = self.iso8601(timestamp)
-                orderbook['nonce'] = nonce
-                self.orderbooks[symbol] = orderbook
-                messageHash = 'orderbook:' + marketId
-                client.resolve(orderbook, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        if symbol in self.orderbooks:
+            timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
+            nonce = self.safe_integer(params, 'sequence')
+            orderbook = self.orderbooks[symbol]
+            asks = self.safe_value(params, 'ask', [])
+            bids = self.safe_value(params, 'bid', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            orderbook['nonce'] = nonce
+            self.orderbooks[symbol] = orderbook
+            messageHash = 'orderbook:' + marketId
+            client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 'price')
@@ -174,14 +172,13 @@ class hitbtc(Exchange, ccxt.hitbtc):
         #
         params = self.safe_value(message, 'params')
         marketId = self.safe_value(params, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            result = self.parse_ticker(params, market)
-            self.tickers[symbol] = result
-            method = self.safe_value(message, 'method')
-            messageHash = method + ':' + marketId
-            client.resolve(result, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        result = self.parse_ticker(params, market)
+        self.tickers[symbol] = result
+        method = self.safe_value(message, 'method')
+        messageHash = method + ':' + marketId
+        client.resolve(result, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         future = self.watch_public(symbol, 'trades', None, params)
@@ -216,23 +213,22 @@ class hitbtc(Exchange, ccxt.hitbtc):
         params = self.safe_value(message, 'params', {})
         data = self.safe_value(params, 'data', [])
         marketId = self.safe_string(params, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            messageHash = 'trades:' + marketId
-            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = self.safe_value(self.trades, symbol)
-            if stored is None:
-                stored = ArrayCache(tradesLimit)
-                self.trades[symbol] = stored
-            if isinstance(data, list):
-                trades = self.parse_trades(data, market)
-                for i in range(0, len(trades)):
-                    stored.append(trades[i])
-            else:
-                trade = self.parse_trade(message, market)
-                stored.append(trade)
-            client.resolve(stored, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        messageHash = 'trades:' + marketId
+        tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            stored = ArrayCache(tradesLimit)
+            self.trades[symbol] = stored
+        if isinstance(data, list):
+            trades = self.parse_trades(data, market)
+            for i in range(0, len(trades)):
+                stored.append(trades[i])
+        else:
+            trade = self.parse_trade(message, market)
+            stored.append(trade)
+        client.resolve(stored, messageHash)
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -284,27 +280,26 @@ class hitbtc(Exchange, ccxt.hitbtc):
         params = self.safe_value(message, 'params', {})
         data = self.safe_value(params, 'data', [])
         marketId = self.safe_string(params, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            period = self.safe_string(params, 'period')
-            timeframe = self.find_timeframe(period)
-            messageHash = 'ohlcv:' + marketId + ':' + period
-            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            for i in range(0, len(data)):
-                candle = data[i]
-                parsed = self.parse_ohlcv(candle, market)
-                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-                if stored is None:
-                    stored = ArrayCache(limit)
-                    self.ohlcvs[symbol][timeframe] = stored
-                length = len(stored)
-                if length and parsed[0] == stored[length - 1][0]:
-                    stored[length - 1] = parsed
-                else:
-                    stored.append(parsed)
-                client.resolve(stored, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        period = self.safe_string(params, 'period')
+        timeframe = self.find_timeframe(period)
+        messageHash = 'ohlcv:' + marketId + ':' + period
+        limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+        for i in range(0, len(data)):
+            candle = data[i]
+            parsed = self.parse_ohlcv(candle, market)
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
+            length = len(stored)
+            if length and parsed[0] == stored[length - 1][0]:
+                stored[length - 1] = parsed
+            else:
+                stored.append(parsed)
+            client.resolve(stored, messageHash)
         return message
 
     def handle_notification(self, client, message):

@@ -90,21 +90,19 @@ class hitbtc extends \ccxt\hitbtc {
         //
         $params = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($params, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $timestamp = $this->parse8601($this->safe_string($params, 'timestamp'));
-            $nonce = $this->safe_integer($params, 'sequence');
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
-            }
-            $snapshot = $this->parse_order_book($params, $timestamp, 'bid', 'ask', 'price', 'size');
-            $orderbook = $this->order_book($snapshot);
-            $orderbook['nonce'] = $nonce;
-            $this->orderbooks[$symbol] = $orderbook;
-            $messageHash = 'orderbook:' . $marketId;
-            $client->resolve ($orderbook, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $timestamp = $this->parse8601($this->safe_string($params, 'timestamp'));
+        $nonce = $this->safe_integer($params, 'sequence');
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
         }
+        $snapshot = $this->parse_order_book($params, $timestamp, 'bid', 'ask', 'price', 'size');
+        $orderbook = $this->order_book($snapshot);
+        $orderbook['nonce'] = $nonce;
+        $this->orderbooks[$symbol] = $orderbook;
+        $messageHash = 'orderbook:' . $marketId;
+        $client->resolve ($orderbook, $messageHash);
     }
 
     public function handle_order_book_update($client, $message) {
@@ -131,24 +129,22 @@ class hitbtc extends \ccxt\hitbtc {
         //
         $params = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($params, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                $timestamp = $this->parse8601($this->safe_string($params, 'timestamp'));
-                $nonce = $this->safe_integer($params, 'sequence');
-                $orderbook = $this->orderbooks[$symbol];
-                $asks = $this->safe_value($params, 'ask', array());
-                $bids = $this->safe_value($params, 'bid', array());
-                $this->handle_deltas($orderbook['asks'], $asks);
-                $this->handle_deltas($orderbook['bids'], $bids);
-                $orderbook['timestamp'] = $timestamp;
-                $orderbook['datetime'] = $this->iso8601($timestamp);
-                $orderbook['nonce'] = $nonce;
-                $this->orderbooks[$symbol] = $orderbook;
-                $messageHash = 'orderbook:' . $marketId;
-                $client->resolve ($orderbook, $messageHash);
-            }
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            $timestamp = $this->parse8601($this->safe_string($params, 'timestamp'));
+            $nonce = $this->safe_integer($params, 'sequence');
+            $orderbook = $this->orderbooks[$symbol];
+            $asks = $this->safe_value($params, 'ask', array());
+            $bids = $this->safe_value($params, 'bid', array());
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $orderbook['nonce'] = $nonce;
+            $this->orderbooks[$symbol] = $orderbook;
+            $messageHash = 'orderbook:' . $marketId;
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 
@@ -189,15 +185,13 @@ class hitbtc extends \ccxt\hitbtc {
         //
         $params = $this->safe_value($message, 'params');
         $marketId = $this->safe_value($params, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $result = $this->parse_ticker($params, $market);
-            $this->tickers[$symbol] = $result;
-            $method = $this->safe_value($message, 'method');
-            $messageHash = $method . ':' . $marketId;
-            $client->resolve ($result, $messageHash);
-        }
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $result = $this->parse_ticker($params, $market);
+        $this->tickers[$symbol] = $result;
+        $method = $this->safe_value($message, 'method');
+        $messageHash = $method . ':' . $marketId;
+        $client->resolve ($result, $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -234,27 +228,25 @@ class hitbtc extends \ccxt\hitbtc {
         $params = $this->safe_value($message, 'params', array());
         $data = $this->safe_value($params, 'data', array());
         $marketId = $this->safe_string($params, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $messageHash = 'trades:' . $marketId;
-            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $stored;
-            }
-            if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
-                $trades = $this->parse_trades($data, $market);
-                for ($i = 0; $i < count($trades); $i++) {
-                    $stored->append ($trades[$i]);
-                }
-            } else {
-                $trade = $this->parse_trade($message, $market);
-                $stored->append ($trade);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $messageHash = 'trades:' . $marketId;
+        $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $stored = new ArrayCache ($tradesLimit);
+            $this->trades[$symbol] = $stored;
         }
+        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+            $trades = $this->parse_trades($data, $market);
+            for ($i = 0; $i < count($trades); $i++) {
+                $stored->append ($trades[$i]);
+            }
+        } else {
+            $trade = $this->parse_trade($message, $market);
+            $stored->append ($trade);
+        }
+        $client->resolve ($stored, $messageHash);
         return $message;
     }
 
@@ -308,30 +300,28 @@ class hitbtc extends \ccxt\hitbtc {
         $params = $this->safe_value($message, 'params', array());
         $data = $this->safe_value($params, 'data', array());
         $marketId = $this->safe_string($params, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $period = $this->safe_string($params, 'period');
-            $timeframe = $this->find_timeframe($period);
-            $messageHash = 'ohlcv:' . $marketId . ':' . $period;
-            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            for ($i = 0; $i < count($data); $i++) {
-                $candle = $data[$i];
-                $parsed = $this->parse_ohlcv($candle, $market);
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-                if ($stored === null) {
-                    $stored = new ArrayCache ($limit);
-                    $this->ohlcvs[$symbol][$timeframe] = $stored;
-                }
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length && $parsed[0] === $stored[$length - 1][0]) {
-                    $stored[$length - 1] = $parsed;
-                } else {
-                    $stored->append ($parsed);
-                }
-                $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $period = $this->safe_string($params, 'period');
+        $timeframe = $this->find_timeframe($period);
+        $messageHash = 'ohlcv:' . $marketId . ':' . $period;
+        $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+        for ($i = 0; $i < count($data); $i++) {
+            $candle = $data[$i];
+            $parsed = $this->parse_ohlcv($candle, $market);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
+            $length = is_array($stored) ? count($stored) : 0;
+            if ($length && $parsed[0] === $stored[$length - 1][0]) {
+                $stored[$length - 1] = $parsed;
+            } else {
+                $stored->append ($parsed);
+            }
+            $client->resolve ($stored, $messageHash);
         }
         return $message;
     }
