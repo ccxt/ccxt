@@ -147,6 +147,9 @@ class currencycom(Exchange):
                     '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
                 },
             },
+            'commonCurrencies': {
+                'IQ': 'iQIYI',
+            },
         })
 
     def nonce(self):
