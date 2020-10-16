@@ -156,19 +156,15 @@ class hitbtc extends Exchange {
             'commonCurrencies' => array(
                 'BET' => 'DAO.Casino',
                 'BOX' => 'BOX Token',
-                'CAT' => 'BitClave',
                 'CPT' => 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
-                'DRK' => 'DASH',
-                'EMGO' => 'MGO',
                 'GET' => 'Themis',
                 'HSR' => 'HC',
                 'IQ' => 'IQ.Cash',
                 'LNC' => 'LinkerCoin',
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
-                'UNC' => 'Unigame',
+                'TV' => 'Tokenville',
                 'USD' => 'USDT',
-                'XBT' => 'BTC',
                 'XPNT' => 'PNT',
             ),
             'exceptions' => array(
