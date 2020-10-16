@@ -1,6 +1,8 @@
 <?php
 
-use ccxt\Exchange;
+namespace ccxt\test;
+
+use ccxt\base\Exchange;
 use PHPUnit\Framework\TestCase;
 use const ccxt\DECIMAL_PLACES;
 use const ccxt\NO_PADDING;
@@ -9,6 +11,10 @@ use const ccxt\ROUND;
 use const ccxt\SIGNIFICANT_DIGITS;
 use const ccxt\TRUNCATE;
 
+/**
+ * Class ExchangeTest
+ * @package ccxt\test
+ */
 class ExchangeTest extends TestCase {
 
     public function testSum () {

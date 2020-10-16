@@ -23,15 +23,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 */
 
-//-----------------------------------------------------------------------------
-
-namespace ccxt;
+namespace ccxt\base;
 
 use kornrunner\Keccak;
-use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -53,6 +49,10 @@ const TICK_SIZE = 2;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
+/**
+ * Class Exchange
+ * @package ccxt\base
+ */
 class Exchange {
 
     const VERSION = '1.36.52';
