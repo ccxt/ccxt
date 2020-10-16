@@ -503,8 +503,6 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        console.log (trade)
-        //
         // createMarketOrder
         //
         //  {       fee: "0.0004644",
