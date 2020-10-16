@@ -16,7 +16,7 @@ set_error_handler ('on_error');
 
 include_once 'ccxt.php';
 
-foreach (\ccxt\Exchange::$exchanges as $id) {
+foreach (\ccxt\base\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
     $exchanges[$id] = new $exchange (array ('verbose' => false));
 }
