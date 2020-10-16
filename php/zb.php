@@ -78,6 +78,8 @@ class zb extends Exchange {
                 '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
                 '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                 '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
+                '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
                 '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
                 '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
             ),
