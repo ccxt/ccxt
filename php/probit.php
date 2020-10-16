@@ -147,6 +147,7 @@ class probit extends Exchange {
             'commonCurrencies' => array(
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'UNI' => 'UNICORN Token',
             ),
         ));
     }
