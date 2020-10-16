@@ -382,16 +382,11 @@ module.exports = class fcoin extends Exchange {
             if (tickerType !== undefined) {
                 const parts = tickerType.split ('.');
                 const id = parts[1];
-                if (id in this.markets_by_id) {
-                    market = this.markets_by_id[id];
-                }
+                symbol = this.safeSymbol (id, market);
             }
         }
         const values = ticker['ticker'];
         const last = this.safeFloat (values, 0);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -551,13 +546,8 @@ module.exports = class fcoin extends Exchange {
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const orderType = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'created_at');
         const amount = this.safeFloat (order, 'amount');
