@@ -1723,6 +1723,8 @@ class Exchange(object):
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
                 }
         if market is not None:
             return market
@@ -1730,6 +1732,8 @@ class Exchange(object):
             'symbol': marketId,
             'base': None,
             'quote': None,
+            'baseId': None,
+            'quoteId': None,
         }
 
     def safe_symbol(self, marketId, market=None, delimiter=None):
