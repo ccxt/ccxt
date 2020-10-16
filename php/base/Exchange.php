@@ -1876,6 +1876,8 @@ class Exchange {
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
                 );
             }
         }
@@ -1886,6 +1888,8 @@ class Exchange {
             'symbol' => $marketId,
             'base' => null,
             'quote' => null,
+            'baseId' => null,
+            'quoteId' => null,
         );
     }
 

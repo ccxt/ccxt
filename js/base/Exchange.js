@@ -1192,6 +1192,8 @@ module.exports = class Exchange {
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
                 }
             }
         }
@@ -1203,6 +1205,8 @@ module.exports = class Exchange {
             'symbol': marketId,
             'base': undefined,
             'quote': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
         }
     }
 
