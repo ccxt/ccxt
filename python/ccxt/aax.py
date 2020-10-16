@@ -68,7 +68,7 @@ class aax(Exchange):
                 },
                 'private': {
                     'get': [
-                        'v2/user/balances',
+                        'v2/account/balances',
                         'v2/spot/trades',
                         'v2/spot/openOrders',
                         'v2/spot/orders',
@@ -503,27 +503,30 @@ class aax(Exchange):
         return self.parse_trades(self.safe_value(response, 'trades'), market, since, limit)
 
     def fetch_balance(self, params={}):
-        response = self.privateGetV2UserBalances()
+        request = {
+            'purseType': 'SPTP',  # spot only for now
+        }
+        response = self.privateGetV2AccountBalances(self.extend(request, params))
         # FetchBalance Response
-        # {
-        #     "code":1,
-        #     "data":[
-        #        {
-        #           "available":"28.44375903",
-        #           "credit":"0.00000000",
-        #           "currency":"BTC",
-        #           "unavailable":"19.96293142"
-        #        },
-        #        {
-        #           "available":"20.00000000",
-        #           "credit":"0.00000000",
-        #           "currency":"EOS",
-        #           "unavailable":"0.00000000"
-        #        },
-        #     ],
-        #     "message":"success",
-        #     "ts":1573530401020
-        #  }
+        #    {
+        #      "code":1,
+        #      "data":[
+        #      {
+        #        "purseType":"FUTP",
+        #        "currency":"BTC",
+        #        "available":"0.41000000",
+        #        "unavailable":"0.00000000"
+        #      },
+        #      {
+        #        "purseType":"FUTP",
+        #        "currency":"USDT",
+        #        "available":"0.21000000",
+        #        "unvaliable":"0.00000000"
+        #      }
+        #    ]
+        #      "message":"success",
+        #      "ts":1573530401020
+        #    }
         result = {'info': response}
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
