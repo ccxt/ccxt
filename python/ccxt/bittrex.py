@@ -954,6 +954,8 @@ class bittrex(Exchange):
                 status = 'canceled'
             elif responseStatus == 'PENDING':
                 status = 'pending'
+            elif responseStatus == 'COMPLETED':
+                status = 'ok'
             elif responseStatus == 'AUTHORIZED' and (txid is not None):
                 status = 'ok'
         feeCost = self.safe_float(transaction, 'txCost')
