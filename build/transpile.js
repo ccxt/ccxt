@@ -1104,14 +1104,21 @@ class Transpiler {
 
         // PHP ----------------------------------------------------------------
 
+        const phpHeader = '<?php\n\nnamespace ccxt\\base;\n\n'
         function phpDeclareErrorClass (name, parent) {
-            return 'class ' + name + ' extends ' + parent + ' {};'
+            const phpFileName  = './php/base/' + name + '.php'
+            const phpErrorBody = '/**\n * Class ' + name + '\n * @package ccxt\\base\n */\nclass ' + name + ' extends ' + parent + '\n{\n\n}'
+            const phpBaseErrorBody = phpHeader + phpErrorBody + ('\n')
+            overwriteFile (phpFileName, phpBaseErrorBody)
         }
 
-        const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
-        const phpBaseError = 'class BaseError extends Exception {};'
-        const phpErrors = intellisense (root, 'BaseError', phpDeclareErrorClass)
-        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + '\n' + phpErrors.join ('\n')
+        const BaseErrorFile = './php/base/BaseError.php'
+        const baseErrorBody = 'use Exception;\n\n/**\n * Class BaseError\n * @package ccxt\\base\n */\nclass BaseError extends Exception\n{\n\n}'
+        const phpBodyBaseError = phpHeader + baseErrorBody + ('\n')
+        overwriteFile (BaseErrorFile, phpBodyBaseError)
+
+        intellisense (root, 'BaseError', phpDeclareErrorClass)
+        const phpBodyIntellisense = phpHeader + phpBody + ('\n')
 
         const phpFilename = './php/base/errors.php'
         log.bright.cyan (message, phpFilename.yellow)

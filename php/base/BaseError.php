@@ -1,6 +1,5 @@
 <?php
 
-
 namespace ccxt\base;
 
 use Exception;
