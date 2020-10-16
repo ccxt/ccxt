@@ -72,6 +72,8 @@ module.exports = class zb extends Exchange {
                 '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError, // 'The request time has expired',
                 '3008': OrderNotFound, // 'Transaction records not found',
+                '3009': InvalidOrder, // 'The price exceeds the limit',
+                '3011': InvalidOrder, // 'The entrusted price is abnormal, please modify it and place order again',
                 '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                 '4002': DDoSProtection, // 'Request too often',
             },
