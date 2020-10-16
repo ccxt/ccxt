@@ -152,6 +152,9 @@ module.exports = class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/2873
             'TerraCredit': 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'UNI COIN': 'UNI COIN',
+            'UNICORN Token': 'UNICORN Token',
+            'Universe': 'Universe',
         };
         return this.safeValue (currencies, name, base);
     }
