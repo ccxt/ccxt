@@ -6,7 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\OrderNotFound;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\Exchange;
 
 class acx extends Exchange {
 

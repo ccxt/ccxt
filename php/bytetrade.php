@@ -6,10 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\DDoSProtection;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\ArgumentsRequired;
+use \ccxt\base\BadResponse;
+use \ccxt\base\DDoSProtection;
+use \ccxt\base\Exchange;
 
 class bytetrade extends Exchange {
 

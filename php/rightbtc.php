@@ -6,9 +6,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\ArgumentsRequired;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\Exchange;
 
 class rightbtc extends Exchange {
 

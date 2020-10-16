@@ -6,9 +6,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\OrderNotFound;
+use \ccxt\base\ArgumentsRequired;
+use \ccxt\base\BadResponse;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\Exchange;
 
 class digifinex extends Exchange {
 

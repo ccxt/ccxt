@@ -622,11 +622,12 @@ class Transpiler {
         for (let error in errors) {
             const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
             if (bodyAsString.match (regex)) {
-                errorImports.push ('use \\ccxt\\' + error + ';')
+                errorImports.push ('use \\ccxt\\base\\' + error + ';')
             }
         }
 
         header = header.concat (errorImports)
+        header = header.concat ('use \\ccxt\\base\\Exchange;')
 
         methods = methods.concat (this.getPHPBaseMethods ())
 

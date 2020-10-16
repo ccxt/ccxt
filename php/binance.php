@@ -6,13 +6,14 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\DDoSProtection;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\AuthenticationError;
+use \ccxt\base\ArgumentsRequired;
+use \ccxt\base\InvalidAddress;
+use \ccxt\base\InvalidOrder;
+use \ccxt\base\NotSupported;
+use \ccxt\base\DDoSProtection;
+use \ccxt\base\Exchange;
 
 class binance extends Exchange {
 

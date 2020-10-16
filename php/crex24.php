@@ -6,14 +6,15 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
-use \ccxt\ExchangeNotAvailable;
-use \ccxt\RequestTimeout;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\AuthenticationError;
+use \ccxt\base\BadRequest;
+use \ccxt\base\InvalidOrder;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\DDoSProtection;
+use \ccxt\base\ExchangeNotAvailable;
+use \ccxt\base\RequestTimeout;
+use \ccxt\base\Exchange;
 
 class crex24 extends Exchange {
 

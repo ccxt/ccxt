@@ -6,13 +6,14 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\OnMaintenance;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\ArgumentsRequired;
+use \ccxt\base\BadResponse;
+use \ccxt\base\InsufficientFunds;
+use \ccxt\base\InvalidOrder;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\OnMaintenance;
+use \ccxt\base\Exchange;
 
 class livecoin extends Exchange {
 

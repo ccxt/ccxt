@@ -6,7 +6,8 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\NotSupported;
+use \ccxt\base\NotSupported;
+use \ccxt\base\Exchange;
 
 class huobijp extends huobipro {
 

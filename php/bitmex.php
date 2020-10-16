@@ -6,10 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\BadRequest;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
+use \ccxt\base\ExchangeError;
+use \ccxt\base\BadRequest;
+use \ccxt\base\OrderNotFound;
+use \ccxt\base\DDoSProtection;
+use \ccxt\base\Exchange;
 
 class bitmex extends Exchange {
 
