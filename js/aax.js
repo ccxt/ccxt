@@ -55,7 +55,7 @@ module.exports = class aax extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'v2/user/balances',
+                        'v2/account/balances',
                         'v2/spot/trades',
                         'v2/spot/openOrders',
                         'v2/spot/orders',
@@ -528,27 +528,30 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetV2UserBalances ();
+        const request = {
+            'purseType': 'SPTP', // spot only for now
+        };
+        const response = await this.privateGetV2AccountBalances (this.extend (request, params));
         // FetchBalance Response
-        // {
-        //     "code":1,
-        //     "data":[
-        //        {
-        //           "available":"28.44375903",
-        //           "credit":"0.00000000",
-        //           "currency":"BTC",
-        //           "unavailable":"19.96293142"
-        //        },
-        //        {
-        //           "available":"20.00000000",
-        //           "credit":"0.00000000",
-        //           "currency":"EOS",
-        //           "unavailable":"0.00000000"
-        //        },
-        //     ],
-        //     "message":"success",
-        //     "ts":1573530401020
-        //  }
+        //    {
+        //      "code":1,
+        //      "data":[
+        //      {
+        //        "purseType":"FUTP",
+        //        "currency":"BTC",
+        //        "available":"0.41000000",
+        //        "unavailable":"0.00000000"
+        //      },
+        //      {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //      }
+        //    ]
+        //      "message":"success",
+        //      "ts":1573530401020
+        //    }
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
         for (let i = 0; i < balances.length; i++) {
