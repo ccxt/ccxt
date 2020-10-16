@@ -547,7 +547,8 @@ module.exports = class fcoin extends Exchange {
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const orderType = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'created_at');
         const amount = this.safeFloat (order, 'amount');
@@ -572,14 +573,12 @@ module.exports = class fcoin extends Exchange {
         const feeRebate = this.safeFloat (order, 'fees_income');
         if ((feeRebate !== undefined) && (feeRebate > 0)) {
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
             }
             feeCost = -feeRebate;
         } else {
             feeCost = this.safeFloat (order, 'fill_fees');
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
         }
