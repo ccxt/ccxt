@@ -61,14 +61,8 @@ module.exports = class phemex extends ccxt.phemex {
         //         volume: 934292
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.fromEp (this.safeFloat (ticker, 'close'), market);
         const quoteVolume = this.fromEv (this.safeFloat (ticker, 'turnover'), market);
@@ -217,38 +211,36 @@ module.exports = class phemex extends ccxt.phemex {
         //
         const name = 'kline';
         const marketId = this.safeString (message, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const candles = this.safeValue (message, name, []);
-            const first = this.safeValue (candles, 0, []);
-            const interval = this.safeString (first, 1);
-            const timeframe = this.findTimeframe (interval);
-            if (timeframe !== undefined) {
-                const messageHash = name + ':' + timeframe + ':' + symbol;
-                const ohlcvs = this.parseOHLCVs (candles, market);
-                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    stored = new ArrayCache (limit);
-                    this.ohlcvs[symbol][timeframe] = stored;
-                }
-                for (let i = 0; i < ohlcvs.length; i++) {
-                    const candle = ohlcvs[i];
-                    const length = stored.length;
-                    if (length) {
-                        if (candle[0] === stored[length - 1][0]) {
-                            stored[length - 1] = candle;
-                        } else if (candle[0] > stored[length - 1][0]) {
-                            stored.append (candle);
-                        }
-                    } else {
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const candles = this.safeValue (message, name, []);
+        const first = this.safeValue (candles, 0, []);
+        const interval = this.safeString (first, 1);
+        const timeframe = this.findTimeframe (interval);
+        if (timeframe !== undefined) {
+            const messageHash = name + ':' + timeframe + ':' + symbol;
+            const ohlcvs = this.parseOHLCVs (candles, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
+            for (let i = 0; i < ohlcvs.length; i++) {
+                const candle = ohlcvs[i];
+                const length = stored.length;
+                if (length) {
+                    if (candle[0] === stored[length - 1][0]) {
+                        stored[length - 1] = candle;
+                    } else if (candle[0] > stored[length - 1][0]) {
                         stored.append (candle);
                     }
+                } else {
+                    stored.append (candle);
                 }
-                client.resolve (stored, messageHash);
             }
+            client.resolve (stored, messageHash);
         }
     }
 
@@ -367,36 +359,34 @@ module.exports = class phemex extends ccxt.phemex {
         //     }
         //
         const marketId = this.safeString (message, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const type = this.safeString (message, 'type');
-            const depth = this.safeInteger (message, 'depth');
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const name = 'orderbook';
-            const messageHash = name + ':' + symbol;
-            const nonce = this.safeInteger (message, 'sequence');
-            const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
-            if (type === 'snapshot') {
-                const book = this.safeValue (message, 'book', {});
-                const snapshot = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
-                snapshot['nonce'] = nonce;
-                const orderbook = this.orderBook (snapshot, depth);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const type = this.safeString (message, 'type');
+        const depth = this.safeInteger (message, 'depth');
+        const name = 'orderbook';
+        const messageHash = name + ':' + symbol;
+        const nonce = this.safeInteger (message, 'sequence');
+        const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
+        if (type === 'snapshot') {
+            const book = this.safeValue (message, 'book', {});
+            const snapshot = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
+            snapshot['nonce'] = nonce;
+            const orderbook = this.orderBook (snapshot, depth);
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } else {
+            const orderbook = this.safeValue (this.orderbooks, symbol);
+            if (orderbook !== undefined) {
+                const changes = this.safeValue (message, 'book', {});
+                const asks = this.safeValue (changes, 'asks', []);
+                const bids = this.safeValue (changes, 'bids', []);
+                this.handleDeltas (orderbook['asks'], asks, market);
+                this.handleDeltas (orderbook['bids'], bids, market);
+                orderbook['nonce'] = nonce;
+                orderbook['timestamp'] = timestamp;
+                orderbook['datetime'] = this.iso8601 (timestamp);
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
-            } else {
-                const orderbook = this.safeValue (this.orderbooks, symbol);
-                if (orderbook !== undefined) {
-                    const changes = this.safeValue (message, 'book', {});
-                    const asks = this.safeValue (changes, 'asks', []);
-                    const bids = this.safeValue (changes, 'bids', []);
-                    this.handleDeltas (orderbook['asks'], asks, market);
-                    this.handleDeltas (orderbook['bids'], bids, market);
-                    orderbook['nonce'] = nonce;
-                    orderbook['timestamp'] = timestamp;
-                    orderbook['datetime'] = this.iso8601 (timestamp);
-                    this.orderbooks[symbol] = orderbook;
-                    client.resolve (orderbook, messageHash);
-                }
             }
         }
     }
