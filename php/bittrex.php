@@ -987,6 +987,8 @@ class bittrex extends Exchange {
                 $status = 'canceled';
             } else if ($responseStatus === 'PENDING') {
                 $status = 'pending';
+            } else if ($responseStatus === 'COMPLETED') {
+                $status = 'ok';
             } else if ($responseStatus === 'AUTHORIZED' && ($txid !== null)) {
                 $status = 'ok';
             }
