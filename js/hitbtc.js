@@ -482,7 +482,7 @@ module.exports = class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
             const marketId = this.safeString (ticker, 'symbol');
-            const market = this.safeMarket (marketId, market);
+            const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
