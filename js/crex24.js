@@ -131,6 +131,7 @@ module.exports = class crex24 extends Exchange {
                 'CREDIT': 'TerraCredit',
                 'GHOST': 'GHOSTPRISM',
                 'IQ': 'IQ.Cash',
+                'UNI': 'Universe',
                 'YOYO': 'YOYOW',
             },
             // exchange-specific options
