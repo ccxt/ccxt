@@ -67,7 +67,7 @@ def test_trade(exchange, trade, symbol, now):
     assert trade['datetime'] == exchange.iso8601(timestamp)
     assert trade['symbol'] == symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade['symbol'] + ' requested: ' + symbol
     assert trade['type'] is None or isinstance(trade['type'], basestring)
-    assert trade['side'] is None or trade['side'] == 'buy' or trade['side'] == 'sell'
+    assert trade['side'] is None or trade['side'] == 'buy' or trade['side'] == 'sell', 'unexpected trade side ' + trade['side']
     assert trade['order'] is None or isinstance(trade['order'], basestring)
     assert isinstance(trade['price'], numbers.Real), 'trade.price is not a number'
     assert trade['price'] > 0
