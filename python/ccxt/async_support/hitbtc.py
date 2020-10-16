@@ -472,13 +472,9 @@ class hitbtc(Exchange):
         for i in range(0, len(response)):
             ticker = response[i]
             marketId = self.safe_string(ticker, 'symbol')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                    result[symbol] = self.parse_ticker(ticker, market)
-                else:
-                    result[marketId] = self.parse_ticker(ticker)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -493,7 +489,6 @@ class hitbtc(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        #
         # createMarketOrder
         #
         #  {      fee: "0.0004644",
@@ -502,20 +497,28 @@ class hitbtc(Exchange):
         #     quantity: "1",
         #    timestamp: "2018-10-25T16:41:44.780Z"}
         #
-        # fetchTrades ...
+        # fetchTrades
         #
-        # fetchMyTrades ...
+        # {id: 974786185,
+        #   price: '0.032462',
+        #   quantity: '0.3673',
+        #   side: 'buy',
+        #   timestamp: '2020-10-16T12:57:39.846Z'}
         #
+        # fetchMyTrades
+        #
+        # {id: 277210397,
+        #   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        #   orderId: 28102855393,
+        #   symbol: 'ETHBTC',
+        #   side: 'sell',
+        #   quantity: '0.002',
+        #   price: '0.073365',
+        #   fee: '0.000000147',
+        #   timestamp: '2018-04-28T18:39:55.345Z'}
         timestamp = self.parse8601(trade['timestamp'])
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
@@ -778,16 +781,7 @@ class hitbtc(Exchange):
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = marketId
-        if symbol is None:
-            if market is not None:
-                symbol = market['id']
+        symbol = self.safe_symbol(marketId, market)
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
