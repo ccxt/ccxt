@@ -168,14 +168,8 @@ module.exports = class currencycom extends ccxt.currencycom {
         //         buyer: false
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, undefined, '/');
         const timestamp = this.safeInteger (trade, 'ts');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
@@ -267,33 +261,31 @@ module.exports = class currencycom extends ccxt.currencycom {
         const interval = this.safeString (payload, 'interval');
         const timeframe = this.findTimeframe (interval);
         const marketId = this.safeString (payload, 'symbol');
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const messageHash = destination + ':' + timeframe + ':' + symbol;
-            const result = [
-                this.safeInteger (payload, 't'),
-                this.safeFloat (payload, 'o'),
-                this.safeFloat (payload, 'h'),
-                this.safeFloat (payload, 'l'),
-                this.safeFloat (payload, 'c'),
-                undefined, // no volume v in OHLCV
-            ];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
-            const length = stored.length;
-            if (length && result[0] === stored[length - 1][0]) {
-                stored[length - 1] = result;
-            } else {
-                stored.append (result);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = destination + ':' + timeframe + ':' + symbol;
+        const result = [
+            this.safeInteger (payload, 't'),
+            this.safeFloat (payload, 'o'),
+            this.safeFloat (payload, 'h'),
+            this.safeFloat (payload, 'l'),
+            this.safeFloat (payload, 'c'),
+            undefined, // no volume v in OHLCV
+        ];
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
         }
+        const length = stored.length;
+        if (length && result[0] === stored[length - 1][0]) {
+            stored[length - 1] = result;
+        } else {
+            stored.append (result);
+        }
+        client.resolve (stored, messageHash);
     }
 
     requestId () {
@@ -419,16 +411,7 @@ module.exports = class currencycom extends ccxt.currencycom {
         const payload = this.safeValue (message, 'payload', {});
         const data = this.safeValue (payload, 'data', {});
         const marketId = this.safeString (payload, 'symbol');
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['id'];
-            } else {
-                symbol = marketId;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '/');
         // const destination = this.safeString (message, 'destination');
         const destination = 'depthMarketData.subscribe';
         const messageHash = destination + ':' + symbol;
