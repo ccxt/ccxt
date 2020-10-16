@@ -51,7 +51,7 @@ $exchanges = null;
 
 //-----------------------------------------------------------------------------
 
-foreach (\ccxt\Exchange::$exchanges as $id) {
+foreach (\ccxt\base\Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\' . $id;
     $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
 }
