@@ -141,7 +141,6 @@ module.exports = class probit extends Exchange {
             'commonCurrencies': {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
-                'PUT': 'Profile Utility Token',
                 'UNI': 'UNICORN Token',
             },
         });
