@@ -111,12 +111,7 @@ class gateio(Exchange, ccxt.gateio):
         clean = self.safe_value(params, 0)
         book = self.safe_value(params, 1)
         marketId = self.safe_string_lower(params, 2)
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        else:
-            symbol = marketId
+        symbol = self.safe_symbol(marketId)
         method = self.safe_string(message, 'method')
         messageHash = method + ':' + marketId
         orderBook = None
@@ -180,15 +175,14 @@ class gateio(Exchange, ccxt.gateio):
         #
         params = self.safe_value(message, 'params', [])
         marketId = self.safe_string_lower(params, 0)
-        market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
-            ticker = self.safe_value(params, 1, {})
-            result = self.parse_ticker(ticker, market)
-            methodType = message['method']
-            messageHash = methodType + ':' + marketId
-            self.tickers[symbol] = result
-            client.resolve(result, messageHash)
+        market = self.safe_market(marketId, None, '_')
+        symbol = market['symbol']
+        ticker = self.safe_value(params, 1, {})
+        result = self.parse_ticker(ticker, market)
+        methodType = message['method']
+        messageHash = methodType + ':' + marketId
+        self.tickers[symbol] = result
+        client.resolve(result, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -238,11 +232,8 @@ class gateio(Exchange, ccxt.gateio):
         #
         params = self.safe_value(message, 'params', [])
         marketId = self.safe_string_lower(params, 0)
-        market = None
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        market = self.safe_market(marketId, None, '_')
+        symbol = market['symbol']
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -310,11 +301,7 @@ class gateio(Exchange, ccxt.gateio):
             self.safe_float(ohlcv, 2),  # c
             self.safe_float(ohlcv, 5),  # v
         ]
-        market = None
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '_')
         # gateio sends candles without a timeframe identifier
         # making it impossible to differentiate candles from
         # two or more different timeframes within the same symbol
@@ -440,9 +427,7 @@ class gateio(Exchange, ccxt.gateio):
         messageHash = message['method']
         order = message['params'][1]
         marketId = self.safe_string_lower(order, 'market')
-        market = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        market = self.safe_market(marketId, None, '_')
         parsed = self.parse_order(order, market)
         client.resolve(parsed, messageHash)
 
