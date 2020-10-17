@@ -23,11 +23,11 @@ class OrderBookSide(list):
         index_price = -price if self.side else price
         index = bisect.bisect_left(self._index, index_price)
         if size:
-            self._index.insert(index, index_price)
-            self.insert(index, delta)
-            if len(self._index) > self._depth:
-                self._index.pop()
-                self.pop()
+            if index < len(self._index) and self._index[index] == index_price:
+                self[index][1] = size
+            else:
+                self._index.insert(index, index_price)
+                self.insert(index, delta)
         elif index < len(self._index) and self._index[index] == index_price:
             del self._index[index]
             del self[index]
@@ -37,6 +37,11 @@ class OrderBookSide(list):
 
     def limit(self, n=None):
         self._n = sys.maxsize if n is None else n
+        difference = len(self) - self._depth
+        while difference > 0:
+            self.pop()
+            self._index.pop()
+            difference -= 1
 
     def __iter__(self):
         # a call to limit only temporarily limits the order book
@@ -97,7 +102,7 @@ class CountedOrderBookSide(OrderBookSide):
 class IndexedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
         super(IndexedOrderBookSide, self).__init__(deltas, depth)
-        self.ids = []
+        self._hashmap = []
 
     def storeArray(self, delta):
         price = delta[0]
