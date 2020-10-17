@@ -39,9 +39,12 @@ class OrderBookSide(list):
         self._n = sys.maxsize if n is None else n
         difference = len(self) - self._depth
         while difference > 0:
-            self.pop()
+            self.remove_index(self.pop())
             self._index.pop()
             difference -= 1
+
+    def remove_index(self, order):
+        pass
 
     def __iter__(self):
         # a call to limit only temporarily limits the order book
@@ -101,29 +104,50 @@ class CountedOrderBookSide(OrderBookSide):
 
 class IndexedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
+        self._hashmap = {}
         super(IndexedOrderBookSide, self).__init__(deltas, depth)
-        self._hashmap = []
 
     def storeArray(self, delta):
         price = delta[0]
+        if price is not None:
+            index_price = -price if self.side else price
+        else:
+            index_price = None
         size = delta[1]
         order_id = delta[2]
-        if order_id in self._hashmap:
-            reference = self._hashmap[order_id]
-            reference[0] = price
-            reference[1] = size
-
-        index_price = -price if self.side else price
-        index = bisect.bisect_left(self._index, index_price)
         if size:
+            if order_id in self._hashmap:
+                old_price = self._hashmap[order_id]
+                index_price = index_price or old_price
+                # in case the price is not defined
+                delta[0] = abs(index_price)
+                if index_price == old_price:
+                    # just overwrite the old index
+                    index = bisect.bisect_left(self._index, index_price)
+                    self._index[index] = index_price
+                    self[index] = delta
+                    return
+                else:
+                    # remove old price level
+                    old_index = bisect.bisect_left(self._index, old_price)
+                    del self._index[old_index]
+                    del self[old_index]
+            # insert new price level
+            self._hashmap[order_id] = index_price
+            index = bisect.bisect_left(self._index, index_price)
             self._index.insert(index, index_price)
             self.insert(index, delta)
-            if len(self._index) > self._depth:
-                self._index.pop()
-                self.pop()
-        elif index < len(self._index) and self._index[index] == index_price:
+        elif order_id in self._hashmap:
+            old_price = self._hashmap[order_id]
+            index = bisect.bisect_left(self._index, old_price)
             del self._index[index]
             del self[index]
+            del self._hashmap[order_id]
+
+    def remove_index(self, order):
+        order_id = order[2]
+        if order_id in self._hashmap:
+            del self._hashmap[order_id]
 
     def store(self, price, size, order_id):
         self.storeArray([price, size, order_id])
@@ -134,7 +158,7 @@ class IndexedOrderBookSide(OrderBookSide):
 
 class IncrementalOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
-        super(IncrementalOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_KEY)
+        super(IncrementalOrderBookSide, self).__init__(deltas, depth)
 
     def store(self, price, size):
         size = self._index.get(price, 0) + size
