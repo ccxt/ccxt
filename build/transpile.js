@@ -628,6 +628,18 @@ class Transpiler {
 
         header = header.concat (errorImports)
         header = header.concat ('use \\ccxt\\base\\Exchange;')
+        const defineConst = [
+            'const TRUNCATE = Exchange::TRUNCATE;',
+            'const ROUND = Exchange::ROUND;',
+            'const ROUND_UP = Exchange::ROUND_UP;',
+            'const ROUND_DOWN = Exchange::ROUND_DOWN;',
+            'const DECIMAL_PLACES = Exchange::DECIMAL_PLACES;',
+            'const SIGNIFICANT_DIGITS = Exchange::SIGNIFICANT_DIGITS;',
+            'const TICK_SIZE = Exchange::TICK_SIZE;',
+            'const NO_PADDING = Exchange::NO_PADDING;',
+            'const PAD_WITH_ZERO = Exchange::PAD_WITH_ZERO;',
+        ]
+        header = header.concat (defineConst)
 
         methods = methods.concat (this.getPHPBaseMethods ())
 
