@@ -170,24 +170,23 @@ class okex(Exchange, ccxt.okex):
         timeframe = self.find_timeframe(interval)
         for i in range(0, len(data)):
             marketId = self.safe_string(data[i], 'instrument_id')
-            if marketId in self.markets_by_id:
-                candle = self.safe_value(data[i], 'candle')
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                parsed = self.parse_ohlcv(candle, market)
-                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-                if stored is None:
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    stored = ArrayCache(limit)
-                    self.ohlcvs[symbol][timeframe] = stored
-                length = len(stored)
-                if length and parsed[0] == stored[length - 1][0]:
-                    stored[length - 1] = parsed
-                else:
-                    stored.append(parsed)
-                messageHash = table + ':' + marketId
-                client.resolve(stored, messageHash)
+            candle = self.safe_value(data[i], 'candle')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            parsed = self.parse_ohlcv(candle, market)
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
+            length = len(stored)
+            if length and parsed[0] == stored[length - 1][0]:
+                stored[length - 1] = parsed
+            else:
+                stored.append(parsed)
+            messageHash = table + ':' + marketId
+            client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         options = self.safe_value(self.options, 'watchOrderBook', {})
@@ -288,29 +287,27 @@ class okex(Exchange, ccxt.okex):
             for i in range(0, len(data)):
                 update = data[i]
                 marketId = self.safe_string(update, 'instrument_id')
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                    options = self.safe_value(self.options, 'watchOrderBook', {})
-                    # default limit is 400 bidasks
-                    limit = self.safe_integer(options, 'limit', 400)
-                    orderbook = self.order_book({}, limit)
-                    self.orderbooks[symbol] = orderbook
-                    self.handle_order_book_message(client, update, orderbook)
-                    messageHash = table + ':' + marketId
-                    client.resolve(orderbook, messageHash)
+                market = self.safe_market(marketId)
+                symbol = market['symbol']
+                options = self.safe_value(self.options, 'watchOrderBook', {})
+                # default limit is 400 bidasks
+                limit = self.safe_integer(options, 'limit', 400)
+                orderbook = self.order_book({}, limit)
+                self.orderbooks[symbol] = orderbook
+                self.handle_order_book_message(client, update, orderbook)
+                messageHash = table + ':' + marketId
+                client.resolve(orderbook, messageHash)
         else:
             for i in range(0, len(data)):
                 update = data[i]
                 marketId = self.safe_string(update, 'instrument_id')
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                    if symbol in self.orderbooks:
-                        orderbook = self.orderbooks[symbol]
-                        self.handle_order_book_message(client, update, orderbook)
-                        messageHash = table + ':' + marketId
-                        client.resolve(orderbook, messageHash)
+                market = self.safe_market(marketId)
+                symbol = market['symbol']
+                if symbol in self.orderbooks:
+                    orderbook = self.orderbooks[symbol]
+                    self.handle_order_book_message(client, update, orderbook)
+                    messageHash = table + ':' + marketId
+                    client.resolve(orderbook, messageHash)
         return message
 
     async def authenticate(self, params={}):

@@ -117,13 +117,7 @@ class gateio extends \ccxt\gateio {
         $clean = $this->safe_value($params, 0);
         $book = $this->safe_value($params, 1);
         $marketId = $this->safe_string_lower($params, 2);
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $marketId;
-        }
+        $symbol = $this->safe_symbol($marketId);
         $method = $this->safe_string($message, 'method');
         $messageHash = $method . ':' . $marketId;
         $orderBook = null;
@@ -190,16 +184,14 @@ class gateio extends \ccxt\gateio {
         //
         $params = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string_lower($params, 0);
-        $market = $this->safe_value($this->markets_by_id, $marketId);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $ticker = $this->safe_value($params, 1, array());
-            $result = $this->parse_ticker($ticker, $market);
-            $methodType = $message['method'];
-            $messageHash = $methodType . ':' . $marketId;
-            $this->tickers[$symbol] = $result;
-            $client->resolve ($result, $messageHash);
-        }
+        $market = $this->safe_market($marketId, null, '_');
+        $symbol = $market['symbol'];
+        $ticker = $this->safe_value($params, 1, array());
+        $result = $this->parse_ticker($ticker, $market);
+        $methodType = $message['method'];
+        $messageHash = $methodType . ':' . $marketId;
+        $this->tickers[$symbol] = $result;
+        $client->resolve ($result, $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -251,12 +243,8 @@ class gateio extends \ccxt\gateio {
         //
         $params = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string_lower($params, 0);
-        $market = null;
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, null, '_');
+        $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -328,12 +316,7 @@ class gateio extends \ccxt\gateio {
             $this->safe_float($ohlcv, 2), // c
             $this->safe_float($ohlcv, 5), // v
         );
-        $market = null;
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, null, '_');
         // gateio sends candles without a timeframe identifier
         // making it impossible to differentiate candles from
         // two or more different timeframes within the same $symbol
@@ -472,10 +455,7 @@ class gateio extends \ccxt\gateio {
         $messageHash = $message['method'];
         $order = $message['params'][1];
         $marketId = $this->safe_string_lower($order, 'market');
-        $market = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $market = $this->safe_market($marketId, null, '_');
         $parsed = $this->parse_order($order, $market);
         $client->resolve ($parsed, $messageHash);
     }
