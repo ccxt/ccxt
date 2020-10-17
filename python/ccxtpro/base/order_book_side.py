@@ -1,65 +1,68 @@
 # -*- coding: utf-8 -*-
 
-import operator
-
-LIMIT_BY_KEY = 0
-LIMIT_BY_VALUE_PRICE_KEY = 1
-LIMIT_BY_VALUE_INDEX_KEY = 2
+import sys
+import bisect
+import itertools
 
 
 class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
-    # sorted(..., reverse=self.side)
 
-    def __init__(self, deltas=[], depth=None, limit_type=LIMIT_BY_KEY):
-        # allocate memory for the list here (it will not be resized...)
+    def __init__(self, deltas=[], depth=None):
         super(OrderBookSide, self).__init__()
-        self._depth = depth or float('inf')
-        self._limit_type = limit_type
-        self._index = {}
+        self._depth = depth or sys.maxsize
+        self._n = sys.maxsize
+        # parallel to self
+        self._index = []
         for delta in deltas:
             self.storeArray(list(delta))
 
     def storeArray(self, delta):
         price = delta[0]
         size = delta[1]
+        index_price = -price if self.side else price
+        index = bisect.bisect_left(self._index, index_price)
         if size:
-            self._index[price] = size
-        else:
-            if price in self._index:
-                del self._index[price]
+            self._index.insert(index, index_price)
+            self.insert(index, delta)
+            if len(self._index) > self._depth:
+                self._index.pop()
+                self.pop()
+        elif index < len(self._index) and self._index[index] == index_price:
+            del self._index[index]
+            del self[index]
 
     def store(self, price, size):
-        if size:
-            self._index[price] = size
-        else:
-            if price in self._index:
-                del self._index[price]
+        self.storeArray([price, size])
 
     def limit(self, n=None):
-        n = n or float('inf')
-        first_element = operator.itemgetter(0)
-        iterator = self._index.values() if self._limit_type else self._index.items()
-        generator = (list(t) for t in iterator)  # lazy evaluation
-        array = sorted(generator, key=first_element, reverse=self.side)
-        threshold = int(min(self._depth, len(array)))
-        self.clear()
-        self._index.clear()
-        for i in range(threshold):
-            delta = array[i]
-            price = delta[0]
-            size = delta[1]
-            if self._limit_type:
-                last = delta[2]
-                if self._limit_type == LIMIT_BY_VALUE_PRICE_KEY:
-                    self._index[price] = delta
-                else:
-                    self._index[last] = delta
-            else:
-                self._index[price] = size
-            if i < n:
-                self.append(delta)
-        return self
+        self._n = n
+
+    def __iter__(self):
+        # a call to limit only temporarily limits the order book
+        # so we hide the rest of the cached data after self._n
+        iterator = super(OrderBookSide, self).__iter__()
+        return itertools.islice(iterator, self._n)
+
+    def __len__(self):
+        length = super(OrderBookSide, self).__len__()
+        if self._n is not None:
+            return min(length, self._n)
+        else:
+            return length
+
+    def __getitem__(self, item):
+        if item >= self._n:
+            raise IndexError('list index out of range')
+        return super(OrderBookSide, self).__getitem__(item)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return list(self) == other
+        return super(OrderBookSide, self).__eq__(other)
+
+    def __repr__(self):
+        return str(list(self))
 
 # -----------------------------------------------------------------------------
 # overwrites absolute volumes at price levels
@@ -69,23 +72,26 @@ class OrderBookSide(list):
 
 class CountedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
-        super(CountedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
-
-    def store(self, price, size, count):
-        if count and size:
-            self._index[price] = [price, size, count]
-        else:
-            if price in self._index:
-                del self._index[price]
+        super(CountedOrderBookSide, self).__init__(deltas, depth)
 
     def storeArray(self, delta):
-        price, size, count = delta
+        price = delta[0]
+        size = delta[1]
+        count = delta[2]
+        index_price = -price if self.side else price
+        index = bisect.bisect_left(self._index, index_price)
         if count and size:
-            self._index[price] = delta
-        else:
-            if price in self._index:
-                del self._index[price]
+            self._index.insert(index, index_price)
+            self.insert(index, delta)
+            if len(self._index) > self._depth:
+                self._index.pop()
+                self.pop()
+        elif index < len(self._index) and self._index[index] == index_price:
+            del self._index[index]
+            del self[index]
 
+    def store(self, price, size):
+        self.storeArray([price, size])
 
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
@@ -93,32 +99,32 @@ class CountedOrderBookSide(OrderBookSide):
 
 class IndexedOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
-        super(IndexedOrderBookSide, self).__init__(deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
-
-    def store(self, price, size, order_id):
-        if size:
-            stored = self._index.get(order_id)
-            if stored:
-                stored[0] = price or stored[0]
-                stored[1] = size
-                return
-            self._index[order_id] = [price, size, order_id]
-        else:
-            if order_id in self._index:
-                del self._index[order_id]
+        super(IndexedOrderBookSide, self).__init__(deltas, depth)
+        self.ids = []
 
     def storeArray(self, delta):
-        price, size, order_id = delta
+        price = delta[0]
+        size = delta[1]
+        order_id = delta[2]
+        if order_id in self._hashmap:
+            reference = self._hashmap[order_id]
+            reference[0] = price
+            reference[1] = size
+
+        index_price = -price if self.side else price
+        index = bisect.bisect_left(self._index, index_price)
         if size:
-            stored = self._index.get(order_id)
-            if stored:
-                stored[0] = price or stored[0]
-                stored[1] = size
-                return
-            self._index[order_id] = delta
-        else:
-            if order_id in self._index:
-                del self._index[order_id]
+            self._index.insert(index, index_price)
+            self.insert(index, delta)
+            if len(self._index) > self._depth:
+                self._index.pop()
+                self.pop()
+        elif index < len(self._index) and self._index[index] == index_price:
+            del self._index[index]
+            del self[index]
+
+    def store(self, price, size, order_id):
+        self.storeArray([price, size, order_id])
 
 # -----------------------------------------------------------------------------
 # adjusts the volumes by positive or negative relative changes or differences
