@@ -608,6 +608,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
+            "use \\ccxt\\base\\Exchange;\n",
         ]
     }
 
@@ -627,7 +628,6 @@ class Transpiler {
         }
 
         header = header.concat (errorImports)
-        header = header.concat ('use \\ccxt\\base\\Exchange;')
         const defineConst = [
             'const TRUNCATE = Exchange::TRUNCATE;',
             'const ROUND = Exchange::ROUND;',
