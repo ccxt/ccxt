@@ -36,7 +36,7 @@ class OrderBookSide(list):
         self.storeArray([price, size])
 
     def limit(self, n=None):
-        self._n = n
+        self._n = sys.maxsize if n is None else n
 
     def __iter__(self):
         # a call to limit only temporarily limits the order book
@@ -46,10 +46,7 @@ class OrderBookSide(list):
 
     def __len__(self):
         length = super(OrderBookSide, self).__len__()
-        if self._n is not None:
-            return min(length, self._n)
-        else:
-            return length
+        return min(length, self._n)
 
     def __getitem__(self, item):
         if item >= self._n:
