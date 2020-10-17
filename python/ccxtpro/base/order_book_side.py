@@ -4,6 +4,11 @@ import sys
 import bisect
 import itertools
 
+"""Author: Carlo Revelli"""
+"""Fast bisect bindings"""
+"""https://github.com/python/cpython/blob/master/Modules/_bisectmodule.c"""
+"""Performs a binary search when inserting keys in sorted order"""
+
 
 class OrderBookSide(list):
     side = None  # set to True for bids and False for asks
@@ -85,18 +90,19 @@ class CountedOrderBookSide(OrderBookSide):
         count = delta[2]
         index_price = -price if self.side else price
         index = bisect.bisect_left(self._index, index_price)
-        if count and size:
-            self._index.insert(index, index_price)
-            self.insert(index, delta)
-            if len(self._index) > self._depth:
-                self._index.pop()
-                self.pop()
+        if size and count:
+            if index < len(self._index) and self._index[index] == index_price:
+                self[index][1] = size
+                self[index][2] = count
+            else:
+                self._index.insert(index, index_price)
+                self.insert(index, delta)
         elif index < len(self._index) and self._index[index] == index_price:
             del self._index[index]
             del self[index]
 
-    def store(self, price, size):
-        self.storeArray([price, size])
+    def store(self, price, size, count):
+        self.storeArray([price, size, count])
 
 # -----------------------------------------------------------------------------
 # indexed by order ids (3rd value in a bidask delta)
@@ -121,6 +127,7 @@ class IndexedOrderBookSide(OrderBookSide):
                 index_price = index_price or old_price
                 # in case the price is not defined
                 delta[0] = abs(index_price)
+                # matches if price is not defined or if price matches
                 if index_price == old_price:
                     # just overwrite the old index
                     index = bisect.bisect_left(self._index, index_price)
@@ -160,55 +167,75 @@ class IncrementalOrderBookSide(OrderBookSide):
     def __init__(self, deltas=[], depth=None):
         super(IncrementalOrderBookSide, self).__init__(deltas, depth)
 
-    def store(self, price, size):
-        size = self._index.get(price, 0) + size
-        if size <= 0:
-            if price in self._index:
-                del self._index[price]
-        else:
-            self._index[price] = size
-
     def storeArray(self, delta):
-        price, size = delta
-        size = self._index.get(price, 0) + size
-        if size <= 0:
-            if price in self._index:
-                del self._index[price]
-        else:
-            self._index[price] = size
+        price = delta[0]
+        size = delta[1]
+        index_price = -price if self.side else price
+        index = bisect.bisect_left(self._index, index_price)
+        index_exists = index < len(self._index) and self._index[index] == index_price
+        if index_exists:
+            size += self[index][1]
+        if size > 0:
+            if index_exists:
+                self[index][1] = size
+            else:
+                self._index.insert(index, index_price)
+                self.insert(index, delta)
+        elif index < len(self._index) and self._index[index] == index_price:
+            del self._index[index]
+            del self[index]
 
 # -----------------------------------------------------------------------------
 # incremental and indexed (2 in 1)
 
 
 class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
-    def store(self, price, size, order_id):
-        if size:
-            stored = self._index.get(order_id)
-            if stored:
-                if size + stored[1] >= 0:
-                    stored[0] = price or stored[0]
-                    stored[1] = size + stored[1]
-                    return
-            self._index[order_id] = [price, size, order_id]
-        else:
-            if order_id in self._index:
-                del self._index[order_id]
-
     def storeArray(self, delta):
-        price, size, order_id = delta
-        if size:
-            stored = self._index.get(order_id)
-            if stored:
-                if size + stored[1] >= 0:
-                    stored[0] = price or stored[0]
-                    stored[1] = size + stored[1]
-                    return
-            self._index[order_id] = delta
+        price = delta[0]
+        if price is not None:
+            index_price = -price if self.side else price
         else:
-            if order_id in self._index:
-                del self._index[order_id]
+            index_price = None
+        size = delta[1]
+        order_id = delta[2]
 
+        old_price = None
+        index = None
+        if order_id in self._hashmap:
+            # handling for incremental stuff
+            old_price = self._hashmap[order_id]
+            index_price = index_price or old_price
+            index = bisect.bisect_left(self._index, index_price)
+            size += self[index][1]
+            # update the order if price is not defined
+            delta[0] = abs(index_price)
+            # incremental
+            delta[1] = size
+
+        if size > 0:
+            if order_id in self._hashmap:
+                # matches if price is not defined or if price matches
+                if index_price == old_price:
+                    # just overwrite the old index
+                    self._index[index] = index_price
+                    self[index] = delta
+                    return
+                else:
+                    # remove old price level
+                    old_index = bisect.bisect_left(self._index, old_price)
+                    del self._index[old_index]
+                    del self[old_index]
+            # insert new price level
+            self._hashmap[order_id] = index_price
+            index = bisect.bisect_left(self._index, index_price)
+            self._index.insert(index, index_price)
+            self.insert(index, delta)
+        elif order_id in self._hashmap:
+            old_price = self._hashmap[order_id]
+            index = bisect.bisect_left(self._index, old_price)
+            del self._index[index]
+            del self[index]
+            del self._hashmap[order_id]
 
 # -----------------------------------------------------------------------------
 # a more elegant syntax is possible here, but native inheritance is portable

@@ -33,9 +33,11 @@ class OrderBook(dict):
 
     def reset(self, snapshot={}):
         self['asks']._index.clear()
+        self['asks'].clear()
         for ask in snapshot.get('asks', []):
             self['asks'].storeArray(ask)
         self['bids']._index.clear()
+        self['bids'].clear()
         for bid in snapshot.get('bids', []):
             self['bids'].storeArray(bid)
         self['nonce'] = snapshot.get('nonce')
