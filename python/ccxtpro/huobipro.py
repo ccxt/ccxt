@@ -95,15 +95,14 @@ class huobipro(Exchange, ccxt.huobipro):
         ch = self.safe_string(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            ticker = self.parse_ticker(tick, market)
-            timestamp = self.safe_value(message, 'ts')
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
-            symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
-            client.resolve(ticker, ch)
+        market = self.safe_market(marketId)
+        ticker = self.parse_ticker(tick, market)
+        timestamp = self.safe_value(message, 'ts')
+        ticker['timestamp'] = timestamp
+        ticker['datetime'] = self.iso8601(timestamp)
+        symbol = ticker['symbol']
+        self.tickers[symbol] = ticker
+        client.resolve(ticker, ch)
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
@@ -154,18 +153,17 @@ class huobipro(Exchange, ccxt.huobipro):
         ch = self.safe_string(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            array = self.safe_value(self.trades, symbol)
-            if array is None:
-                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                array = ArrayCache(limit)
-                self.trades[symbol] = array
-            for i in range(0, len(data)):
-                trade = self.parse_trade(data[i], market)
-                array.append(trade)
-            client.resolve(array, ch)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        array = self.safe_value(self.trades, symbol)
+        if array is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            array = ArrayCache(limit)
+            self.trades[symbol] = array
+        for i in range(0, len(data)):
+            trade = self.parse_trade(data[i], market)
+            array.append(trade)
+        client.resolve(array, ch)
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -211,25 +209,24 @@ class huobipro(Exchange, ccxt.huobipro):
         ch = self.safe_string(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            interval = self.safe_string(parts, 3)
-            timeframe = self.find_timeframe(interval)
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCache(limit)
-                self.ohlcvs[symbol][timeframe] = stored
-            tick = self.safe_value(message, 'tick')
-            parsed = self.parse_ohlcv(tick, market)
-            length = len(stored)
-            if length and parsed[0] == stored[length - 1][0]:
-                stored[length - 1] = parsed
-            else:
-                stored.append(parsed)
-            client.resolve(stored, ch)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        interval = self.safe_string(parts, 3)
+        timeframe = self.find_timeframe(interval)
+        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCache(limit)
+            self.ohlcvs[symbol][timeframe] = stored
+        tick = self.safe_value(message, 'tick')
+        parsed = self.parse_ohlcv(tick, market)
+        length = len(stored)
+        if length and parsed[0] == stored[length - 1][0]:
+            stored[length - 1] = parsed
+        else:
+            stored.append(parsed)
+        client.resolve(stored, ch)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         if (limit is not None) and (limit != 150):
@@ -391,12 +388,7 @@ class huobipro(Exchange, ccxt.huobipro):
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)

@@ -176,27 +176,25 @@ module.exports = class okex extends ccxt.okex {
         const timeframe = this.findTimeframe (interval);
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'instrument_id');
-            if (marketId in this.markets_by_id) {
-                const candle = this.safeValue (data[i], 'candle');
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const parsed = this.parseOHLCV (candle, market);
-                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    stored = new ArrayCache (limit);
-                    this.ohlcvs[symbol][timeframe] = stored;
-                }
-                const length = stored.length;
-                if (length && parsed[0] === stored[length - 1][0]) {
-                    stored[length - 1] = parsed;
-                } else {
-                    stored.append (parsed);
-                }
-                const messageHash = table + ':' + marketId;
-                client.resolve (stored, messageHash);
+            const candle = this.safeValue (data[i], 'candle');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const parsed = this.parseOHLCV (candle, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCache (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
             }
+            const length = stored.length;
+            if (length && parsed[0] === stored[length - 1][0]) {
+                stored[length - 1] = parsed;
+            } else {
+                stored.append (parsed);
+            }
+            const messageHash = table + ':' + marketId;
+            client.resolve (stored, messageHash);
         }
     }
 
@@ -304,32 +302,28 @@ module.exports = class okex extends ccxt.okex {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const marketId = this.safeString (update, 'instrument_id');
-                if (marketId in this.markets_by_id) {
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    const options = this.safeValue (this.options, 'watchOrderBook', {});
-                    // default limit is 400 bidasks
-                    const limit = this.safeInteger (options, 'limit', 400);
-                    const orderbook = this.orderBook ({}, limit);
-                    this.orderbooks[symbol] = orderbook;
-                    this.handleOrderBookMessage (client, update, orderbook);
-                    const messageHash = table + ':' + marketId;
-                    client.resolve (orderbook, messageHash);
-                }
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const options = this.safeValue (this.options, 'watchOrderBook', {});
+                // default limit is 400 bidasks
+                const limit = this.safeInteger (options, 'limit', 400);
+                const orderbook = this.orderBook ({}, limit);
+                this.orderbooks[symbol] = orderbook;
+                this.handleOrderBookMessage (client, update, orderbook);
+                const messageHash = table + ':' + marketId;
+                client.resolve (orderbook, messageHash);
             }
         } else {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const marketId = this.safeString (update, 'instrument_id');
-                if (marketId in this.markets_by_id) {
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    if (symbol in this.orderbooks) {
-                        const orderbook = this.orderbooks[symbol];
-                        this.handleOrderBookMessage (client, update, orderbook);
-                        const messageHash = table + ':' + marketId;
-                        client.resolve (orderbook, messageHash);
-                    }
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                if (symbol in this.orderbooks) {
+                    const orderbook = this.orderbooks[symbol];
+                    this.handleOrderBookMessage (client, update, orderbook);
+                    const messageHash = table + ':' + marketId;
+                    client.resolve (orderbook, messageHash);
                 }
             }
         }
