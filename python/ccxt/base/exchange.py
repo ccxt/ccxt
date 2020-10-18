@@ -603,7 +603,7 @@ class Exchange(object):
             details = ' '.join([self.id, method, url])
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
-            raise ExchangeError(method + ' ' + url) from e
+            raise ExchangeError(details) from e
 
         except requestsConnectionError as e:
             error_string = str(e)
@@ -633,7 +633,7 @@ class Exchange(object):
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
             Exception = self.httpExceptions[string_code]
-            raise Exception(' '.join([self.id, method, url, http_status_code, http_status_text, body]))
+            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
