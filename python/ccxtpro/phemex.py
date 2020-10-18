@@ -62,12 +62,8 @@ class phemex(Exchange, ccxt.phemex):
         #         volume: 934292
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_float(ticker, 'close'), market)
         quoteVolume = self.from_ev(self.safe_float(ticker, 'turnover'), market)
@@ -207,33 +203,32 @@ class phemex(Exchange, ccxt.phemex):
         #
         name = 'kline'
         marketId = self.safe_string(message, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            candles = self.safe_value(message, name, [])
-            first = self.safe_value(candles, 0, [])
-            interval = self.safe_string(first, 1)
-            timeframe = self.find_timeframe(interval)
-            if timeframe is not None:
-                messageHash = name + ':' + timeframe + ':' + symbol
-                ohlcvs = self.parse_ohlcvs(candles, market)
-                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-                if stored is None:
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    stored = ArrayCache(limit)
-                    self.ohlcvs[symbol][timeframe] = stored
-                for i in range(0, len(ohlcvs)):
-                    candle = ohlcvs[i]
-                    length = len(stored)
-                    if length:
-                        if candle[0] == stored[length - 1][0]:
-                            stored[length - 1] = candle
-                        elif candle[0] > stored[length - 1][0]:
-                            stored.append(candle)
-                    else:
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        candles = self.safe_value(message, name, [])
+        first = self.safe_value(candles, 0, [])
+        interval = self.safe_string(first, 1)
+        timeframe = self.find_timeframe(interval)
+        if timeframe is not None:
+            messageHash = name + ':' + timeframe + ':' + symbol
+            ohlcvs = self.parse_ohlcvs(candles, market)
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCache(limit)
+                self.ohlcvs[symbol][timeframe] = stored
+            for i in range(0, len(ohlcvs)):
+                candle = ohlcvs[i]
+                length = len(stored)
+                if length:
+                    if candle[0] == stored[length - 1][0]:
+                        stored[length - 1] = candle
+                    elif candle[0] > stored[length - 1][0]:
                         stored.append(candle)
-                client.resolve(stored, messageHash)
+                else:
+                    stored.append(candle)
+            client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -342,35 +337,34 @@ class phemex(Exchange, ccxt.phemex):
         #     }
         #
         marketId = self.safe_string(message, 'symbol')
-        if marketId in self.markets_by_id:
-            type = self.safe_string(message, 'type')
-            depth = self.safe_integer(message, 'depth')
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            name = 'orderbook'
-            messageHash = name + ':' + symbol
-            nonce = self.safe_integer(message, 'sequence')
-            timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
-            if type == 'snapshot':
-                book = self.safe_value(message, 'book', {})
-                snapshot = self.parse_order_book(book, timestamp, 'bids', 'asks', 0, 1, market)
-                snapshot['nonce'] = nonce
-                orderbook = self.order_book(snapshot, depth)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        type = self.safe_string(message, 'type')
+        depth = self.safe_integer(message, 'depth')
+        name = 'orderbook'
+        messageHash = name + ':' + symbol
+        nonce = self.safe_integer(message, 'sequence')
+        timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
+        if type == 'snapshot':
+            book = self.safe_value(message, 'book', {})
+            snapshot = self.parse_order_book(book, timestamp, 'bids', 'asks', 0, 1, market)
+            snapshot['nonce'] = nonce
+            orderbook = self.order_book(snapshot, depth)
+            self.orderbooks[symbol] = orderbook
+            client.resolve(orderbook, messageHash)
+        else:
+            orderbook = self.safe_value(self.orderbooks, symbol)
+            if orderbook is not None:
+                changes = self.safe_value(message, 'book', {})
+                asks = self.safe_value(changes, 'asks', [])
+                bids = self.safe_value(changes, 'bids', [])
+                self.handle_deltas(orderbook['asks'], asks, market)
+                self.handle_deltas(orderbook['bids'], bids, market)
+                orderbook['nonce'] = nonce
+                orderbook['timestamp'] = timestamp
+                orderbook['datetime'] = self.iso8601(timestamp)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
-            else:
-                orderbook = self.safe_value(self.orderbooks, symbol)
-                if orderbook is not None:
-                    changes = self.safe_value(message, 'book', {})
-                    asks = self.safe_value(changes, 'asks', [])
-                    bids = self.safe_value(changes, 'bids', [])
-                    self.handle_deltas(orderbook['asks'], asks, market)
-                    self.handle_deltas(orderbook['bids'], bids, market)
-                    orderbook['nonce'] = nonce
-                    orderbook['timestamp'] = timestamp
-                    orderbook['datetime'] = self.iso8601(timestamp)
-                    self.orderbooks[symbol] = orderbook
-                    client.resolve(orderbook, messageHash)
 
     def from_en(self, en, scale, precision, precisionMode=None):
         precisionMode = self.precisionMode if (precisionMode is None) else precisionMode
