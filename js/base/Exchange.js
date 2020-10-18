@@ -556,10 +556,7 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, headers, body, response) {
-        if ((code >= 200) && (code <= 299)) {
-            return
-        }
+    handleHttpStatusCode (code, reason, url, method, body) {
         const codeAsString = code.toString ()
         if (codeAsString in this.httpExceptions) {
             const ErrorClass = this.httpExceptions[codeAsString]
@@ -601,7 +598,7 @@ module.exports = class Exchange {
             }
 
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
-            this.defaultErrorHandler (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
+            this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
 
             return json || responseBody
         })
