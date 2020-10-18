@@ -1500,7 +1500,6 @@ class Exchange {
         }
     }
 
-
     public function set_markets($markets, $currencies = null) {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
