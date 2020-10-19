@@ -393,8 +393,8 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not cls.web3:
-            cls.web3 = Web3(HTTPProvider())
+        if self.requiresWeb3 and Web3 and not Exchange.web3:
+            Exchange.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
