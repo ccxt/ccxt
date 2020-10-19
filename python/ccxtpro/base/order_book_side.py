@@ -201,7 +201,8 @@ class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
 
         old_price = None
         index = None
-        if order_id in self._hashmap:
+        contains_index = order_id in self._hashmap
+        if contains_index:
             # handling for incremental stuff
             old_price = self._hashmap[order_id]
             index_price = index_price or old_price
@@ -213,7 +214,7 @@ class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
             delta[1] = size
 
         if size > 0:
-            if order_id in self._hashmap:
+            if contains_index:
                 # matches if price is not defined or if price matches
                 if index_price == old_price:
                     # just overwrite the old index
@@ -230,7 +231,7 @@ class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
             index = bisect.bisect_left(self._index, index_price)
             self._index.insert(index, index_price)
             self.insert(index, delta)
-        elif order_id in self._hashmap:
+        elif contains_index:
             old_price = self._hashmap[order_id]
             index = bisect.bisect_left(self._index, old_price)
             del self._index[index]
