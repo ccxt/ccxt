@@ -24,5 +24,6 @@
     "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
     "vaultoro":      { "skip": true },
+    "whitebit":      { "skip": true },
     "xbtce":         { "skip": true }
 }
