@@ -608,6 +608,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
+            "use \\ccxt\\base\\Exchange;",
         ]
     }
 
@@ -622,11 +623,23 @@ class Transpiler {
         for (let error in errors) {
             const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
             if (bodyAsString.match (regex)) {
-                errorImports.push ('use \\ccxt\\' + error + ';')
+                errorImports.push ('use \\ccxt\\base\\' + error + ';')
             }
         }
 
         header = header.concat (errorImports)
+        const defineConst = [
+            'const TRUNCATE = Exchange::TRUNCATE;',
+            'const ROUND = Exchange::ROUND;',
+            'const ROUND_UP = Exchange::ROUND_UP;',
+            'const ROUND_DOWN = Exchange::ROUND_DOWN;',
+            'const DECIMAL_PLACES = Exchange::DECIMAL_PLACES;',
+            'const SIGNIFICANT_DIGITS = Exchange::SIGNIFICANT_DIGITS;',
+            'const TICK_SIZE = Exchange::TICK_SIZE;',
+            'const NO_PADDING = Exchange::NO_PADDING;',
+            'const PAD_WITH_ZERO = Exchange::PAD_WITH_ZERO;',
+        ]
+        header = header.concat (defineConst)
 
         methods = methods.concat (this.getPHPBaseMethods ())
 
@@ -1104,14 +1117,21 @@ class Transpiler {
 
         // PHP ----------------------------------------------------------------
 
+        const phpHeader = '<?php\n\nnamespace ccxt\\base;\n\n'
         function phpDeclareErrorClass (name, parent) {
-            return 'class ' + name + ' extends ' + parent + ' {};'
+            const phpFileName  = './php/base/' + name + '.php'
+            const phpErrorBody = '/**\n * Class ' + name + '\n * @package ccxt\\base\n */\nclass ' + name + ' extends ' + parent + '\n{\n\n}'
+            const phpBaseErrorBody = phpHeader + phpErrorBody + ('\n')
+            overwriteFile (phpFileName, phpBaseErrorBody)
         }
 
-        const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
-        const phpBaseError = 'class BaseError extends Exception {};'
-        const phpErrors = intellisense (root, 'BaseError', phpDeclareErrorClass)
-        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + '\n' + phpErrors.join ('\n')
+        const BaseErrorFile = './php/base/BaseError.php'
+        const baseErrorBody = 'use Exception;\n\n/**\n * Class BaseError\n * @package ccxt\\base\n */\nclass BaseError extends Exception\n{\n\n}'
+        const phpBodyBaseError = phpHeader + baseErrorBody + ('\n')
+        overwriteFile (BaseErrorFile, phpBodyBaseError)
+
+        intellisense (root, 'BaseError', phpDeclareErrorClass)
+        const phpBodyIntellisense = phpHeader + phpBody + ('\n')
 
         const phpFilename = './php/base/errors.php'
         log.bright.cyan (message, phpFilename.yellow)
