@@ -542,9 +542,17 @@ class whitebit(Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['start'] = int(since / 1000)
+            maxLimit = 1440
+            if limit is None:
+                limit = maxLimit
+            limit = min(limit, maxLimit)
+            start = int(since / 1000)
+            duration = self.parse_timeframe(timeframe)
+            end = self.sum(start, duration * limit)
+            request['start'] = start
+            request['end'] = end
         if limit is not None:
-            request['limit'] = limit  # default == max == 500
+            request['limit'] = limit  # max 1440
         response = self.publicV1GetKline(self.extend(request, params))
         #
         #     {
