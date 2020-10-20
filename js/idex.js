@@ -773,7 +773,7 @@ module.exports = class idex extends Exchange {
         //   ]
         // }
         const timestamp = this.safeInteger (order, 'time');
-        const fills = this.safeValue (order, 'fills');
+        const fills = this.safeValue (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'market');
         const side = this.safeString (order, 'side');
