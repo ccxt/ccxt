@@ -8,7 +8,7 @@ const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class idex2 extends ccxt.idex2 {
+module.exports = class idex extends ccxt.idex {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
