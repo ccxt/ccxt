@@ -560,17 +560,17 @@ module.exports = class idex extends Exchange {
         //     usdValue: null
         //   }, ...
         // ]
-        const entireRequest = this.extend (request, params);
+        const extendedRequest = this.extend (request, params);
         let response = undefined;
         try {
-            response = await this.privateGetBalances (entireRequest);
+            response = await this.privateGetBalances (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
-                const walletAddress = entireRequest['wallet'];
+                const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response = await this.privateGetBalances (entireRequest);
+                response = await this.privateGetBalances (extendedRequest);
             } else {
-                throw e
+                throw e;
             }
         }
         const result = {
@@ -609,7 +609,6 @@ module.exports = class idex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const entireRequest = this.extend (request, params);
         // [
         //   {
         //     fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
@@ -630,16 +629,17 @@ module.exports = class idex extends Exchange {
         //     txStatus: 'mined'
         //   }
         // ]
+        const extendedRequest = this.extend (request, params);
         let response = undefined;
         try {
-            response = await this.privateGetFills (entireRequest);
+            response = await this.privateGetFills (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
-                const walletAddress = entireRequest['wallet'];
+                const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response = await this.privateGetFills (entireRequest);
+                response = await this.privateGetFills (extendedRequest);
             } else {
-                throw e
+                throw e;
             }
         }
         return this.parseTrades (response, market, since, limit);
