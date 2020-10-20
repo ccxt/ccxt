@@ -415,10 +415,8 @@ module.exports = class idex extends Exchange {
         const amount = this.safeFloat (trade, 'quantity');
         const cost = this.safeFloat (trade, 'quoteQuantity');
         const timestamp = this.safeInteger (trade, 'time');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
         // this code handles the duality of public vs private trades
         const makerSide = this.safeString (trade, 'makerSide');
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
