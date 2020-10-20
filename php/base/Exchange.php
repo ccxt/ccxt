@@ -39,7 +39,7 @@ Exchange::$exchanges = array(
     'huobijp',
     'huobipro',
     'huobiru',
-    'idex2',
+    'idex',
     'kraken',
     'kucoin',
     'okcoin',
