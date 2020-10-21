@@ -1116,7 +1116,6 @@ class Transpiler {
         const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
         const phpFilename = './ccxt.php'
 
-        console.log (phpBodyIntellisense)
         log.bright.cyan (message, phpFilename.yellow)
         const phpRegex = /require_once PATH_TO_CCXT_BASE \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT_BASE[^\n]+\n)+\n/m
         replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
