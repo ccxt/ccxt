@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
-const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported } = require ('./base/errors');
+const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -102,7 +102,6 @@ module.exports = class idex extends Exchange {
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
-                'associatedWallets': {},
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -110,6 +109,8 @@ module.exports = class idex extends Exchange {
                 'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
                 'EXCEEDED_RATE_LIMIT': DDoSProtection,
                 'INVALID_PARAMETER': BadRequest,
+                'WALLET_NOT_ASSOCIATED': InvalidAddress,
+                'INVALID_WALLET_SIGNATURE': AuthenticationError,
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -545,7 +546,6 @@ module.exports = class idex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.associateWallet (this.walletAddress);
         const nonce1 = this.uuidv1 ();
         const request = {
             'nonce': nonce1,
@@ -560,7 +560,19 @@ module.exports = class idex extends Exchange {
         //     usdValue: null
         //   }, ...
         // ]
-        const response = await this.privateGetBalances (this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        let response = undefined;
+        try {
+            response = await this.privateGetBalances (extendedRequest);
+        } catch (e) {
+            if (e instanceof InvalidAddress) {
+                const walletAddress = extendedRequest['wallet'];
+                await this.associateWallet (walletAddress);
+                response = await this.privateGetBalances (extendedRequest);
+            } else {
+                throw e;
+            }
+        }
         const result = {
             'info': response,
         };
@@ -582,7 +594,6 @@ module.exports = class idex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.associateWallet (this.walletAddress);
         let market = undefined;
         const request = {
             'nonce': this.uuidv1 (),
@@ -618,7 +629,19 @@ module.exports = class idex extends Exchange {
         //     txStatus: 'mined'
         //   }
         // ]
-        const response = await this.privateGetFills (this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        let response = undefined;
+        try {
+            response = await this.privateGetFills (extendedRequest);
+        } catch (e) {
+            if (e instanceof InvalidAddress) {
+                const walletAddress = extendedRequest['wallet'];
+                await this.associateWallet (walletAddress);
+                response = await this.privateGetFills (extendedRequest);
+            } else {
+                throw e;
+            }
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -828,10 +851,6 @@ module.exports = class idex extends Exchange {
     }
 
     async associateWallet (walletAddress, params = {}) {
-        const alreadyAssociated = this.safeValue (this.options, 'associatedWallets', {});
-        if (walletAddress in alreadyAssociated) {
-            return;
-        }
         const nonce = this.uuidv1 ();
         const noPrefix = this.remove0xPrefix (walletAddress);
         const byteArray = [
@@ -854,8 +873,6 @@ module.exports = class idex extends Exchange {
             'signature': signature,
         };
         const result = await this.privatePostWallets (request);
-        alreadyAssociated[walletAddress] = true;
-        this.options['alreadyAssociated'] = alreadyAssociated;
         return result;
     }
 
