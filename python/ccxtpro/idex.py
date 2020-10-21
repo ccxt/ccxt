@@ -25,7 +25,7 @@ class idex(Exchange, ccxt.idex):
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://websocket-sandbox.idex.io/v1',
+                    'ws': 'wss://websocket.idex.io/v1',
                 },
                 'api': {},
             },
