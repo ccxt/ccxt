@@ -346,8 +346,8 @@ class lykke(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'Accuracy'),
-                'price': self.safe_integer(market, 'InvertedAccuracy'),
+                'price': self.safe_integer(market, 'Accuracy'),
+                'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,

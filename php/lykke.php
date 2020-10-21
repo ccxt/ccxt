@@ -362,8 +362,8 @@ class lykke extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => $this->safe_integer($market, 'Accuracy'),
-                'price' => $this->safe_integer($market, 'InvertedAccuracy'),
+                'price' => $this->safe_integer($market, 'Accuracy'),
+                'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
             );
             $result[] = array(
                 'id' => $id,
