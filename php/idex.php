@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadRequest;
+use \ccxt\InvalidAddress;
 use \ccxt\NotSupported;
 
 class idex extends Exchange {
@@ -105,7 +106,6 @@ class idex extends Exchange {
             'options' => array(
                 'defaultTimeInForce' => 'gtc',
                 'defaultSelfTradePrevention' => 'cn',
-                'associatedWallets' => array(),
             ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
@@ -113,6 +113,8 @@ class idex extends Exchange {
                 'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
                 'EXCEEDED_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
                 'INVALID_PARAMETER' => '\\ccxt\\BadRequest',
+                'WALLET_NOT_ASSOCIATED' => '\\ccxt\\InvalidAddress',
+                'INVALID_WALLET_SIGNATURE' => '\\ccxt\\AuthenticationError',
             ),
             'requiredCredentials' => array(
                 'walletAddress' => true,
@@ -548,7 +550,6 @@ class idex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $this->associate_wallet($this->walletAddress);
         $nonce1 = $this->uuidv1();
         $request = array(
             'nonce' => $nonce1,
@@ -563,7 +564,19 @@ class idex extends Exchange {
         //     usdValue => null
         //   ), ...
         // )
-        $response = $this->privateGetBalances (array_merge($request, $params));
+        $extendedRequest = array_merge($request, $params);
+        $response = null;
+        try {
+            $response = $this->privateGetBalances ($extendedRequest);
+        } catch (Exception $e) {
+            if ($e instanceof InvalidAddress) {
+                $walletAddress = $extendedRequest['wallet'];
+                $this->associate_wallet($walletAddress);
+                $response = $this->privateGetBalances ($extendedRequest);
+            } else {
+                throw $e;
+            }
+        }
         $result = array(
             'info' => $response,
         );
@@ -585,7 +598,6 @@ class idex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->associate_wallet($this->walletAddress);
         $market = null;
         $request = array(
             'nonce' => $this->uuidv1(),
@@ -621,7 +633,19 @@ class idex extends Exchange {
         //     txStatus => 'mined'
         //   }
         // )
-        $response = $this->privateGetFills (array_merge($request, $params));
+        $extendedRequest = array_merge($request, $params);
+        $response = null;
+        try {
+            $response = $this->privateGetFills ($extendedRequest);
+        } catch (Exception $e) {
+            if ($e instanceof InvalidAddress) {
+                $walletAddress = $extendedRequest['wallet'];
+                $this->associate_wallet($walletAddress);
+                $response = $this->privateGetFills ($extendedRequest);
+            } else {
+                throw $e;
+            }
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -831,10 +855,6 @@ class idex extends Exchange {
     }
 
     public function associate_wallet($walletAddress, $params = array ()) {
-        $alreadyAssociated = $this->safe_value($this->options, 'associatedWallets', array());
-        if (is_array($alreadyAssociated) && array_key_exists($walletAddress, $alreadyAssociated)) {
-            return;
-        }
         $nonce = $this->uuidv1();
         $noPrefix = $this->remove0x_prefix($walletAddress);
         $byteArray = array(
@@ -857,8 +877,6 @@ class idex extends Exchange {
             'signature' => $signature,
         );
         $result = $this->privatePostWallets ($request);
-        $alreadyAssociated[$walletAddress] = true;
-        $this->options['alreadyAssociated'] = $alreadyAssociated;
         return $result;
     }
 

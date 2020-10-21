@@ -7,8 +7,10 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
@@ -111,7 +113,6 @@ class idex(Exchange):
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
-                'associatedWallets': {},
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -119,6 +120,8 @@ class idex(Exchange):
                 'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
                 'EXCEEDED_RATE_LIMIT': DDoSProtection,
                 'INVALID_PARAMETER': BadRequest,
+                'WALLET_NOT_ASSOCIATED': InvalidAddress,
+                'INVALID_WALLET_SIGNATURE': AuthenticationError,
             },
             'requiredCredentials': {
                 'walletAddress': True,
@@ -528,7 +531,6 @@ class idex(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        await self.associate_wallet(self.walletAddress)
         nonce1 = self.uuidv1()
         request = {
             'nonce': nonce1,
@@ -543,7 +545,17 @@ class idex(Exchange):
         #     usdValue: null
         #   }, ...
         # ]
-        response = await self.privateGetBalances(self.extend(request, params))
+        extendedRequest = self.extend(request, params)
+        response = None
+        try:
+            response = await self.privateGetBalances(extendedRequest)
+        except Exception as e:
+            if isinstance(e, InvalidAddress):
+                walletAddress = extendedRequest['wallet']
+                await self.associate_wallet(walletAddress)
+                response = await self.privateGetBalances(extendedRequest)
+            else:
+                raise e
         result = {
             'info': response,
         }
@@ -563,7 +575,6 @@ class idex(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.associate_wallet(self.walletAddress)
         market = None
         request = {
             'nonce': self.uuidv1(),
@@ -596,7 +607,17 @@ class idex(Exchange):
         #     txStatus: 'mined'
         #   }
         # ]
-        response = await self.privateGetFills(self.extend(request, params))
+        extendedRequest = self.extend(request, params)
+        response = None
+        try:
+            response = await self.privateGetFills(extendedRequest)
+        except Exception as e:
+            if isinstance(e, InvalidAddress):
+                walletAddress = extendedRequest['wallet']
+                await self.associate_wallet(walletAddress)
+                response = await self.privateGetFills(extendedRequest)
+            else:
+                raise e
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -792,9 +813,6 @@ class idex(Exchange):
         }
 
     async def associate_wallet(self, walletAddress, params={}):
-        alreadyAssociated = self.safe_value(self.options, 'associatedWallets', {})
-        if walletAddress in alreadyAssociated:
-            return
         nonce = self.uuidv1()
         noPrefix = self.remove0x_prefix(walletAddress)
         byteArray = [
@@ -817,8 +835,6 @@ class idex(Exchange):
             'signature': signature,
         }
         result = await self.privatePostWallets(request)
-        alreadyAssociated[walletAddress] = True
-        self.options['alreadyAssociated'] = alreadyAssociated
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
