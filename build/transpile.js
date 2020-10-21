@@ -608,7 +608,6 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            "use \\ccxt\\base\\Exchange;",
         ]
     }
 
@@ -623,23 +622,11 @@ class Transpiler {
         for (let error in errors) {
             const regex = new RegExp ("[^'\"]" + error + "[^'\"]")
             if (bodyAsString.match (regex)) {
-                errorImports.push ('use \\ccxt\\base\\' + error + ';')
+                errorImports.push ('use \\ccxt\\' + error + ';')
             }
         }
 
         header = header.concat (errorImports)
-        const defineConst = [
-            'const TRUNCATE = Exchange::TRUNCATE;',
-            'const ROUND = Exchange::ROUND;',
-            'const ROUND_UP = Exchange::ROUND_UP;',
-            'const ROUND_DOWN = Exchange::ROUND_DOWN;',
-            'const DECIMAL_PLACES = Exchange::DECIMAL_PLACES;',
-            'const SIGNIFICANT_DIGITS = Exchange::SIGNIFICANT_DIGITS;',
-            'const TICK_SIZE = Exchange::TICK_SIZE;',
-            'const NO_PADDING = Exchange::NO_PADDING;',
-            'const PAD_WITH_ZERO = Exchange::PAD_WITH_ZERO;',
-        ]
-        header = header.concat (defineConst)
 
         methods = methods.concat (this.getPHPBaseMethods ())
 
@@ -1117,25 +1104,22 @@ class Transpiler {
 
         // PHP ----------------------------------------------------------------
 
-        const phpHeader = '<?php\n\nnamespace ccxt\\base;\n\n'
-        function phpDeclareErrorClass (name, parent) {
-            const phpFileName  = './php/base/' + name + '.php'
-            const phpErrorBody = '/**\n * Class ' + name + '\n * @package ccxt\\base\n */\nclass ' + name + ' extends ' + parent + '\n{\n\n}'
-            const phpBaseErrorBody = phpHeader + phpErrorBody + ('\n')
-            overwriteFile (phpFileName, phpBaseErrorBody)
+        function phpMakeErrorClassFile (name, parent) {
+            const phpBody = "<?php\n\nnamespace ccxt;\n\nuse " + parent + ";\n\nclass " + name + " extends " + parent + " {};\n\n"
+            const phpFilename = './php/base/' + name + '.php'
+            log.bright.cyan (message, phpFilename.yellow)
+            fs.writeFileSync (phpFilename, phpBody)
+            return "require_once PATH_TO_CCXT_BASE . '" + name + ".php';"
         }
 
-        const BaseErrorFile = './php/base/BaseError.php'
-        const baseErrorBody = 'use Exception;\n\n/**\n * Class BaseError\n * @package ccxt\\base\n */\nclass BaseError extends Exception\n{\n\n}'
-        const phpBodyBaseError = phpHeader + baseErrorBody + ('\n')
-        overwriteFile (BaseErrorFile, phpBodyBaseError)
+        const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+        const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+        const phpFilename = './ccxt.php'
 
-        intellisense (root, 'BaseError', phpDeclareErrorClass)
-        const phpBodyIntellisense = phpHeader + phpBody + ('\n')
-
-        const phpFilename = './php/base/errors.php'
+        console.log (phpBodyIntellisense)
         log.bright.cyan (message, phpFilename.yellow)
-        fs.writeFileSync (phpFilename, phpBodyIntellisense)
+        const phpRegex = /require_once PATH_TO_CCXT_BASE \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT_BASE[^\n]+\n)+\n/m
+        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
 
         // TypeScript ---------------------------------------------------------
 
@@ -1474,8 +1458,11 @@ if (require.main === module) { // called directly like `node module`
 
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     if (test) {
         transpiler.transpileTests ()
+    } else if (errors) {
+        transpiler.transpileErrorHierarchy ()
     } else {
         transpiler.transpileEverything ()
     }
