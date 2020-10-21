@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class currencycom(Exchange):
@@ -109,6 +110,7 @@ class currencycom(Exchange):
                     'maker': 0.002,
                 },
             },
+            'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
@@ -173,22 +175,20 @@ class currencycom(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetExchangeInfo(params)
         #
-        # spot
-        #
         #     {
         #         "timezone":"UTC",
-        #         "serverTime":1590998061253,
+        #         "serverTime":1603252990096,
         #         "rateLimits":[
         #             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
         #             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
-        #             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000}
+        #             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000},
         #         ],
         #         "exchangeFilters":[],
         #         "symbols":[
         #             {
         #                 "symbol":"EVK",
         #                 "name":"Evonik",
-        #                 "status":"HALT",
+        #                 "status":"BREAK",
         #                 "baseAsset":"EVK",
         #                 "baseAssetPrecision":3,
         #                 "quoteAsset":"EUR",
@@ -199,7 +199,14 @@ class currencycom(Exchange):
         #                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
         #                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
         #                 ],
-        #                 "marketType":"SPOT"
+        #                 "marketType":"SPOT",
+        #                 "country":"DE",
+        #                 "sector":"Basic Materials",
+        #                 "industry":"Diversified Chemicals",
+        #                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
+        #                 "tickSize":0.005,
+        #                 "tickValue":0.11125,
+        #                 "exchangeFee":0.05
         #             },
         #             {
         #                 "symbol":"BTC/USD_LEVERAGE",
@@ -213,10 +220,21 @@ class currencycom(Exchange):
         #                 "orderTypes":["LIMIT","MARKET","STOP"],
         #                 "filters":[
         #                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
-        #                     {"filterType":"MIN_NOTIONAL","minNotional":"11"}
+        #                     {"filterType":"MIN_NOTIONAL","minNotional":"13"}
         #                 ],
-        #                 "marketType":"LEVERAGE"
-        #             }
+        #                 "marketType":"LEVERAGE",
+        #                 "longRate":-0.01,
+        #                 "shortRate":0.01,
+        #                 "swapChargeInterval":480,
+        #                 "country":"",
+        #                 "sector":"",
+        #                 "industry":"",
+        #                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
+        #                 "tickSize":0.05,
+        #                 "tickValue":610.20875,
+        #                 "makerFee":-0.025,
+        #                 "takerFee":0.075
+        #             },
         #         ]
         #     }
         #
@@ -237,8 +255,8 @@ class currencycom(Exchange):
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
-                'amount': self.safe_integer(market, 'baseAssetPrecision'),
-                'price': self.safe_integer(market, 'quotePrecision'),
+                'amount': 1 / math.pow(1, self.safe_integer(market, 'baseAssetPrecision')),
+                'price': self.safe_float(market, 'tickSize'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
@@ -275,8 +293,16 @@ class currencycom(Exchange):
                     },
                 },
             }
+            exchangeFee = self.safe_float_2(market, 'exchangeFee', 'tradingFee')
+            makerFee = self.safe_float(market, 'makerFee', exchangeFee)
+            takerFee = self.safe_float(market, 'takerFee', exchangeFee)
+            if makerFee is not None:
+                entry['maker'] = makerFee / 100
+            if takerFee is not None:
+                entry['taker'] = takerFee / 100
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                entry['precision']['price'] = self.safe_float(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -288,11 +314,9 @@ class currencycom(Exchange):
                 maxPrice = self.safe_float(filter, 'maxPrice')
                 if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
-                entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                stepSize = self.safe_string(filter, 'stepSize')
-                entry['precision']['amount'] = self.precision_from_string(stepSize)
+                entry['precision']['amount'] = self.safe_float(filter, 'stepSize')
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
