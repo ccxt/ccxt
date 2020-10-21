@@ -342,9 +342,9 @@ module.exports = class idex extends ccxt.idex {
             const lastNonce = this.safeInteger (lastData, 'u');
             const bothExist = (firstNonce !== undefined) && (lastNonce !== undefined);
             // ensure the snapshot is inside the range of our cached messages
-            // if the snapshot nonce is 100
-            // the first nonce must be at least 101 and the last nonce must be greater than 101
-            if (bothExist && (snapshot['nonce'] + 1 >= firstNonce) && (snapshot['nonce'] < lastNonce)) {
+            // for example if the snapshot nonce is 100
+            // the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
+            if (bothExist && (firstNonce <= snapshot['nonce'] + 1) && (lastNonce > snapshot['nonce'])) {
                 orderbook.reset (snapshot);
                 for (let i = 0; i < orderbook.cache.length; i++) {
                     const message = orderbook.cache[i];
@@ -361,9 +361,9 @@ module.exports = class idex extends ccxt.idex {
             } else {
                 // 4. If the sequence in the order book snapshot is less than the sequence of the
                 //    first buffered order book update message, discard the order book snapshot and retry step 3.
-                // this will keep recursing until we have a buffered message
+                // this will continue to recurse until we have a buffered message
                 // since updates the order book endpoint depend on order events
-                // so it will eventually throw attempts if there are no orders on a pair
+                // so it will eventually throw if there are no orders on a pair
                 subscription['numAttempts'] = subscription['numAttempts'] + 1;
                 const timeElapsed = this.milliseconds () - subscription['startTime'];
                 if ((subscription['numAttempts'] < maxAttempts) || (timeElapsed > maxDelay)) {
