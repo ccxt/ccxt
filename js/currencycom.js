@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
+const { ROUND, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ module.exports = class currencycom extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
@@ -166,22 +167,20 @@ module.exports = class currencycom extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //
-        // spot
-        //
         //     {
         //         "timezone":"UTC",
-        //         "serverTime":1590998061253,
+        //         "serverTime":1603252990096,
         //         "rateLimits":[
         //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
         //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
-        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000}
+        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000},
         //         ],
         //         "exchangeFilters":[],
         //         "symbols":[
         //             {
         //                 "symbol":"EVK",
         //                 "name":"Evonik",
-        //                 "status":"HALT",
+        //                 "status":"BREAK",
         //                 "baseAsset":"EVK",
         //                 "baseAssetPrecision":3,
         //                 "quoteAsset":"EUR",
@@ -192,7 +191,14 @@ module.exports = class currencycom extends Exchange {
         //                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
         //                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
         //                 ],
-        //                 "marketType":"SPOT"
+        //                 "marketType":"SPOT",
+        //                 "country":"DE",
+        //                 "sector":"Basic Materials",
+        //                 "industry":"Diversified Chemicals",
+        //                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
+        //                 "tickSize":0.005,
+        //                 "tickValue":0.11125,
+        //                 "exchangeFee":0.05
         //             },
         //             {
         //                 "symbol":"BTC/USD_LEVERAGE",
@@ -206,10 +212,21 @@ module.exports = class currencycom extends Exchange {
         //                 "orderTypes":["LIMIT","MARKET","STOP"],
         //                 "filters":[
         //                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"11"}
+        //                     {"filterType":"MIN_NOTIONAL","minNotional":"13"}
         //                 ],
-        //                 "marketType":"LEVERAGE"
-        //             }
+        //                 "marketType":"LEVERAGE",
+        //                 "longRate":-0.01,
+        //                 "shortRate":0.01,
+        //                 "swapChargeInterval":480,
+        //                 "country":"",
+        //                 "sector":"",
+        //                 "industry":"",
+        //                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
+        //                 "tickSize":0.05,
+        //                 "tickValue":610.20875,
+        //                 "makerFee":-0.025,
+        //                 "takerFee":0.075
+        //             },
         //         ]
         //     }
         //
@@ -232,8 +249,8 @@ module.exports = class currencycom extends Exchange {
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
-                'amount': this.safeInteger (market, 'baseAssetPrecision'),
-                'price': this.safeInteger (market, 'quotePrecision'),
+                'amount': 1 / Math.pow (1, this.safeInteger (market, 'baseAssetPrecision')),
+                'price': this.safeFloat (market, 'tickSize'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
@@ -271,8 +288,18 @@ module.exports = class currencycom extends Exchange {
                     },
                 },
             };
+            const exchangeFee = this.safeFloat2 (market, 'exchangeFee', 'tradingFee');
+            const makerFee = this.safeFloat (market, 'makerFee', exchangeFee);
+            const takerFee = this.safeFloat (market, 'takerFee', exchangeFee);
+            if (makerFee !== undefined) {
+                entry['maker'] = makerFee / 100;
+            }
+            if (takerFee !== undefined) {
+                entry['taker'] = takerFee / 100;
+            }
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+                entry['precision']['price'] = this.safeFloat (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -285,12 +312,10 @@ module.exports = class currencycom extends Exchange {
                 if ((maxPrice !== undefined) && (maxPrice > 0)) {
                     entry['limits']['price']['max'] = maxPrice;
                 }
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString (filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString (stepSize);
+                entry['precision']['amount'] = this.safeFloat (filter, 'stepSize');
                 entry['limits']['amount'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
