@@ -44,7 +44,8 @@ class idex extends \ccxt\idex {
                 'watchOrderBookLimit' => 1000, // default limit
                 'orderBookSubscriptions' => array(),
                 'token' => null,
-                'fetchOrderBookSnapshotMaxAttempts' => 3,
+                'fetchOrderBookSnapshotMaxAttempts' => 10,
+                'fetchOrderBookSnapshotMaxDelay' => 10000, // throw if there are no orders in 10 seconds
             ),
         ));
     }
@@ -325,8 +326,12 @@ class idex extends \ccxt\idex {
         $market = $this->market($symbol);
         $messageHash = 'l2orderbook' . ':' . $market['id'];
         $subscription = $client->subscriptions[$messageHash];
-        $maxAttempts = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxAttempts', 3);
+        if (!$subscription['fetchingOrderBookSnapshot']) {
+            $subscription['startTime'] = $this->milliseconds();
+        }
         $subscription['fetchingOrderBookSnapshot'] = true;
+        $maxAttempts = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxAttempts', 10);
+        $maxDelay = $this->safe_integer($this->options, 'fetchOrderBookSnapshotMaxDelay', 10000);
         try {
             $limit = $this->safe_integer($subscription, 'limit', 0);
             // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
@@ -338,9 +343,11 @@ class idex extends \ccxt\idex {
             $lastBuffered = $this->safe_value($orderbook->cache, $length - 1);
             $lastData = $this->safe_value($lastBuffered, 'data');
             $lastNonce = $this->safe_integer($lastData, 'u');
-            // ensure the $snapshot is inside the range of our cached messages
             $bothExist = ($firstNonce !== null) && ($lastNonce !== null);
-            if ($bothExist && ($snapshot['nonce'] > $firstNonce) && ($snapshot['nonce'] < $lastNonce)) {
+            // ensure the $snapshot is inside the range of our cached messages
+            // for example if the $snapshot nonce is 100
+            // the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
+            if ($bothExist && ($firstNonce <= $snapshot['nonce'] + 1) && ($lastNonce > $snapshot['nonce'])) {
                 $orderbook->reset ($snapshot);
                 for ($i = 0; $i < count($orderbook->cache); $i++) {
                     $message = $orderbook->cache[$i];
@@ -357,8 +364,12 @@ class idex extends \ccxt\idex {
             } else {
                 // 4. If the sequence in the order book $snapshot is less than the sequence of the
                 //    first buffered order book update $message, discard the order book $snapshot and retry step 3.
+                // this will continue to recurse until we have a buffered $message
+                // since updates the order book endpoint depend on order events
+                // so it will eventually throw if there are no orders on a pair
                 $subscription['numAttempts'] = $subscription['numAttempts'] + 1;
-                if ($subscription['numAttempts'] < $maxAttempts) {
+                $timeElapsed = $this->milliseconds() - $subscription['startTime'];
+                if (($subscription['numAttempts'] < $maxAttempts) || ($timeElapsed > $maxDelay)) {
                     $this->delay($this->rateLimit, array($this, 'fetch_order_book_snapshot'), $client, $symbol);
                 } else {
                     throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
@@ -382,6 +393,7 @@ class idex extends \ccxt\idex {
         $subscription = array(
             'fetchingOrderBookSnapshot' => false,
             'numAttempts' => 0,
+            'startTime' => null,
             'limit' => 0,  // get the complete order book snapshot
         );
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
