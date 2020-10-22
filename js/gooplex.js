@@ -300,9 +300,6 @@ module.exports = class gooplex extends Exchange {
         const request = {
             'symbol': this.markets[symbol]['symbol2'],
         };
-        if (since !== undefined) {
-            request['fromId'] = since;
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
