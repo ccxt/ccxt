@@ -371,7 +371,7 @@ module.exports = class idex extends ccxt.idex {
                 if (maxAttemptsValid && timeElapsedValid) {
                     this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
                 } else {
-                    const endpart = !maxAttemptsValid ? ' in ' + maxAttempts.toString () + ' attempts' : ' after ' + maxDelay.toString () + ' milliseconds';
+                    const endpart = (!maxAttemptsValid) ? ' in ' + maxAttempts.toString () + ' attempts' : ' after ' + maxDelay.toString () + ' milliseconds';
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + endpart);
                 }
             }
