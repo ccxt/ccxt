@@ -366,10 +366,13 @@ module.exports = class idex extends ccxt.idex {
                 // so it will eventually throw if there are no orders on a pair
                 subscription['numAttempts'] = subscription['numAttempts'] + 1;
                 const timeElapsed = this.milliseconds () - subscription['startTime'];
-                if ((subscription['numAttempts'] < maxAttempts) || (timeElapsed > maxDelay)) {
+                const maxAttemptsValid = subscription['numAttempts'] < maxAttempts;
+                const timeElapsedValid = timeElapsed < maxDelay;
+                if (maxAttemptsValid && timeElapsedValid) {
                     this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
                 } else {
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                    const endpart = !maxAttemptsValid ? ' in ' + maxAttempts.toString () + ' attempts' : ' after ' + maxDelay.toString () + ' milliseconds';
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + endpart);
                 }
             }
         } catch (e) {
