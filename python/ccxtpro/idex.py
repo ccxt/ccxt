@@ -9,10 +9,10 @@ from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import InvalidNonce
 
 
-class idex2(Exchange, ccxt.idex2):
+class idex(Exchange, ccxt.idex):
 
     def describe(self):
-        return self.deep_extend(super(idex2, self).describe(), {
+        return self.deep_extend(super(idex, self).describe(), {
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
@@ -25,7 +25,7 @@ class idex2(Exchange, ccxt.idex2):
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://websocket-sandbox.idex.io/v1',
+                    'ws': 'wss://websocket.idex.io/v1',
                 },
                 'api': {},
             },
@@ -43,7 +43,8 @@ class idex2(Exchange, ccxt.idex2):
                 'watchOrderBookLimit': 1000,  # default limit
                 'orderBookSubscriptions': {},
                 'token': None,
-                'fetchOrderBookSnapshotMaxAttempts': 3,
+                'fetchOrderBookSnapshotMaxAttempts': 10,
+                'fetchOrderBookSnapshotMaxDelay': 10000,  # raise if there are no orders in 10 seconds
             },
         })
 
@@ -304,8 +305,11 @@ class idex2(Exchange, ccxt.idex2):
         market = self.market(symbol)
         messageHash = 'l2orderbook' + ':' + market['id']
         subscription = client.subscriptions[messageHash]
-        maxAttempts = self.safe_integer(self.options, 'fetchOrderBookSnapshotMaxAttempts', 3)
+        if not subscription['fetchingOrderBookSnapshot']:
+            subscription['startTime'] = self.milliseconds()
         subscription['fetchingOrderBookSnapshot'] = True
+        maxAttempts = self.safe_integer(self.options, 'fetchOrderBookSnapshotMaxAttempts', 10)
+        maxDelay = self.safe_integer(self.options, 'fetchOrderBookSnapshotMaxDelay', 10000)
         try:
             limit = self.safe_integer(subscription, 'limit', 0)
             # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
@@ -317,9 +321,11 @@ class idex2(Exchange, ccxt.idex2):
             lastBuffered = self.safe_value(orderbook.cache, length - 1)
             lastData = self.safe_value(lastBuffered, 'data')
             lastNonce = self.safe_integer(lastData, 'u')
-            # ensure the snapshot is inside the range of our cached messages
             bothExist = (firstNonce is not None) and (lastNonce is not None)
-            if bothExist and (snapshot['nonce'] > firstNonce) and (snapshot['nonce'] < lastNonce):
+            # ensure the snapshot is inside the range of our cached messages
+            # for example if the snapshot nonce is 100
+            # the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
+            if bothExist and (firstNonce <= snapshot['nonce'] + 1) and (lastNonce > snapshot['nonce']):
                 orderbook.reset(snapshot)
                 for i in range(0, len(orderbook.cache)):
                     message = orderbook.cache[i]
@@ -334,8 +340,12 @@ class idex2(Exchange, ccxt.idex2):
             else:
                 # 4. If the sequence in the order book snapshot is less than the sequence of the
                 #    first buffered order book update message, discard the order book snapshot and retry step 3.
+                # self will continue to recurse until we have a buffered message
+                # since updates the order book endpoint depend on order events
+                # so it will eventually raise if there are no orders on a pair
                 subscription['numAttempts'] = subscription['numAttempts'] + 1
-                if subscription['numAttempts'] < maxAttempts:
+                timeElapsed = self.milliseconds() - subscription['startTime']
+                if (subscription['numAttempts'] < maxAttempts) or (timeElapsed > maxDelay):
                     self.delay(self.rateLimit, self.fetch_order_book_snapshot, client, symbol)
                 else:
                     raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
@@ -355,6 +365,7 @@ class idex2(Exchange, ccxt.idex2):
         subscription = {
             'fetchingOrderBookSnapshot': False,
             'numAttempts': 0,
+            'startTime': None,
             'limit': 0,  # get the complete order book snapshot
         }
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
