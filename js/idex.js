@@ -41,7 +41,8 @@ module.exports = class idex extends ccxt.idex {
                 'watchOrderBookLimit': 1000, // default limit
                 'orderBookSubscriptions': {},
                 'token': undefined,
-                'fetchOrderBookSnapshotMaxAttempts': 3,
+                'fetchOrderBookSnapshotMaxAttempts': 10,
+                'fetchOrderBookSnapshotMaxDelay': 10000, // throw if there are no orders in 10 seconds
             },
         });
     }
@@ -322,8 +323,12 @@ module.exports = class idex extends ccxt.idex {
         const market = this.market (symbol);
         const messageHash = 'l2orderbook' + ':' + market['id'];
         const subscription = client.subscriptions[messageHash];
-        const maxAttempts = this.safeInteger (this.options, 'fetchOrderBookSnapshotMaxAttempts', 3);
+        if (!subscription['fetchingOrderBookSnapshot']) {
+            subscription['startTime'] = this.milliseconds ();
+        }
         subscription['fetchingOrderBookSnapshot'] = true;
+        const maxAttempts = this.safeInteger (this.options, 'fetchOrderBookSnapshotMaxAttempts', 10);
+        const maxDelay = this.safeInteger (this.options, 'fetchOrderBookSnapshotMaxDelay', 10000);
         try {
             const limit = this.safeInteger (subscription, 'limit', 0);
             // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
@@ -335,9 +340,11 @@ module.exports = class idex extends ccxt.idex {
             const lastBuffered = this.safeValue (orderbook.cache, length - 1);
             const lastData = this.safeValue (lastBuffered, 'data');
             const lastNonce = this.safeInteger (lastData, 'u');
-            // ensure the snapshot is inside the range of our cached messages
             const bothExist = (firstNonce !== undefined) && (lastNonce !== undefined);
-            if (bothExist && (snapshot['nonce'] > firstNonce) && (snapshot['nonce'] < lastNonce)) {
+            // ensure the snapshot is inside the range of our cached messages
+            // for example if the snapshot nonce is 100
+            // the first nonce must be less than or equal to 101 and the last nonce must be greater than 101
+            if (bothExist && (firstNonce <= snapshot['nonce'] + 1) && (lastNonce > snapshot['nonce'])) {
                 orderbook.reset (snapshot);
                 for (let i = 0; i < orderbook.cache.length; i++) {
                     const message = orderbook.cache[i];
@@ -354,8 +361,12 @@ module.exports = class idex extends ccxt.idex {
             } else {
                 // 4. If the sequence in the order book snapshot is less than the sequence of the
                 //    first buffered order book update message, discard the order book snapshot and retry step 3.
+                // this will continue to recurse until we have a buffered message
+                // since updates the order book endpoint depend on order events
+                // so it will eventually throw if there are no orders on a pair
                 subscription['numAttempts'] = subscription['numAttempts'] + 1;
-                if (subscription['numAttempts'] < maxAttempts) {
+                const timeElapsed = this.milliseconds () - subscription['startTime'];
+                if ((subscription['numAttempts'] < maxAttempts) || (timeElapsed > maxDelay)) {
                     this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
                 } else {
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
@@ -379,6 +390,7 @@ module.exports = class idex extends ccxt.idex {
         const subscription = {
             'fetchingOrderBookSnapshot': false,
             'numAttempts': 0,
+            'startTime': undefined,
             'limit': 0,  // get the complete order book snapshot
         };
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
