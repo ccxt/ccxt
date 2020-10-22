@@ -369,10 +369,13 @@ class idex extends \ccxt\idex {
                 // so it will eventually throw if there are no orders on a pair
                 $subscription['numAttempts'] = $subscription['numAttempts'] + 1;
                 $timeElapsed = $this->milliseconds() - $subscription['startTime'];
-                if (($subscription['numAttempts'] < $maxAttempts) || ($timeElapsed > $maxDelay)) {
+                $maxAttemptsValid = $subscription['numAttempts'] < $maxAttempts;
+                $timeElapsedValid = $timeElapsed < $maxDelay;
+                if ($maxAttemptsValid && $timeElapsedValid) {
                     $this->delay($this->rateLimit, array($this, 'fetch_order_book_snapshot'), $client, $symbol);
                 } else {
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                    $endpart = (!$maxAttemptsValid) ? ' in ' . (string) $maxAttempts . ' attempts' : ' after ' . (string) $maxDelay . ' milliseconds';
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . $endpart);
                 }
             }
         } catch (Exception $e) {
