@@ -1105,7 +1105,18 @@ class Transpiler {
         // PHP ----------------------------------------------------------------
 
         function phpMakeErrorClassFile (name, parent) {
-            const phpBody = "<?php\n\nnamespace ccxt;\n\nuse " + parent + ";\n\nclass " + name + " extends " + parent + " {};\n\n"
+
+            const useClause = "\nuse " + parent + ";\n"
+            const requireClause = "\nrequire_once PATH_TO_CCXT_BASE . '" + parent + ".php';\n"
+
+            const phpBody = [
+                '<?php',
+                '',
+                'namespace ccxt;',
+                (parent === 'Exception') ? useClause : requireClause,
+                'class ' + name + ' extends ' + parent + ' {};',
+                '',
+            ].join ("\n")
             const phpFilename = './php/base/' + name + '.php'
             log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
