@@ -32,7 +32,7 @@ module.exports = class gooplex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchStatus': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -196,6 +196,39 @@ module.exports = class gooplex extends Exchange {
         return entry;
     }
 
+    convertTrade (symbol, trade) {
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeTimestamp (trade, 'time') / 1000;
+        const datetime = this.iso8601 (timestamp);
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'qty');
+        const order = '';
+        const type = 'limit';
+        const side = 'buy';
+        const cost = 0.00;
+        let takerOrMaker = undefined;
+        if (this.safeValue (trade, 'isBuyerMaker')) {
+            takerOrMaker = 'maker';
+        } else {
+            takerOrMaker = 'taker';
+        }
+        const entry = {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+        };
+        return entry;
+    }
+
     async fetchMarkets (params = {}) {
         const method = 'openGetCommonSymbols';
         const response = await this[method] (params);
@@ -220,7 +253,7 @@ module.exports = class gooplex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;                // map
+        return this.parseOrderBook (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -304,7 +337,11 @@ module.exports = class gooplex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.convertTrade (symbol, response[i]));
+        }
+        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
