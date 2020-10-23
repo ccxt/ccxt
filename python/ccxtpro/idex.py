@@ -345,10 +345,13 @@ class idex(Exchange, ccxt.idex):
                 # so it will eventually raise if there are no orders on a pair
                 subscription['numAttempts'] = subscription['numAttempts'] + 1
                 timeElapsed = self.milliseconds() - subscription['startTime']
-                if (subscription['numAttempts'] < maxAttempts) or (timeElapsed > maxDelay):
+                maxAttemptsValid = subscription['numAttempts'] < maxAttempts
+                timeElapsedValid = timeElapsed < maxDelay
+                if maxAttemptsValid and timeElapsedValid:
                     self.delay(self.rateLimit, self.fetch_order_book_snapshot, client, symbol)
                 else:
-                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+                    endpart = ' in ' + str(maxAttempts) + ' attempts' if (not maxAttemptsValid) else ' after ' + str(maxDelay) + ' milliseconds'
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + endpart)
         except Exception as e:
             subscription['fetchingOrderBookSnapshot'] = False
             client.reject(e, messageHash)
