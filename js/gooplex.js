@@ -364,19 +364,22 @@ module.exports = class gooplex extends Exchange {
     }
 
     parseL2 (entry) {
+        const timestamp = this.safeTimestamp (entry, 'T');
+        const datetime = this.iso8601 (timestamp);
         return {
             'tradeId': this.safeInteger (entry, 'a'),
             'price': this.safeFloat (entry, 'p'),
             'quantity': this.safeFloat (entry, 'q'),
             'firstTradeId': this.safeInteger (entry, 'f'),
             'lastTradeId': this.safeInteger (entry, 'l'),
-            'timestamp': this.safeTimestamp (entry, 'T'),
+            'timestamp': timestamp,
+            'datetime': datetime,
             'maker': this.safeValue (entry, 'm'),
             'bestPriceMatch': this.safeValue (entry, 'M'),
         };
     }
 
-    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+    async fetchAggTrades (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3AggTrades';
         await this.loadMarkets ();
         const request = {
