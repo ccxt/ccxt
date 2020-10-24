@@ -2691,19 +2691,19 @@ module.exports = class okex extends Exchange {
         let feeCost = undefined;
         let feeCurrencyId = undefined;
         let index = undefined;
-        if (feeCostFirst < 0) {
+        if (feeCostFirst < 0) { // fee deduction
             feeCost = -feeCostFirst;
             feeCurrencyId = this.safeString (first, 'currency');
             index = 0;
-        } else if (feeCostFirst > 0) {
+        } else if (feeCostFirst > 0) { // rebate
             feeCost = -feeCostFirst;
             feeCurrencyId = this.safeString (first, 'currency');
             index = 1;
-        } else if (feeCostSecond < 0) {
+        } else if (feeCostSecond < 0) { // fee deduction
             feeCost = -feeCostSecond;
             feeCurrencyId = this.safeString (second, 'currency');
             index = 1;
-        } else {
+        } else { // rebate
             feeCost = -feeCostSecond;
             feeCurrencyId = this.safeString (second, 'currency');
             index = 0;
