@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.39'
+__version__ = '0.4.37'
 
 # -----------------------------------------------------------------------------
 
@@ -114,22 +114,32 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + '.handle_message() not implemented yet')
         return {}
 
-    async def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+    def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         # base exchange self.open starts the aiohttp Session in an async context
         client = self.client(url)
         self.open()
-        await client.connect(self.session, backoff_delay)
-        if subscribe_hash not in client.subscriptions:
-            client.subscriptions[subscribe_hash] = subscription or True
-            if self.enableRateLimit:
-                options = self.safe_value(self.options, 'ws', {})
-                rateLimit = self.safe_integer(options, 'rateLimit', self.rateLimit)
-                await client.throttle(rateLimit)
-            # todo: decouple signing from subscriptions
-            if message:
-                await client.send(message)
-        return await client.future(message_hash)
+        connected = client.connected if client.connected.done() \
+            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+
+        def after(fut):
+            rate_limit = None
+            if subscribe_hash not in client.subscriptions:
+                client.subscriptions[subscribe_hash] = subscription or True
+                if self.enableRateLimit:
+                    options = self.safe_value(self.options, 'ws', {})
+                    rate_limit = self.safe_integer(options, 'rateLimit', self.rateLimit)
+                # todo: decouple signing from subscriptions
+                if message:
+                    async def send_message(rate_limit):
+                        if rate_limit is not None:
+                            await client.throttle(rate_limit)
+                        await client.send(message)
+                    asyncio.ensure_future(send_message(rate_limit))
+
+        connected.add_done_callback(after)
+
+        return client.future(message_hash)
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
