@@ -28,7 +28,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-namespace ccxt\base;
+namespace ccxt;
 
 use kornrunner\Keccak;
 use kornrunner\Solidity;
@@ -36,29 +36,26 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.36.68';
+$version = '1.36.76';
 
-/**
- * Class Exchange
- * @package ccxt\base
- */
+// rounding mode
+const TRUNCATE = 0;
+const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
+
+// digits counting mode
+const DECIMAL_PLACES = 0;
+const SIGNIFICANT_DIGITS = 1;
+const TICK_SIZE = 2;
+
+// padding mode
+const NO_PADDING = 0;
+const PAD_WITH_ZERO = 1;
+
 class Exchange {
-    // rounding mode
-    const TRUNCATE = 0;
-    const ROUND = 1;
-    const ROUND_UP = 2;
-    const ROUND_DOWN = 3;
 
-    // digits counting mode
-    const DECIMAL_PLACES = 0;
-    const SIGNIFICANT_DIGITS = 1;
-    const TICK_SIZE = 2;
-
-    // padding mode
-    const NO_PADDING = 0;
-    const PAD_WITH_ZERO = 1;
-
-    const VERSION = '1.36.68';
+    const VERSION = '1.36.76';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -145,7 +142,6 @@ class Exchange {
         'huobiru',
         'ice3x',
         'idex',
-        'idex2',
         'independentreserve',
         'indodax',
         'itbit',
@@ -353,11 +349,11 @@ class Exchange {
         return $amount * $scale;
     }
 
-    public static function round_timeframe($timeframe, $timestamp, $direction=self::ROUND_DOWN) {
+    public static function round_timeframe($timeframe, $timestamp, $direction=ROUND_DOWN) {
         $ms = static::parse_timeframe($timeframe) * 1000;
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;
-        return $timestamp - $offset + (($direction === self::ROUND_UP) ? $ms : 0);
+        return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
@@ -1008,8 +1004,8 @@ class Exchange {
             'withdraw' => false,
         );
 
-        $this->precisionMode = self::DECIMAL_PLACES;
-        $this->paddingMode = self::NO_PADDING;
+        $this->precisionMode = DECIMAL_PLACES;
+        $this->paddingMode = NO_PADDING;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -2397,7 +2393,7 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, self::ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function costToPrecision($symbol, $cost) {
@@ -2405,7 +2401,7 @@ class Exchange {
     }
 
     public function price_to_precision($symbol, $price) {
-        return self::decimal_to_precision($price, self::ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function priceToPrecision($symbol, $price) {
@@ -2413,7 +2409,7 @@ class Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return self::decimal_to_precision($amount, self::TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function amountToPrecision($symbol, $amount) {
@@ -2421,7 +2417,7 @@ class Exchange {
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return self::decimalToPrecision($fee, self::ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimalToPrecision($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function feeToPrecision($symbol, $fee) {
@@ -2429,7 +2425,7 @@ class Exchange {
     }
 
     public function currency_to_precision($currency, $fee) {
-        return self::decimal_to_precision($fee, self::ROUND, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currencyToPrecision($symbol, $fee) {
@@ -2533,7 +2529,7 @@ class Exchange {
         return array_key_exists($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
     }
 
-    public static function decimalToPrecision($x, $roundingMode = self::ROUND, $numPrecisionDigits = null, $countingMode = self::DECIMAL_PLACES, $paddingMode = self::NO_PADDING) {
+    public static function decimalToPrecision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         return static::decimal_to_precision($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
     }
 
@@ -2546,8 +2542,8 @@ class Exchange {
         }
     }
 
-    public static function decimal_to_precision($x, $roundingMode = self::ROUND, $numPrecisionDigits = null, $countingMode = self::DECIMAL_PLACES, $paddingMode = self::NO_PADDING) {
-        if ($countingMode === self::TICK_SIZE) {
+    public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+        if ($countingMode === TICK_SIZE) {
             if (!(is_float ($numPrecisionDigits) || is_int($numPrecisionDigits)))
                 throw new BaseError('Precision must be an integer or float for TICK_SIZE');
         } else {
@@ -2560,34 +2556,34 @@ class Exchange {
             throw new BaseError('Invalid number');
         }
 
-        assert(($roundingMode === self::ROUND) || ($roundingMode === self::TRUNCATE));
+        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE));
 
         $result = '';
 
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
-            if ($countingMode === self::TICK_SIZE) {
+            if ($countingMode === TICK_SIZE) {
                 throw new BaseError ('TICK_SIZE cant be used with negative numPrecisionDigits');
             }
             $toNearest = pow(10, abs($numPrecisionDigits));
-            if ($roundingMode === self::ROUND) {
-                $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, self::DECIMAL_PLACES, $paddingMode));
+            if ($roundingMode === ROUND) {
+                $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
-            if ($roundingMode === self::TRUNCATE) {
-                $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, self::DECIMAL_PLACES, $paddingMode);
+            if ($roundingMode === TRUNCATE) {
+                $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }
 
-        if ($countingMode === self::TICK_SIZE) {
-            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, self::ROUND, 100, self::DECIMAL_PLACES, self::NO_PADDING);
+        if ($countingMode === TICK_SIZE) {
+            $precisionDigitsString = static::decimal_to_precision ($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING);
             $newNumPrecisionDigits = static::precisionFromString ($precisionDigitsString);
             $missing = fmod($x, $numPrecisionDigits);
-            $missing = floatval(static::decimal_to_precision ($missing, self::ROUND, 8, self::DECIMAL_PLACES, self::NO_PADDING));
+            $missing = floatval(static::decimal_to_precision ($missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
             // See: https://github.com/ccxt/ccxt/pull/6486
-            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, self::ROUND, max($newNumPrecisionDigits, 8), self::DECIMAL_PLACES, self::NO_PADDING);
+            $fpError = static::decimal_to_precision ($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
             if (static::precisionFromString ($fpError) !== 0) {
-                if ($roundingMode === self::ROUND) {
+                if ($roundingMode === ROUND) {
                     if ($x > 0) {
                         if ($missing >= $numPrecisionDigits / 2) {
                             $x = $x - $missing + $numPrecisionDigits;
@@ -2601,37 +2597,37 @@ class Exchange {
                             $x = $x - $missing - $numPrecisionDigits;
                         }
                     }
-                } else if (self::TRUNCATE === $roundingMode) {
+                } else if (TRUNCATE === $roundingMode) {
                     $x = $x - $missing;
                 }
             }
-            return static::decimal_to_precision ($x, self::ROUND, $newNumPrecisionDigits, self::DECIMAL_PLACES, $paddingMode);
+            return static::decimal_to_precision ($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
         }
 
 
-        if ($roundingMode === self::ROUND) {
-            if ($countingMode === self::DECIMAL_PLACES) {
+        if ($roundingMode === ROUND) {
+            if ($countingMode === DECIMAL_PLACES) {
                 // Requested precision of 100 digits was truncated to PHP maximum of 53 digits
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
-            } elseif ($countingMode === self::SIGNIFICANT_DIGITS) {
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log(abs($x), 10) % 10;
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
                 $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
             }
-        } elseif ($roundingMode === self::TRUNCATE) {
+        } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
             $dotPosition = $dotIndex ?: strlen($x);
-            if ($countingMode === self::DECIMAL_PLACES) {
+            if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', static::number_to_string($x));
                     $result = $before . '.' . substr($after, 0, $numPrecisionDigits);
                 } else {
                     $result = $x;
                 }
-            } elseif ($countingMode === self::SIGNIFICANT_DIGITS) {
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
@@ -2654,7 +2650,7 @@ class Exchange {
         }
 
         $hasDot = (false !== strpos($result, '.'));
-        if ($paddingMode === self::NO_PADDING) {
+        if ($paddingMode === NO_PADDING) {
             if (($result === '')  && ($numPrecisionDigits === 0)) {
                 return '0';
             }
@@ -2662,22 +2658,22 @@ class Exchange {
                 $result = rtrim($result, '0');
                 $result = rtrim($result, '.');
             }
-        } elseif ($paddingMode === self::PAD_WITH_ZERO) {
+        } elseif ($paddingMode === PAD_WITH_ZERO) {
             if ($hasDot) {
-                if ($countingMode === self::DECIMAL_PLACES) {
+                if ($countingMode === DECIMAL_PLACES) {
                     list($before, $after) = explode('.', $result, 2);
                     $result = $before . '.' . str_pad($after, $numPrecisionDigits, '0');
-                } elseif ($countingMode === self::SIGNIFICANT_DIGITS) {
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                     if ($result < 1) {
                         $result = str_pad($result, strcspn($result, '123456789') + $numPrecisionDigits, '0');
                     }
                 }
             } else {
-                if ($countingMode === self::DECIMAL_PLACES) {
+                if ($countingMode === DECIMAL_PLACES) {
                     if ($numPrecisionDigits > 0) {
                         $result = $result . '.' . str_repeat('0', $numPrecisionDigits);
                     }
-                } elseif ($countingMode === self::SIGNIFICANT_DIGITS) {
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                     if ($numPrecisionDigits > strlen($result)) {
                         $result = $result . '.' . str_repeat('0', ($numPrecisionDigits - strlen($result)));
                     }
