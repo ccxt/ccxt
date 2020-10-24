@@ -2686,8 +2686,37 @@ module.exports = class okex extends Exchange {
         const price = this.safeFloat (first, 'price');
         // determine buy/sell side and amounts
         // get the side from either the first trade or the second trade
-        let feeCost = this.safeFloat (first, 'fee');
-        const index = (feeCost !== 0) ? 0 : 1;
+        const feeCostFirst = this.safeFloat (first, 'fee');
+        const feeCostSecond = this.safeFloat (second, 'fee');
+        let feeCost = undefined;
+        let feeCurrencyId = undefined;
+        let index = undefined;
+        if (feeCostFirst < 0) {
+            feeCost = -feeCostFirst;
+            feeCurrencyId = this.safeString (first, 'currency');
+            index = 0;
+        } else if (feeCostFirst > 0) {
+            feeCost = -feeCostFirst;
+            feeCurrencyId = this.safeString (first, 'currency');
+            index = 1;
+        } else if (feeCostSecond < 0) {
+            feeCost = -feeCostSecond;
+            feeCurrencyId = this.safeString (second, 'currency');
+            index = 1;
+        } else {
+            feeCost = -feeCostSecond;
+            feeCurrencyId = this.safeString (second, 'currency');
+            index = 0;
+        }
+        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+        const fee = {
+            // fee is either a positive number (invitation rebate)
+            // or a negative number (transaction fee deduction)
+            // therefore we need to invert the fee
+            // more about it https://github.com/ccxt/ccxt/issues/5909
+            'cost': feeCost,
+            'currency': feeCurrencyCode,
+        };
         const userTrade = this.safeValue (pair, index);
         const otherTrade = this.safeValue (pair, 1 - index);
         const receivedCurrencyId = this.safeString (userTrade, 'currency');
@@ -2703,7 +2732,6 @@ module.exports = class okex extends Exchange {
             amount = this.safeFloat (userTrade, 'size');
             cost = this.safeFloat (otherTrade, 'size');
         }
-        feeCost = (feeCost !== 0) ? feeCost : this.safeFloat (second, 'fee');
         const trade = this.safeValue (pair, index);
         //
         // simplified structures to show the underlying semantics
@@ -2744,19 +2772,6 @@ module.exports = class okex extends Exchange {
             takerOrMaker = 'maker';
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
-        }
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (userTrade, 'currency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                // fee is either a positive number (invitation rebate)
-                // or a negative number (transaction fee deduction)
-                // therefore we need to invert the fee
-                // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
-                'currency': feeCurrencyCode,
-            };
         }
         const orderId = this.safeString (trade, 'order_id');
         return {
