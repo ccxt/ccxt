@@ -116,8 +116,8 @@ class Exchange(BaseExchange):
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
-        # base exchange self.open starts the aiohttp Session in an async context
         client = self.client(url)
+        # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
