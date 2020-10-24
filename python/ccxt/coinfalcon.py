@@ -369,7 +369,7 @@ class coinfalcon(Exchange):
         # TODO: test status=all if it works for closed orders too
         response = self.privateGetUserOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'])
+        orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'], False)
         return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):

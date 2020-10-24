@@ -1884,7 +1884,7 @@ module.exports = class okex extends Exchange {
             // order_type === '4' means a market order
             const isMarketOrder = (type === 'market') || (orderType === '4');
             if (isMarketOrder) {
-                request['match_price'] = '1';
+                request['order_type'] = '4';
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }

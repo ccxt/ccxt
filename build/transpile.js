@@ -1104,18 +1104,32 @@ class Transpiler {
 
         // PHP ----------------------------------------------------------------
 
-        function phpDeclareErrorClass (name, parent) {
-            return 'class ' + name + ' extends ' + parent + ' {};'
+        function phpMakeErrorClassFile (name, parent) {
+
+            const useClause = "\nuse " + parent + ";\n"
+            const requireClause = "\nrequire_once PATH_TO_CCXT_BASE . '" + parent + ".php';\n"
+
+            const phpBody = [
+                '<?php',
+                '',
+                'namespace ccxt;',
+                (parent === 'Exception') ? useClause : requireClause,
+                'class ' + name + ' extends ' + parent + ' {};',
+                '',
+            ].join ("\n")
+            const phpFilename = './php/base/' + name + '.php'
+            log.bright.cyan (message, phpFilename.yellow)
+            fs.writeFileSync (phpFilename, phpBody)
+            return "require_once PATH_TO_CCXT_BASE . '" + name + ".php';"
         }
 
-        const phpHeader = '<?php\n\nnamespace ccxt;\n\nuse Exception;\n\n'
-        const phpBaseError = 'class BaseError extends Exception {};'
-        const phpErrors = intellisense (root, 'BaseError', phpDeclareErrorClass)
-        const phpBodyIntellisense = phpHeader + phpBody + '\n\n' + phpBaseError + '\n' + phpErrors.join ('\n')
+        const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
+        const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
+        const phpFilename = './ccxt.php'
 
-        const phpFilename = './php/base/errors.php'
         log.bright.cyan (message, phpFilename.yellow)
-        fs.writeFileSync (phpFilename, phpBodyIntellisense)
+        const phpRegex = /require_once PATH_TO_CCXT_BASE \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT_BASE[^\n]+\n)+\n/m
+        replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
 
         // TypeScript ---------------------------------------------------------
 
@@ -1454,8 +1468,11 @@ if (require.main === module) { // called directly like `node module`
 
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     if (test) {
         transpiler.transpileTests ()
+    } else if (errors) {
+        transpiler.transpileErrorHierarchy ()
     } else {
         transpiler.transpileEverything ()
     }

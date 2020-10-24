@@ -396,7 +396,7 @@ module.exports = class coinfalcon extends Exchange {
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ]);
+        const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
         return this.parseOrders (orders, market, since, limit);
     }
 

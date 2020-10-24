@@ -58,7 +58,7 @@ function test_trade($exchange, $trade, $symbol, $now) {
     assert ($trade['datetime'] === $exchange->iso8601 ($timestamp));
     assert ($trade['symbol'] === $symbol, 'trade $symbol is not equal to requested $symbol => $trade => ' . $trade['symbol'] . ' requested => ' . $symbol);
     assert ($trade['type'] === null || gettype($trade['type']) === 'string');
-    assert ($trade['side'] === null || $trade['side'] === 'buy' || $trade['side'] === 'sell');
+    assert ($trade['side'] === null || $trade['side'] === 'buy' || $trade['side'] === 'sell', 'unexpected $trade side ' . $trade['side']);
     assert ($trade['order'] === null || gettype($trade['order']) === 'string');
     assert ((is_float($trade['price']) || is_int($trade['price'])), 'trade.price is not a number');
     assert ($trade['price'] > 0);

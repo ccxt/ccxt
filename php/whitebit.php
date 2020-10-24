@@ -558,10 +558,19 @@ class whitebit extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $maxLimit = 1440;
+            if ($limit === null) {
+                $limit = $maxLimit;
+            }
+            $limit = min ($limit, $maxLimit);
+            $start = intval($since / 1000);
+            $duration = $this->parse_timeframe($timeframe);
+            $end = $this->sum($start, $duration * $limit);
+            $request['start'] = $start;
+            $request['end'] = $end;
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default == max == 500
+            $request['limit'] = $limit; // max 1440
         }
         $response = $this->publicV1GetKline (array_merge($request, $params));
         //
