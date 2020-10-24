@@ -117,6 +117,8 @@ class Exchange(BaseExchange):
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         client = self.client(url)
+        future = client.future(message_hash)
+
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
@@ -139,7 +141,7 @@ class Exchange(BaseExchange):
 
         connected.add_done_callback(after)
 
-        return client.future(message_hash)
+        return future
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
