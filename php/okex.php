@@ -2692,8 +2692,37 @@ class okex extends Exchange {
         $price = $this->safe_float($first, 'price');
         // determine buy/sell $side and amounts
         // get the $side from either the $first $trade or the $second $trade
-        $feeCost = $this->safe_float($first, 'fee');
-        $index = ($feeCost !== 0) ? 0 : 1;
+        $feeCostFirst = $this->safe_float($first, 'fee');
+        $feeCostSecond = $this->safe_float($second, 'fee');
+        $feeCost = null;
+        $feeCurrencyId = null;
+        $index = null;
+        if ($feeCostFirst < 0) { // $fee deduction
+            $feeCost = -$feeCostFirst;
+            $feeCurrencyId = $this->safe_string($first, 'currency');
+            $index = 0;
+        } else if ($feeCostFirst > 0) { // rebate
+            $feeCost = -$feeCostFirst;
+            $feeCurrencyId = $this->safe_string($first, 'currency');
+            $index = 1;
+        } else if ($feeCostSecond < 0) { // $fee deduction
+            $feeCost = -$feeCostSecond;
+            $feeCurrencyId = $this->safe_string($second, 'currency');
+            $index = 1;
+        } else { // rebate
+            $feeCost = -$feeCostSecond;
+            $feeCurrencyId = $this->safe_string($second, 'currency');
+            $index = 0;
+        }
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+        $fee = array(
+            // $fee is either a positive number (invitation rebate)
+            // or a negative number (transaction $fee deduction)
+            // therefore we need to invert the $fee
+            // more about it https://github.com/ccxt/ccxt/issues/5909
+            'cost' => $feeCost,
+            'currency' => $feeCurrencyCode,
+        );
         $userTrade = $this->safe_value($pair, $index);
         $otherTrade = $this->safe_value($pair, 1 - $index);
         $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
@@ -2709,7 +2738,6 @@ class okex extends Exchange {
             $amount = $this->safe_float($userTrade, 'size');
             $cost = $this->safe_float($otherTrade, 'size');
         }
-        $feeCost = ($feeCost !== 0) ? $feeCost : $this->safe_float($second, 'fee');
         $trade = $this->safe_value($pair, $index);
         //
         // simplified structures to show the underlying semantics
@@ -2750,19 +2778,6 @@ class okex extends Exchange {
             $takerOrMaker = 'maker';
         } else if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
-        }
-        $fee = null;
-        if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($userTrade, 'currency');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array(
-                // $fee is either a positive number (invitation rebate)
-                // or a negative number (transaction $fee deduction)
-                // therefore we need to invert the $fee
-                // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost' => -$feeCost,
-                'currency' => $feeCurrencyCode,
-            );
         }
         $orderId = $this->safe_string($trade, 'order_id');
         return array(

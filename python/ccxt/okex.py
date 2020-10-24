@@ -2580,8 +2580,36 @@ class okex(Exchange):
         price = self.safe_float(first, 'price')
         # determine buy/sell side and amounts
         # get the side from either the first trade or the second trade
-        feeCost = self.safe_float(first, 'fee')
-        index = 0 if (feeCost != 0) else 1
+        feeCostFirst = self.safe_float(first, 'fee')
+        feeCostSecond = self.safe_float(second, 'fee')
+        feeCost = None
+        feeCurrencyId = None
+        index = None
+        if feeCostFirst < 0:  # fee deduction
+            feeCost = -feeCostFirst
+            feeCurrencyId = self.safe_string(first, 'currency')
+            index = 0
+        elif feeCostFirst > 0:  # rebate
+            feeCost = -feeCostFirst
+            feeCurrencyId = self.safe_string(first, 'currency')
+            index = 1
+        elif feeCostSecond < 0:  # fee deduction
+            feeCost = -feeCostSecond
+            feeCurrencyId = self.safe_string(second, 'currency')
+            index = 1
+        else:  # rebate
+            feeCost = -feeCostSecond
+            feeCurrencyId = self.safe_string(second, 'currency')
+            index = 0
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+        fee = {
+            # fee is either a positive number(invitation rebate)
+            # or a negative number(transaction fee deduction)
+            # therefore we need to invert the fee
+            # more about it https://github.com/ccxt/ccxt/issues/5909
+            'cost': feeCost,
+            'currency': feeCurrencyCode,
+        }
         userTrade = self.safe_value(pair, index)
         otherTrade = self.safe_value(pair, 1 - index)
         receivedCurrencyId = self.safe_string(userTrade, 'currency')
@@ -2596,7 +2624,6 @@ class okex(Exchange):
             side = 'buy'
             amount = self.safe_float(userTrade, 'size')
             cost = self.safe_float(otherTrade, 'size')
-        feeCost = feeCost if (feeCost != 0) else self.safe_float(second, 'fee')
         trade = self.safe_value(pair, index)
         #
         # simplified structures to show the underlying semantics
@@ -2637,18 +2664,6 @@ class okex(Exchange):
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        fee = None
-        if feeCost is not None:
-            feeCurrencyId = self.safe_string(userTrade, 'currency')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                # fee is either a positive number(invitation rebate)
-                # or a negative number(transaction fee deduction)
-                # therefore we need to invert the fee
-                # more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
-                'currency': feeCurrencyCode,
-            }
         orderId = self.safe_string(trade, 'order_id')
         return {
             'info': pair,
