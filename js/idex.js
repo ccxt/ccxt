@@ -798,6 +798,7 @@ module.exports = class idex extends Exchange {
         const timestamp = this.safeInteger (order, 'time');
         const fills = this.safeValue (order, 'fills', []);
         const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'market');
         const side = this.safeString (order, 'side');
         const symbol = this.safeSymbol (marketId, market, '-');
@@ -831,7 +832,7 @@ module.exports = class idex extends Exchange {
         return {
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -898,6 +899,7 @@ module.exports = class idex extends Exchange {
             amountEnum = 1;
             amount = this.safeFloat (params, 'quoteOrderQuantity');
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId', '');
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const orderVersion = 1;
@@ -950,6 +952,7 @@ module.exports = class idex extends Exchange {
             byteArray.push (encodedPrice);
         }
         const after = [
+            this.stringToBinary (this.encode (clientOrderId)),
             this.numberToBE (timeInForceEnum, 1),
             this.numberToBE (selfTradePreventionEnum, 1),
             this.numberToBE (0, 8), // unused
@@ -977,6 +980,9 @@ module.exports = class idex extends Exchange {
             request['parameters']['quantity'] = amountString;
         } else {
             request['parameters']['quoteOrderQuantity'] = amountString;
+        }
+        if (clientOrderId !== '') {
+            request['parameters']['clientOrderId'] = clientOrderId;
         }
         // {
         //   market: 'DIL-ETH',
