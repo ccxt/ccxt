@@ -2662,10 +2662,10 @@ module.exports = class okex extends Exchange {
 
     parseMyTrade (pair, market = undefined) {
         // check that trading symbols match in both entries
-        const first = pair[0];
-        const second = pair[1];
-        const firstMarketId = this.safeString (first, 'instrument_id');
-        const secondMarketId = this.safeString (second, 'instrument_id');
+        const userTrade = this.safeValue (pair, 1);
+        const otherTrade = this.safeValue (pair, 0);
+        const firstMarketId = this.safeString (otherTrade, 'instrument_id');
+        const secondMarketId = this.safeString (userTrade, 'instrument_id');
         if (firstMarketId !== secondMarketId) {
             throw new NotSupported (this.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
         }
@@ -2682,43 +2682,28 @@ module.exports = class okex extends Exchange {
             quoteId = this.safeString (parts, 1);
             symbol = marketId;
         }
-        const id = this.safeString (first, 'trade_id');
-        const price = this.safeFloat (first, 'price');
-        // determine buy/sell side and amounts
-        // get the side from either the first trade or the second trade
-        const feeCostFirst = this.safeFloat (first, 'fee');
-        const feeCostSecond = this.safeFloat (second, 'fee');
+        const id = this.safeString (userTrade, 'trade_id');
+        const price = this.safeFloat (userTrade, 'price');
+        const feeCostFirst = this.safeFloat (otherTrade, 'fee');
+        const feeCostSecond = this.safeFloat (userTrade, 'fee');
         let feeCost = undefined;
         let feeCurrencyId = undefined;
-        let index = undefined;
-        if (feeCostFirst < 0) { // fee deduction
+        // fee is either a positive number (invitation rebate)
+        // or a negative number (transaction fee deduction)
+        // therefore we need to invert the fee
+        // more about it https://github.com/ccxt/ccxt/issues/5909
+        if (feeCostFirst !== 0) {
             feeCost = -feeCostFirst;
-            feeCurrencyId = this.safeString (first, 'currency');
-            index = 0;
-        } else if (feeCostFirst > 0) { // rebate
-            feeCost = -feeCostFirst;
-            feeCurrencyId = this.safeString (first, 'currency');
-            index = 1;
-        } else if (feeCostSecond < 0) { // fee deduction
+            feeCurrencyId = this.safeString (otherTrade, 'currency');
+        } else {
             feeCost = -feeCostSecond;
-            feeCurrencyId = this.safeString (second, 'currency');
-            index = 1;
-        } else { // rebate
-            feeCost = -feeCostSecond;
-            feeCurrencyId = this.safeString (second, 'currency');
-            index = 0;
+            feeCurrencyId = this.safeString (userTrade, 'currency');
         }
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
         const fee = {
-            // fee is either a positive number (invitation rebate)
-            // or a negative number (transaction fee deduction)
-            // therefore we need to invert the fee
-            // more about it https://github.com/ccxt/ccxt/issues/5909
             'cost': feeCost,
             'currency': feeCurrencyCode,
         };
-        const userTrade = this.safeValue (pair, index);
-        const otherTrade = this.safeValue (pair, 1 - index);
         const receivedCurrencyId = this.safeString (userTrade, 'currency');
         let side = undefined;
         let amount = undefined;
@@ -2732,7 +2717,6 @@ module.exports = class okex extends Exchange {
             amount = this.safeFloat (userTrade, 'size');
             cost = this.safeFloat (otherTrade, 'size');
         }
-        const trade = this.safeValue (pair, index);
         //
         // simplified structures to show the underlying semantics
         //
@@ -2766,14 +2750,14 @@ module.exports = class okex extends Exchange {
         //         "size":"31.03998952", // ←-- cost
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
-        let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
+        const timestamp = this.parse8601 (this.safeString2 (userTrade, 'timestamp', 'created_at'));
+        let takerOrMaker = this.safeString2 (userTrade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        const orderId = this.safeString (trade, 'order_id');
+        const orderId = this.safeString (userTrade, 'order_id');
         return {
             'info': pair,
             'timestamp': timestamp,
