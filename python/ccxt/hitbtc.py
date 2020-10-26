@@ -777,7 +777,8 @@ class hitbtc(Exchange):
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
