@@ -899,7 +899,6 @@ module.exports = class idex extends Exchange {
             amountEnum = 1;
             amount = this.safeFloat (params, 'quoteOrderQuantity');
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId', '');
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
         const orderVersion = 1;
@@ -951,8 +950,11 @@ module.exports = class idex extends Exchange {
             const encodedPrice = this.stringToBinary (this.encode (priceString));
             byteArray.push (encodedPrice);
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            byteArray.push (this.stringToBinary (this.encode (clientOrderId)));
+        }
         const after = [
-            this.stringToBinary (this.encode (clientOrderId)),
             this.numberToBE (timeInForceEnum, 1),
             this.numberToBE (selfTradePreventionEnum, 1),
             this.numberToBE (0, 8), // unused
