@@ -811,7 +811,8 @@ module.exports = class hitbtc extends Exchange {
         const created = this.parse8601 (this.safeString (order, 'createdAt'));
         const updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -862,10 +863,9 @@ module.exports = class hitbtc extends Exchange {
                 }
             }
             if (feeCost !== undefined) {
-                const feeCurrencyCode = market ? market['quote'] : undefined;
                 fee = {
                     'cost': feeCost,
-                    'currency': feeCurrencyCode,
+                    'currency': market['quote'],
                 };
             }
         }
