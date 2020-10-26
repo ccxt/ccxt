@@ -983,7 +983,7 @@ module.exports = class idex extends Exchange {
         } else {
             request['parameters']['quoteOrderQuantity'] = amountString;
         }
-        if (clientOrderId !== '') {
+        if (clientOrderId !== undefined) {
             request['parameters']['clientOrderId'] = clientOrderId;
         }
         // {
