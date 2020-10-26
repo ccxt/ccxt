@@ -764,6 +764,7 @@ class idex(Exchange):
         timestamp = self.safe_integer(order, 'time')
         fills = self.safe_value(order, 'fills', [])
         id = self.safe_string(order, 'orderId')
+        clientOrderId = self.safe_string(order, 'clientOrderId')
         marketId = self.safe_string(order, 'market')
         side = self.safe_string(order, 'side')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -794,7 +795,7 @@ class idex(Exchange):
         return {
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -904,6 +905,9 @@ class idex(Exchange):
         if type == 'limit':
             encodedPrice = self.encode(priceString)
             byteArray.append(encodedPrice)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            byteArray.append(self.encode(clientOrderId))
         after = [
             self.number_to_be(timeInForceEnum, 1),
             self.number_to_be(selfTradePreventionEnum, 1),
@@ -931,6 +935,8 @@ class idex(Exchange):
             request['parameters']['quantity'] = amountString
         else:
             request['parameters']['quoteOrderQuantity'] = amountString
+        if clientOrderId is not None:
+            request['parameters']['clientOrderId'] = clientOrderId
         # {
         #   market: 'DIL-ETH',
         #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',

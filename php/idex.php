@@ -802,6 +802,7 @@ class idex extends Exchange {
         $timestamp = $this->safe_integer($order, 'time');
         $fills = $this->safe_value($order, 'fills', array());
         $id = $this->safe_string($order, 'orderId');
+        $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $marketId = $this->safe_string($order, 'market');
         $side = $this->safe_string($order, 'side');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -835,7 +836,7 @@ class idex extends Exchange {
         return array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -953,6 +954,10 @@ class idex extends Exchange {
             $encodedPrice = $this->encode($priceString);
             $byteArray[] = $encodedPrice;
         }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $byteArray[] = $this->encode($clientOrderId);
+        }
         $after = array(
             $this->number_to_be($timeInForceEnum, 1),
             $this->number_to_be($selfTradePreventionEnum, 1),
@@ -981,6 +986,9 @@ class idex extends Exchange {
             $request['parameters']['quantity'] = $amountString;
         } else {
             $request['parameters']['quoteOrderQuantity'] = $amountString;
+        }
+        if ($clientOrderId !== null) {
+            $request['parameters']['clientOrderId'] = $clientOrderId;
         }
         // {
         //   $market => 'DIL-ETH',
