@@ -862,9 +862,10 @@ module.exports = class hitbtc extends Exchange {
                 }
             }
             if (feeCost !== undefined) {
+                const feeCurrencyCode = market ? market['quote'] : undefined;
                 fee = {
                     'cost': feeCost,
-                    'currency': market['quote'],
+                    'currency': feeCurrencyCode,
                 };
             }
         }
