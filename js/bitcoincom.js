@@ -30,7 +30,6 @@ module.exports = class bitcoincom extends hitbtc {
                     'taker': 0.2 / 100,
                 },
             },
-
         });
     }
 };
