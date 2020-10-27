@@ -2668,77 +2668,74 @@ class okex extends Exchange {
 
     public function parse_my_trade($pair, $market = null) {
         // check that trading symbols match in both entries
-        $first = $pair[0];
-        $second = $pair[1];
-        $firstMarketId = $this->safe_string($first, 'instrument_id');
-        $secondMarketId = $this->safe_string($second, 'instrument_id');
+        $userTrade = $this->safe_value($pair, 1);
+        $otherTrade = $this->safe_value($pair, 0);
+        $firstMarketId = $this->safe_string($otherTrade, 'instrument_id');
+        $secondMarketId = $this->safe_string($userTrade, 'instrument_id');
         if ($firstMarketId !== $secondMarketId) {
             throw new NotSupported($this->id . ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output => https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
         }
         $marketId = $firstMarketId;
-        // determine the base and quote
-        $quoteId = null;
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $quoteId = $market['quoteId'];
-            $symbol = $market['symbol'];
-        } else {
-            $parts = explode('-', $marketId);
-            $quoteId = $this->safe_string($parts, 1);
-            $symbol = $marketId;
-        }
-        $id = $this->safe_string($first, 'trade_id');
-        $price = $this->safe_float($first, 'price');
-        // determine buy/sell $side and amounts
-        // get the $side from either the $first $trade or the $second $trade
-        $feeCostFirst = $this->safe_float($first, 'fee');
-        $feeCostSecond = $this->safe_float($second, 'fee');
-        $feeCost = null;
-        $feeCurrencyId = null;
-        $index = null;
-        if ($feeCostFirst < 0) { // $fee deduction
-            $feeCost = -$feeCostFirst;
-            $feeCurrencyId = $this->safe_string($first, 'currency');
-            $index = 0;
-        } else if ($feeCostFirst > 0) { // rebate
-            $feeCost = -$feeCostFirst;
-            $feeCurrencyId = $this->safe_string($first, 'currency');
-            $index = 1;
-        } else if ($feeCostSecond < 0) { // $fee deduction
-            $feeCost = -$feeCostSecond;
-            $feeCurrencyId = $this->safe_string($second, 'currency');
-            $index = 1;
-        } else { // rebate
-            $feeCost = -$feeCostSecond;
-            $feeCurrencyId = $this->safe_string($second, 'currency');
-            $index = 0;
-        }
-        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-        $fee = array(
-            // $fee is either a positive number (invitation rebate)
-            // or a negative number (transaction $fee deduction)
-            // therefore we need to invert the $fee
-            // more about it https://github.com/ccxt/ccxt/issues/5909
-            'cost' => $feeCost,
-            'currency' => $feeCurrencyCode,
-        );
-        $userTrade = $this->safe_value($pair, $index);
-        $otherTrade = $this->safe_value($pair, 1 - $index);
-        $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $quoteId = $market['quoteId'];
         $side = null;
         $amount = null;
         $cost = null;
+        $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
+        $feeCurrencyId = null;
         if ($receivedCurrencyId === $quoteId) {
-            $side = 'sell';
+            $side = $this->safe_string($otherTrade, 'side');
             $amount = $this->safe_float($otherTrade, 'size');
             $cost = $this->safe_float($userTrade, 'size');
+            $feeCurrencyId = $this->safe_string($otherTrade, 'currency');
         } else {
-            $side = 'buy';
+            $side = $this->safe_string($userTrade, 'side');
             $amount = $this->safe_float($userTrade, 'size');
             $cost = $this->safe_float($otherTrade, 'size');
+            $feeCurrencyId = $this->safe_string($userTrade, 'currency');
         }
-        $trade = $this->safe_value($pair, $index);
+        $id = $this->safe_string($userTrade, 'trade_id');
+        $price = $this->safe_float($userTrade, 'price');
+        $feeCostFirst = $this->safe_float($otherTrade, 'fee');
+        $feeCostSecond = $this->safe_float($userTrade, 'fee');
+        $feeCurrencyCodeFirst = $this->safe_currency_code($this->safe_string($otherTrade, 'currency'));
+        $feeCurrencyCodeSecond = $this->safe_currency_code($this->safe_string($userTrade, 'currency'));
+        $fee = null;
+        $fees = null;
+        // $fee is either a positive number (invitation rebate)
+        // or a negative number (transaction $fee deduction)
+        // therefore we need to invert the $fee
+        // more about it https://github.com/ccxt/ccxt/issues/5909
+        if (($feeCostFirst !== null) && ($feeCostFirst !== 0)) {
+            if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+                $fees = array(
+                    array(
+                        'cost' => -$feeCostFirst,
+                        'currency' => $feeCurrencyCodeFirst,
+                    ),
+                    array(
+                        'cost' => -$feeCostSecond,
+                        'currency' => $feeCurrencyCodeSecond,
+                    ),
+                );
+            } else {
+                $fee = array(
+                    'cost' => -$feeCostFirst,
+                    'currency' => $feeCurrencyCodeFirst,
+                );
+            }
+        } else if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+            $fee = array(
+                'cost' => -$feeCostSecond,
+                'currency' => $feeCurrencyCodeSecond,
+            );
+        } else {
+            $fee = array(
+                'cost' => 0,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            );
+        }
         //
         // simplified structures to show the underlying semantics
         //
@@ -2772,15 +2769,15 @@ class okex extends Exchange {
         //         "size":"31.03998952", // ←-- $cost
         //     }
         //
-        $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
+        $timestamp = $this->parse8601($this->safe_string_2($userTrade, 'timestamp', 'created_at'));
+        $takerOrMaker = $this->safe_string_2($userTrade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
         } else if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
-        $orderId = $this->safe_string($trade, 'order_id');
-        return array(
+        $orderId = $this->safe_string($userTrade, 'order_id');
+        $result = array(
             'info' => $pair,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2795,6 +2792,10 @@ class okex extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
+        if ($fees !== null) {
+            $result['fees'] = $fees;
+        }
+        return $result;
     }
 
     public function parse_my_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
