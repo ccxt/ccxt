@@ -1064,8 +1064,9 @@ module.exports = class bybit extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'average_price');
+        const type = this.safeStringLower (order, 'order_type');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'average_price');
         const amount = this.safeFloat (order, 'qty');
         let cost = this.safeFloat (order, 'cum_exec_value');
         let filled = this.safeFloat (order, 'cum_exec_qty');
@@ -1090,6 +1091,12 @@ module.exports = class bybit extends Exchange {
                     cost = price * filled;
                 }
             }
+            if ((type === 'market') && (cost !== undefined)) {
+                price = undefined;
+                if (average === undefined) {
+                    average = filled / cost;
+                }
+            }
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
@@ -1102,7 +1109,6 @@ module.exports = class bybit extends Exchange {
                 'currency': base,
             };
         }
-        const type = this.safeStringLower (order, 'order_type');
         let clientOrderId = this.safeString (order, 'order_link_id');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
