@@ -2693,8 +2693,8 @@ module.exports = class okex extends Exchange {
         const price = this.safeFloat (userTrade, 'price');
         const feeCostFirst = this.safeFloat (otherTrade, 'fee');
         const feeCostSecond = this.safeFloat (userTrade, 'fee');
-        const feeCurrencyCodeFirst = this.safeCurrency (this.safeString (otherTrade, 'currency'));
-        const feeCurrencyCodeSecond = this.safeCurrency (this.safeString (userTrade, 'currency'));
+        const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'currency'));
+        const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'currency'));
         let fee = undefined;
         let fees = undefined;
         // fee is either a positive number (invitation rebate)
@@ -2727,7 +2727,7 @@ module.exports = class okex extends Exchange {
         } else {
             fee = {
                 'cost': 0,
-                'currency': this.safeCurrency (feeCurrencyId),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
         //
