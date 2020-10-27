@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.39'
+__version__ = '0.4.44'
 
 # -----------------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ from ccxtpro.bequant import bequant                                       # noqa
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.binanceje import binanceje                                   # noqa: F401
 from ccxtpro.binanceus import binanceus                                   # noqa: F401
+from ccxtpro.bitcoincom import bitcoincom                                 # noqa: F401
 from ccxtpro.bitfinex import bitfinex                                     # noqa: F401
 from ccxtpro.bitmex import bitmex                                         # noqa: F401
 from ccxtpro.bitstamp import bitstamp                                     # noqa: F401

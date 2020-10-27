@@ -19,7 +19,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
                 'watchTrades': True,
                 'watchOrderBook': True,
                 'watchBalance': False,  # not implemented yet
-                'watchOHLCV': True,  # not implemented yet
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {

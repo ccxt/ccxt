@@ -17,7 +17,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchBalance': false, // not implemented yet
-                'watchOHLCV': true, // not implemented yet
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
