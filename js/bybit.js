@@ -272,9 +272,6 @@ module.exports = class bybit extends Exchange {
                     'BTC/USDT': 'linear',
                 },
                 'code': 'BTC',
-                'fetchBalance': {
-                    'code': 'BTC',
-                },
                 'cancelAllOrders': {
                     'method': 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
                 },
@@ -413,15 +410,15 @@ module.exports = class bybit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        let code = this.safeValue (options, 'code', defaultCode);
-        code = this.safeString (params, 'code', code);
-        params = this.omit (params, 'code');
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-        };
+        const request = {};
+        const coin = this.safeString (params, 'coin');
+        const code = this.safeString (params, 'code');
+        if (coin !== undefined) {
+            request['coin'] = coin;
+        } else if (code !== undefined) {
+            const currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
         const response = await this.privateGetWalletBalance (this.extend (request, params));
         //
         //     {
