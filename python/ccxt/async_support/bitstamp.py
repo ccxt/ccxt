@@ -133,6 +133,8 @@ class bitstamp(Exchange):
                         'link_address/',
                         'usdc_withdrawal/',
                         'usdc_address/',
+                        'omg_withdrawal/',
+                        'omg_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
