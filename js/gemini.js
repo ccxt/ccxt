@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -102,6 +103,7 @@ module.exports = class gemini extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -196,56 +198,48 @@ module.exports = class gemini extends Exchange {
             throw new NotSupported (error);
         }
         const apiSymbols = await this.fetchMarketsFromAPI (params);
-        const indexedSymbols = this.indexBy (apiSymbols, 'symbol');
+        const indexedSymbols = this.indexBy (apiSymbols, 'id');
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
             const row = rows[i];
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
-            if (numCells < 9) {
+            if (numCells < 5) {
                 throw new NotSupported (error);
             }
             //     [
-            //         '<td>BTC', // currency
+            //         '<td>btcusd', // currency
             //         '<td>0.00001 BTC (1e-5)', // min order size
             //         '<td>0.00000001 BTC (1e-8)', // tick size
-            //         '<td>0.01 USD', // usd price increment
-            //         '<td>N/A', // btc price increment
-            //         '<td>0.0001 ETH (1e-4)', // eth price increment
-            //         '<td>0.0001 BCH (1e-4)', // bch price increment
-            //         '<td>0.001 LTC (1e-3)', // ltc price increment
+            //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            //
-            const uppercaseBaseId = cells[0].replace ('<td>', '');
-            const baseId = uppercaseBaseId.toLowerCase ();
-            const base = this.safeCurrencyCode (baseId);
-            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc' ];
+            const id = cells[0].replace ('<td>', '');
+            // const base = this.safeCurrencyCode (baseId);
+            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' ];
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
             const minAmount = this.safeFloat (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const amountPrecision = this.precisionFromString (amountPrecisionParts[0]);
+            const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
             for (let j = 0; j < quoteIds.length; j++) {
-                const quoteId = quoteIds[j];
+                const idLength = id.length - 0;
+                const quoteId = id.slice (idLength - 3, idLength);
                 const quote = this.safeCurrencyCode (quoteId);
-                const pricePrecisionIndex = this.sum (3, j);
-                const pricePrecisionString = cells[pricePrecisionIndex].replace ('<td>', '');
-                if (pricePrecisionString === 'N/A') {
-                    continue;
-                }
+                const pricePrecisionString = cells[3].replace ('<td>', '');
                 const pricePrecisionParts = pricePrecisionString.split (' ');
-                const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
-                const symbol = base + '/' + quote;
-                if (!(symbol in indexedSymbols)) {
+                const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+                if (!(id in indexedSymbols)) {
                     continue;
                 }
-                const marketId = baseId + quoteId;
+                const baseId = id.replace (quoteId, '');
+                const base = this.safeCurrencyCode (baseId);
+                const symbol = base + '/' + quote;
                 const active = undefined;
                 result.push ({
-                    'id': marketId,
+                    'id': id,
                     'info': row,
                     'symbol': symbol,
                     'base': base,
