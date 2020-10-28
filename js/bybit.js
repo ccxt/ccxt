@@ -1088,7 +1088,7 @@ module.exports = class bybit extends Exchange {
                     cost = price * filled;
                 }
             }
-            if ((type === 'market') && (cost !== undefined)) {
+            if ((type === 'market') && (cost !== undefined) && (cost > 0)) {
                 price = undefined;
                 if (average === undefined) {
                     average = filled / cost;
