@@ -105,6 +105,7 @@ class bcex(Exchange):
                 '订单信息不存在': OrderNotFound,  # {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
             },
             'commonCurrencies': {
+                'UNI': 'UNI COIN',
                 'PNT': 'Penta',
             },
             'options': {

@@ -130,7 +130,6 @@ class bleutrade(Exchange):
             },
             'options': {
                 'parseOrderStatus': True,
-                'symbolSeparator': '_',
             },
         })
         # undocumented api calls
@@ -288,15 +287,8 @@ class bleutrade(Exchange):
         #     MarketCurrency: 'Litecoin',
         #     BaseCurrency: 'Tether'}
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
         change = None
@@ -393,12 +385,6 @@ class bleutrade(Exchange):
         response = self.v3PrivatePostGetopenorders(self.extend(request, params))
         items = self.safe_value(response, 'result', [])
         return self.parse_orders(items, market, since, limit)
-
-    def parse_symbol(self, id):
-        base, quote = id.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(base)
-        quote = self.safe_currency_code(quote)
-        return base + '/' + quote
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -609,17 +595,8 @@ class bleutrade(Exchange):
         #     Comments: {String: '', Valid: True}
         side = self.safe_string(order, 'Type').lower()
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
         marketId = self.safe_string(order, 'Exchange')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = None
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')

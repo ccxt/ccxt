@@ -152,19 +152,15 @@ module.exports = class hitbtc extends Exchange {
             'commonCurrencies': {
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
-                'CAT': 'BitClave',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
-                'DRK': 'DASH',
-                'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
                 'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
-                'UNC': 'Unigame',
+                'TV': 'Tokenville',
                 'USD': 'USDT',
-                'XBT': 'BTC',
                 'XPNT': 'PNT',
             },
             'exceptions': {
@@ -482,15 +478,9 @@ module.exports = class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
             const marketId = this.safeString (ticker, 'symbol');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    result[symbol] = this.parseTicker (ticker, market);
-                } else {
-                    result[marketId] = this.parseTicker (ticker);
-                }
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -509,7 +499,6 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
         // createMarketOrder
         //
         //  {       fee: "0.0004644",
@@ -518,23 +507,28 @@ module.exports = class hitbtc extends Exchange {
         //     quantity: "1",
         //    timestamp: "2018-10-25T16:41:44.780Z" }
         //
-        // fetchTrades ...
+        // fetchTrades
         //
-        // fetchMyTrades ...
+        // { id: 974786185,
+        //   price: '0.032462',
+        //   quantity: '0.3673',
+        //   side: 'buy',
+        //   timestamp: '2020-10-16T12:57:39.846Z' }
         //
+        // fetchMyTrades
+        //
+        // { id: 277210397,
+        //   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //   orderId: 28102855393,
+        //   symbol: 'ETHBTC',
+        //   side: 'sell',
+        //   quantity: '0.002',
+        //   price: '0.073365',
+        //   fee: '0.000000147',
+        //   timestamp: '2018-04-28T18:39:55.345Z' }
         const timestamp = this.parse8601 (trade['timestamp']);
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
@@ -817,20 +811,8 @@ module.exports = class hitbtc extends Exchange {
         const created = this.parse8601 (this.safeString (order, 'createdAt'));
         const updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         const marketId = this.safeString (order, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['id'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));

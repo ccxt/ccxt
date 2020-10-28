@@ -272,9 +272,6 @@ module.exports = class bybit extends Exchange {
                     'BTC/USDT': 'linear',
                 },
                 'code': 'BTC',
-                'fetchBalance': {
-                    'code': 'BTC',
-                },
                 'cancelAllOrders': {
                     'method': 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
                 },
@@ -413,15 +410,15 @@ module.exports = class bybit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultCode = this.safeValue (this.options, 'code', 'BTC');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        let code = this.safeValue (options, 'code', defaultCode);
-        code = this.safeString (params, 'code', code);
-        params = this.omit (params, 'code');
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-        };
+        const request = {};
+        const coin = this.safeString (params, 'coin');
+        const code = this.safeString (params, 'code');
+        if (coin !== undefined) {
+            request['coin'] = coin;
+        } else if (code !== undefined) {
+            const currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
         const response = await this.privateGetWalletBalance (this.extend (request, params));
         //
         //     {
@@ -1064,8 +1061,9 @@ module.exports = class bybit extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'average_price');
+        const type = this.safeStringLower (order, 'order_type');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'average_price');
         const amount = this.safeFloat (order, 'qty');
         let cost = this.safeFloat (order, 'cum_exec_value');
         let filled = this.safeFloat (order, 'cum_exec_qty');
@@ -1090,6 +1088,12 @@ module.exports = class bybit extends Exchange {
                     cost = price * filled;
                 }
             }
+            if ((type === 'market') && (cost !== undefined) && (cost > 0)) {
+                price = undefined;
+                if (average === undefined) {
+                    average = filled / cost;
+                }
+            }
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
@@ -1102,7 +1106,6 @@ module.exports = class bybit extends Exchange {
                 'currency': base,
             };
         }
-        const type = this.safeStringLower (order, 'order_type');
         let clientOrderId = this.safeString (order, 'order_link_id');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;

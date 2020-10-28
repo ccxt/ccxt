@@ -597,6 +597,8 @@ class bytetrade(Exchange):
         defaultDappId = 'Sagittarius'
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
+        totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
+        chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = self.integer_pow('2', '64')
         allByteStringArray = [
@@ -621,7 +623,10 @@ class bytetrade(Exchange):
             self.number_to_le(0, 2),
             self.number_to_le(int(math.floor(now / 1000)), 4),
             self.number_to_le(int(math.floor(expiration / 1000)), 4),
-            self.number_to_le(0, 2),
+            self.number_to_le(1, 1),
+            self.number_to_le(int(chainFeeRate), 2),
+            self.number_to_le(1, 1),
+            self.number_to_le(int(totalFeeRate), 2),
             self.number_to_le(int(quoteId), 4),
             self.number_to_le(int(baseId), 4),
             self.number_to_le(0, 1),
@@ -651,7 +656,10 @@ class bytetrade(Exchange):
             self.number_to_le(0, 2),
             self.number_to_le(int(math.floor(now / 1000)), 4),
             self.number_to_le(int(math.floor(expiration / 1000)), 4),
-            self.number_to_le(0, 2),
+            self.number_to_le(1, 1),
+            self.number_to_le(int(chainFeeRate), 2),
+            self.number_to_le(1, 1),
+            self.number_to_le(int(totalFeeRate), 2),
             self.number_to_le(int(quoteId), 4),
             self.number_to_le(int(baseId), 4),
             self.number_to_le(0, 1),
@@ -689,6 +697,8 @@ class bytetrade(Exchange):
             'use_btt_as_fee': False,
             'money_id': int(quoteId),
             'stock_id': int(baseId),
+            'custom_no_btt_fee_rate': int(totalFeeRate),
+            'custom_btt_fee_rate': int(chainFeeRate),
         }
         fatty = {
             'timestamp': datetime,

@@ -154,6 +154,9 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/2873
             'TerraCredit' => 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+            'UNI COIN' => 'UNI COIN', // conflict with UNI (Uniswap)
+            'UNICORN Token' => 'UNICORN Token', // conflict with UNI (Uniswap)
+            'Universe' => 'Universe', // conflict with UNI (Uniswap)
         );
         return $this->safe_value($currencies, $name, $base);
     }

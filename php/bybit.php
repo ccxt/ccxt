@@ -274,9 +274,6 @@ class bybit extends Exchange {
                     'BTC/USDT' => 'linear',
                 ),
                 'code' => 'BTC',
-                'fetchBalance' => array(
-                    'code' => 'BTC',
-                ),
                 'cancelAllOrders' => array(
                     'method' => 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
                 ),
@@ -415,15 +412,15 @@ class bybit extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $code = $this->safe_value($options, 'code', $defaultCode);
-        $code = $this->safe_string($params, 'code', $code);
-        $params = $this->omit($params, 'code');
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
+        $request = array();
+        $coin = $this->safe_string($params, 'coin');
+        $code = $this->safe_string($params, 'code');
+        if ($coin !== null) {
+            $request['coin'] = $coin;
+        } else if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
         $response = $this->privateGetWalletBalance (array_merge($request, $params));
         //
         //     {
@@ -1066,6 +1063,7 @@ class bybit extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
+        $type = $this->safe_string_lower($order, 'order_type');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'average_price');
         $amount = $this->safe_float($order, 'qty');
@@ -1092,6 +1090,12 @@ class bybit extends Exchange {
                     $cost = $price * $filled;
                 }
             }
+            if (($type === 'market') && ($cost !== null) && ($cost > 0)) {
+                $price = null;
+                if ($average === null) {
+                    $average = $filled / $cost;
+                }
+            }
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
@@ -1104,7 +1108,6 @@ class bybit extends Exchange {
                 'currency' => $base,
             );
         }
-        $type = $this->safe_string_lower($order, 'order_type');
         $clientOrderId = $this->safe_string($order, 'order_link_id');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null;

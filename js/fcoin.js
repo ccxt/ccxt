@@ -382,16 +382,11 @@ module.exports = class fcoin extends Exchange {
             if (tickerType !== undefined) {
                 const parts = tickerType.split ('.');
                 const id = parts[1];
-                if (id in this.markets_by_id) {
-                    market = this.markets_by_id[id];
-                }
+                symbol = this.safeSymbol (id, market);
             }
         }
         const values = ticker['ticker'];
         const last = this.safeFloat (values, 0);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -551,13 +546,9 @@ module.exports = class fcoin extends Exchange {
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const orderType = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'created_at');
         const amount = this.safeFloat (order, 'amount');
@@ -582,14 +573,12 @@ module.exports = class fcoin extends Exchange {
         const feeRebate = this.safeFloat (order, 'fees_income');
         if ((feeRebate !== undefined) && (feeRebate > 0)) {
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
             }
             feeCost = -feeRebate;
         } else {
             feeCost = this.safeFloat (order, 'fill_fees');
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
         }

@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class gemini(Exchange):
@@ -123,6 +124,7 @@ class gemini(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -212,53 +214,46 @@ class gemini(Exchange):
         if numRows < 2:
             raise NotSupported(error)
         apiSymbols = self.fetch_markets_from_api(params)
-        indexedSymbols = self.index_by(apiSymbols, 'symbol')
+        indexedSymbols = self.index_by(apiSymbols, 'id')
         result = []
         # skip the first element(empty string)
         for i in range(1, numRows):
             row = rows[i]
             cells = row.split("</td>\n")  # eslint-disable-line quotes
             numCells = len(cells)
-            if numCells < 9:
+            if numCells < 5:
                 raise NotSupported(error)
             #     [
-            #         '<td>BTC',  # currency
+            #         '<td>btcusd',  # currency
             #         '<td>0.00001 BTC(1e-5)',  # min order size
             #         '<td>0.00000001 BTC(1e-8)',  # tick size
-            #         '<td>0.01 USD',  # usd price increment
-            #         '<td>N/A',  # btc price increment
-            #         '<td>0.0001 ETH(1e-4)',  # eth price increment
-            #         '<td>0.0001 BCH(1e-4)',  # bch price increment
-            #         '<td>0.001 LTC(1e-3)',  # ltc price increment
+            #         '<td>0.01 USD',  # quote currency price increment
             #         '</tr>'
             #     ]
-            #
-            uppercaseBaseId = cells[0].replace('<td>', '')
-            baseId = uppercaseBaseId.lower()
-            base = self.safe_currency_code(baseId)
-            quoteIds = ['usd', 'btc', 'eth', 'bch', 'ltc']
+            id = cells[0].replace('<td>', '')
+            # base = self.safe_currency_code(baseId)
+            quoteIds = ['usd', 'btc', 'eth', 'bch', 'ltc', 'dai']
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
-            amountPrecision = self.precision_from_string(amountPrecisionParts[0])
+            amountPrecision = self.safe_float(amountPrecisionParts, 0)
             for j in range(0, len(quoteIds)):
-                quoteId = quoteIds[j]
+                idLength = len(id) - 0
+                quoteId = id[idLength - 3:idLength]
                 quote = self.safe_currency_code(quoteId)
-                pricePrecisionIndex = self.sum(3, j)
-                pricePrecisionString = cells[pricePrecisionIndex].replace('<td>', '')
-                if pricePrecisionString == 'N/A':
-                    continue
+                pricePrecisionString = cells[3].replace('<td>', '')
                 pricePrecisionParts = pricePrecisionString.split(' ')
-                pricePrecision = self.precision_from_string(pricePrecisionParts[0])
-                symbol = base + '/' + quote
-                if not (symbol in indexedSymbols):
+                pricePrecision = self.safe_float(pricePrecisionParts, 0)
+                if not (id in indexedSymbols):
                     continue
-                marketId = baseId + quoteId
+                baseId = id.replace(quoteId, '')
+                base = self.safe_currency_code(baseId)
+                symbol = base + '/' + quote
                 active = None
                 result.append({
-                    'id': marketId,
+                    'id': id,
                     'info': row,
                     'symbol': symbol,
                     'base': base,

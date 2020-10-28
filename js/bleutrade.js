@@ -122,7 +122,6 @@ module.exports = class bleutrade extends Exchange {
             },
             'options': {
                 'parseOrderStatus': true,
-                'symbolSeparator': '_',
             },
         });
         // undocumented api calls
@@ -291,18 +290,8 @@ module.exports = class bleutrade extends Exchange {
         //     MarketCurrency: 'Litecoin',
         //     BaseCurrency: 'Tether' }
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'MarketName');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const previous = this.safeFloat (ticker, 'PrevDay');
         const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
@@ -410,13 +399,6 @@ module.exports = class bleutrade extends Exchange {
         const response = await this.v3PrivatePostGetopenorders (this.extend (request, params));
         const items = this.safeValue (response, 'result', []);
         return this.parseOrders (items, market, since, limit);
-    }
-
-    parseSymbol (id) {
-        let [ base, quote ] = id.split (this.options['symbolSeparator']);
-        base = this.safeCurrencyCode (base);
-        quote = this.safeCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     async fetchBalance (params = {}) {
@@ -644,20 +626,8 @@ module.exports = class bleutrade extends Exchange {
         //     Comments: { String: '', Valid: true }
         const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'Exchange');
-        if (marketId === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        } else {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = undefined;
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');

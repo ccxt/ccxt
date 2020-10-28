@@ -955,7 +955,7 @@ module.exports = class poloniex extends Exchange {
                 const marketId = marketIds[i];
                 const orders = response[marketId];
                 const m = this.markets_by_id[marketId];
-                openOrders = this.parseOrders (orders, m, undefined, undefined, extension);
+                openOrders = this.arrayConcat (openOrders, this.parseOrders (orders, m, undefined, undefined, extension));
             }
             return this.filterBySinceLimit (openOrders, since, limit);
         } else {

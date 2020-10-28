@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.36.52'
+__version__ = '1.36.95'
 
 # -----------------------------------------------------------------------------
 
@@ -393,8 +393,8 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not cls.web3:
-            cls.web3 = Web3(HTTPProvider())
+        if self.requiresWeb3 and Web3 and not Exchange.web3:
+            Exchange.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -588,50 +588,52 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout as e:
-            raise RequestTimeout(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
         except TooManyRedirects as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except SSLError as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except HTTPError as e:
+            details = ' '.join([self.id, method, url])
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-            raise ExchangeError(method + ' ' + url)
+            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            raise ExchangeError(details) from e
 
         except requestsConnectionError as e:
             error_string = str(e)
+            details = ' '.join([self.id, method, url])
             if 'Read timed out' in error_string:
-                raise RequestTimeout(method + ' ' + url + ' ' + error_string)
+                raise RequestTimeout(details) from e
             else:
-                raise NetworkError(method + ' ' + url + ' ' + error_string)
+                raise NetworkError(details) from e
 
         except RequestException as e:  # base exception class
             error_string = str(e)
+            details = ' '.join([self.id, method, url])
             if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
-                raise NetworkError(method + ' ' + url + ' ' + error_string)
+                raise NetworkError(details) from e
             else:
-                raise ExchangeError(method + ' ' + url + ' ' + error_string)
+                raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         if json_response is not None:
             return json_response
-        if self.is_text_response(headers):
+        elif self.is_text_response(headers):
             return http_response
-        return response.content
+        else:
+            return response.content
 
-    def handle_rest_errors(self, http_status_code, http_status_text, body, url, method):
-        error = None
+    def handle_http_status_code(self, http_status_code, http_status_text, url, method, body):
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
-            error = self.httpExceptions[string_code]
-            if error == ExchangeNotAvailable:
-                if re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE):
-                    error = DDoSProtection
-        if error:
-            raise error(' '.join([method, url, string_code, http_status_text, body]))
+            Exception = self.httpExceptions[string_code]
+            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
@@ -641,6 +643,7 @@ class Exchange(object):
             pass
 
     def is_text_response(self, headers):
+        # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
 
@@ -1723,6 +1726,8 @@ class Exchange(object):
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
                 }
         if market is not None:
             return market
@@ -1730,6 +1735,8 @@ class Exchange(object):
             'symbol': marketId,
             'base': None,
             'quote': None,
+            'baseId': None,
+            'quoteId': None,
         }
 
     def safe_symbol(self, marketId, market=None, delimiter=None):

@@ -555,10 +555,19 @@ module.exports = class whitebit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            const maxLimit = 1440;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min (limit, maxLimit);
+            const start = parseInt (since / 1000);
+            const duration = this.parseTimeframe (timeframe);
+            const end = this.sum (start, duration * limit);
+            request['start'] = start;
+            request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit; // max 1440
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
         //

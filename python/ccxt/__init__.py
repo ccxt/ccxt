@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.36.52'
+__version__ = '1.36.95'
 
 # ----------------------------------------------------------------------------
 
@@ -80,6 +80,7 @@ from ccxt.binanceus import binanceus                        # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
+from ccxt.bitcoincom import bitcoincom                      # noqa: F401
 from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
@@ -148,7 +149,6 @@ from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.idex import idex                                  # noqa: F401
-from ccxt.idex2 import idex2                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
@@ -207,6 +207,7 @@ exchanges = [
     'bit2c',
     'bitbank',
     'bitbay',
+    'bitcoincom',
     'bitfinex',
     'bitfinex2',
     'bitflyer',
@@ -275,7 +276,6 @@ exchanges = [
     'huobiru',
     'ice3x',
     'idex',
-    'idex2',
     'independentreserve',
     'indodax',
     'itbit',

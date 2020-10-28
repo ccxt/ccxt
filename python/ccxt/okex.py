@@ -1845,7 +1845,7 @@ class okex(Exchange):
             # order_type == '4' means a market order
             isMarketOrder = (type == 'market') or (orderType == '4')
             if isMarketOrder:
-                request['match_price'] = '1'
+                request['order_type'] = '4'
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if market['futures']:
@@ -2558,46 +2558,70 @@ class okex(Exchange):
 
     def parse_my_trade(self, pair, market=None):
         # check that trading symbols match in both entries
-        first = pair[0]
-        second = pair[1]
-        firstMarketId = self.safe_string(first, 'instrument_id')
-        secondMarketId = self.safe_string(second, 'instrument_id')
+        userTrade = self.safe_value(pair, 1)
+        otherTrade = self.safe_value(pair, 0)
+        firstMarketId = self.safe_string(otherTrade, 'instrument_id')
+        secondMarketId = self.safe_string(userTrade, 'instrument_id')
         if firstMarketId != secondMarketId:
             raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
         marketId = firstMarketId
-        # determine the base and quote
-        quoteId = None
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            quoteId = market['quoteId']
-            symbol = market['symbol']
-        else:
-            parts = marketId.split('-')
-            quoteId = self.safe_string(parts, 1)
-            symbol = marketId
-        id = self.safe_string(first, 'trade_id')
-        price = self.safe_float(first, 'price')
-        # determine buy/sell side and amounts
-        # get the side from either the first trade or the second trade
-        feeCost = self.safe_float(first, 'fee')
-        index = 0 if (feeCost != 0) else 1
-        userTrade = self.safe_value(pair, index)
-        otherTrade = self.safe_value(pair, 1 - index)
-        receivedCurrencyId = self.safe_string(userTrade, 'currency')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        quoteId = market['quoteId']
         side = None
         amount = None
         cost = None
+        receivedCurrencyId = self.safe_string(userTrade, 'currency')
+        feeCurrencyId = None
         if receivedCurrencyId == quoteId:
-            side = 'sell'
+            side = self.safe_string(otherTrade, 'side')
             amount = self.safe_float(otherTrade, 'size')
             cost = self.safe_float(userTrade, 'size')
+            feeCurrencyId = self.safe_string(otherTrade, 'currency')
         else:
-            side = 'buy'
+            side = self.safe_string(userTrade, 'side')
             amount = self.safe_float(userTrade, 'size')
             cost = self.safe_float(otherTrade, 'size')
-        feeCost = feeCost if (feeCost != 0) else self.safe_float(second, 'fee')
-        trade = self.safe_value(pair, index)
+            feeCurrencyId = self.safe_string(userTrade, 'currency')
+        id = self.safe_string(userTrade, 'trade_id')
+        price = self.safe_float(userTrade, 'price')
+        feeCostFirst = self.safe_float(otherTrade, 'fee')
+        feeCostSecond = self.safe_float(userTrade, 'fee')
+        feeCurrencyCodeFirst = self.safe_currency_code(self.safe_string(otherTrade, 'currency'))
+        feeCurrencyCodeSecond = self.safe_currency_code(self.safe_string(userTrade, 'currency'))
+        fee = None
+        fees = None
+        # fee is either a positive number(invitation rebate)
+        # or a negative number(transaction fee deduction)
+        # therefore we need to invert the fee
+        # more about it https://github.com/ccxt/ccxt/issues/5909
+        if (feeCostFirst is not None) and (feeCostFirst != 0):
+            if (feeCostSecond is not None) and (feeCostSecond != 0):
+                fees = [
+                    {
+                        'cost': -feeCostFirst,
+                        'currency': feeCurrencyCodeFirst,
+                    },
+                    {
+                        'cost': -feeCostSecond,
+                        'currency': feeCurrencyCodeSecond,
+                    },
+                ]
+            else:
+                fee = {
+                    'cost': -feeCostFirst,
+                    'currency': feeCurrencyCodeFirst,
+                }
+        elif (feeCostSecond is not None) and (feeCostSecond != 0):
+            fee = {
+                'cost': -feeCostSecond,
+                'currency': feeCurrencyCodeSecond,
+            }
+        else:
+            fee = {
+                'cost': 0,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            }
         #
         # simplified structures to show the underlying semantics
         #
@@ -2631,26 +2655,14 @@ class okex(Exchange):
         #         "size":"31.03998952",  # ←-- cost
         #     }
         #
-        timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
-        takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
+        timestamp = self.parse8601(self.safe_string_2(userTrade, 'timestamp', 'created_at'))
+        takerOrMaker = self.safe_string_2(userTrade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        fee = None
-        if feeCost is not None:
-            feeCurrencyId = self.safe_string(userTrade, 'currency')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                # fee is either a positive number(invitation rebate)
-                # or a negative number(transaction fee deduction)
-                # therefore we need to invert the fee
-                # more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
-                'currency': feeCurrencyCode,
-            }
-        orderId = self.safe_string(trade, 'order_id')
-        return {
+        orderId = self.safe_string(userTrade, 'order_id')
+        result = {
             'info': pair,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2665,6 +2677,9 @@ class okex(Exchange):
             'cost': cost,
             'fee': fee,
         }
+        if fees is not None:
+            result['fees'] = fees
+        return result
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None, params={}):
         grouped = self.group_by(trades, 'trade_id')

@@ -282,9 +282,6 @@ class bybit(Exchange):
                     'BTC/USDT': 'linear',
                 },
                 'code': 'BTC',
-                'fetchBalance': {
-                    'code': 'BTC',
-                },
                 'cancelAllOrders': {
                     'method': 'privatePostOrderCancelAll',  # privatePostStopOrderCancelAll
                 },
@@ -415,15 +412,14 @@ class bybit(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        defaultCode = self.safe_value(self.options, 'code', 'BTC')
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        code = self.safe_value(options, 'code', defaultCode)
-        code = self.safe_string(params, 'code', code)
-        params = self.omit(params, 'code')
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-        }
+        request = {}
+        coin = self.safe_string(params, 'coin')
+        code = self.safe_string(params, 'code')
+        if coin is not None:
+            request['coin'] = coin
+        elif code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
         response = await self.privateGetWalletBalance(self.extend(request, params))
         #
         #     {
@@ -1037,6 +1033,7 @@ class bybit(Exchange):
             market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
+        type = self.safe_string_lower(order, 'order_type')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'average_price')
         amount = self.safe_float(order, 'qty')
@@ -1057,6 +1054,10 @@ class bybit(Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
+            if (type == 'market') and (cost is not None) and (cost > 0):
+                price = None
+                if average is None:
+                    average = filled / cost
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_float(order, 'cum_exec_fee')
@@ -1067,7 +1068,6 @@ class bybit(Exchange):
                 'cost': feeCost,
                 'currency': base,
             }
-        type = self.safe_string_lower(order, 'order_type')
         clientOrderId = self.safe_string(order, 'order_link_id')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None

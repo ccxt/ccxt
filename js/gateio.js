@@ -827,29 +827,6 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const prefix = (api === 'private') ? (api + '/') : '';
-        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const request = { 'nonce': nonce };
-            body = this.urlencode (this.extend (request, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
-            headers = {
-                'Key': this.apiKey,
-                'Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -973,5 +950,31 @@ module.exports = class gateio extends Exchange {
             const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const prefix = (api === 'private') ? (api + '/') : '';
+        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            const request = { 'nonce': nonce };
+            body = this.rawencode (this.extend (request, query));
+            // gateio does not like the plus sign in the URL query
+            // https://github.com/ccxt/ccxt/issues/4529
+            body = body.replace ('+', ' ');
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            headers = {
+                'Key': this.apiKey,
+                'Sign': signature,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };

@@ -155,6 +155,8 @@ class probit(Exchange):
             'commonCurrencies': {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'CBC': 'CryptoBharatCoin',
+                'UNI': 'UNICORN Token',
             },
         })
 

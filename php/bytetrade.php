@@ -636,6 +636,8 @@ class bytetrade extends Exchange {
         $defaultDappId = 'Sagittarius';
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
+        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', 8);
+        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', 1);
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = $this->integer_pow('2', '64');
         $allByteStringArray = array(
@@ -660,7 +662,10 @@ class bytetrade extends Exchange {
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(0, 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($chainFeeRate), 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($totalFeeRate), 2),
             $this->number_to_le(intval($quoteId), 4),
             $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
@@ -690,7 +695,10 @@ class bytetrade extends Exchange {
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(0, 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($chainFeeRate), 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($totalFeeRate), 2),
             $this->number_to_le(intval($quoteId), 4),
             $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
@@ -728,6 +736,8 @@ class bytetrade extends Exchange {
             'use_btt_as_fee' => false,
             'money_id' => intval($quoteId),
             'stock_id' => intval($baseId),
+            'custom_no_btt_fee_rate' => intval($totalFeeRate),
+            'custom_btt_fee_rate' => intval($chainFeeRate),
         );
         $fatty = array(
             'timestamp' => $datetime,

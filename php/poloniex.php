@@ -958,7 +958,7 @@ class poloniex extends Exchange {
                 $marketId = $marketIds[$i];
                 $orders = $response[$marketId];
                 $m = $this->markets_by_id[$marketId];
-                $openOrders = $this->parse_orders($orders, $m, null, null, $extension);
+                $openOrders = $this->array_concat($openOrders, $this->parse_orders($orders, $m, null, null, $extension));
             }
             return $this->filter_by_since_limit($openOrders, $since, $limit);
         } else {

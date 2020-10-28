@@ -379,12 +379,9 @@ class fcoin(Exchange):
             if tickerType is not None:
                 parts = tickerType.split('.')
                 id = parts[1]
-                if id in self.markets_by_id:
-                    market = self.markets_by_id[id]
+                symbol = self.safe_symbol(id, market)
         values = ticker['ticker']
         last = self.safe_float(values, 0)
-        if market is not None:
-            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -529,11 +526,9 @@ class fcoin(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         orderType = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'created_at')
         amount = self.safe_float(order, 'amount')
@@ -554,13 +549,11 @@ class fcoin(Exchange):
         feeRebate = self.safe_float(order, 'fees_income')
         if (feeRebate is not None) and (feeRebate > 0):
             if market is not None:
-                symbol = market['symbol']
                 feeCurrency = market['quote'] if (side == 'buy') else market['base']
             feeCost = -feeRebate
         else:
             feeCost = self.safe_float(order, 'fill_fees')
             if market is not None:
-                symbol = market['symbol']
                 feeCurrency = market['base'] if (side == 'buy') else market['quote']
         return {
             'info': order,

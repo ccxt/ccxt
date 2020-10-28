@@ -169,12 +169,10 @@ class lakebtc(Exchange):
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
-            symbol = ids[i]
-            ticker = response[symbol]
-            market = None
-            if symbol in self.markets_by_id:
-                market = self.markets_by_id[symbol]
-                symbol = market['symbol']
+            marketId = ids[i]
+            ticker = response[marketId]
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 

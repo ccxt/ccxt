@@ -831,29 +831,6 @@ class gateio extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $prefix = ($api === 'private') ? ($api . '/') : '';
-        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else {
-            $this->check_required_credentials();
-            $nonce = $this->nonce();
-            $request = array( 'nonce' => $nonce );
-            $body = $this->urlencode(array_merge($request, $query));
-            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
-            $headers = array(
-                'Key' => $this->apiKey,
-                'Sign' => $signature,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_transactions_by_type($type = null, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
@@ -977,5 +954,31 @@ class gateio extends Exchange {
             $feedback = $this->safe_string($this->exceptions['errorCodeNames'], $errorCode, $message);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $prefix = ($api === 'private') ? ($api . '/') : '';
+        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params($path, $params);
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $nonce = $this->nonce();
+            $request = array( 'nonce' => $nonce );
+            $body = $this->rawencode(array_merge($request, $query));
+            // gateio does not like the plus sign in the URL $query
+            // https://github.com/ccxt/ccxt/issues/4529
+            $body = str_replace('+', ' ', $body);
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
+            $headers = array(
+                'Key' => $this->apiKey,
+                'Sign' => $signature,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

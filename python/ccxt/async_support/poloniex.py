@@ -899,7 +899,7 @@ class poloniex(Exchange):
                 marketId = marketIds[i]
                 orders = response[marketId]
                 m = self.markets_by_id[marketId]
-                openOrders = self.parse_orders(orders, m, None, None, extension)
+                openOrders = self.array_concat(openOrders, self.parse_orders(orders, m, None, None, extension))
             return self.filter_by_since_limit(openOrders, since, limit)
         else:
             return self.parse_orders(response, market, since, limit, extension)
