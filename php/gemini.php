@@ -106,6 +106,7 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'taker' => 0.0035,
@@ -183,7 +184,7 @@ class gemini extends Exchange {
 
     public function fetch_markets_from_web($params = array ()) {
         $response = $this->webGetRestApi ($params);
-        $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
+        $sections = explode('<h1 $id="symbols-and-minimums">Symbols and minimums</h1>', $response);
         $numSections = is_array($sections) ? count($sections) : 0;
         $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
@@ -200,56 +201,48 @@ class gemini extends Exchange {
             throw new NotSupported($error);
         }
         $apiSymbols = $this->fetch_markets_from_api($params);
-        $indexedSymbols = $this->index_by($apiSymbols, 'symbol');
+        $indexedSymbols = $this->index_by($apiSymbols, 'id');
         $result = array();
         // skip the first element (empty string)
         for ($i = 1; $i < $numRows; $i++) {
             $row = $rows[$i];
             $cells = explode("</td>\n", $row); // eslint-disable-line quotes
             $numCells = is_array($cells) ? count($cells) : 0;
-            if ($numCells < 9) {
+            if ($numCells < 5) {
                 throw new NotSupported($error);
             }
             //     array(
-            //         '<td>BTC', // currency
+            //         '<td>btcusd', // currency
             //         '<td>0.00001 BTC (1e-5)', // min order size
             //         '<td>0.00000001 BTC (1e-8)', // tick size
-            //         '<td>0.01 USD', // usd price increment
-            //         '<td>N/A', // btc price increment
-            //         '<td>0.0001 ETH (1e-4)', // eth price increment
-            //         '<td>0.0001 BCH (1e-4)', // bch price increment
-            //         '<td>0.001 LTC (1e-3)', // ltc price increment
+            //         '<td>0.01 USD', // $quote currency price increment
             //         '</tr>'
             //     )
-            //
-            $uppercaseBaseId = str_replace('<td>', '', $cells[0]);
-            $baseId = strtolower($uppercaseBaseId);
-            $base = $this->safe_currency_code($baseId);
-            $quoteIds = array( 'usd', 'btc', 'eth', 'bch', 'ltc' );
+            $id = str_replace('<td>', '', $cells[0]);
+            // $base = $this->safe_currency_code($baseId);
+            $quoteIds = array( 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' );
             $minAmountString = str_replace('<td>', '', $cells[1]);
             $minAmountParts = explode(' ', $minAmountString);
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
-            $amountPrecision = $this->precision_from_string($amountPrecisionParts[0]);
+            $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
             for ($j = 0; $j < count($quoteIds); $j++) {
-                $quoteId = $quoteIds[$j];
+                $idLength = strlen($id) - 0;
+                $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
                 $quote = $this->safe_currency_code($quoteId);
-                $pricePrecisionIndex = $this->sum(3, $j);
-                $pricePrecisionString = str_replace('<td>', '', $cells[$pricePrecisionIndex]);
-                if ($pricePrecisionString === 'N/A') {
-                    continue;
-                }
+                $pricePrecisionString = str_replace('<td>', '', $cells[3]);
                 $pricePrecisionParts = explode(' ', $pricePrecisionString);
-                $pricePrecision = $this->precision_from_string($pricePrecisionParts[0]);
-                $symbol = $base . '/' . $quote;
-                if (!(is_array($indexedSymbols) && array_key_exists($symbol, $indexedSymbols))) {
+                $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+                if (!(is_array($indexedSymbols) && array_key_exists($id, $indexedSymbols))) {
                     continue;
                 }
-                $marketId = $baseId . $quoteId;
+                $baseId = str_replace($quoteId, '', $id);
+                $base = $this->safe_currency_code($baseId);
+                $symbol = $base . '/' . $quote;
                 $active = null;
                 $result[] = array(
-                    'id' => $marketId,
+                    'id' => $id,
                     'info' => $row,
                     'symbol' => $symbol,
                     'base' => $base,
