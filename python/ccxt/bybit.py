@@ -1054,7 +1054,7 @@ class bybit(Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-            if (type == 'market') and (cost is not None):
+            if (type == 'market') and (cost is not None) and (cost > 0):
                 price = None
                 if average is None:
                     average = filled / cost

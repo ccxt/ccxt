@@ -1090,7 +1090,7 @@ class bybit extends Exchange {
                     $cost = $price * $filled;
                 }
             }
-            if (($type === 'market') && ($cost !== null)) {
+            if (($type === 'market') && ($cost !== null) && ($cost > 0)) {
                 $price = null;
                 if ($average === null) {
                     $average = $filled / $cost;
