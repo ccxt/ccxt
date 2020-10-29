@@ -895,26 +895,37 @@ class coinbasepro extends Exchange {
         $currency = null;
         $id = $this->safe_string($params, 'id'); // $account $id
         if ($id === null) {
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency $code argument if no $account $id specified in params');
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+                $account = $this->safe_value($accountsByCurrencyCode, $code);
+                if ($account === null) {
+                    throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
+                }
+                $id = $account['id'];
             }
-            $currency = $this->currency($code);
-            $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
-            $account = $this->safe_value($accountsByCurrencyCode, $code);
-            if ($account === null) {
-                throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
-            }
-            $id = $account['id'];
         }
-        $request = array(
-            'id' => $id,
-        );
+        $request = array();
+        if ($id !== null) {
+            $request['id'] = $id;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetAccountsIdTransfers (array_merge($request, $params));
-        for ($i = 0; $i < count($response); $i++) {
-            $response[$i]['currency'] = $code;
+        $response = null;
+        if ($id === null) {
+            $response = $this->privateGetTransfers (array_merge($request, $params));
+            for ($i = 0; $i < count($response); $i++) {
+                $account_id = $this->safe_string($response[$i], 'account_id');
+                $account = $this->safe_value($this->accountsById, $account_id);
+                $code = $this->safe_string($account, 'currency');
+                $response[$i]['currency'] = $code;
+            }
+        } else {
+            $response = $this->privateGetAccountsIdTransfers (array_merge($request, $params));
+            for ($i = 0; $i < count($response); $i++) {
+                $response[$i]['currency'] = $code;
+            }
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
