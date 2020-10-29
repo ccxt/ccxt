@@ -224,49 +224,47 @@ module.exports = class gemini extends Exchange {
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
-            for (let j = 0; j < quoteIds.length; j++) {
-                const idLength = id.length - 0;
-                const quoteId = id.slice (idLength - 3, idLength);
-                const quote = this.safeCurrencyCode (quoteId);
-                const pricePrecisionString = cells[3].replace ('<td>', '');
-                const pricePrecisionParts = pricePrecisionString.split (' ');
-                const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
-                if (!(id in indexedSymbols)) {
-                    continue;
-                }
-                const baseId = id.replace (quoteId, '');
-                const base = this.safeCurrencyCode (baseId);
-                const symbol = base + '/' + quote;
-                const active = undefined;
-                result.push ({
-                    'id': id,
-                    'info': row,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
-                    },
-                    'limits': {
-                        'amount': {
-                            'min': minAmount,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                });
+            const idLength = id.length - 0;
+            const quoteId = id.slice (idLength - 3, idLength);
+            const quote = this.safeCurrencyCode (quoteId);
+            const pricePrecisionString = cells[3].replace ('<td>', '');
+            const pricePrecisionParts = pricePrecisionString.split (' ');
+            const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+            if (!(id in indexedSymbols)) {
+                continue;
             }
+            const baseId = id.replace (quoteId, '');
+            const base = this.safeCurrencyCode (baseId);
+            const symbol = base + '/' + quote;
+            const active = undefined;
+            result.push ({
+                'id': id,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
         }
         return result;
     }
