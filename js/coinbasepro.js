@@ -42,6 +42,8 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -924,6 +926,14 @@ module.exports = class coinbasepro extends Exchange {
             }
         }
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'deposit' }));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'withdraw' }));
     }
 
     parseTransactionStatus (transaction) {
