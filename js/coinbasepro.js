@@ -891,26 +891,37 @@ module.exports = class coinbasepro extends Exchange {
         let currency = undefined;
         let id = this.safeString (params, 'id'); // account id
         if (id === undefined) {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no account id specified in params');
+            if (code !== undefined) {
+                currency = this.currency (code);
+                const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+                const account = this.safeValue (accountsByCurrencyCode, code);
+                if (account === undefined) {
+                    throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+                }
+                id = account['id'];
             }
-            currency = this.currency (code);
-            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
-            const account = this.safeValue (accountsByCurrencyCode, code);
-            if (account === undefined) {
-                throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
-            }
-            id = account['id'];
         }
-        const request = {
-            'id': id,
-        };
+        const request = {};
+        if (id !== undefined) {
+            request['id'] = id;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = code;
+        let response = undefined;
+        if (id === undefined) {
+            response = await this.privateGetTransfers (this.extend (request, params));
+            for (let i = 0; i < response.length; i++) {
+                const account_id = this.safeString (response[i], 'account_id');
+                const account = this.safeValue (this.accountsById, account_id);
+                const code = this.safeString (account, 'currency');
+                response[i]['currency'] = code;
+            }
+        } else {
+            response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+            for (let i = 0; i < response.length; i++) {
+                response[i]['currency'] = code;
+            }
         }
         return this.parseTransactions (response, currency, since, limit);
     }
