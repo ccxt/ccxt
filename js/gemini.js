@@ -167,7 +167,7 @@ module.exports = class gemini extends Exchange {
         return await this[method] (params);
     }
 
-    async fetchMarketsFromWeb (symbols = undefined, params = {}) {
+    async fetchMarketsFromWeb (params = {}) {
         const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
@@ -191,73 +191,62 @@ module.exports = class gemini extends Exchange {
             const row = rows[i];
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
-            if (numCells < 9) {
+            if (numCells < 5) {
                 throw new NotSupported (error);
             }
             //     [
-            //         '<td>BTC', // currency
+            //         '<td>btcusd', // currency
             //         '<td>0.00001 BTC (1e-5)', // min order size
             //         '<td>0.00000001 BTC (1e-8)', // tick size
-            //         '<td>0.01 USD', // usd price increment
-            //         '<td>N/A', // btc price increment
-            //         '<td>0.0001 ETH (1e-4)', // eth price increment
-            //         '<td>0.0001 BCH (1e-4)', // bch price increment
-            //         '<td>0.001 LTC (1e-3)', // ltc price increment
+            //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            //
-            const uppercaseBaseId = cells[0].replace ('<td>', '');
-            const baseId = uppercaseBaseId.toLowerCase ();
-            const base = this.safeCurrencyCode (baseId);
-            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc' ];
+            const id = cells[0].replace ('<td>', '');
+            // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
             const minAmount = this.safeFloat (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const amountPrecision = this.precisionFromString (amountPrecisionParts[0]);
-            for (let j = 0; j < quoteIds.length; j++) {
-                const quoteId = quoteIds[j];
-                const quote = this.safeCurrencyCode (quoteId);
-                const pricePrecisionIndex = this.sum (3, j);
-                const pricePrecisionString = cells[pricePrecisionIndex].replace ('<td>', '');
-                if (pricePrecisionString === 'N/A') {
-                    continue;
-                }
-                const pricePrecisionParts = pricePrecisionString.split (' ');
-                const pricePrecision = this.precisionFromString (pricePrecisionParts[0]);
-                const symbol = base + '/' + quote;
-                const id = baseId + quoteId;
-                const active = undefined;
-                result.push ({
-                    'id': id,
-                    'info': row,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
+            const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
+            const idLength = id.length - 0;
+            const quoteId = id.slice (idLength - 3, idLength);
+            const quote = this.safeCurrencyCode (quoteId);
+            const pricePrecisionString = cells[3].replace ('<td>', '');
+            const pricePrecisionParts = pricePrecisionString.split (' ');
+            const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+            const baseId = id.replace (quoteId, '');
+            const base = this.safeCurrencyCode (baseId);
+            const symbol = base + '/' + quote;
+            const active = undefined;
+            result.push ({
+                'id': id,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
                     },
-                    'limits': {
-                        'amount': {
-                            'min': minAmount,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                });
-            }
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
         }
         return result;
     }
