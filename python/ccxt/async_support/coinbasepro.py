@@ -858,22 +858,30 @@ class coinbasepro(Exchange):
         currency = None
         id = self.safe_string(params, 'id')  # account id
         if id is None:
-            if code is None:
-                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument if no account id specified in params')
-            currency = self.currency(code)
-            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
-            account = self.safe_value(accountsByCurrencyCode, code)
-            if account is None:
-                raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
-            id = account['id']
-        request = {
-            'id': id,
-        }
+            if code is not None:
+                currency = self.currency(code)
+                accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+                account = self.safe_value(accountsByCurrencyCode, code)
+                if account is None:
+                    raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+                id = account['id']
+        request = {}
+        if id is not None:
+            request['id'] = id
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
-        for i in range(0, len(response)):
-            response[i]['currency'] = code
+        response = None
+        if id is None:
+            response = await self.privateGetTransfers(self.extend(request, params))
+            for i in range(0, len(response)):
+                account_id = self.safe_string(response[i], 'account_id')
+                account = self.safe_value(self.accountsById, account_id)
+                code = self.safe_string(account, 'currency')
+                response[i]['currency'] = code
+        else:
+            response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
+            for i in range(0, len(response)):
+                response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
