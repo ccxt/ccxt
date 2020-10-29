@@ -831,7 +831,7 @@ module.exports = class gemini extends Exchange {
                 'nonce': nonce,
             }, query);
             let payload = this.json (request);
-            payload = this.stringToBase64 (payload);
+            payload = this.stringToBase64 (this.encode (payload));
             const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
             headers = {
                 'Content-Type': 'text/plain',
