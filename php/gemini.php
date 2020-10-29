@@ -20,29 +20,22 @@ class gemini extends Exchange {
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
-                'CORS' => false,
-                'createDepositAddress' => true,
-                'createMarketOrder' => false,
-                'createOrder' => true,
-                'fetchBalance' => true,
-                'fetchBidsAsks' => false,
-                'fetchClosedOrders' => false,
                 'fetchDepositAddress' => false,
-                'fetchDeposits' => false,
-                'fetchMarkets' => true,
+                'createDepositAddress' => true,
+                'CORS' => false,
+                'fetchBidsAsks' => false,
+                'fetchTickers' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => true,
-                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrderBook' => true,
                 'fetchOrders' => false,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
-                'fetchTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => false,
+                'createMarketOrder' => false,
+                'withdraw' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
-                'withdraw' => true,
+                'fetchDeposits' => false,
+                'fetchOHLCV' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -76,7 +69,6 @@ class gemini extends Exchange {
                 'public' => array(
                     'get' => array(
                         'v1/symbols',
-                        'v1/pricefeed',
                         'v1/pubticker/{symbol}',
                         'v1/book/{symbol}',
                         'v1/trades/{symbol}',
@@ -106,7 +98,6 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
-            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'taker' => 0.0035,
@@ -120,7 +111,7 @@ class gemini extends Exchange {
                 '406' => '\\ccxt\\InsufficientFunds', // Insufficient Funds
                 '429' => '\\ccxt\\RateLimitExceeded', // Rate Limiting was applied
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
-                '502' => '\\ccxt\\ExchangeNotAvailable', // Technical issues are preventing the request from being satisfied
+                '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
                 '503' => '\\ccxt\\OnMaintenance', // The exchange is down for maintenance
             ),
             'timeframes' => array(
@@ -167,12 +158,10 @@ class gemini extends Exchange {
                 ),
                 'broad' => array(
                     'The Gemini Exchange is currently undergoing maintenance.' => '\\ccxt\\OnMaintenance', // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
-                    'We are investigating technical issues with the Gemini Exchange.' => '\\ccxt\\ExchangeNotAvailable', // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 ),
             ),
             'options' => array(
                 'fetchMarketsMethod' => 'fetch_markets_from_web',
-                'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
             ),
         ));
     }
@@ -200,8 +189,6 @@ class gemini extends Exchange {
         if ($numRows < 2) {
             throw new NotSupported($error);
         }
-        $apiSymbols = $this->fetch_markets_from_api ($params);
-        $indexedSymbols = $this->index_by($apiSymbols, 'id');
         $result = array();
         // skip the first element (empty string)
         for ($i = 1; $i < $numRows; $i++) {
@@ -220,56 +207,50 @@ class gemini extends Exchange {
             //     )
             $id = str_replace('<td>', '', $cells[0]);
             // $base = $this->safe_currency_code($baseId);
-            $quoteIds = array( 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' );
             $minAmountString = str_replace('<td>', '', $cells[1]);
             $minAmountParts = explode(' ', $minAmountString);
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
-            for ($j = 0; $j < count($quoteIds); $j++) {
-                $idLength = strlen($id) - 0;
-                $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
-                $quote = $this->safe_currency_code($quoteId);
-                $pricePrecisionString = str_replace('<td>', '', $cells[3]);
-                $pricePrecisionParts = explode(' ', $pricePrecisionString);
-                $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
-                if (!(is_array($indexedSymbols) && array_key_exists($id, $indexedSymbols))) {
-                    continue;
-                }
-                $baseId = str_replace($quoteId, '', $id);
-                $base = $this->safe_currency_code($baseId);
-                $symbol = $base . '/' . $quote;
-                $active = null;
-                $result[] = array(
-                    'id' => $id,
-                    'info' => $row,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'active' => $active,
-                    'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $pricePrecision,
+            $idLength = strlen($id) - 0;
+            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $quote = $this->safe_currency_code($quoteId);
+            $pricePrecisionString = str_replace('<td>', '', $cells[3]);
+            $pricePrecisionParts = explode(' ', $pricePrecisionString);
+            $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+            $baseId = str_replace($quoteId, '', $id);
+            $base = $this->safe_currency_code($baseId);
+            $symbol = $base . '/' . $quote;
+            $active = null;
+            $result[] = array(
+                'id' => $id,
+                'info' => $row,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                ),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $minAmount,
+                        'max' => null,
                     ),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $minAmount,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                );
-            }
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
         }
         return $result;
     }
@@ -280,9 +261,8 @@ class gemini extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $id = $response[$i];
             $market = $id;
-            $idLength = strlen($id) - 0;
-            $baseId = mb_substr($id, 0, $idLength - 3 - 0);
-            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -332,229 +312,42 @@ class gemini extends Exchange {
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker_v1 ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = $this->publicGetV1PubtickerSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "bid":"9117.95",
-        //         "ask":"9117.96",
-        //         "volume":array(
-        //             "BTC":"1615.46861748",
-        //             "USD":"14727307.57545006088",
-        //             "timestamp":1594982700000
-        //         ),
-        //         "last":"9115.23"
-        //     }
-        //
-        return $this->parse_ticker($response, $market);
-    }
-
-    public function fetch_ticker_v2 ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = $this->publicGetV2TickerSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "$symbol":"BTCUSD",
-        //         "open":"9080.58",
-        //         "high":"9184.53",
-        //         "low":"9063.56",
-        //         "close":"9116.08",
-        //         // Hourly prices descending for past 24 hours
-        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
-        //         "bid":"9115.86",
-        //         "ask":"9115.87"
-        //     }
-        //
-        return $this->parse_ticker($response, $market);
-    }
-
-    public function fetch_ticker_v1_and_v2 ($symbol, $params = array ()) {
-        $tickerA = $this->fetch_ticker_v1 ($symbol, $params);
-        $tickerB = $this->fetch_ticker_v2 ($symbol, $params);
-        return array_replace_recursive($tickerA, array(
-            'open' => $tickerB['open'],
-            'high' => $tickerB['high'],
-            'low' => $tickerB['low'],
-            'change' => $tickerB['change'],
-            'percentage' => $tickerB['percentage'],
-            'average' => $tickerB['average'],
-            'info' => $tickerB['info'],
-        ));
-    }
-
     public function fetch_ticker ($symbol, $params = array ()) {
-        $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
-        return $this->$method ($symbol, $params);
-    }
-
-    public function parse_ticker ($ticker, $market = null) {
-        //
-        // fetchTickers
-        //
-        //     {
-        //         "pair" => "BATUSD",
-        //         "$price" => "0.20687",
-        //         "percentChange24h" => "0.0146"
-        //     }
-        //
-        // fetchTickerV1
-        //
-        //     {
-        //         "bid":"9117.95",
-        //         "ask":"9117.96",
-        //         "$volume":array(
-        //             "BTC":"1615.46861748",
-        //             "USD":"14727307.57545006088",
-        //             "$timestamp":1594982700000
-        //         ),
-        //         "$last":"9115.23"
-        //     }
-        //
-        // fetchTickerV2
-        //
-        //     {
-        //         "$symbol":"BTCUSD",
-        //         "$open":"9080.58",
-        //         "high":"9184.53",
-        //         "low":"9063.56",
-        //         "close":"9116.08",
-        //         // Hourly prices descending for past 24 hours
-        //         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
-        //         "bid":"9115.86",
-        //         "ask":"9115.87"
-        //     }
-        //
-        $volume = $this->safe_value($ticker, 'volume', array());
-        $timestamp = $this->safe_integer($volume, 'timestamp');
-        $symbol = null;
-        $marketId = $this->safe_string($ticker, 'pair');
-        $baseId = null;
-        $quoteId = null;
-        $base = null;
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $idLength = strlen($marketId) - 0;
-                if ($idLength === 7) {
-                    $baseId = mb_substr($marketId, 0, 4 - 0);
-                    $quoteId = mb_substr($marketId, 4, 7 - 4);
-                } else {
-                    $baseId = mb_substr($marketId, 0, 3 - 0);
-                    $quoteId = mb_substr($marketId, 3, 6 - 3);
-                }
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $baseId = strtoupper($market['baseId']);
-            $quoteId = strtoupper($market['quoteId']);
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
-        $price = $this->safe_float($ticker, 'price');
-        $last = $this->safe_float_2($ticker, 'last', 'close', $price);
-        $percentage = $this->safe_float($ticker, 'percentChange24h');
-        $change = null;
-        $open = $this->safe_float($ticker, 'open');
-        $average = null;
-        if ($last !== null) {
-            if ($open !== null) {
-                $change = $last - $open;
-                if ($open !== 0) {
-                    $percentage = $change / $open * 100;
-                }
-                $average = $this->sum ($last, $open) / 2;
-            } else if ($percentage !== null) {
-                $change = $last * $percentage;
-                if ($open === null) {
-                    $open = $last - $change;
-                }
-                $average = $this->sum ($last, $open) / 2;
-            }
-        }
-        $baseVolume = $this->safe_float($volume, $baseId);
-        $quoteVolume = $this->safe_float($volume, $quoteId);
-        $vwap = $this->vwap ($baseVolume, $quoteVolume);
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $ticker = $this->publicGetV1PubtickerSymbol (array_merge($request, $params));
+        $timestamp = $this->safe_integer($ticker['volume'], 'timestamp');
+        $baseCurrency = $market['base']; // unified structures are guaranteed to have unified fields
+        $quoteCurrency = $market['quote']; // so we don't need safe-methods for unified structures
+        $last = $this->safe_float($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => null,
+            'low' => null,
             'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
-            'open' => $open,
+            'vwap' => null,
+            'open' => null,
             'close' => $last,
             'last' => $last,
-            'previousClose' => null, // previous day close
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker['volume'], $baseCurrency),
+            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteCurrency),
             'info' => $ticker,
         );
     }
 
-    public function parse_tickers ($tickers, $symbols = null) {
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = $this->parse_ticker($tickers[$i]);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
-    }
-
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->publicGetV1Pricefeed ($params);
-        //
-        //     array(
-        //         array(
-        //             "pair" => "BATUSD",
-        //             "price" => "0.20687",
-        //             "percentChange24h" => "0.0146"
-        //         ),
-        //         array(
-        //             "pair" => "LINKETH",
-        //             "price" => "0.018",
-        //             "percentChange24h" => "0.0000"
-        //         ),
-        //     )
-        //
-        return $this->parse_tickers ($response, $symbols);
-    }
-
     public function parse_trade ($trade, $market = null) {
-        //
-        // public fetchTrades
-        //
-        //     {
-        //         "$timestamp":1601617445,
-        //         "timestampms":1601617445144,
-        //         "tid":14122489752,
-        //         "$price":"0.46476",
-        //         "$amount":"28.407209",
-        //         "exchange":"gemini",
-        //         "$type":"buy"
-        //     }
-        //
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -574,7 +367,10 @@ class gemini extends Exchange {
         }
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
-        $symbol = $this->safeSymbol (null, $market);
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array(
             'id' => $id,
             'order' => $orderId,
@@ -599,19 +395,6 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV1TradesSymbol (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "timestamp":1601617445,
-        //             "timestampms":1601617445144,
-        //             "tid":14122489752,
-        //             "price":"0.46476",
-        //             "amount":"28.407209",
-        //             "exchange":"gemini",
-        //             "type":"buy"
-        //         ),
-        //     )
-        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -660,8 +443,16 @@ class gemini extends Exchange {
             $type = $order['type'];
         }
         $fee = null;
-        $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safeSymbol ($marketId, $market);
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $id = $this->safe_string($order, 'order_id');
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
@@ -699,11 +490,12 @@ class gemini extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostV1Orders ($params);
-        $market = null;
+        $orders = $this->parse_orders($response, null, $since, $limit);
         if ($symbol !== null) {
             $market = $this->market ($symbol); // throws on non-existent $symbol
+            $orders = $this->filter_by_symbol($orders, $market['symbol']);
         }
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $orders;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -903,13 +695,6 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params));
-        //
-        //     [
-        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
-        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
-        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
-        //     ]
-        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 }
