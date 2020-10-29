@@ -113,13 +113,7 @@ module.exports = class gateio extends ccxt.gateio {
         const clean = this.safeValue (params, 0);
         const book = this.safeValue (params, 1);
         const marketId = this.safeStringLower (params, 2);
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
+        const symbol = this.safeSymbol (marketId);
         const method = this.safeString (message, 'method');
         const messageHash = method + ':' + marketId;
         let orderBook = undefined;
@@ -186,16 +180,14 @@ module.exports = class gateio extends ccxt.gateio {
         //
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeStringLower (params, 0);
-        const market = this.safeValue (this.markets_by_id, marketId);
-        if (market !== undefined) {
-            const symbol = market['symbol'];
-            const ticker = this.safeValue (params, 1, {});
-            const result = this.parseTicker (ticker, market);
-            const methodType = message['method'];
-            const messageHash = methodType + ':' + marketId;
-            this.tickers[symbol] = result;
-            client.resolve (result, messageHash);
-        }
+        const market = this.safeMarket (marketId, undefined, '_');
+        const symbol = market['symbol'];
+        const ticker = this.safeValue (params, 1, {});
+        const result = this.parseTicker (ticker, market);
+        const methodType = message['method'];
+        const messageHash = methodType + ':' + marketId;
+        this.tickers[symbol] = result;
+        client.resolve (result, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -247,12 +239,8 @@ module.exports = class gateio extends ccxt.gateio {
         //
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeStringLower (params, 0);
-        let market = undefined;
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const market = this.safeMarket (marketId, undefined, '_');
+        const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -324,12 +312,7 @@ module.exports = class gateio extends ccxt.gateio {
             this.safeFloat (ohlcv, 2), // c
             this.safeFloat (ohlcv, 5), // v
         ];
-        let market = undefined;
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '_');
         // gateio sends candles without a timeframe identifier
         // making it impossible to differentiate candles from
         // two or more different timeframes within the same symbol
@@ -468,10 +451,7 @@ module.exports = class gateio extends ccxt.gateio {
         const messageHash = message['method'];
         const order = message['params'][1];
         const marketId = this.safeStringLower (order, 'market');
-        let market = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const market = this.safeMarket (marketId, undefined, '_');
         const parsed = this.parseOrder (order, market);
         client.resolve (parsed, messageHash);
     }

@@ -171,14 +171,8 @@ class currencycom extends \ccxt\currencycom {
         //         $buyer => false
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'symbol');
+        $symbol = $this->safe_symbol($marketId, null, '/');
         $timestamp = $this->safe_integer($trade, 'ts');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
@@ -270,33 +264,31 @@ class currencycom extends \ccxt\currencycom {
         $interval = $this->safe_string($payload, 'interval');
         $timeframe = $this->find_timeframe($interval);
         $marketId = $this->safe_string($payload, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $messageHash = $destination . ':' . $timeframe . ':' . $symbol;
-            $result = array(
-                $this->safe_integer($payload, 't'),
-                $this->safe_float($payload, 'o'),
-                $this->safe_float($payload, 'h'),
-                $this->safe_float($payload, 'l'),
-                $this->safe_float($payload, 'c'),
-                null, // no volume v in OHLCV
-            );
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-            if ($stored === null) {
-                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCache ($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
-            }
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length && $result[0] === $stored[$length - 1][0]) {
-                $stored[$length - 1] = $result;
-            } else {
-                $stored->append ($result);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $messageHash = $destination . ':' . $timeframe . ':' . $symbol;
+        $result = array(
+            $this->safe_integer($payload, 't'),
+            $this->safe_float($payload, 'o'),
+            $this->safe_float($payload, 'h'),
+            $this->safe_float($payload, 'l'),
+            $this->safe_float($payload, 'c'),
+            null, // no volume v in OHLCV
+        );
+        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && $result[0] === $stored[$length - 1][0]) {
+            $stored[$length - 1] = $result;
+        } else {
+            $stored->append ($result);
+        }
+        $client->resolve ($stored, $messageHash);
     }
 
     public function request_id() {
@@ -422,16 +414,7 @@ class currencycom extends \ccxt\currencycom {
         $payload = $this->safe_value($message, 'payload', array());
         $data = $this->safe_value($payload, 'data', array());
         $marketId = $this->safe_string($payload, 'symbol');
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['id'];
-            } else {
-                $symbol = $marketId;
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, null, '/');
         // $destination = $this->safe_string($message, 'destination');
         $destination = 'depthMarketData.subscribe';
         $messageHash = $destination . ':' . $symbol;

@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "32edcd4629ee08538405596379e70cda",
+    "content-hash": "d25713dd8205e3c32e8ab47530eb3d5c",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.36.50",
+            "version": "1.37.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "e2d0d9a4f8641910b7df4915dc5a993bd90cc90f"
+                "reference": "a23fbb49dd6e953ed3baf5350d94c95fc099b515"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/e2d0d9a4f8641910b7df4915dc5a993bd90cc90f",
-                "reference": "e2d0d9a4f8641910b7df4915dc5a993bd90cc90f",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/a23fbb49dd6e953ed3baf5350d94c95fc099b515",
+                "reference": "a23fbb49dd6e953ed3baf5350d94c95fc099b515",
                 "shasum": ""
             },
             "require": {
@@ -269,7 +269,13 @@
                 "zec",
                 "zerocoin"
             ],
-            "time": "2020-10-15T16:26:08+00:00"
+            "funding": [
+                {
+                    "url": "https://opencollective.com/ccxt",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2020-10-29T12:12:13+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1018,20 +1024,20 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.18.1",
+            "version": "v1.20.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "a6977d63bf9a0ad4c65cd352709e230876f9904a"
+                "reference": "39d483bdf39be819deabf04ec872eb0b2410b531"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/a6977d63bf9a0ad4c65cd352709e230876f9904a",
-                "reference": "a6977d63bf9a0ad4c65cd352709e230876f9904a",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/39d483bdf39be819deabf04ec872eb0b2410b531",
+                "reference": "39d483bdf39be819deabf04ec872eb0b2410b531",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.3"
+                "php": ">=7.1"
             },
             "suggest": {
                 "ext-mbstring": "For best performance"
@@ -1039,7 +1045,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.18-dev"
+                    "dev-main": "1.20-dev"
                 },
                 "thanks": {
                     "name": "symfony/polyfill",
@@ -1077,7 +1083,21 @@
                 "portable",
                 "shim"
             ],
-            "time": "2020-07-14T12:35:20+00:00"
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-23T14:02:19+00:00"
         }
     ],
     "packages-dev": [],
@@ -1090,5 +1110,6 @@
         "php": ">=5.4.0",
         "ext-ds": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
