@@ -61,6 +61,8 @@ class coinbasepro(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': True,
                 'withdraw': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -883,6 +885,12 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'deposit'}))
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'withdraw'}))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')

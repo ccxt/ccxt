@@ -46,6 +46,8 @@ class coinbasepro extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array(
                 '1m' => 60,
@@ -928,6 +930,14 @@ class coinbasepro extends Exchange {
             }
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'deposit' )));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions($code, $since, $limit, array_merge($params, array( 'type' => 'withdraw' )));
     }
 
     public function parse_transaction_status($transaction) {
