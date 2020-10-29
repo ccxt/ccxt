@@ -14,17 +14,20 @@ class FastClient(AiohttpClient):
         # instead of using the deque in aiohttp we implement our own for speed
         # https://github.com/aio-libs/aiohttp/blob/1d296d549050aa335ef542421b8b7dad788246d5/aiohttp/streams.py#L534
         self.stack = collections.deque()
+        self.callback_scheduled = False
 
     def receive_loop(self):
         def handler():
             if not self.stack:
+                self.callback_scheduled = False
                 return
             message = self.stack.popleft()
             self.handle_message(message)
             self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
-            if not self.stack:
+            if not self.callback_scheduled:
+                self.callback_scheduled = True
                 self.asyncio_loop.call_soon(handler)
             self.stack.append(message)
 
