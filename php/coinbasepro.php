@@ -152,6 +152,9 @@ class coinbasepro extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array(
+                'CGLD' => 'CELO',
+            ),
             'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
