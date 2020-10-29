@@ -834,7 +834,7 @@ class gemini extends Exchange {
                 'nonce' => $nonce,
             ), $query);
             $payload = $this->json ($request);
-            $payload = base64_encode($payload);
+            $payload = base64_encode($this->encode ($payload));
             $signature = $this->hmac ($payload, $this->encode ($this->secret), 'sha384');
             $headers = array(
                 'Content-Type' => 'text/plain',

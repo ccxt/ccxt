@@ -793,7 +793,7 @@ class gemini(Exchange):
                 'nonce': nonce,
             }, query)
             payload = self.json(request)
-            payload = base64.b64encode(payload)
+            payload = base64.b64encode(self.encode(payload))
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
