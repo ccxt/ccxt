@@ -200,8 +200,6 @@ class gemini extends Exchange {
         if ($numRows < 2) {
             throw new NotSupported($error);
         }
-        $apiSymbols = $this->fetch_markets_from_api($params);
-        $indexedSymbols = $this->index_by($apiSymbols, 'id');
         $result = array();
         // skip the first element (empty string)
         for ($i = 1; $i < $numRows; $i++) {
@@ -220,56 +218,50 @@ class gemini extends Exchange {
             //     )
             $id = str_replace('<td>', '', $cells[0]);
             // $base = $this->safe_currency_code($baseId);
-            $quoteIds = array( 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' );
             $minAmountString = str_replace('<td>', '', $cells[1]);
             $minAmountParts = explode(' ', $minAmountString);
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
-            for ($j = 0; $j < count($quoteIds); $j++) {
-                $idLength = strlen($id) - 0;
-                $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
-                $quote = $this->safe_currency_code($quoteId);
-                $pricePrecisionString = str_replace('<td>', '', $cells[3]);
-                $pricePrecisionParts = explode(' ', $pricePrecisionString);
-                $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
-                if (!(is_array($indexedSymbols) && array_key_exists($id, $indexedSymbols))) {
-                    continue;
-                }
-                $baseId = str_replace($quoteId, '', $id);
-                $base = $this->safe_currency_code($baseId);
-                $symbol = $base . '/' . $quote;
-                $active = null;
-                $result[] = array(
-                    'id' => $id,
-                    'info' => $row,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'active' => $active,
-                    'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $pricePrecision,
+            $idLength = strlen($id) - 0;
+            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $quote = $this->safe_currency_code($quoteId);
+            $pricePrecisionString = str_replace('<td>', '', $cells[3]);
+            $pricePrecisionParts = explode(' ', $pricePrecisionString);
+            $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+            $baseId = str_replace($quoteId, '', $id);
+            $base = $this->safe_currency_code($baseId);
+            $symbol = $base . '/' . $quote;
+            $active = null;
+            $result[] = array(
+                'id' => $id,
+                'info' => $row,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                ),
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $minAmount,
+                        'max' => null,
                     ),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $minAmount,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                );
-            }
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
         }
         return $result;
     }
