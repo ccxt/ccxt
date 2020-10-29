@@ -148,6 +148,9 @@ module.exports = class coinbasepro extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
+            },
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
