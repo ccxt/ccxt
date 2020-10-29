@@ -36,7 +36,7 @@ class FastClient(AiohttpClient):
 
         def wrapper(func):
             def parse_frame(buf):
-                while len(self.stack) > 1:
+                while self.stack:
                     self.handle_message(self.stack.popleft())
                 return func(buf)
             return parse_frame
