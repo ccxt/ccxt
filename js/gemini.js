@@ -230,9 +230,6 @@ module.exports = class gemini extends Exchange {
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
             const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
-            if (!(id in indexedSymbols)) {
-                continue;
-            }
             const baseId = id.replace (quoteId, '');
             const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
