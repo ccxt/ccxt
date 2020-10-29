@@ -197,8 +197,6 @@ module.exports = class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
-        const apiSymbols = await this.fetchMarketsFromAPI (params);
-        const indexedSymbols = this.indexBy (apiSymbols, 'id');
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
@@ -217,7 +215,6 @@ module.exports = class gemini extends Exchange {
             //     ]
             const id = cells[0].replace ('<td>', '');
             // const base = this.safeCurrencyCode (baseId);
-            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' ];
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
             const minAmount = this.safeFloat (minAmountParts, 0);
