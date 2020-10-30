@@ -280,7 +280,7 @@ module.exports = class gemini extends Exchange {
                 'price': undefined,
             };
             result.push ({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
