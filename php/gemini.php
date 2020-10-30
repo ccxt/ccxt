@@ -59,7 +59,11 @@ class gemini extends Exchange {
                 'test' => array(
                     'public' => 'https://api.sandbox.gemini.com',
                     'private' => 'https://api.sandbox.gemini.com',
-                    'web' => 'https://docs.sandbox.gemini.com',
+                    // use the true doc instead of the sandbox doc
+                    // since they differ in parsing
+                    // https://github.com/ccxt/ccxt/issues/7874
+                    // https://github.com/ccxt/ccxt/issues/7894
+                    'web' => 'https://docs.gemini.com',
                 ),
                 'fees' => array(
                     'https://gemini.com/api-fee-schedule',
