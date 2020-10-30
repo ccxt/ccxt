@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -801,8 +801,9 @@ module.exports = class bitget extends Exchange {
         const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
         const tick_size = this.safeFloat (market, 'tick_size');
         const newtick_size = parseFloat ('1e-' + this.numberToString (tick_size));
+        const size = this.safeFloat (market, 'size_increment', lotSize);
         const precision = {
-            'amount': this.safeFloat (market, 'size_increment', lotSize),
+            'amount': parseFloat ('1e-' + this.numberToString (size)),
             'price': newtick_size,
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
@@ -840,10 +841,6 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarketsByType (type, params = {}) {
@@ -1344,9 +1341,17 @@ module.exports = class bitget extends Exchange {
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        let side = this.safeString2 (trade, 'side', 'direction');
-        const type = this.parseOrderType (side);
-        side = this.parseOrderSide (side);
+        let type; // eslint-disable-line init-declarations
+        let side; // eslint-disable-line init-declarations
+        if (trade['type'] !== undefined) {
+            side = this.safeString (trade, 'type');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        } else {
+            side = this.safeString2 (trade, 'side', 'direction');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        }
         // if (side === undefined) {
         //     const orderType = this.safeString (trade, 'type');
         //     if (orderType !== undefined) {
