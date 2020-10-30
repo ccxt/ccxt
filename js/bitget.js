@@ -798,13 +798,11 @@ module.exports = class bitget extends Exchange {
         if (spot) {
             symbol = base + '/' + quote;
         }
-        const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
-        const tick_size = this.safeFloat (market, 'tick_size');
-        const newtick_size = parseFloat ('1e-' + this.numberToString (tick_size));
-        const size = this.safeFloat (market, 'size_increment', lotSize);
+        const tickSize = this.safeString (market, 'tick_size');
+        const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': parseFloat ('1e-' + this.numberToString (size)),
-            'price': newtick_size,
+            'amount': parseFloat ('1e-' + sizeIncrement),
+            'price': parseFloat ('1e-' + tickSize),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
@@ -1341,9 +1339,10 @@ module.exports = class bitget extends Exchange {
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        let type; // eslint-disable-line init-declarations
-        let side; // eslint-disable-line init-declarations
-        if (trade['type'] !== undefined) {
+        const orderType = this.safeString (trade, 'type');
+        let side = undefined;
+        let type = undefined;
+        if (orderType !== undefined) {
             side = this.safeString (trade, 'type');
             type = this.parseOrderType (side);
             side = this.parseOrderSide (side);
@@ -1352,14 +1351,6 @@ module.exports = class bitget extends Exchange {
             type = this.parseOrderType (side);
             side = this.parseOrderSide (side);
         }
-        // if (side === undefined) {
-        //     const orderType = this.safeString (trade, 'type');
-        //     if (orderType !== undefined) {
-        //         const parts = orderType.split ('-');
-        //         side = this.safeStringLower (parts, 0);
-        //         type = this.safeStringLower (parts, 1);
-        //     }
-        // }
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
