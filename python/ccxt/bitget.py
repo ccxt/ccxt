@@ -24,8 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -811,12 +809,11 @@ class bitget(Exchange):
         symbol = id.upper()
         if spot:
             symbol = base + '/' + quote
-        lotSize = self.safe_float_2(market, 'lot_size', 'trade_increment')
-        tick_size = self.safe_float(market, 'tick_size')
-        newtick_size = float('1e-' + self.number_to_string(tick_size))
+        tickSize = self.safe_string(market, 'tick_size')
+        sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': self.safe_float(market, 'size_increment', lotSize),
-            'price': newtick_size,
+            'amount': float('1e-' + sizeIncrement),
+            'price': float('1e-' + tickSize),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
@@ -852,9 +849,6 @@ class bitget(Exchange):
                 },
             },
         })
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets_by_type(self, type, params={}):
         if type == 'spot':
@@ -1330,17 +1324,17 @@ class bitget(Exchange):
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        side = self.safe_string_2(trade, 'side', 'direction')
-        type = self.parse_order_type(side)
-        side = self.parse_order_side(side)
-        # if side is None:
-        #     orderType = self.safe_string(trade, 'type')
-        #     if orderType is not None:
-        #         parts = orderType.split('-')
-        #         side = self.safe_string_lower(parts, 0)
-        #         type = self.safe_string_lower(parts, 1)
-        #     }
-        # }
+        orderType = self.safe_string(trade, 'type')
+        side = None
+        type = None
+        if orderType is not None:
+            side = self.safe_string(trade, 'type')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
+        else:
+            side = self.safe_string_2(trade, 'side', 'direction')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
         cost = None
         if amount is not None:
             if price is not None:
