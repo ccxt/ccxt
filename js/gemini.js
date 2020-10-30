@@ -213,7 +213,7 @@ module.exports = class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const id = cells[0].replace ('<td>', '');
+            const marketId = cells[0].replace ('<td>', '');
             // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
@@ -221,18 +221,18 @@ module.exports = class gemini extends Exchange {
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
-            const idLength = id.length - 0;
-            const quoteId = id.slice (idLength - 3, idLength);
+            const idLength = marketId.length - 0;
+            const quoteId = marketId.slice (idLength - 3, idLength);
             const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
             const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
-            const baseId = id.replace (quoteId, '');
+            const baseId = marketId.replace (quoteId, '');
             const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
             const active = undefined;
             result.push ({
-                'id': id,
+                'id': marketId,
                 'info': row,
                 'symbol': symbol,
                 'base': base,
@@ -267,11 +267,11 @@ module.exports = class gemini extends Exchange {
         const response = await this.publicGetV1Symbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const id = response[i];
-            const market = id;
-            const idLength = id.length - 0;
-            const baseId = id.slice (0, idLength - 3);
-            const quoteId = id.slice (idLength - 3, idLength);
+            const marketId = response[i];
+            const market = marketId;
+            const idLength = marketId.length - 0;
+            const baseId = marketId.slice (0, idLength - 3);
+            const quoteId = marketId.slice (idLength - 3, idLength);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
