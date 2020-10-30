@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -798,12 +798,11 @@ module.exports = class bitget extends Exchange {
         if (spot) {
             symbol = base + '/' + quote;
         }
-        const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
-        const tick_size = this.safeFloat (market, 'tick_size');
-        const newtick_size = parseFloat ('1e-' + this.numberToString (tick_size));
+        const tickSize = this.safeString (market, 'tick_size');
+        const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': this.safeFloat (market, 'size_increment', lotSize),
-            'price': newtick_size,
+            'amount': parseFloat ('1e-' + sizeIncrement),
+            'price': parseFloat ('1e-' + tickSize),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
@@ -840,10 +839,6 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarketsByType (type, params = {}) {
@@ -1344,17 +1339,18 @@ module.exports = class bitget extends Exchange {
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        let side = this.safeString2 (trade, 'side', 'direction');
-        const type = this.parseOrderType (side);
-        side = this.parseOrderSide (side);
-        // if (side === undefined) {
-        //     const orderType = this.safeString (trade, 'type');
-        //     if (orderType !== undefined) {
-        //         const parts = orderType.split ('-');
-        //         side = this.safeStringLower (parts, 0);
-        //         type = this.safeStringLower (parts, 1);
-        //     }
-        // }
+        const orderType = this.safeString (trade, 'type');
+        let side = undefined;
+        let type = undefined;
+        if (orderType !== undefined) {
+            side = this.safeString (trade, 'type');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        } else {
+            side = this.safeString2 (trade, 'side', 'direction');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        }
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
