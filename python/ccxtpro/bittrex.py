@@ -489,7 +489,7 @@ class bittrex(Exchange, ccxt.bittrex):
             # if the received snapshot is earlier than the first cached delta
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
-            if nonce < sequence:
+            if (sequence is not None) and (nonce < sequence):
                 options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
                 maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
