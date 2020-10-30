@@ -515,7 +515,9 @@ class bittrex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchTickers', array());
-        $method = $this->safe_string($options, 'method', 'publicGetMarketsTickers');
+        $defaultMethod = $this->safe_string($options, 'method', 'publicGetMarketsTickers');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $params = $this->omit($params, 'method');
         $response = $this->$method ($params);
         //
         // publicGetMarketsTickers
@@ -558,7 +560,9 @@ class bittrex extends Exchange {
             'marketSymbol' => $market['id'],
         );
         $options = $this->safe_value($this->options, 'fetchTicker', array());
-        $method = $this->safe_string($options, 'method', 'publicGetMarketsMarketSymbolTicker');
+        $defaultMethod = $this->safe_string($options, 'method', 'publicGetMarketsMarketSymbolTicker');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
+        $params = $this->omit($params, 'method');
         $response = $this->$method (array_merge($request, $params));
         //
         // publicGetMarketsMarketSymbolTicker
