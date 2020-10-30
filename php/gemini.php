@@ -184,7 +184,7 @@ class gemini extends Exchange {
 
     public function fetch_markets_from_web($params = array ()) {
         $response = $this->webGetRestApi ($params);
-        $sections = explode('<h1 $id="symbols-and-minimums">Symbols and minimums</h1>', $response);
+        $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
         $numSections = is_array($sections) ? count($sections) : 0;
         $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
@@ -216,7 +216,7 @@ class gemini extends Exchange {
             //         '<td>0.01 USD', // $quote currency price increment
             //         '</tr>'
             //     )
-            $id = str_replace('<td>', '', $cells[0]);
+            $marketId = str_replace('<td>', '', $cells[0]);
             // $base = $this->safe_currency_code($baseId);
             $minAmountString = str_replace('<td>', '', $cells[1]);
             $minAmountParts = explode(' ', $minAmountString);
@@ -224,18 +224,18 @@ class gemini extends Exchange {
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
             $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
-            $idLength = strlen($id) - 0;
-            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $idLength = strlen($marketId) - 0;
+            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
             $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
-            $baseId = str_replace($quoteId, '', $id);
+            $baseId = str_replace($quoteId, '', $marketId);
             $base = $this->safe_currency_code($baseId);
             $symbol = $base . '/' . $quote;
             $active = null;
             $result[] = array(
-                'id' => $id,
+                'id' => $marketId,
                 'info' => $row,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -270,11 +270,11 @@ class gemini extends Exchange {
         $response = $this->publicGetV1Symbols ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $id = $response[$i];
-            $market = $id;
-            $idLength = strlen($id) - 0;
-            $baseId = mb_substr($id, 0, $idLength - 3 - 0);
-            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $marketId = $response[$i];
+            $market = $marketId;
+            $idLength = strlen($marketId) - 0;
+            $baseId = mb_substr($marketId, 0, $idLength - 3 - 0);
+            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -283,7 +283,7 @@ class gemini extends Exchange {
                 'price' => null,
             );
             $result[] = array(
-                'id' => $id,
+                'id' => $marketId,
                 'info' => $market,
                 'symbol' => $symbol,
                 'base' => $base,
