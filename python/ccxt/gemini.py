@@ -228,7 +228,7 @@ class gemini(Exchange):
             #         '<td>0.01 USD',  # quote currency price increment
             #         '</tr>'
             #     ]
-            id = cells[0].replace('<td>', '')
+            marketId = cells[0].replace('<td>', '')
             # base = self.safe_currency_code(baseId)
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
@@ -236,18 +236,18 @@ class gemini(Exchange):
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
             amountPrecision = self.safe_float(amountPrecisionParts, 0)
-            idLength = len(id) - 0
-            quoteId = id[idLength - 3:idLength]
+            idLength = len(marketId) - 0
+            quoteId = marketId[idLength - 3:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
             pricePrecision = self.safe_float(pricePrecisionParts, 0)
-            baseId = id.replace(quoteId, '')
+            baseId = marketId.replace(quoteId, '')
             base = self.safe_currency_code(baseId)
             symbol = base + '/' + quote
             active = None
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': row,
                 'symbol': symbol,
                 'base': base,
@@ -280,11 +280,11 @@ class gemini(Exchange):
         response = self.publicGetV1Symbols(params)
         result = []
         for i in range(0, len(response)):
-            id = response[i]
-            market = id
-            idLength = len(id) - 0
-            baseId = id[0:idLength - 3]
-            quoteId = id[idLength - 3:idLength]
+            marketId = response[i]
+            market = marketId
+            idLength = len(marketId) - 0
+            baseId = marketId[0:idLength - 3]
+            quoteId = marketId[idLength - 3:idLength]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -293,7 +293,7 @@ class gemini(Exchange):
                 'price': None,
             }
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
