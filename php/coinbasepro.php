@@ -32,7 +32,7 @@ class coinbasepro extends Exchange {
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchClosedOrders' => true,
-                'fetchDepositAddress' => true,
+                'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -101,7 +101,6 @@ class coinbasepro extends Exchange {
                         'accounts/{id}/ledger',
                         'accounts/{id}/transfers',
                         'coinbase-accounts',
-                        'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
                         'fees',
@@ -1026,35 +1025,6 @@ class coinbasepro extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function fetch_deposit_address($code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
-        if ($accounts === null) {
-            $accounts = $this->privateGetCoinbaseAccounts ();
-            $this->options['coinbaseAccounts'] = $accounts; // cache it
-            $this->options['coinbaseAccountsByCurrencyId'] = $this->index_by($accounts, 'currency');
-        }
-        $currencyId = $currency['id'];
-        $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
-        if ($account === null) {
-            // eslint-disable-next-line quotes
-            throw new InvalidAddress($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
-        }
-        $request = array(
-            'id' => $account['id'],
-        );
-        $response = $this->privateGetCoinbaseAccountsIdAddresses (array_merge($request, $params));
-        $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'destination_tag');
-        return array(
-            'currency' => $code,
-            'address' => $this->check_address($address),
-            'tag' => $tag,
-            'info' => $response,
-        );
     }
 
     public function create_deposit_address($code, $params = array ()) {
