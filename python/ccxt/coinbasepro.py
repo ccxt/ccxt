@@ -47,7 +47,7 @@ class coinbasepro(Exchange):
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': True,
+                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -116,7 +116,6 @@ class coinbasepro(Exchange):
                         'accounts/{id}/ledger',
                         'accounts/{id}/transfers',
                         'coinbase-accounts',
-                        'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
                         'fees',
@@ -968,32 +967,6 @@ class coinbasepro(Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
-        if accounts is None:
-            accounts = self.privateGetCoinbaseAccounts()
-            self.options['coinbaseAccounts'] = accounts  # cache it
-            self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
-        currencyId = currency['id']
-        account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
-        if account is None:
-            # eslint-disable-next-line quotes
-            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
-        request = {
-            'id': account['id'],
-        }
-        response = self.privateGetCoinbaseAccountsIdAddresses(self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'destination_tag')
-        return {
-            'currency': code,
-            'address': self.check_address(address),
-            'tag': tag,
-            'info': response,
-        }
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
