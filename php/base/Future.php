@@ -7,11 +7,8 @@ class Future extends \React\Promise\Deferred {
     public $loop;
 
     public function __construct($loop = null) {
+        parent::__construct();
         $this->loop = $loop;
-        $this->cancelled = false;
-        parent::__construct(function () {
-            $this->cancelled = true;
-        });
     }
 
     public function then($onFulfilled = null, $onRejected = null) {
@@ -22,17 +19,13 @@ class Future extends \React\Promise\Deferred {
         // from the docs
         // Unlike timers, tick callbacks are guaranteed to be executed in the order they are enqueued.
         $this->loop->futureTick(function () use ($value) {
-            if (!$this->cancelled) {
-                parent::resolve($value);
-            }
+            parent::resolve($value);
         });
     }
 
     public function reject($reason = null) {
         $this->loop->futureTick(function () use ($reason) {
-            if (!$this->cancelled) {
-                parent::reject($reason);
-            }
+            parent::reject($reason);
         });
     }
 };
