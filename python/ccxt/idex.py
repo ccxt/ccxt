@@ -87,6 +87,7 @@ class idex(Exchange):
                         'candles',
                         'trades',
                         'orderbook',
+                        'wsToken',
                     ],
                 },
                 'private': {
