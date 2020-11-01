@@ -100,6 +100,7 @@ class bybit(Exchange):
                         'position/list',
                         'wallet/balance',
                         'execution/list',
+                        'trade/closed-pnl/list',
                     ],
                     'post': [
                         'order/create',

@@ -92,6 +92,7 @@ class bybit extends Exchange {
                         'position/list',
                         'wallet/balance',
                         'execution/list',
+                        'trade/closed-pnl/list',
                     ),
                     'post' => array(
                         'order/create',
