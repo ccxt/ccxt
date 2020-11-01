@@ -59,7 +59,7 @@ class Client {
         if (is_array($message_hash)) {
             $first_hash = $message_hash[0];
             if (!array_key_exists($first_hash, $this->futures)) {
-                $future = new Future();
+                $future = new Future($this->loop);
                 $this->futures[$first_hash] = $future;
                 $length = count($message_hash);
                 for ($i = 1; $i < $length; $i++) {
@@ -70,7 +70,7 @@ class Client {
             return $this->futures[$first_hash];
         } else {
             if (!array_key_exists($message_hash, $this->futures)) {
-                $this->futures[$message_hash] = new Future();
+                $this->futures[$message_hash] = new Future($this->loop);
             }
             return $this->futures[$message_hash];
         }
@@ -119,7 +119,6 @@ class Client {
         $this->url = $url;
         $this->futures = array();
         $this->subscriptions = array();
-        $this->connected = new Future();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
@@ -136,12 +135,13 @@ class Client {
             throw new \ccxt\NotSupported('Client requires a reactphp event loop');
         }
 
+        $this->connected = new Future($this->loop);
         $connector = new \React\Socket\Connector($this->loop);
         if ($this->noOriginHeader) {
             $this->connector = new NoOriginHeaderConnector($this->loop, $connector);
         } else {
             $this->connector = new \Ratchet\Client\Connector($this->loop, $connector);
-        } 
+        }
     }
 
     public function create_connection() {
@@ -291,8 +291,7 @@ class Client {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
                 if ($this->ping) {
-                    $function = $this->ping;
-                    $this->send($function($this));
+                    $this->send(call_user_func($this->ping, $this));
                 } else {
                     $this->connection->send(new Frame('', true, Frame::OP_PING));
                 }

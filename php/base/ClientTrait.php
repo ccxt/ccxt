@@ -64,7 +64,7 @@ trait ClientTrait {
     }
 
     public function after_async($future, callable $method, ... $args) {
-        $await = new Future();
+        $await = new Future($this->loop);
         $future->then(function($result) use ($method, $args, $await) {
             return $method($result, ... $args)->then(
                 function($result) use ($await) {
