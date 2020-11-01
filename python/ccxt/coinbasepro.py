@@ -915,16 +915,22 @@ class coinbasepro(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        fee = None
         status = self.parse_transaction_status(transaction)
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
+        fee = None
         if type == 'withdraw':
             type = 'withdrawal'
             address = self.safe_string(details, 'sent_to_address', address)
+            feeCost = self.safe_float(details, 'fee')
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'code': code,
+                }
         return {
             'info': transaction,
             'id': id,

@@ -966,16 +966,23 @@ class coinbasepro extends Exchange {
         $updated = $this->parse8601($this->safe_string($transaction, 'processed_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $fee = null;
         $status = $this->parse_transaction_status($transaction);
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
         $address = $this->safe_string($details, 'crypto_address');
         $tag = $this->safe_string($details, 'destination_tag');
         $address = $this->safe_string($transaction, 'crypto_address', $address);
+        $fee = null;
         if ($type === 'withdraw') {
             $type = 'withdrawal';
             $address = $this->safe_string($details, 'sent_to_address', $address);
+            $feeCost = $this->safe_float($details, 'fee');
+            if ($feeCost !== null) {
+                $fee = array(
+                    'cost' => $feeCost,
+                    'code' => $code,
+                );
+            }
         }
         return array(
             'info' => $transaction,
