@@ -237,6 +237,7 @@ class liquid(Exchange):
             amountPrecision = self.safe_integer(currency, 'display_precision')
             pricePrecision = self.safe_integer(currency, 'quoting_precision')
             precision = max(amountPrecision, pricePrecision)
+            decimalPrecision = 1 / math.pow(10, precision)
             result[code] = {
                 'id': id,
                 'code': code,
@@ -244,7 +245,7 @@ class liquid(Exchange):
                 'name': code,
                 'active': active,
                 'fee': self.safe_float(currency, 'withdrawal_fee'),
-                'precision': precision,
+                'precision': decimalPrecision,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -amountPrecision),
