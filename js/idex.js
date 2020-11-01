@@ -76,6 +76,7 @@ module.exports = class idex extends Exchange {
                         'candles',
                         'trades',
                         'orderbook',
+                        'wsToken',
                     ],
                 },
                 'private': {
