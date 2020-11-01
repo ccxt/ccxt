@@ -90,6 +90,7 @@ module.exports = class bybit extends Exchange {
                         'position/list',
                         'wallet/balance',
                         'execution/list',
+                        'trade/closed-pnl/list',
                     ],
                     'post': [
                         'order/create',
