@@ -962,16 +962,23 @@ module.exports = class coinbasepro extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const fee = undefined;
         const status = this.parseTransactionStatus (transaction);
         const amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         const tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
+        let fee = undefined;
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
+            const feeCost = this.safeFloat (details, 'fee');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'code': code,
+                };
+            }
         }
         return {
             'info': transaction,
