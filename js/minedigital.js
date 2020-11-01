@@ -24,6 +24,10 @@ module.exports = class minedigital extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchClosedOrders': false,
+                'fetchTrades': false,
+                'fetchOHLCV': false,
+                'fetchTickers': false,
+                'fetchCurrencies': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -109,16 +113,17 @@ module.exports = class minedigital extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const id = pairs[i];
             for (let n = 0; n < keys.length; n++) {
-                const index = id.substr (0, 4).indexOf (keys[n]);
-                if (index > -1) {
-                    if (id.substr (0, 3) === conflict_currency && id.length > 6) {
+                const code = id.slice (0, 4);
+                const index = code.indexOf (keys[n]);
+                if (index === 0) {
+                    if (id.slice (0, 3) === conflict_currency && id.length > 6) {
                         end_index = 4;
                     } else {
                         end_index = keys[n].length;
                     }
-                    const baseId = id.substr (index, end_index);
+                    const baseId = id.slice (index, end_index);
                     const base = this.safeCurrencyCode (baseId);
-                    const quoteId = id.substr (end_index, id.length);
+                    const quoteId = id.slice (end_index, id.length);
                     const quote = this.safeCurrencyCode (quoteId);
                     const symbol = baseId + '/' + quoteId;
                     const precision = {
@@ -183,7 +188,7 @@ module.exports = class minedigital extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker['data']['sell'], 'value'),
             'askVolume': undefined,
-            'vwap': this.safeFloat (ticker['data']['vwap'], 'value'),
+            'vwap': undefined,
             'open': undefined,
             'close': this.safeFloat (ticker['data']['last'], 'value'),
             'last': this.safeFloat (ticker['data']['last'], 'value'),
