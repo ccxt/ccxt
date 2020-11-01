@@ -228,6 +228,7 @@ module.exports = class liquid extends Exchange {
             const amountPrecision = this.safeInteger (currency, 'display_precision');
             const pricePrecision = this.safeInteger (currency, 'quoting_precision');
             const precision = Math.max (amountPrecision, pricePrecision);
+            const decimalPrecision = 1 / Math.pow (10, precision);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -235,7 +236,7 @@ module.exports = class liquid extends Exchange {
                 'name': code,
                 'active': active,
                 'fee': this.safeFloat (currency, 'withdrawal_fee'),
-                'precision': precision,
+                'precision': decimalPrecision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -amountPrecision),
