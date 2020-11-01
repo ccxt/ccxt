@@ -25,7 +25,8 @@
         "php": ">=5.4.0",
         "ccxt/ccxt": ">=1.37.2",
         "ratchet/pawl": "^0.3.4",
-        "ext-ds": "*"
+        "ext-ds": "*",
+        "ext-json": "*"
     },
     "archive": {
         "exclude": [
