@@ -3,7 +3,6 @@
 namespace ccxtpro;
 
 class Future extends \React\Promise\Deferred {
-    private $cancelled;
     public $loop;
 
     public function __construct($loop = null) {
