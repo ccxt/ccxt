@@ -103,14 +103,22 @@ module.exports = class minedigital extends Exchange {
         const markets = await this.publicGetCurrencyStatic (params);
         const pairs = Object.keys (markets['currencyStatic']['currencyPairs']);
         const keys = Object.keys (markets['currencyStatic']['currencies']);
+        const conflict_currency = this.safeString (markets['currencyStatic']['currencies']['USD'], 'displayUnit');
         const result = [];
+        let end_index = 3;
         for (let i = 0; i < pairs.length; i++) {
             const id = pairs[i];
             for (let n = 0; n < keys.length; n++) {
-                if (id.substr (0, 4).includes (keys[n])) {
-                    const baseId = id.substr (0, keys[n].length);
+                const index = id.substr (0, 4).indexOf (keys[n]);
+                if (index > -1) {
+                    if (id.substr (0, 3) === conflict_currency && id.length > 6) {
+                        end_index = 4;
+                    } else {
+                        end_index = keys[n].length;
+                    }
+                    const baseId = id.substr (index, end_index);
                     const base = this.safeCurrencyCode (baseId);
-                    const quoteId = id.substr (keys[n].length, id.length);
+                    const quoteId = id.substr (end_index, id.length);
                     const quote = this.safeCurrencyCode (quoteId);
                     const symbol = baseId + '/' + quoteId;
                     const precision = {
