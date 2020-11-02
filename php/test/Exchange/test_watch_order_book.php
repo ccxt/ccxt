@@ -1,5 +1,7 @@
 <?php
 
+use React\Promise;
+
 function print_orderbook($orderbook, ... $args) {
     $id = isset($orderbook['nonce']) ? $orderbook['nonce'] : $orderbook['datetime'];
     echo $id, ' ', $args[0], ' ',
@@ -11,9 +13,7 @@ function test_watch_order_book($exchange, $symbol) {
 
     echo __FUNCTION__ . "\n";
 
-    $future = new \ccxtpro\Future();
-
-    $method = 'watchOrderBook';
+    $method = 'watchTicker';
 
     // we have to skip some exchanges here due to the frequency of trading
     $skipped_exchanges = array(
@@ -23,31 +23,25 @@ function test_watch_order_book($exchange, $symbol) {
     if (in_array($exchange->id, $skipped_exchanges)) {
 
         echo $exchange->id, ' ', $method, "() test skipped\n";
-        $future->resolve(true);
 
     } else {
 
         if (array_key_exists($method, $exchange->has) && $exchange->has[$method]) {
 
-            function tick_order_book($iteration, $maxIterations, $future, $method, ... $args) {
-                $method(... $args)->then(function($result) use ($iteration, $maxIterations, $future, $method, $args) {
+            function tick_order_book($iteration, $maxIterations, $method, ... $args) {
+                return $method(... $args)->then(function($result) use ($iteration, $maxIterations, $method, $args) {
                     print_orderbook($result, ... $args);
                     if ($iteration < $maxIterations) {
-                        tick_order_book(++$iteration, $maxIterations, $future, $method, ... $args);
-                    } else {
-                        $future->resolve($result);
+                        return tick_order_book(++$iteration, $maxIterations, $method, ... $args);
                     }
                 });
             };
 
-            tick_order_book(0, 10, $future, array($exchange, 'watch_order_book'), $symbol);
+            return tick_order_book(0, 10, array($exchange, 'watch_order_book'), $symbol);
 
         } else {
-
             echo $exchange->id, ' ', $method, "() is not supported or not implemented yet\n";
-            $future->resolve(true);
         }
     }
-
-    return $future;
+    return Promise\resolve(true);
 }

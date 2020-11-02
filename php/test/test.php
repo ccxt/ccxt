@@ -32,30 +32,24 @@ $id = $argv[1];
 
 function test_public($exchange, $symbol) {
     echo "test_public\n";
-    $future = new \ccxtpro\Future();
     //
-    test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-        test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-            test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-                $future->resolve(true);
-            });
+    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol) {
+        return test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol) {
+            return test_watch_trades($exchange, $symbol);
         });
+    }, function($error) use ($exchange) {
+        echo "Error in " . $exchange->name . PHP_EOL;
+        var_dump($error);
     });
     //
-    return $future;
 };
 
 function test_private($exchange, $symbol, $code) {
     echo "test_private\n";
-    $future = new \ccxtpro\Future();
     if ($exchange->check_required_credentials(false)) {
-        // test_watch_balance($exchange)->then(function() use (&$future) {
-            $future->resolve(true);
-        // });
-    } else {
-        $future->resolve(true);
+        NULL;
     }
-    return $future;
+    return \React\Promise\resolve(true);
 };
 
 function test_exchange($exchange) {
@@ -79,17 +73,13 @@ function test_exchange($exchange) {
         }
     }
     $code = 'BTC'; // wip
-    $future = new \ccxtpro\Future();
     if (strpos($symbol, '.d') === false) {
-        test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code, $future) {
-            test_private($exchange, $symbol, $code)->then(function () use (&$future) {
-                $future->resolve(true);
-            });
+        return test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code) {
+            return test_private($exchange, $symbol, $code);
         });
     } else {
-        $future->resolve(true);
+        return \React\Promise\resolve(true);
     }
-    return $future;
 };
 
 // ----------------------------------------------------------------------------
@@ -132,9 +122,9 @@ $test = function () use ($id, $config, $loop, $verbose) {
 
         $exchange->load_markets();
 
-        test_exchange($exchange)->then(function() {
+        test_exchange($exchange)->done(function() use ($loop) {
             echo "Done.\n";
-            exit ();
+            $loop->stop();
         });
     }
 };
