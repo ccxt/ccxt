@@ -1046,7 +1046,7 @@ class bitpanda(Exchange):
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        status = None
+        status = 'ok'  # the exchange returns cleared transactions only
         feeCost = self.safe_float(transaction, 'fee_amount')
         fee = None
         if feeCost is not None:

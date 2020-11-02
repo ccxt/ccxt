@@ -1084,7 +1084,7 @@ class bitpanda extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = null;
+        $status = 'ok'; // the exchange returns cleared transactions only
         $feeCost = $this->safe_float($transaction, 'fee_amount');
         $fee = null;
         if ($feeCost !== null) {
