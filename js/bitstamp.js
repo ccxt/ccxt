@@ -1442,7 +1442,7 @@ module.exports = class bitstamp extends Exchange {
             response = JSON.parse (response);
         }
         const address = v1 ? response : this.safeString (response, 'address');
-        const tag = v1 ? undefined : this.safeString (response, 'destination_tag');
+        const tag = v1 ? undefined : this.safeString (response, self.getTagFieldName(code));
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1450,6 +1450,10 @@ module.exports = class bitstamp extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    getTagFieldName(code) {
+        return code === 'XLM' ? 'memo_id' : 'destination_tag';
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
