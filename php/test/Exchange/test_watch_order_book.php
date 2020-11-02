@@ -13,7 +13,7 @@ function test_watch_order_book($exchange, $symbol) {
 
     echo __FUNCTION__ . "\n";
 
-    $method = 'watchTicker';
+    $method = 'watchOrderBook';
 
     // we have to skip some exchanges here due to the frequency of trading
     $skipped_exchanges = array(
