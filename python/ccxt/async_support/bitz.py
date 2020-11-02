@@ -94,6 +94,7 @@ class bitz(Exchange):
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut',  # withdraw
                         'getUserHistoryEntrustSheet',  # closed orders
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
