@@ -1081,7 +1081,7 @@ module.exports = class bitpanda extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = undefined;
+        const status = 'ok'; // the exchange returns cleared transactions only
         const feeCost = this.safeFloat (transaction, 'fee_amount');
         let fee = undefined;
         if (feeCost !== undefined) {
