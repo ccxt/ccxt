@@ -130,7 +130,7 @@ class upbit extends \ccxt\upbit {
         //        $bid_size => 5 ), ... ),
         //   stream_type => 'SNAPSHOT' }
         $marketId = $this->safe_string($message, 'code');
-        $symbol = $this->get_symbol_from_market_id($marketId);
+        $symbol = $this->safe_symbol($marketId, null, '-');
         $type = $this->safe_string($message, 'stream_type');
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $limit = $this->safe_integer($options, 'limit', 15);
@@ -161,21 +161,6 @@ class upbit extends \ccxt\upbit {
         $orderBook['datetime'] = $datetime;
         $messageHash = 'orderbook:' . $marketId;
         $client->resolve ($orderBook, $messageHash);
-    }
-
-    public function get_symbol_from_market_id($marketId, $market = null) {
-        // duplicated from $base class because of php underscore case
-        if ($marketId === null) {
-            return null;
-        }
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
-            return $market['symbol'];
-        }
-        list($baseId, $quoteId) = explode($this->options['symbolSeparator'], $marketId);
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
     }
 
     public function handle_trades($client, $message) {

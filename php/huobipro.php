@@ -99,16 +99,14 @@ class huobipro extends \ccxt\huobipro {
         $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $ticker = $this->parse_ticker($tick, $market);
-            $timestamp = $this->safe_value($message, 'ts');
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
-            $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
-            $client->resolve ($ticker, $ch);
-        }
+        $market = $this->safe_market($marketId);
+        $ticker = $this->parse_ticker($tick, $market);
+        $timestamp = $this->safe_value($message, 'ts');
+        $ticker['timestamp'] = $timestamp;
+        $ticker['datetime'] = $this->iso8601($timestamp);
+        $symbol = $ticker['symbol'];
+        $this->tickers[$symbol] = $ticker;
+        $client->resolve ($ticker, $ch);
         return $message;
     }
 
@@ -143,7 +141,7 @@ class huobipro extends \ccxt\huobipro {
         //         $tick => {
         //             id => 105004645372,
         //             ts => 1583495833751,
-        //             $data => $array(
+        //             $data => array(
         //                 {
         //                     id => 1.050046453727319e+22,
         //                     ts => 1583495833751,
@@ -156,26 +154,24 @@ class huobipro extends \ccxt\huobipro {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', $array());
-        $data = $this->safe_value($tick, 'data', $array());
+        $tick = $this->safe_value($message, 'tick', array());
+        $data = $this->safe_value($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $array = $this->safe_value($this->trades, $symbol);
-            if ($array === null) {
-                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $array = new ArrayCache ($limit);
-                $this->trades[$symbol] = $array;
-            }
-            for ($i = 0; $i < count($data); $i++) {
-                $trade = $this->parse_trade($data[$i], $market);
-                $array->append ($trade);
-            }
-            $client->resolve ($array, $ch);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $tradesCache = $this->safe_value($this->trades, $symbol);
+        if ($tradesCache === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $tradesCache = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesCache;
         }
+        for ($i = 0; $i < count($data); $i++) {
+            $trade = $this->parse_trade($data[$i], $market);
+            $tradesCache->append ($trade);
+        }
+        $client->resolve ($tradesCache, $ch);
         return $message;
     }
 
@@ -203,18 +199,6 @@ class huobipro extends \ccxt\huobipro {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe($timeframe) {
-        // redo to use reverse lookups in a static map instead
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -235,28 +219,26 @@ class huobipro extends \ccxt\huobipro {
         $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $interval = $this->safe_string($parts, 3);
-            $timeframe = $this->find_timeframe($interval);
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-            if ($stored === null) {
-                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCache ($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
-            }
-            $tick = $this->safe_value($message, 'tick');
-            $parsed = $this->parse_ohlcv($tick, $market);
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length && $parsed[0] === $stored[$length - 1][0]) {
-                $stored[$length - 1] = $parsed;
-            } else {
-                $stored->append ($parsed);
-            }
-            $client->resolve ($stored, $ch);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $interval = $this->safe_string($parts, 3);
+        $timeframe = $this->find_timeframe($interval);
+        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
+        $tick = $this->safe_value($message, 'tick');
+        $parsed = $this->parse_ohlcv($tick, $market);
+        $length = is_array($stored) ? count($stored) : 0;
+        if ($length && $parsed[0] === $stored[$length - 1][0]) {
+            $stored[$length - 1] = $parsed;
+        } else {
+            $stored->append ($parsed);
+        }
+        $client->resolve ($stored, $ch);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -407,7 +389,7 @@ class huobipro extends \ccxt\huobipro {
         // deltas
         //
         //     {
-        //         $ch => "$market->btcusdt.mbp.150",
+        //         $ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
         //         tick => {
         //             seqNum => 104998984994,
@@ -429,14 +411,7 @@ class huobipro extends \ccxt\huobipro {
         $ch = $this->safe_value($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId);
         $orderbook = $this->orderbooks[$symbol];
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;

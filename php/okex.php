@@ -151,18 +151,6 @@ class okex extends \ccxt\okex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
-    public function find_timeframe($timeframe) {
-        // redo to use reverse lookups in a static map instead
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function handle_ohlcv($client, $message) {
         //
         //     {
@@ -192,27 +180,25 @@ class okex extends \ccxt\okex {
         $timeframe = $this->find_timeframe($interval);
         for ($i = 0; $i < count($data); $i++) {
             $marketId = $this->safe_string($data[$i], 'instrument_id');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $candle = $this->safe_value($data[$i], 'candle');
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $parsed = $this->parse_ohlcv($candle, $market);
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-                if ($stored === null) {
-                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                    $stored = new ArrayCache ($limit);
-                    $this->ohlcvs[$symbol][$timeframe] = $stored;
-                }
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length && $parsed[0] === $stored[$length - 1][0]) {
-                    $stored[$length - 1] = $parsed;
-                } else {
-                    $stored->append ($parsed);
-                }
-                $messageHash = $table . ':' . $marketId;
-                $client->resolve ($stored, $messageHash);
+            $candle = $this->safe_value($data[$i], 'candle');
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $parsed = $this->parse_ohlcv($candle, $market);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
+            $length = is_array($stored) ? count($stored) : 0;
+            if ($length && $parsed[0] === $stored[$length - 1][0]) {
+                $stored[$length - 1] = $parsed;
+            } else {
+                $stored->append ($parsed);
+            }
+            $messageHash = $table . ':' . $marketId;
+            $client->resolve ($stored, $messageHash);
         }
     }
 
@@ -320,32 +306,28 @@ class okex extends \ccxt\okex {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
                 $marketId = $this->safe_string($update, 'instrument_id');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                    $options = $this->safe_value($this->options, 'watchOrderBook', array());
-                    // default $limit is 400 bidasks
-                    $limit = $this->safe_integer($options, 'limit', 400);
-                    $orderbook = $this->order_book(array(), $limit);
-                    $this->orderbooks[$symbol] = $orderbook;
-                    $this->handle_order_book_message($client, $update, $orderbook);
-                    $messageHash = $table . ':' . $marketId;
-                    $client->resolve ($orderbook, $messageHash);
-                }
+                $market = $this->safe_market($marketId);
+                $symbol = $market['symbol'];
+                $options = $this->safe_value($this->options, 'watchOrderBook', array());
+                // default $limit is 400 bidasks
+                $limit = $this->safe_integer($options, 'limit', 400);
+                $orderbook = $this->order_book(array(), $limit);
+                $this->orderbooks[$symbol] = $orderbook;
+                $this->handle_order_book_message($client, $update, $orderbook);
+                $messageHash = $table . ':' . $marketId;
+                $client->resolve ($orderbook, $messageHash);
             }
         } else {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
                 $marketId = $this->safe_string($update, 'instrument_id');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                        $orderbook = $this->orderbooks[$symbol];
-                        $this->handle_order_book_message($client, $update, $orderbook);
-                        $messageHash = $table . ':' . $marketId;
-                        $client->resolve ($orderbook, $messageHash);
-                    }
+                $market = $this->safe_market($marketId);
+                $symbol = $market['symbol'];
+                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                    $orderbook = $this->orderbooks[$symbol];
+                    $this->handle_order_book_message($client, $update, $orderbook);
+                    $messageHash = $table . ':' . $marketId;
+                    $client->resolve ($orderbook, $messageHash);
                 }
             }
         }
@@ -371,7 +353,7 @@ class okex extends \ccxt\okex {
                     $this->apiKey,
                     $this->password,
                     $timestamp,
-                    $this->decode($signature),
+                    $signature,
                 ),
             );
             $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);

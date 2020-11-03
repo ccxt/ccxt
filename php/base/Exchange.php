@@ -25,6 +25,7 @@ Exchange::$exchanges = array(
     'binance',
     'binanceje',
     'binanceus',
+    'bitcoincom',
     'bitfinex',
     'bitmex',
     'bitstamp',
@@ -39,12 +40,14 @@ Exchange::$exchanges = array(
     'huobijp',
     'huobipro',
     'huobiru',
+    'idex',
     'kraken',
     'kucoin',
     'okcoin',
     'okex',
     'phemex',
     'poloniex',
+    'ripio',
     'upbit',
 );
 

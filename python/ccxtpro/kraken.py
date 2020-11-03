@@ -146,14 +146,6 @@ class kraken(Exchange, ccxt.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def find_timeframe(self, timeframe):
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message, subscription):
         #
         #     [

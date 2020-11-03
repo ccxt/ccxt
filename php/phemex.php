@@ -63,14 +63,8 @@ class phemex extends \ccxt\phemex {
         //         volume => 934292
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_float($ticker, 'close'), $market);
         $quoteVolume = $this->from_ev($this->safe_float($ticker, 'turnover'), $market);
@@ -187,34 +181,21 @@ class phemex extends \ccxt\phemex {
         //
         $name = 'trade';
         $marketId = $this->safe_string($message, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $messageHash = $name . ':' . $symbol;
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $stored = new ArrayCache ($limit);
-                $this->trades[$symbol] = $stored;
-            }
-            $trades = $this->safe_value($message, 'trades', array());
-            $parsed = $this->parse_trades($trades, $market);
-            for ($i = 0; $i < count($parsed); $i++) {
-                $stored->append ($parsed[$i]);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $messageHash = $name . ':' . $symbol;
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
         }
-    }
-
-    public function find_timeframe($timeframe) {
-        $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($this->timeframes[$key] === $timeframe) {
-                return $key;
-            }
+        $trades = $this->safe_value($message, 'trades', array());
+        $parsed = $this->parse_trades($trades, $market);
+        for ($i = 0; $i < count($parsed); $i++) {
+            $stored->append ($parsed[$i]);
         }
-        return null;
+        $client->resolve ($stored, $messageHash);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -232,34 +213,36 @@ class phemex extends \ccxt\phemex {
         //
         $name = 'kline';
         $marketId = $this->safe_string($message, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $candles = $this->safe_value($message, $name, array());
-            $first = $this->safe_value($candles, 0, array());
-            $interval = $this->safe_string($first, 1);
-            $timeframe = $this->find_timeframe($interval);
-            if ($timeframe !== null) {
-                $messageHash = $name . ':' . $timeframe . ':' . $symbol;
-                $ohlcvs = $this->parse_ohlcvs($candles, $market);
-                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
-                if ($stored === null) {
-                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                    $stored = new ArrayCache ($limit);
-                    $this->ohlcvs[$symbol][$timeframe] = $stored;
-                }
-                for ($i = 0; $i < count($ohlcvs); $i++) {
-                    $candle = $ohlcvs[$i];
-                    $length = is_array($stored) ? count($stored) : 0;
-                    if ($length && ($candle[0] === $stored[$length - 1][0])) {
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $candles = $this->safe_value($message, $name, array());
+        $first = $this->safe_value($candles, 0, array());
+        $interval = $this->safe_string($first, 1);
+        $timeframe = $this->find_timeframe($interval);
+        if ($timeframe !== null) {
+            $messageHash = $name . ':' . $timeframe . ':' . $symbol;
+            $ohlcvs = $this->parse_ohlcvs($candles, $market);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
+            for ($i = 0; $i < count($ohlcvs); $i++) {
+                $candle = $ohlcvs[$i];
+                $length = is_array($stored) ? count($stored) : 0;
+                if ($length) {
+                    if ($candle[0] === $stored[$length - 1][0]) {
                         $stored[$length - 1] = $candle;
-                    } else {
+                    } else if ($candle[0] > $stored[$length - 1][0]) {
                         $stored->append ($candle);
                     }
+                } else {
+                    $stored->append ($candle);
                 }
-                $client->resolve ($stored, $messageHash);
             }
+            $client->resolve ($stored, $messageHash);
         }
     }
 
@@ -378,36 +361,34 @@ class phemex extends \ccxt\phemex {
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $type = $this->safe_string($message, 'type');
-            $depth = $this->safe_integer($message, 'depth');
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $name = 'orderbook';
-            $messageHash = $name . ':' . $symbol;
-            $nonce = $this->safe_integer($message, 'sequence');
-            $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
-            if ($type === 'snapshot') {
-                $book = $this->safe_value($message, 'book', array());
-                $snapshot = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
-                $snapshot['nonce'] = $nonce;
-                $orderbook = $this->order_book($snapshot, $depth);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $type = $this->safe_string($message, 'type');
+        $depth = $this->safe_integer($message, 'depth');
+        $name = 'orderbook';
+        $messageHash = $name . ':' . $symbol;
+        $nonce = $this->safe_integer($message, 'sequence');
+        $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
+        if ($type === 'snapshot') {
+            $book = $this->safe_value($message, 'book', array());
+            $snapshot = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $snapshot['nonce'] = $nonce;
+            $orderbook = $this->order_book($snapshot, $depth);
+            $this->orderbooks[$symbol] = $orderbook;
+            $client->resolve ($orderbook, $messageHash);
+        } else {
+            $orderbook = $this->safe_value($this->orderbooks, $symbol);
+            if ($orderbook !== null) {
+                $changes = $this->safe_value($message, 'book', array());
+                $asks = $this->safe_value($changes, 'asks', array());
+                $bids = $this->safe_value($changes, 'bids', array());
+                $this->handle_deltas($orderbook['asks'], $asks, $market);
+                $this->handle_deltas($orderbook['bids'], $bids, $market);
+                $orderbook['nonce'] = $nonce;
+                $orderbook['timestamp'] = $timestamp;
+                $orderbook['datetime'] = $this->iso8601($timestamp);
                 $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve ($orderbook, $messageHash);
-            } else {
-                $orderbook = $this->safe_value($this->orderbooks, $symbol);
-                if ($orderbook !== null) {
-                    $changes = $this->safe_value($message, 'book', array());
-                    $asks = $this->safe_value($changes, 'asks', array());
-                    $bids = $this->safe_value($changes, 'bids', array());
-                    $this->handle_deltas($orderbook['asks'], $asks, $market);
-                    $this->handle_deltas($orderbook['bids'], $bids, $market);
-                    $orderbook['nonce'] = $nonce;
-                    $orderbook['timestamp'] = $timestamp;
-                    $orderbook['datetime'] = $this->iso8601($timestamp);
-                    $this->orderbooks[$symbol] = $orderbook;
-                    $client->resolve ($orderbook, $messageHash);
-                }
             }
         }
     }

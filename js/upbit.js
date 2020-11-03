@@ -127,7 +127,7 @@ module.exports = class upbit extends ccxt.upbit {
         //        bid_size: 5 }, ... ],
         //   stream_type: 'SNAPSHOT' }
         const marketId = this.safeString (message, 'code');
-        const symbol = this.getSymbolFromMarketId (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         const type = this.safeString (message, 'stream_type');
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
@@ -158,21 +158,6 @@ module.exports = class upbit extends ccxt.upbit {
         orderBook['datetime'] = datetime;
         const messageHash = 'orderbook:' + marketId;
         client.resolve (orderBook, messageHash);
-    }
-
-    getSymbolFromMarketId (marketId, market = undefined) {
-        // duplicated from base class because of php underscore case
-        if (marketId === undefined) {
-            return undefined;
-        }
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            return market['symbol'];
-        }
-        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return base + '/' + quote;
     }
 
     handleTrades (client, message) {

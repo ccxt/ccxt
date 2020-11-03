@@ -158,13 +158,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const seq = this.safeString (trade, 2);
         const parts = seq.split ('-');
         const marketId = this.safeString (parts, 1);
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         const takerOrMaker = undefined;
         const orderId = undefined;
         return {
@@ -202,8 +196,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (subscription, 'pair');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol (marketId);
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
         const last = this.safeFloat (message, 7);
@@ -285,8 +278,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     ]
         //
         const marketId = this.safeString (subscription, 'pair');
-        const market = this.markets_by_id[marketId];
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
         const prec = this.safeString (subscription, 'prec', 'P0');
@@ -532,13 +524,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         //     0 ]
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 1);
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
+        const symbol = this.safeSymbol (marketId);
         let amount = this.safeFloat (order, 2);
         let remaining = this.safeFloat (order, 3);
         let side = 'buy';

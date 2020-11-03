@@ -162,12 +162,8 @@ class currencycom(Exchange, ccxt.currencycom):
         #         buyer: False
         #     }
         #
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, None, '/')
         timestamp = self.safe_integer(trade, 'ts')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
@@ -253,30 +249,29 @@ class currencycom(Exchange, ccxt.currencycom):
         interval = self.safe_string(payload, 'interval')
         timeframe = self.find_timeframe(interval)
         marketId = self.safe_string(payload, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            messageHash = destination + ':' + timeframe + ':' + symbol
-            result = [
-                self.safe_integer(payload, 't'),
-                self.safe_float(payload, 'o'),
-                self.safe_float(payload, 'h'),
-                self.safe_float(payload, 'l'),
-                self.safe_float(payload, 'c'),
-                None,  # no volume v in OHLCV
-            ]
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCache(limit)
-                self.ohlcvs[symbol][timeframe] = stored
-            length = len(stored)
-            if length and result[0] == stored[length - 1][0]:
-                stored[length - 1] = result
-            else:
-                stored.append(result)
-            client.resolve(stored, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        messageHash = destination + ':' + timeframe + ':' + symbol
+        result = [
+            self.safe_integer(payload, 't'),
+            self.safe_float(payload, 'o'),
+            self.safe_float(payload, 'h'),
+            self.safe_float(payload, 'l'),
+            self.safe_float(payload, 'c'),
+            None,  # no volume v in OHLCV
+        ]
+        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCache(limit)
+            self.ohlcvs[symbol][timeframe] = stored
+        length = len(stored)
+        if length and result[0] == stored[length - 1][0]:
+            stored[length - 1] = result
+        else:
+            stored.append(result)
+        client.resolve(stored, messageHash)
 
     def request_id(self):
         reqid = self.sum(self.safe_integer(self.options, 'correlationId', 0), 1)
@@ -391,14 +386,7 @@ class currencycom(Exchange, ccxt.currencycom):
         payload = self.safe_value(message, 'payload', {})
         data = self.safe_value(payload, 'data', {})
         marketId = self.safe_string(payload, 'symbol')
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['id']
-            else:
-                symbol = marketId
+        symbol = self.safe_symbol(marketId, None, '/')
         # destination = self.safe_string(message, 'destination')
         destination = 'depthMarketData.subscribe'
         messageHash = destination + ':' + symbol

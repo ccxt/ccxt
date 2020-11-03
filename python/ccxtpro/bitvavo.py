@@ -84,13 +84,12 @@ class bitvavo(Exchange, ccxt.bitvavo):
         for i in range(0, len(tickers)):
             data = tickers[i]
             marketId = self.safe_string(data, 'market')
-            if marketId in self.markets_by_id:
-                messageHash = event + '@' + marketId
-                market = self.markets_by_id[marketId]
-                ticker = self.parse_ticker(data, market)
-                symbol = ticker['symbol']
-                self.tickers[symbol] = ticker
-                client.resolve(ticker, messageHash)
+            market = self.safe_market(marketId, None, '-')
+            messageHash = event + '@' + marketId
+            ticker = self.parse_ticker(data, market)
+            symbol = ticker['symbol']
+            self.tickers[symbol] = ticker
+            client.resolve(ticker, messageHash)
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
@@ -110,11 +109,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
         #     }
         #
         marketId = self.safe_string(message, 'market')
-        market = None
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
         name = 'trades'
         messageHash = name + '@' + marketId
         trade = self.parse_trade(message, market)
@@ -148,15 +144,6 @@ class bitvavo(Exchange, ccxt.bitvavo):
         future = self.watch(url, messageHash, message, messageHash)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
-    def find_timeframe(self, timeframe):
-        # redo to use reverse lookups in a static map instead
-        keys = list(self.timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if self.timeframes[key] == timeframe:
-                return key
-        return None
-
     def handle_ohlcv(self, client, message):
         #
         #     {
@@ -177,11 +164,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
         #
         name = 'candles'
         marketId = self.safe_string(message, 'market')
-        symbol = None
-        market = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
         interval = self.safe_string(message, 'interval')
         # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
@@ -279,12 +263,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
         #
         event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'market')
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
         messageHash = event + '@' + market['id']
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -502,9 +482,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'market')
         messageHash = name + '@' + marketId + '_' + event
-        market = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        market = self.safe_market(marketId, None, '-')
         trade = self.parse_trade(message, market)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)

@@ -96,16 +96,14 @@ module.exports = class huobipro extends ccxt.huobipro {
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const ticker = this.parseTicker (tick, market);
-            const timestamp = this.safeValue (message, 'ts');
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            client.resolve (ticker, ch);
-        }
+        const market = this.safeMarket (marketId);
+        const ticker = this.parseTicker (tick, market);
+        const timestamp = this.safeValue (message, 'ts');
+        ticker['timestamp'] = timestamp;
+        ticker['datetime'] = this.iso8601 (timestamp);
+        const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, ch);
         return message;
     }
 
@@ -158,21 +156,19 @@ module.exports = class huobipro extends ccxt.huobipro {
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            let array = this.safeValue (this.trades, symbol);
-            if (array === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                array = new ArrayCache (limit);
-                this.trades[symbol] = array;
-            }
-            for (let i = 0; i < data.length; i++) {
-                const trade = this.parseTrade (data[i], market);
-                array.append (trade);
-            }
-            client.resolve (array, ch);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let tradesCache = this.safeValue (this.trades, symbol);
+        if (tradesCache === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesCache = new ArrayCache (limit);
+            this.trades[symbol] = tradesCache;
         }
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (data[i], market);
+            tradesCache.append (trade);
+        }
+        client.resolve (tradesCache, ch);
         return message;
     }
 
@@ -200,18 +196,6 @@ module.exports = class huobipro extends ccxt.huobipro {
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
-    findTimeframe (timeframe) {
-        // redo to use reverse lookups in a static map instead
-        const keys = Object.keys (this.timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (this.timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     handleOHLCV (client, message) {
         //
         //     {
@@ -232,28 +216,26 @@ module.exports = class huobipro extends ccxt.huobipro {
         const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const interval = this.safeString (parts, 3);
-            const timeframe = this.findTimeframe (interval);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
-            const tick = this.safeValue (message, 'tick');
-            const parsed = this.parseOHLCV (tick, market);
-            const length = stored.length;
-            if (length && parsed[0] === stored[length - 1][0]) {
-                stored[length - 1] = parsed;
-            } else {
-                stored.append (parsed);
-            }
-            client.resolve (stored, ch);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const interval = this.safeString (parts, 3);
+        const timeframe = this.findTimeframe (interval);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
         }
+        const tick = this.safeValue (message, 'tick');
+        const parsed = this.parseOHLCV (tick, market);
+        const length = stored.length;
+        if (length && parsed[0] === stored[length - 1][0]) {
+            stored[length - 1] = parsed;
+        } else {
+            stored.append (parsed);
+        }
+        client.resolve (stored, ch);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -426,14 +408,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId);
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);

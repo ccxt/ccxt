@@ -123,7 +123,7 @@ class upbit(Exchange, ccxt.upbit):
         #        bid_size: 5}, ...],
         #   stream_type: 'SNAPSHOT'}
         marketId = self.safe_string(message, 'code')
-        symbol = self.get_symbol_from_market_id(marketId)
+        symbol = self.safe_symbol(marketId, None, '-')
         type = self.safe_string(message, 'stream_type')
         options = self.safe_value(self.options, 'watchOrderBook', {})
         limit = self.safe_integer(options, 'limit', 15)
@@ -152,18 +152,6 @@ class upbit(Exchange, ccxt.upbit):
         orderBook['datetime'] = datetime
         messageHash = 'orderbook:' + marketId
         client.resolve(orderBook, messageHash)
-
-    def get_symbol_from_market_id(self, marketId, market=None):
-        # duplicated from base class because of php underscore case
-        if marketId is None:
-            return None
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            return market['symbol']
-        baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
 
     def handle_trades(self, client, message):
         # {type: 'trade',

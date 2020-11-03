@@ -197,13 +197,13 @@ class kucoin(Exchange, ccxt.kucoin):
         trade = self.parse_trade(data)
         messageHash = self.safe_string(message, 'topic')
         symbol = trade['symbol']
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        trades = self.safe_value(self.trades, symbol)
+        if trades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
-            self.trades[symbol] = array
-        array.append(trade)
-        client.resolve(array, messageHash)
+            trades = ArrayCache(limit)
+            self.trades[symbol] = trades
+        trades.append(trade)
+        client.resolve(trades, messageHash)
         return message
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -359,12 +359,7 @@ class kucoin(Exchange, ccxt.kucoin):
         messageHash = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'symbol')
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             subscription = self.safe_value(client.subscriptions, messageHash)
