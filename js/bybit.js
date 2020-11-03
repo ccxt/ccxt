@@ -270,6 +270,10 @@ module.exports = class bybit extends Exchange {
             'options': {
                 'marketTypes': {
                     'BTC/USDT': 'linear',
+                    'ETH/USDT': 'linear',
+                    'LTC/USDT': 'linear',
+                    'XTZ/USDT': 'linear',
+                    'LINK/USDT': 'linear',
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
