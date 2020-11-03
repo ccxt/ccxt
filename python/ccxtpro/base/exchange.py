@@ -128,7 +128,8 @@ class Exchange(BaseExchange):
             rate_limit = None
             exception = fut.exception()
             if exception is not None:
-                # the future will already have this exception set to it so we don't set it again
+                # future will already have this exception set to it in self.reset
+                # so we don't set it again here to avoid an InvalidState error
                 return
 
             if subscribe_hash not in client.subscriptions:
