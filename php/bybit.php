@@ -273,6 +273,10 @@ class bybit extends Exchange {
             'options' => array(
                 'marketTypes' => array(
                     'BTC/USDT' => 'linear',
+                    'ETH/USDT' => 'linear',
+                    'LTC/USDT' => 'linear',
+                    'XTZ/USDT' => 'linear',
+                    'LINK/USDT' => 'linear',
                 ),
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
