@@ -204,14 +204,14 @@ module.exports = class kucoin extends ccxt.kucoin {
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let trades = this.safeValue (this.trades, symbol);
+        if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-            this.trades[symbol] = array;
+            trades = new ArrayCache (limit);
+            this.trades[symbol] = trades;
         }
-        array.append (trade);
-        client.resolve (array, messageHash);
+        trades.append (trade);
+        client.resolve (trades, messageHash);
         return message;
     }
 

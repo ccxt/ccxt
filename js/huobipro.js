@@ -158,17 +158,17 @@ module.exports = class huobipro extends ccxt.huobipro {
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesCache = this.safeValue (this.trades, symbol);
+        if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-            this.trades[symbol] = array;
+            tradesCache = new ArrayCache (limit);
+            this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i], market);
-            array.append (trade);
+            tradesCache.append (trade);
         }
-        client.resolve (array, ch);
+        client.resolve (tradesCache, ch);
         return message;
     }
 
