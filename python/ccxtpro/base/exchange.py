@@ -126,6 +126,11 @@ class Exchange(BaseExchange):
 
         def after(fut):
             rate_limit = None
+            exception = fut.exception()
+            if exception is not None:
+                # the future will already have this exception set to it so we don't set it again
+                return
+
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit:
