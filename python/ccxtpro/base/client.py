@@ -162,8 +162,7 @@ class Client(object):
             ensure_future(self.close(code))
 
     def reset(self, error):
-        if not self.connected.done():
-            self.connected.reject(error)
+        self.connected.reject(error)
         self.reject(error)
 
     async def ping_loop(self):
