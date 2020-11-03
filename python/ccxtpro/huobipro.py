@@ -155,15 +155,15 @@ class huobipro(Exchange, ccxt.huobipro):
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesCache = self.safe_value(self.trades, symbol)
+        if tradesCache is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
-            self.trades[symbol] = array
+            tradesCache = ArrayCache(limit)
+            self.trades[symbol] = tradesCache
         for i in range(0, len(data)):
             trade = self.parse_trade(data[i], market)
-            array.append(trade)
-        client.resolve(array, ch)
+            tradesCache.append(trade)
+        client.resolve(tradesCache, ch)
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

@@ -141,7 +141,7 @@ class huobipro extends \ccxt\huobipro {
         //         $tick => {
         //             id => 105004645372,
         //             ts => 1583495833751,
-        //             $data => $array(
+        //             $data => array(
         //                 {
         //                     id => 1.050046453727319e+22,
         //                     ts => 1583495833751,
@@ -154,24 +154,24 @@ class huobipro extends \ccxt\huobipro {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', $array());
-        $data = $this->safe_value($tick, 'data', $array());
+        $tick = $this->safe_value($message, 'tick', array());
+        $data = $this->safe_value($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesCache = $this->safe_value($this->trades, $symbol);
+        if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $tradesCache = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesCache;
         }
         for ($i = 0; $i < count($data); $i++) {
             $trade = $this->parse_trade($data[$i], $market);
-            $array->append ($trade);
+            $tradesCache->append ($trade);
         }
-        $client->resolve ($array, $ch);
+        $client->resolve ($tradesCache, $ch);
         return $message;
     }
 
