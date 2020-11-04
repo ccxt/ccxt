@@ -167,6 +167,7 @@ module.exports = class gateio extends Exchange {
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'TNC': 'Trinity Network Credit',
             },
         });
     }
