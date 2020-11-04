@@ -177,8 +177,8 @@ module.exports = class bitso extends Exchange {
             };
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
-            const maker = this.safeFloat (flatRate, 'maker', this.fees['trading']['maker']);
-            const taker = this.safeFloat (flatRate, 'taker', this.fees['trading']['taker']);
+            const maker = this.safeFloat (flatRate, 'maker');
+            const taker = this.safeFloat (flatRate, 'taker');
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
                 'maker': maker,
