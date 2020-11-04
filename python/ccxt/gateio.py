@@ -178,6 +178,7 @@ class gateio(Exchange):
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'TNC': 'Trinity Network Credit',
             },
         })
 
