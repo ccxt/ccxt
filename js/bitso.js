@@ -37,7 +37,7 @@ module.exports = class bitso extends Exchange {
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
-                'fees': 'https://bitso.com/fees?l=es',
+                'fees': 'https://bitso.com/fees',
                 'referral': 'https://bitso.com/?ref=itej',
             },
             'precisionMode': TICK_SIZE,
@@ -175,7 +175,37 @@ module.exports = class bitso extends Exchange {
                 'amount': this.safeFloat (this.options['precision'], base, this.options['defaultPrecision']),
                 'price': pricePrecision,
             };
-            result.push ({
+            const fees = this.safeValue (market, 'fees', {});
+            const flatRate = this.safeValue (fees, 'flat_rate', {});
+            const maker = this.safeFloat (flatRate, 'maker', this.fees['trading']['maker']);
+            const taker = this.safeFloat (flatRate, 'taker', this.fees['trading']['taker']);
+            const feeTiers = this.safeValue (fees, 'structure', []);
+            const fee = {
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+            const takerFees = [];
+            const makerFees = [];
+            for (let i = 0; i < feeTiers.length; i++) {
+                const tier = feeTiers[i];
+                const volume = this.safeFloat (tier, 'volume');
+                const takerFee = this.safeFloat (tier, 'taker');
+                const makerFee = this.safeFloat (tier, 'maker');
+                takerFees.push ([ volume, takerFee ]);
+                makerFees.push ([ volume, makerFee ]);
+                if (i === 0) {
+                    fee['taker'] = taker;
+                    fee['maker'] = maker;
+                }
+            }
+            const tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            };
+            fee['tiers'] = tiers;
+            result.push (this.extend ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -186,7 +216,7 @@ module.exports = class bitso extends Exchange {
                 'limits': limits,
                 'precision': precision,
                 'active': undefined,
-            });
+            }, fee));
         }
         return result;
     }
