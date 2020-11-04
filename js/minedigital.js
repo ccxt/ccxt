@@ -351,7 +351,7 @@ module.exports = class minedigital extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'settlementCurrencyFillAmountUnrounded');
+        const amount = this.safeFloat (trade, 'settlementCurrencyFillAmountUnrounded');
         return {
             'id': id,
             'info': trade,
