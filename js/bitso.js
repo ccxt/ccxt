@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -39,13 +40,14 @@ module.exports = class bitso extends Exchange {
                 'fees': 'https://bitso.com/fees?l=es',
                 'referral': 'https://bitso.com/?ref=itej',
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'precision': {
-                    'XRP': 6,
-                    'MXN': 2,
-                    'TUSD': 2,
+                    'XRP': 0.000001,
+                    'MXN': 0.01,
+                    'TUSD': 0.01,
                 },
-                'defaultPrecision': 8,
+                'defaultPrecision': 0.00000001,
             },
             'api': {
                 'public': {
@@ -110,6 +112,38 @@ module.exports = class bitso extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAvailableBooks (params);
+        //
+        //     {
+        //         "success":true,
+        //         "payload":[
+        //             {
+        //                 "book":"btc_mxn",
+        //                 "minimum_price":"500",
+        //                 "maximum_price":"10000000",
+        //                 "minimum_amount":"0.00005",
+        //                 "maximum_amount":"500",
+        //                 "minimum_value":"5",
+        //                 "maximum_value":"10000000",
+        //                 "tick_size":"0.01",
+        //                 "fees":{
+        //                     "flat_rate":{"maker":"0.500","taker":"0.650"},
+        //                     "structure":[
+        //                         {"volume":"1500000","maker":"0.00500","taker":"0.00650"},
+        //                         {"volume":"2000000","maker":"0.00490","taker":"0.00637"},
+        //                         {"volume":"5000000","maker":"0.00480","taker":"0.00624"},
+        //                         {"volume":"7000000","maker":"0.00440","taker":"0.00572"},
+        //                         {"volume":"10000000","maker":"0.00420","taker":"0.00546"},
+        //                         {"volume":"15000000","maker":"0.00400","taker":"0.00520"},
+        //                         {"volume":"35000000","maker":"0.00370","taker":"0.00481"},
+        //                         {"volume":"50000000","maker":"0.00300","taker":"0.00390"},
+        //                         {"volume":"150000000","maker":"0.00200","taker":"0.00260"},
+        //                         {"volume":"250000000","maker":"0.00100","taker":"0.00130"},
+        //                         {"volume":"9999999999","maker":"0.00000","taker":"0.00130"},
+        //                     ]
+        //                 }
+        //             },
+        //         ]
+        //     }
         const markets = this.safeValue (response, 'payload');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -135,9 +169,11 @@ module.exports = class bitso extends Exchange {
                     'max': this.safeFloat (market, 'maximum_value'),
                 },
             };
+            const defaultPricePrecision = this.safeFloat (this.options['precision'], quote, this.options['defaultPrecision']);
+            const pricePrecision = this.safeFloat (market, 'tick_size', defaultPricePrecision);
             const precision = {
-                'amount': this.safeInteger (this.options['precision'], base, this.options['defaultPrecision']),
-                'price': this.safeInteger (this.options['precision'], quote, this.options['defaultPrecision']),
+                'amount': this.safeFloat (this.options['precision'], base, this.options['defaultPrecision']),
+                'price': pricePrecision,
             };
             result.push ({
                 'id': id,
