@@ -24,7 +24,7 @@ const ccxtpro = require ('./ccxt.pro');
             while (true) {
                 console.log ('---')
                 try {
-                    const trades = await exchange.watch_trades (symbol)
+                    const trades = await exchange.watchTrades (symbol)
                     for (let i = 0; i < trades.length; i++) {
                         const trade = trades[i]
                         if (trade['id'] > lastId) {
