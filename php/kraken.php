@@ -1093,10 +1093,10 @@ class kraken extends Exchange {
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price', $price);
-        if (($price === null) || ($price === 0)) {
+        if (($price === null) || ($price === 0.0)) {
             $price = $this->safe_float($description, 'price2');
         }
-        if (($price === null) || ($price === 0)) {
+        if (($price === null) || ($price === 0.0)) {
             $price = $this->safe_float($order, 'price', $price);
         }
         $average = $this->safe_float($order, 'price');
