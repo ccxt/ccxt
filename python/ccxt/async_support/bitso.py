@@ -48,7 +48,7 @@ class bitso(Exchange):
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
-                'fees': 'https://bitso.com/fees?l=es',
+                'fees': 'https://bitso.com/fees',
                 'referral': 'https://bitso.com/?ref=itej',
             },
             'precisionMode': TICK_SIZE,
@@ -185,7 +185,35 @@ class bitso(Exchange):
                 'amount': self.safe_float(self.options['precision'], base, self.options['defaultPrecision']),
                 'price': pricePrecision,
             }
-            result.append({
+            fees = self.safe_value(market, 'fees', {})
+            flatRate = self.safe_value(fees, 'flat_rate', {})
+            maker = self.safe_float(flatRate, 'maker')
+            taker = self.safe_float(flatRate, 'taker')
+            feeTiers = self.safe_value(fees, 'structure', [])
+            fee = {
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+            takerFees = []
+            makerFees = []
+            for i in range(0, len(feeTiers)):
+                tier = feeTiers[i]
+                volume = self.safe_float(tier, 'volume')
+                takerFee = self.safe_float(tier, 'taker')
+                makerFee = self.safe_float(tier, 'maker')
+                takerFees.append([volume, takerFee])
+                makerFees.append([volume, makerFee])
+                if i == 0:
+                    fee['taker'] = taker
+                    fee['maker'] = maker
+            tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            }
+            fee['tiers'] = tiers
+            result.append(self.extend({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -196,7 +224,7 @@ class bitso(Exchange):
                 'limits': limits,
                 'precision': precision,
                 'active': None,
-            })
+            }, fee))
         return result
 
     async def fetch_balance(self, params={}):
