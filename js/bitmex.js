@@ -1143,7 +1143,7 @@ module.exports = class bitmex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
+        const price = this.safeFloat2 (trade, 'avgPx', 'price');
         const amount = this.safeFloat2 (trade, 'size', 'lastQty');
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
