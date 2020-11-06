@@ -752,7 +752,7 @@ module.exports = class novadax extends Exchange {
                 'currency': undefined,
             };
         }
-        const marketId = this.safeString (order, 'marketId');
+        const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
