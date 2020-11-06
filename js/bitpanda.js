@@ -1146,7 +1146,6 @@ module.exports = class bitpanda extends Exchange {
         //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
         //     }
         //
-
         const id = this.safeString (transaction, 'transaction_id');
         const amount = this.safeFloat (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
