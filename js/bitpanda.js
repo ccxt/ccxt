@@ -148,12 +148,6 @@ module.exports = class bitpanda extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
-            // exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
-                },
-            },
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -240,7 +234,11 @@ module.exports = class bitpanda extends Exchange {
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
+            // exchange-specific options
             'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                },
                 'fiat': [ 'EUR', 'CHF' ],
             },
         });
