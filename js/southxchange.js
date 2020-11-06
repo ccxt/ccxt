@@ -302,7 +302,7 @@ module.exports = class southxchange extends Exchange {
         const response = await this.privatePostPlaceOrder (this.extend (request, params));
         return {
             'info': response,
-            'id': response.toString (),
+            'id': response,
         };
     }
 
