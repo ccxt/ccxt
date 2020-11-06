@@ -302,9 +302,10 @@ class southxchange extends Exchange {
             $request['limitPrice'] = $price;
         }
         $response = $this->privatePostPlaceOrder (array_merge($request, $params));
+        $id = json_decode($response, $as_associative_array = true);
         return array(
             'info' => $response,
-            'id' => (string) $response,
+            'id' => $id,
         );
     }
 
