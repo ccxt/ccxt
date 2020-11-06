@@ -121,6 +121,11 @@ module.exports = class idex extends Exchange {
             },
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
+            'requireCredentials': {
+                'privateKey': true,
+                'apiKey': true,
+                'secret': true,
+            },
         });
     }
 
@@ -546,6 +551,7 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const nonce1 = this.uuidv1 ();
         const request = {
@@ -562,6 +568,9 @@ module.exports = class idex extends Exchange {
         //   }, ...
         // ]
         const extendedRequest = this.extend (request, params);
+        if (extendedRequest['wallet'] === undefined) {
+            throw new BadRequest (this.id + ' wallet is undefined, set this.walletAddress or "address" in params');
+        }
         let response = undefined;
         try {
             response = await this.privateGetBalances (extendedRequest);
@@ -594,6 +603,7 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -631,6 +641,9 @@ module.exports = class idex extends Exchange {
         //   }
         // ]
         const extendedRequest = this.extend (request, params);
+        if (extendedRequest['wallet'] === undefined) {
+            throw new BadRequest (this.id + ' walletAddress is undefined, set this.walletAddress or "address" in params');
+        }
         let response = undefined;
         try {
             response = await this.privateGetFills (extendedRequest);
@@ -1067,6 +1080,7 @@ module.exports = class idex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
