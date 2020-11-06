@@ -727,7 +727,7 @@ class novadax(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        marketId = self.safe_string(order, 'marketId')
+        marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
