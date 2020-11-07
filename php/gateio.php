@@ -436,28 +436,47 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($this->parse_balance($this->balance), $messageHash);
     }
 
-    public function watch_orders($params = array ()) {
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->check_required_credentials();
         $this->load_markets();
-        $url = $this->urls['api']['ws'];
-        $future = $this->authenticate();
-        $requestId = $this->nonce();
         $method = 'order.update';
+        $messageHash = $method;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $messageHash = $method . ':' . $market['id'];
+        }
+        $url = $this->urls['api']['ws'];
+        $authenticated = $this->authenticate();
+        $requestId = $this->nonce();
         $subscribeMessage = array(
             'id' => $requestId,
             'method' => 'order.subscribe',
             'params' => array(),
         );
-        return $this->after_dropped($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method);
+        $subscription = array(
+            'id' => $requestId,
+        );
+        $future = $this->after_dropped($authenticated, array($this, 'watch'), $url, $messageHash, $subscribeMessage, $method, $subscription);
+        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
     }
 
     public function handle_order($client, $message) {
-        $messageHash = $message['method'];
-        $order = $message['params'][1];
+        $method = $this->safe_string($message, 'method');
+        $params = $this->safe_value($message, 'params');
+        $order = $this->safe_value($params, 1);
         $marketId = $this->safe_string_lower($order, 'market');
         $market = $this->safe_market($marketId, null, '_');
         $parsed = $this->parse_order($order, $market);
-        $client->resolve ($parsed, $messageHash);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $orders = $this->orders;
+        $orders->append ($parsed);
+        $symbolSpecificMessageHash = $method . ':' . $marketId;
+        $client->resolve ($orders, $method);
+        $client->resolve ($orders, $symbolSpecificMessageHash);
     }
 
     public function handle_authentication_message($client, $message, $subscription) {
@@ -475,7 +494,7 @@ class gateio extends \ccxt\gateio {
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
             $error = new AuthenticationError ('not success');
-            $client->reject ($error, 'autheticated');
+            $client->reject ($error, 'authenticated');
             if (is_array($client->subscriptions) && array_key_exists('server.sign', $client->subscriptions)) {
                 unset($client->subscriptions['server.sign']);
             }
@@ -498,7 +517,7 @@ class gateio extends \ccxt\gateio {
     }
 
     public function handle_subscription_status($client, $message) {
-        $messageId = $message['id'];
+        $messageId = $this->safe_integer($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $messageId, array());
         $method = $this->safe_value($subscription, 'method');
