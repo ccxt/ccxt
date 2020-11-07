@@ -220,7 +220,7 @@ module.exports = class bitrue extends Exchange {
         }
         const vwap = this.safeFloat (ticker, 'weightedAvgPrice');
         // response includes `volume`, but it is equal to `quoteVolume`
-        // since e.g. BTC/USDT volume = quoteVolume ~ 30000000, we can assume it is quoteVolume 
+        // since e.g. BTC/USDT volume = quoteVolume ~ 30000000, we can assume it is quoteVolume
         let baseVolume = undefined;
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         if ((quoteVolume !== undefined) && (vwap !== undefined) && (vwap > 0)) {
@@ -288,6 +288,7 @@ module.exports = class bitrue extends Exchange {
         } else if (isBuyMaker && isBestMatch) {
             side = 'sell';
         }
+        const takerOrMaker = this.safeValue (trade, 'isMaker') ? 'maker' : 'taker';
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -302,6 +303,9 @@ module.exports = class bitrue extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'qty');
+        const cost = price * amount;
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -310,20 +314,20 @@ module.exports = class bitrue extends Exchange {
             'id': this.safeString (trade, 'id'),
             'order': undefined,
             'type': 'limit',
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'qty'),
-            'cost': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': undefined,
         };
     }
-    
+
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
         return this.safeInteger (response, 'serverTime');
     }
-    
+
     async loadTimeDifference (params = {}) {
         const serverTime = await this.fetchTime (params);
         const after = this.milliseconds ();
