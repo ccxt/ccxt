@@ -22,6 +22,9 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'watchTrades': true,
             },
             'urls': {
+                'test': {
+                    'ws': 'wss://testnet.bitmex.com/realtime',
+                },
                 'api': {
                     'ws': 'wss://www.bitmex.com/realtime',
                 },
