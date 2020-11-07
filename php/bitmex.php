@@ -26,6 +26,9 @@ class bitmex extends \ccxt\bitmex {
                 'watchTrades' => true,
             ),
             'urls' => array(
+                'test' => array(
+                    'ws' => 'wss://testnet.bitmex.com/realtime',
+                ),
                 'api' => array(
                     'ws' => 'wss://www.bitmex.com/realtime',
                 ),
