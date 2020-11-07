@@ -241,7 +241,7 @@ class bitrue(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetDepth(self.extend(request, params))
-        
+
         orderbook = response if response else {}
         timestamp = self.safe_timestamp(orderbook, 'lastUpdateId') // 1000
         return self.parse_order_book(orderbook, timestamp)
@@ -258,30 +258,29 @@ class bitrue(Exchange):
         data = response if isinstance(response, (list,)) else []
         return self.parse_trades(data, market, since, limit)
 
+
     def parse_trade(self, trade, market=None):
-        is_buy_maker = self.safe_value(trade, 'isBuyerMaker')
-        is_best_match = self.safe_value(trade, 'isBestMatch')
-        if not is_buy_maker and is_best_match:
+        isBuyMaker = self.safe_value(trade, 'isBuyerMaker')
+        isBestMatch = self.safe_value(trade, 'isBestMatch')
+        side = None
+        if not isBuyMaker and isBestMatch:
             side = 'buy'
-        elif is_buy_maker and is_best_match:
+        elif isBuyMaker and isBestMatch:
             side = 'sell'
+        takerOrMaker = 'maker' if self.safe_value(trade, 'isMaker') else 'taker'
         symbol = None
-        
         if market is not None:
-            marketId = market['id']
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = marketId
+            symbol = market['symbol']
         if symbol is None:
             if market is None:
-                market = self.markets_by_id[self.safe_string(trade, 'symbol').lower()]
+                market = self.markets_by_id[self.safe_string_lower(trade, 'symbol')]
             symbol = market['symbol']
-
-        timestamp = self.safe_timestamp(trade, 'time') // 1000
+        timestamp = self.safe_integer(trade, 'time')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'qty')
+        cost = price * amount
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -290,14 +289,14 @@ class bitrue(Exchange):
             'id': self.safe_string(trade, 'id'),
             'order': None,
             'type': 'limit',
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'qty'),
-            'cost': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
         }
-    
+
     def load_time_diff(self):
         if self.diff_millis is None:
             self.fetch_time()
