@@ -79,9 +79,9 @@ module.exports = class bitrue extends Exchange {
                     'post': [
                         'order',
                     ],
-                    'delete':[
+                    'delete': [
                         'order',
-                    ]
+                    ],
                 },
             },
             'fees': {
@@ -170,7 +170,7 @@ module.exports = class bitrue extends Exchange {
                     },
                     'cost': {
                         'min': this.safeValue (volume_filter, 'minQty'),
-                        'max': this.safeValue (volume_filter, 'maxQty')
+                        'max': this.safeValue (volume_filter, 'maxQty'),
                     },
                 },
             });
@@ -193,7 +193,6 @@ module.exports = class bitrue extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetTicker24hr (params);
         // const data = this.safeValue (response, 0, []);
-        const result = {};
         return this.parseTickers (response, symbols);
     }
 
@@ -262,7 +261,7 @@ module.exports = class bitrue extends Exchange {
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = response ? response : {};
         const timestamp = this.safeInteger (orderbook, 'lastUpdateId');
-        return this.parseOrderBook(orderbook, timestamp);
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -276,7 +275,7 @@ module.exports = class bitrue extends Exchange {
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         const data = Array.isArray (response) ? response : [];
-        return this.parseTrades(data, market, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -299,7 +298,7 @@ module.exports = class bitrue extends Exchange {
             }
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (trade, 'time');
+        let timestamp = this.safeInteger (trade, 'time');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
