@@ -1339,7 +1339,7 @@ class bitstamp(Exchange):
         if v1:
             response = json.loads(response)
         address = response if v1 else self.safe_string(response, 'address')
-        tag = None if v1 else self.safe_string(response, 'destination_tag')
+        tag = None if v1 else self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
         return {
             'currency': code,

@@ -43,6 +43,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -147,12 +148,6 @@ module.exports = class bitpanda extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
-            // exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
-                },
-            },
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -238,6 +233,13 @@ module.exports = class bitpanda extends Exchange {
             },
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            },
+            // exchange-specific options
+            'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                },
+                'fiat': [ 'EUR', 'CHF' ],
             },
         });
     }
@@ -1058,6 +1060,55 @@ module.exports = class bitpanda extends Exchange {
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': code,
+            'amount': this.currencyToPrecision (code, amount),
+            // 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2', // fiat only
+            // 'recipient': { // crypto only
+            //     'address': address,
+            //     // 'destination_tag': '',
+            // },
+        };
+        const options = this.safeValue (this.options, 'fiat', []);
+        const isFiat = this.inArray (code, options);
+        const method = isFiat ? 'privatePostAccountWithdrawFiat' : 'privatePostAccountWithdrawCrypto';
+        if (isFiat) {
+            const payoutAccountId = this.safeString (params, 'payout_account_id');
+            if (payoutAccountId === undefined) {
+                throw ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
+            }
+        } else {
+            const recipient = { 'address': address };
+            if (tag !== undefined) {
+                recipient['destination_tag'] = tag;
+            }
+            request['recipient'] = recipient;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // crypto
+        //
+        //     {
+        //         "amount": "1234.5678",
+        //         "fee": "1234.5678",
+        //         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        //         "destination_tag": "",
+        //         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        //     }
+        //
+        // fiat
+        //
+        //     {
+        //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits, fetchWithdrawals
@@ -1076,16 +1127,37 @@ module.exports = class bitpanda extends Exchange {
         //         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         //     }
         //
+        // withdraw
+        //
+        //
+        //     crypto
+        //
+        //     {
+        //         "amount": "1234.5678",
+        //         "fee": "1234.5678",
+        //         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        //         "destination_tag": "",
+        //         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        //     }
+        //
+        //     fiat
+        //
+        //     {
+        //         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        //     }
+        //
         const id = this.safeString (transaction, 'transaction_id');
         const amount = this.safeFloat (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const status = undefined;
-        const feeCost = this.safeFloat (transaction, 'fee_amount');
+        currency = this.safeCurrency (currencyId, currency);
+        const status = 'ok'; // the exchange returns cleared transactions only
+        const feeCost = this.safeFloat2 (transaction, 'fee_amount', 'fee');
         let fee = undefined;
+        const addressTo = this.safeString (transaction, 'recipient');
+        const tagTo = this.safeString (transaction, 'destination_tag');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (transaction, 'fee_currency');
+            const feeCurrencyId = this.safeString (transaction, 'fee_currency', currencyId);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -1095,14 +1167,14 @@ module.exports = class bitpanda extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
-            'address': undefined,
+            'address': addressTo,
             'addressFrom': undefined,
-            'addressTo': undefined,
-            'tag': undefined,
+            'addressTo': addressTo,
+            'tag': tagTo,
             'tagFrom': undefined,
-            'tagTo': undefined,
+            'tagTo': tagTo,
             'status': status,
             'type': undefined,
             'updated': undefined,

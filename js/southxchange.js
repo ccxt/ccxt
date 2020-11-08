@@ -300,9 +300,10 @@ module.exports = class southxchange extends Exchange {
             request['limitPrice'] = price;
         }
         const response = await this.privatePostPlaceOrder (this.extend (request, params));
+        const id = JSON.parse (response);
         return {
             'info': response,
-            'id': response.toString (),
+            'id': id,
         };
     }
 

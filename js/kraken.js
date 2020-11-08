@@ -1084,10 +1084,10 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         const cost = this.safeFloat (order, 'cost');
         price = this.safeFloat (description, 'price', price);
-        if ((price === undefined) || (price === 0)) {
+        if ((price === undefined) || (price === 0.0)) {
             price = this.safeFloat (description, 'price2');
         }
-        if ((price === undefined) || (price === 0)) {
+        if ((price === undefined) || (price === 0.0)) {
             price = this.safeFloat (order, 'price', price);
         }
         const average = this.safeFloat (order, 'price');

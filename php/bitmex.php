@@ -1147,7 +1147,7 @@ class bitmex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_float($trade, 'price');
+        $price = $this->safe_float_2($trade, 'avgPx', 'price');
         $amount = $this->safe_float_2($trade, 'size', 'lastQty');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');

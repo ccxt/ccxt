@@ -47,7 +47,7 @@ class coinbasepro(Exchange):
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': True,
+                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -61,6 +61,8 @@ class coinbasepro(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': True,
                 'withdraw': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -114,7 +116,6 @@ class coinbasepro(Exchange):
                         'accounts/{id}/ledger',
                         'accounts/{id}/transfers',
                         'coinbase-accounts',
-                        'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
                         'fees',
@@ -164,6 +165,9 @@ class coinbasepro(Exchange):
                         'orders/{id}',
                     ],
                 },
+            },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -884,6 +888,12 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'deposit'}))
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions(code, since, limit, self.extend(params, {'type': 'withdraw'}))
+
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')
         if canceled:
@@ -905,16 +915,22 @@ class coinbasepro(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        fee = None
         status = self.parse_transaction_status(transaction)
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
+        fee = None
         if type == 'withdraw':
             type = 'withdrawal'
             address = self.safe_string(details, 'sent_to_address', address)
+            feeCost = self.safe_float(details, 'fee')
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'code': code,
+                }
         return {
             'info': transaction,
             'id': id,
@@ -957,32 +973,6 @@ class coinbasepro(Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
-        if accounts is None:
-            accounts = self.privateGetCoinbaseAccounts()
-            self.options['coinbaseAccounts'] = accounts  # cache it
-            self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
-        currencyId = currency['id']
-        account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
-        if account is None:
-            # eslint-disable-next-line quotes
-            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
-        request = {
-            'id': account['id'],
-        }
-        response = self.privateGetCoinbaseAccountsIdAddresses(self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'destination_tag')
-        return {
-            'currency': code,
-            'address': self.check_address(address),
-            'tag': tag,
-            'info': response,
-        }
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()

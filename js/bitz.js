@@ -36,6 +36,7 @@ module.exports = class bitz extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -82,6 +83,7 @@ module.exports = class bitz extends Exchange {
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut', // withdraw
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
@@ -1094,6 +1096,16 @@ module.exports = class bitz extends Exchange {
         //         "memo":""
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":397574,
+        //         "email":"***@email.com",
+        //         "coin":"usdt",
+        //         "network_fee":"",
+        //         "eid":23112
+        //     }
+        //
         let timestamp = this.safeInteger (transaction, 'updated');
         if (timestamp === 0) {
             timestamp = undefined;
@@ -1102,6 +1114,14 @@ module.exports = class bitz extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'network_fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'code': code,
+            };
+        }
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
@@ -1114,7 +1134,7 @@ module.exports = class bitz extends Exchange {
             'currency': code,
             'status': status,
             'updated': timestamp,
-            'fee': undefined,
+            'fee': fee,
             'info': transaction,
         };
     }
@@ -1166,6 +1186,40 @@ module.exports = class bitz extends Exchange {
         const response = await this.tradePostDepositOrWithdraw (this.extend (request, params));
         const transactions = this.safeValue (response['data'], 'data', []);
         return this.parseTransactionsByType (type, transactions, code, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'number': this.currencyToPrecision (code, amount),
+            'address': address,
+            // 'type': 'erc20', // omni, trc20, optional
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.tradePostCoinOut (this.extend (request, params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":{
+        //             "id":397574,
+        //             "email":"***@email.com",
+        //             "coin":"usdt",
+        //             "network_fee":"",
+        //             "eid":23112
+        //         },
+        //         "time":1552641646,
+        //         "microtime":"0.70304500 1552641646",
+        //         "source":"api"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
     }
 
     nonce () {

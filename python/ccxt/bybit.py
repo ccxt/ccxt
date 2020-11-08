@@ -100,6 +100,7 @@ class bybit(Exchange):
                         'position/list',
                         'wallet/balance',
                         'execution/list',
+                        'trade/closed-pnl/list',
                     ],
                     'post': [
                         'order/create',
@@ -280,6 +281,10 @@ class bybit(Exchange):
             'options': {
                 'marketTypes': {
                     'BTC/USDT': 'linear',
+                    'ETH/USDT': 'linear',
+                    'LTC/USDT': 'linear',
+                    'XTZ/USDT': 'linear',
+                    'LINK/USDT': 'linear',
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {

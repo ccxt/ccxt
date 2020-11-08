@@ -87,6 +87,7 @@ class idex(Exchange):
                         'candles',
                         'trades',
                         'orderbook',
+                        'wsToken',
                     ],
                 },
                 'private': {
@@ -131,6 +132,11 @@ class idex(Exchange):
             },
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
+            'requireCredentials': {
+                'privateKey': True,
+                'apiKey': True,
+                'secret': True,
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -530,6 +536,7 @@ class idex(Exchange):
         return result
 
     async def fetch_balance(self, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         nonce1 = self.uuidv1()
         request = {
@@ -546,6 +553,8 @@ class idex(Exchange):
         #   }, ...
         # ]
         extendedRequest = self.extend(request, params)
+        if extendedRequest['wallet'] is None:
+            raise BadRequest(self.id + ' wallet is None, set self.walletAddress or "address" in params')
         response = None
         try:
             response = await self.privateGetBalances(extendedRequest)
@@ -574,6 +583,7 @@ class idex(Exchange):
         return self.parse_balance(result)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         market = None
         request = {
@@ -608,6 +618,8 @@ class idex(Exchange):
         #   }
         # ]
         extendedRequest = self.extend(request, params)
+        if extendedRequest['wallet'] is None:
+            raise BadRequest(self.id + ' walletAddress is None, set self.walletAddress or "address" in params')
         response = None
         try:
             response = await self.privateGetFills(extendedRequest)
@@ -1015,6 +1027,7 @@ class idex(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         market = None
         if symbol is not None:

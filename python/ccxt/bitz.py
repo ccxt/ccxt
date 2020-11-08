@@ -48,6 +48,7 @@ class bitz(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -94,6 +95,7 @@ class bitz(Exchange):
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut',  # withdraw
                         'getUserHistoryEntrustSheet',  # closed orders
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
@@ -1053,6 +1055,16 @@ class bitz(Exchange):
         #         "memo":""
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "id":397574,
+        #         "email":"***@email.com",
+        #         "coin":"usdt",
+        #         "network_fee":"",
+        #         "eid":23112
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'updated')
         if timestamp == 0:
             timestamp = None
@@ -1060,6 +1072,13 @@ class bitz(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        fee = None
+        feeCost = self.safe_float(transaction, 'network_fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'code': code,
+            }
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'txid'),
@@ -1072,7 +1091,7 @@ class bitz(Exchange):
             'currency': code,
             'status': status,
             'updated': timestamp,
-            'fee': None,
+            'fee': fee,
             'info': transaction,
         }
 
@@ -1115,6 +1134,38 @@ class bitz(Exchange):
         response = self.tradePostDepositOrWithdraw(self.extend(request, params))
         transactions = self.safe_value(response['data'], 'data', [])
         return self.parse_transactions_by_type(type, transactions, code, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'number': self.currency_to_precision(code, amount),
+            'address': address,
+            # 'type': 'erc20',  # omni, trc20, optional
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = self.tradePostCoinOut(self.extend(request, params))
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":{
+        #             "id":397574,
+        #             "email":"***@email.com",
+        #             "coin":"usdt",
+        #             "network_fee":"",
+        #             "eid":23112
+        #         },
+        #         "time":1552641646,
+        #         "microtime":"0.70304500 1552641646",
+        #         "source":"api"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def nonce(self):
         currentTimestamp = self.seconds()

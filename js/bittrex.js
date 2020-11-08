@@ -508,7 +508,9 @@ module.exports = class bittrex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchTickers', {});
-        const method = this.safeString (options, 'method', 'publicGetMarketsTickers');
+        const defaultMethod = this.safeString (options, 'method', 'publicGetMarketsTickers');
+        const method = this.safeString (params, 'method', defaultMethod);
+        params = this.omit (params, 'method');
         const response = await this[method] (params);
         //
         // publicGetMarketsTickers
@@ -551,7 +553,9 @@ module.exports = class bittrex extends Exchange {
             'marketSymbol': market['id'],
         };
         const options = this.safeValue (this.options, 'fetchTicker', {});
-        const method = this.safeString (options, 'method', 'publicGetMarketsMarketSymbolTicker');
+        const defaultMethod = this.safeString (options, 'method', 'publicGetMarketsMarketSymbolTicker');
+        const method = this.safeString (params, 'method', defaultMethod);
+        params = this.omit (params, 'method');
         const response = await this[method] (this.extend (request, params));
         //
         // publicGetMarketsMarketSymbolTicker

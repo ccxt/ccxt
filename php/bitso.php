@@ -39,16 +39,17 @@ class bitso extends Exchange {
                 'api' => 'https://api.bitso.com',
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
-                'fees' => 'https://bitso.com/fees?l=es',
+                'fees' => 'https://bitso.com/fees',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
                 'precision' => array(
-                    'XRP' => 6,
-                    'MXN' => 2,
-                    'TUSD' => 2,
+                    'XRP' => 0.000001,
+                    'MXN' => 0.01,
+                    'TUSD' => 0.01,
                 ),
-                'defaultPrecision' => 8,
+                'defaultPrecision' => 0.00000001,
             ),
             'api' => array(
                 'public' => array(
@@ -113,6 +114,38 @@ class bitso extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetAvailableBooks ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "payload":array(
+        //             {
+        //                 "book":"btc_mxn",
+        //                 "minimum_price":"500",
+        //                 "maximum_price":"10000000",
+        //                 "minimum_amount":"0.00005",
+        //                 "maximum_amount":"500",
+        //                 "minimum_value":"5",
+        //                 "maximum_value":"10000000",
+        //                 "tick_size":"0.01",
+        //                 "$fees":array(
+        //                     "flat_rate":array("$maker":"0.500","$taker":"0.650"),
+        //                     "structure":array(
+        //                         array("$volume":"1500000","$maker":"0.00500","$taker":"0.00650"),
+        //                         array("$volume":"2000000","$maker":"0.00490","$taker":"0.00637"),
+        //                         array("$volume":"5000000","$maker":"0.00480","$taker":"0.00624"),
+        //                         array("$volume":"7000000","$maker":"0.00440","$taker":"0.00572"),
+        //                         array("$volume":"10000000","$maker":"0.00420","$taker":"0.00546"),
+        //                         array("$volume":"15000000","$maker":"0.00400","$taker":"0.00520"),
+        //                         array("$volume":"35000000","$maker":"0.00370","$taker":"0.00481"),
+        //                         array("$volume":"50000000","$maker":"0.00300","$taker":"0.00390"),
+        //                         array("$volume":"150000000","$maker":"0.00200","$taker":"0.00260"),
+        //                         array("$volume":"250000000","$maker":"0.00100","$taker":"0.00130"),
+        //                         array("$volume":"9999999999","$maker":"0.00000","$taker":"0.00130"),
+        //                     )
+        //                 }
+        //             ),
+        //         )
+        //     }
         $markets = $this->safe_value($response, 'payload');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -138,11 +171,43 @@ class bitso extends Exchange {
                     'max' => $this->safe_float($market, 'maximum_value'),
                 ),
             );
+            $defaultPricePrecision = $this->safe_float($this->options['precision'], $quote, $this->options['defaultPrecision']);
+            $pricePrecision = $this->safe_float($market, 'tick_size', $defaultPricePrecision);
             $precision = array(
-                'amount' => $this->safe_integer($this->options['precision'], $base, $this->options['defaultPrecision']),
-                'price' => $this->safe_integer($this->options['precision'], $quote, $this->options['defaultPrecision']),
+                'amount' => $this->safe_float($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'price' => $pricePrecision,
             );
-            $result[] = array(
+            $fees = $this->safe_value($market, 'fees', array());
+            $flatRate = $this->safe_value($fees, 'flat_rate', array());
+            $maker = $this->safe_float($flatRate, 'maker');
+            $taker = $this->safe_float($flatRate, 'taker');
+            $feeTiers = $this->safe_value($fees, 'structure', array());
+            $fee = array(
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            $takerFees = array();
+            $makerFees = array();
+            for ($i = 0; $i < count($feeTiers); $i++) {
+                $tier = $feeTiers[$i];
+                $volume = $this->safe_float($tier, 'volume');
+                $takerFee = $this->safe_float($tier, 'taker');
+                $makerFee = $this->safe_float($tier, 'maker');
+                $takerFees[] = array( $volume, $takerFee );
+                $makerFees[] = array( $volume, $makerFee );
+                if ($i === 0) {
+                    $fee['taker'] = $taker;
+                    $fee['maker'] = $maker;
+                }
+            }
+            $tiers = array(
+                'taker' => $takerFees,
+                'maker' => $makerFees,
+            );
+            $fee['tiers'] = $tiers;
+            $result[] = array_merge(array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -153,7 +218,7 @@ class bitso extends Exchange {
                 'limits' => $limits,
                 'precision' => $precision,
                 'active' => null,
-            );
+            ), $fee);
         }
         return $result;
     }
