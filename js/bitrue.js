@@ -322,9 +322,18 @@ module.exports = class bitrue extends Exchange {
         };
     }
 
+    async loadTimeDiff () {
+        if (this.defMillis === undefined) {
+            await this.fetchTime ();
+        }
+    }
+
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.safeInteger (response, 'serverTime');
+        const serverMillis = this.safeInteger (response, 'serverTime');
+        const localMillis = this.milliseconds ();
+        this.diffMillis = serverMillis - localMillis;
+        return serverMillis;
     }
 
     async fetchBalance (params = {}) {
@@ -364,8 +373,6 @@ module.exports = class bitrue extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = (this.options['timeDifference'] !== undefined) ? (this.milliseconds () - this.options['timeDifference']) : 0;
             query = this.extend ({ 'timestamp': timestamp }, query);
-            // Does it have to be sorted?
-            // signStr = "&".join(["%s=%s" % (key, query[key]) for key in sorted(query.keys())])
             const signStr = this.urlencode (query);
             const signature = this.hmac (this.encode (signStr), this.encode (this.secret));
             query = this.extend ({ 'signature': signature }, query);
