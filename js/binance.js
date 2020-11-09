@@ -1977,6 +1977,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const positions = this.safeValue2 (info, 'positions', 'userAssets', []);
+        // todo unify parsePosition/parsePositions
         return positions;
     }
 
