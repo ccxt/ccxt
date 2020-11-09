@@ -91,11 +91,11 @@ from ccxt.bitmart import bitmart                            # noqa: F401
 from ccxt.bitmax import bitmax                              # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
 from ccxt.bitpanda import bitpanda                          # noqa: F401
+from ccxt.bitrue import bitrue                              # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
-from ccxt.bitrue import bitrue                              # noqa: F401
 from ccxt.bitvavo import bitvavo                            # noqa: F401
 from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
@@ -218,11 +218,11 @@ exchanges = [
     'bitmax',
     'bitmex',
     'bitpanda',
+    'bitrue',
     'bitso',
     'bitstamp',
     'bitstamp1',
     'bittrex',
-    'bitrue',
     'bitvavo',
     'bitz',
     'bl3p',
