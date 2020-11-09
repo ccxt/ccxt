@@ -140,7 +140,7 @@ class kucoin(Exchange):
                         'margin/lend/trade/settled',
                         'margin/lend/assets',
                         'margin/market',
-                        'margin/margin/trade/last',
+                        'margin/trade/last',
                     ],
                     'post': [
                         'accounts',
