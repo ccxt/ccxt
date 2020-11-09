@@ -1315,6 +1315,27 @@ class poloniex(Exchange):
             },
         }
 
+    def fetch_position(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+        }
+        response = self.privatePostGetMarginPosition(self.extend(request, params))
+        #
+        #     {
+        #         type: "none",
+        #         amount: "0.00000000",
+        #         total: "0.00000000",
+        #         basePrice: "0.00000000",
+        #         liquidationPrice: -1,
+        #         pl: "0.00000000",
+        #         lendingFees: "0.00000000"
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def nonce(self):
         return self.milliseconds()
 

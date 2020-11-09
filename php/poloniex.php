@@ -1414,6 +1414,28 @@ class poloniex extends Exchange {
         );
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currencyPair' => $market['id'],
+        );
+        $response = $this->privatePostGetMarginPosition (array_merge($request, $params));
+        //
+        //     {
+        //         type => "none",
+        //         amount => "0.00000000",
+        //         total => "0.00000000",
+        //         basePrice => "0.00000000",
+        //         liquidationPrice => -1,
+        //         pl => "0.00000000",
+        //         lendingFees => "0.00000000"
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }

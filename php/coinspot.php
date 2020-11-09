@@ -137,8 +137,55 @@ class coinspot extends Exchange {
             'cointype' => $market['id'],
         );
         $response = $this->privatePostOrdersHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "orders":array(
+        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"$market":"BTC/AUD"),
+        //         ),
+        //     }
+        //
         $trades = $this->safe_value($response, 'orders', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function parse_trade($trade, $market = null) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "$amount":0.00102091,
+        //         "rate":21549.09999991,
+        //         "total":21.99969168,
+        //         "coin":"BTC",
+        //         "solddate":1604890646143,
+        //         "$market":"BTC/AUD"
+        //     }
+        //
+        $price = $this->safe_float($trade, 'rate');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = $this->safe_float($trade, 'total');
+        if (($cost === null) && ($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $timestamp = $this->safe_integer($trade, 'solddate');
+        $marketId = $this->safe_string($trade, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '/');
+        return array(
+            'info' => $trade,
+            'id' => null,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

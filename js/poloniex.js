@@ -1411,6 +1411,28 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+        };
+        const response = await this.privatePostGetMarginPosition (this.extend (request, params));
+        //
+        //     {
+        //         type: "none",
+        //         amount: "0.00000000",
+        //         total: "0.00000000",
+        //         basePrice: "0.00000000",
+        //         liquidationPrice: -1,
+        //         pl: "0.00000000",
+        //         lendingFees: "0.00000000"
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
