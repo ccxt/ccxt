@@ -250,7 +250,10 @@ module.exports = class btcmarkets extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
+        if (fee) {
+            amount -= fee;
+        }
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
