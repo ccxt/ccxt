@@ -531,7 +531,7 @@ class bittrex extends \ccxt\bittrex {
             // if the received $snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in $maxAttempts
-            if ($nonce < $sequence) {
+            if (($sequence !== null) && ($nonce < $sequence)) {
                 $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
                 $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);

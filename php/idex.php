@@ -30,13 +30,6 @@ class idex extends \ccxt\idex {
                 ),
                 'api' => array(),
             ),
-            'api' => array(
-                'private' => array(
-                    'get' => array(
-                        'wsToken',
-                    ),
-                ),
-            ),
             'options' => array(
                 'tradesLimit' => 1000,
                 'ordersLimit' => 1000,

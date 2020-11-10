@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.49'
+__version__ = '0.4.61'
 
 # -----------------------------------------------------------------------------
 
@@ -126,6 +126,12 @@ class Exchange(BaseExchange):
 
         def after(fut):
             rate_limit = None
+            exception = fut.exception()
+            if exception is not None:
+                # future will already have this exception set to it in self.reset
+                # so we don't set it again here to avoid an InvalidState error
+                return
+
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit:

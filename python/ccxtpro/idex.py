@@ -29,13 +29,6 @@ class idex(Exchange, ccxt.idex):
                 },
                 'api': {},
             },
-            'api': {
-                'private': {
-                    'get': [
-                        'wsToken',
-                    ],
-                },
-            },
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,

@@ -187,7 +187,7 @@ class kucoin extends \ccxt\kucoin {
     public function handle_trade($client, $message) {
         //
         //     {
-        //         $data => $array(
+        //         $data => array(
         //             sequence => '1568787654360',
         //             $symbol => 'BTC-USDT',
         //             side => 'buy',
@@ -204,18 +204,18 @@ class kucoin extends \ccxt\kucoin {
         //         type => 'message'
         //     }
         //
-        $data = $this->safe_value($message, 'data', $array());
+        $data = $this->safe_value($message, 'data', array());
         $trade = $this->parse_trade($data);
         $messageHash = $this->safe_string($message, 'topic');
         $symbol = $trade['symbol'];
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $trades = $this->safe_value($this->trades, $symbol);
+        if ($trades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $trades = new ArrayCache ($limit);
+            $this->trades[$symbol] = $trades;
         }
-        $array->append ($trade);
-        $client->resolve ($array, $messageHash);
+        $trades->append ($trade);
+        $client->resolve ($trades, $messageHash);
         return $message;
     }
 

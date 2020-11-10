@@ -527,7 +527,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
-            if (nonce < sequence) {
+            if ((sequence !== undefined) && (nonce < sequence)) {
                 const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
                 const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
