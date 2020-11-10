@@ -2601,6 +2601,36 @@ class bitget(Exchange):
             data = self.safe_value(response, 'data', [])
         return await self.parse_trades(data, market, since, limit)
 
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.swapGetPositionAllPosition(params)
+        #
+        #     [
+        #         {
+        #             "margin_mode":"fixed",
+        #             "holding":[
+        #                 {
+        #                     "liquidation_price":"0.00",
+        #                     "position":"0",
+        #                     "avail_position":"0",
+        #                     "avg_cost":"0.00",
+        #                     "symbol":"btcusd",
+        #                     "leverage":"20",
+        #                     "keepMarginRate":"0.005",
+        #                     "realized_pnl":"0.00000000",
+        #                     "unrealized_pnl":"0",
+        #                     "side":"long",
+        #                     "holdSide":"1",
+        #                     "timestamp":"1595698564915",
+        #                     "margin":"0.0000000000000000"
+        #                 },
+        #             ]
+        #         },
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         if (api == 'capi') or (api == 'swap'):
