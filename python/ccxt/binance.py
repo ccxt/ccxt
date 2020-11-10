@@ -721,7 +721,7 @@ class binance(Exchange):
             future = False
             delivery = False
             if 'maintMarginPercent' in market:
-                delivery = ('marginAsset' in market)
+                delivery = ('deliveryDate' in market)
                 future = not delivery
                 marketType = 'delivery' if delivery else 'future'
             spot = not (future or delivery)
@@ -1832,7 +1832,7 @@ class binance(Exchange):
         else:
             return response
 
-    def fetch_positions(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.fetch_balance(params)
         info = self.safe_value(response, 'info', {})

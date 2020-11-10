@@ -136,12 +136,13 @@ class bitget(Exchange):
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ],
                 },
                 'swap': {
@@ -155,8 +156,13 @@ class bitget(Exchange):
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan',  # conditional
+                        'order/history',
+                        'order/historyPlan',  # conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ],
                     'post': [
                         'account/leverage',
@@ -168,6 +174,7 @@ class bitget(Exchange):
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ],
                 },
             },
@@ -2600,6 +2607,66 @@ class bitget(Exchange):
         if not isinstance(data, list):
             data = self.safe_value(response, 'data', [])
         return await self.parse_trades(data, market, since, limit)
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.swapGetPositionSinglePosition(self.extend(request, params))
+        #
+        #     {
+        #         "margin_mode":"fixed",  # Margin mode: crossed / fixed
+        #         "holding":[
+        #             {
+        #                 "symbol":"cmt_btcusdt",  # Contract name
+        #                 "liquidation_price":"0.00",  # Estimated liquidation price
+        #                 "position":"0",  # Position Margin, the margin for holding current positions
+        #                 "avail_position":"0",  # Available position
+        #                 "avg_cost":"0.00",  # Transaction average price
+        #                 "leverage":"2",  # Leverage
+        #                 "realized_pnl":"0.00000000",  # Realized Profit and loss
+        #                 "keepMarginRate":"0.005",  # Maintenance margin rate
+        #                 "side":"1",  # Position Direction Long or short, Mark obsolete
+        #                 "holdSide":"1",  # Position Direction Long or short
+        #                 "timestamp":"1557571623963",  # System timestamp
+        #                 "margin":"0.0000000000000000",  # Used margin
+        #                 "unrealized_pnl":"0.00000000",  # Unrealized profit and loss
+        #             }
+        #         ]
+        #     }
+        return response
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.swapGetPositionAllPosition(params)
+        #
+        #     [
+        #         {
+        #             "margin_mode":"fixed",
+        #             "holding":[
+        #                 {
+        #                     "liquidation_price":"0.00",
+        #                     "position":"0",
+        #                     "avail_position":"0",
+        #                     "avg_cost":"0.00",
+        #                     "symbol":"btcusd",
+        #                     "leverage":"20",
+        #                     "keepMarginRate":"0.005",
+        #                     "realized_pnl":"0.00000000",
+        #                     "unrealized_pnl":"0",
+        #                     "side":"long",
+        #                     "holdSide":"1",
+        #                     "timestamp":"1595698564915",
+        #                     "margin":"0.0000000000000000"
+        #                 },
+        #             ]
+        #         },
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)

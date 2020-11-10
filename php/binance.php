@@ -716,7 +716,7 @@ class binance extends Exchange {
             $future = false;
             $delivery = false;
             if (is_array($market) && array_key_exists('maintMarginPercent', $market)) {
-                $delivery = (is_array($market) && array_key_exists('marginAsset', $market));
+                $delivery = (is_array($market) && array_key_exists('deliveryDate', $market));
                 $future = !$delivery;
                 $marketType = $delivery ? 'delivery' : 'future';
             }
@@ -1937,7 +1937,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_positions($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->fetch_balance($params);
         $info = $this->safe_value($response, 'info', array());
@@ -1968,7 +1968,7 @@ class binance extends Exchange {
         //         ),
         //         "$positions":array(
         //             array(
-        //                 "$symbol":"BTCUSD_201225",
+        //                 "symbol":"BTCUSD_201225",
         //                 "initialMargin":"0",
         //                 "maintMargin":"0",
         //                 "unrealizedProfit":"0.00000000",

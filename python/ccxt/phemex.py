@@ -2205,7 +2205,7 @@ class phemex(Exchange):
             'fee': fee,
         }
 
-    def fetch_positions(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         self.load_markets()
         code = self.safe_string(params, 'code')
         request = {}

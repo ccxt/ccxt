@@ -120,12 +120,13 @@ class bitget extends Exchange {
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ),
                 ),
                 'swap' => array(
@@ -139,8 +140,13 @@ class bitget extends Exchange {
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan', // conditional
+                        'order/history',
+                        'order/historyPlan', // conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -152,6 +158,7 @@ class bitget extends Exchange {
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ),
                 ),
             ),
@@ -2724,6 +2731,68 @@ class bitget extends Exchange {
             $data = $this->safe_value($response, 'data', array());
         }
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapGetPositionSinglePosition (array_merge($request, $params));
+        //
+        //     {
+        //         "margin_mode":"fixed", // Margin mode => crossed / fixed
+        //         "holding":array(
+        //             {
+        //                 "$symbol":"cmt_btcusdt", // Contract name
+        //                 "liquidation_price":"0.00", // Estimated liquidation price
+        //                 "position":"0", // Position Margin, the margin for holding current positions
+        //                 "avail_position":"0", // Available position
+        //                 "avg_cost":"0.00", // Transaction average price
+        //                 "leverage":"2", // Leverage
+        //                 "realized_pnl":"0.00000000", // Realized Profit and loss
+        //                 "keepMarginRate":"0.005", // Maintenance margin rate
+        //                 "side":"1", // Position Direction Long or short, Mark obsolete
+        //                 "holdSide":"1", // Position Direction Long or short
+        //                 "timestamp":"1557571623963", // System timestamp
+        //                 "margin":"0.0000000000000000", // Used margin
+        //                 "unrealized_pnl":"0.00000000", // Unrealized profit and loss
+        //             }
+        //         )
+        //     }
+        return $response;
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->swapGetPositionAllPosition ($params);
+        //
+        //     array(
+        //         array(
+        //             "margin_mode":"fixed",
+        //             "holding":array(
+        //                 array(
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 ),
+        //             )
+        //         ),
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

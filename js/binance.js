@@ -830,7 +830,7 @@ module.exports = class binance extends Exchange {
             let future = false;
             let delivery = false;
             if ('maintMarginPercent' in market) {
-                delivery = ('marginAsset' in market);
+                delivery = ('deliveryDate' in market);
                 future = !delivery;
                 marketType = delivery ? 'delivery' : 'future';
             }
@@ -2051,7 +2051,7 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    async fetchPositions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.fetchBalance (params);
         const info = this.safeValue (response, 'info', {});

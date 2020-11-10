@@ -144,11 +144,11 @@ module.exports = class bybit extends Exchange {
                     'post': [
                         'order/create',
                         'order/cancel',
-                        'order/cancelAll',
+                        'order/cancel-all',
                         'order/replace',
                         'stop-order/create',
                         'stop-order/cancel',
-                        'stop-order/cancelAll',
+                        'stop-order/cancel-all',
                         'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',

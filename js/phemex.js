@@ -2304,7 +2304,7 @@ module.exports = class phemex extends Exchange {
         };
     }
 
-    async fetchPositions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const code = this.safeString (params, 'code');
         const request = {};
