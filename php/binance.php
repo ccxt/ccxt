@@ -716,7 +716,7 @@ class binance extends Exchange {
             $future = false;
             $delivery = false;
             if (is_array($market) && array_key_exists('maintMarginPercent', $market)) {
-                $delivery = (is_array($market) && array_key_exists('marginAsset', $market));
+                $delivery = (is_array($market) && array_key_exists('deliveryDate', $market));
                 $future = !$delivery;
                 $marketType = $delivery ? 'delivery' : 'future';
             }

@@ -721,7 +721,7 @@ class binance(Exchange):
             future = False
             delivery = False
             if 'maintMarginPercent' in market:
-                delivery = ('marginAsset' in market)
+                delivery = ('deliveryDate' in market)
                 future = not delivery
                 marketType = 'delivery' if delivery else 'future'
             spot = not (future or delivery)
