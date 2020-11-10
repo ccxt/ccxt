@@ -2722,6 +2722,37 @@ module.exports = class bitget extends Exchange {
         return await this.parseTrades (data, market, since, limit);
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.swapGetPositionAllPosition (params);
+        //
+        //     [
+        //         {
+        //             "margin_mode":"fixed",
+        //             "holding":[
+        //                 {
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         if ((api === 'capi') || (api === 'swap')) {
