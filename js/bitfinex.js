@@ -1182,6 +1182,27 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostPositions (params);
+        //
+        //     [
+        //         {
+        //             "id":943715,
+        //             "symbol":"btcusd",
+        //             "status":"ACTIVE",
+        //             "base":"246.94",
+        //             "amount":"1.0",
+        //             "timestamp":"1444141857.0",
+        //             "swap":"0.0",
+        //             "pl":"-2.22042"
+        //         }
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
