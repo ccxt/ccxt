@@ -2205,7 +2205,7 @@ class phemex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_positions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         await self.load_markets()
         code = self.safe_string(params, 'code')
         request = {}

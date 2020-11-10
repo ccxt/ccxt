@@ -1308,7 +1308,7 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_transaction(result, currency)
 
-    async def fetch_positions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privateGetAccount(params)
         #

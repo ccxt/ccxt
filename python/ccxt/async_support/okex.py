@@ -2804,54 +2804,32 @@ class okex(Exchange):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_positions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_position(self, symbol, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         method = None
-        market = None
         request = {
-            # 'instrument_id': market['id'],
+            'instrument_id': market['id'],
             # 'order_id': id,  # string
             # 'after': '1',  # pagination of data to return records earlier than the requested ledger_id
             # 'before': '1',  # P=pagination of data to return records newer than the requested ledger_id
             # 'limit': limit,  # optional, number of results per request, default = maximum = 100
         }
-        type = None
-        if symbol is None:
-            defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
-            type = self.safe_string(params, 'type', defaultType)
-        else:
-            market = self.market(symbol)
-            type = market['type']
-            request['instrument_id'] = market['id']
+        type = market['type']
         if (type == 'futures') or (type == 'swap'):
-            if market is None:
-                method = type + 'GetPosition'
-            else:
-                method = type + 'GetInstrumentIdPosition'
+            method = type + 'GetInstrumentIdPosition'
         elif type == 'option':
             underlying = self.safe_string(params, 'underlying')
             if underlying is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires an underlying parameter for ' + type + ' market ' + symbol)
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires an underlying parameter for ' + type + ' market ' + symbol)
             method = type + 'GetUnderlyingPosition'
         else:
-            raise NotSupported(self.id + ' fetchPositions() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option')
-        params = self.omit(params, 'type')
+            raise NotSupported(self.id + ' fetchPosition() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option')
         response = await getattr(self, method)(self.extend(request, params))
         #
         # futures
         #
-        #     symbol not specified
-        #
-        #     {
-        #         "result": True,
-        #         "holding": [
-        #             [
-        #                 {...},
-        #             ]
-        #         ]
-        #     }
-        #
-        #     symbol specified, crossed margin mode
+        #     crossed margin mode
         #
         #     {
         #         "result": True,
@@ -2888,7 +2866,7 @@ class okex(Exchange):
         #         "margin_mode": "crossed"
         #     }
         #
-        #     symbol specified, fixed margin mode
+        #     fixed margin mode
         #
         #     {
         #         "result": True,
@@ -2933,26 +2911,33 @@ class okex(Exchange):
         #
         # swap
         #
-        #     symbol not specified
+        #     crossed margin mode
         #
-        #     [
-        #         {
-        #             "margin_mode": "fixed",
-        #             "timestamp": "2019-09-27T03:47:37.230Z",
-        #             "holding": [
-        #                 {...}
-        #             ]
-        #         },
-        #         {
-        #             "margin_mode": "crossed",
-        #             "timestamp": "2019-09-27T03:49:02.018Z",
-        #             "holding": [
-        #                 {...},
-        #             ]
-        #         }
-        #     ]
+        #     {
+        #         "margin_mode": "crossed",
+        #         "timestamp": "2019-09-27T03:49:02.018Z",
+        #         "holding": [
+        #             {
+        #                 "avail_position": "3",
+        #                 "avg_cost": "59.49",
+        #                 "instrument_id": "LTC-USD-SWAP",
+        #                 "last": "55.98",
+        #                 "leverage": "10.00",
+        #                 "liquidation_price": "4.37",
+        #                 "maint_margin_ratio": "0.0100",
+        #                 "margin": "0.0536",
+        #                 "position": "3",
+        #                 "realized_pnl": "0.0000",
+        #                 "unrealized_pnl": "0",
+        #                 "settled_pnl": "-0.0330",
+        #                 "settlement_price": "55.84",
+        #                 "side": "long",
+        #                 "timestamp": "2019-09-27T03:49:02.018Z"
+        #             },
+        #         ]
+        #     }
         #
-        #     symbol specified, fixed margin mode
+        #     fixed margin mode
         #
         #     {
         #         "margin_mode": "fixed",
@@ -2978,31 +2963,71 @@ class okex(Exchange):
         #         ]
         #     }
         #
-        #     symbol specified, crossed margin mode
+        # option
         #
         #     {
-        #         "margin_mode": "crossed",
-        #         "timestamp": "2019-09-27T03:49:02.018Z",
-        #         "holding": [
+        #         "holding":[
         #             {
-        #                 "avail_position": "3",
-        #                 "avg_cost": "59.49",
-        #                 "instrument_id": "LTC-USD-SWAP",
-        #                 "last": "55.98",
-        #                 "leverage": "10.00",
-        #                 "liquidation_price": "4.37",
-        #                 "maint_margin_ratio": "0.0100",
-        #                 "margin": "0.0536",
-        #                 "position": "3",
-        #                 "realized_pnl": "0.0000",
-        #                 "unrealized_pnl": "0",
-        #                 "settled_pnl": "-0.0330",
-        #                 "settlement_price": "55.84",
-        #                 "side": "long",
-        #                 "timestamp": "2019-09-27T03:49:02.018Z"
+        #                 "instrument_id":"BTC-USD-190927-12500-C",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.017",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
         #             },
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-P",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.019",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             }
         #         ]
         #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
+        type = self.safe_string(params, 'type', defaultType)
+        if (type == 'futures') or (type == 'swap'):
+            method = type + 'GetPosition'
+        elif type == 'option':
+            underlying = self.safe_string(params, 'underlying')
+            if underlying is None:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets')
+            method = type + 'GetUnderlyingPosition'
+        else:
+            raise NotSupported(self.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option')
+        params = self.omit(params, 'type')
+        response = await getattr(self, method)(params)
+        #
+        # futures
+        #
+        #     ...
+        #
+        #
+        # swap
+        #
+        #     ...
         #
         # option
         #
