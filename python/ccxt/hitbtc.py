@@ -217,6 +217,9 @@ class hitbtc(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            # bequant fix
+            if id.find('_') >= 0:
+                symbol = id
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
             precision = {

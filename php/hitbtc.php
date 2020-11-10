@@ -211,6 +211,10 @@ class hitbtc extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            // bequant fix
+            if (mb_strpos($id, '_') !== false) {
+                $symbol = $id;
+            }
             $lot = $this->safe_float($market, 'quantityIncrement');
             $step = $this->safe_float($market, 'tickSize');
             $precision = array(
