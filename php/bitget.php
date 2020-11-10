@@ -2726,6 +2726,37 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->swapGetPositionAllPosition ($params);
+        //
+        //     array(
+        //         array(
+        //             "margin_mode":"fixed",
+        //             "holding":array(
+        //                 array(
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 ),
+        //             )
+        //         ),
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         if (($api === 'capi') || ($api === 'swap')) {
