@@ -139,7 +139,7 @@ class cex extends Exchange {
                     'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
-                    'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("error":"rate limit exceeded")
                     'Invalid API key' => '\\ccxt\\AuthenticationError',
                     'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
                     'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
