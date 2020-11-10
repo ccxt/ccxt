@@ -2608,6 +2608,36 @@ class bitget(Exchange):
             data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
+    def fetch_position(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.swapGetPositionSinglePosition(self.extend(request, params))
+        #
+        #     {
+        #         "margin_mode":"fixed",  # Margin mode: crossed / fixed
+        #         "holding":[
+        #             {
+        #                 "symbol":"cmt_btcusdt",  # Contract name
+        #                 "liquidation_price":"0.00",  # Estimated liquidation price
+        #                 "position":"0",  # Position Margin, the margin for holding current positions
+        #                 "avail_position":"0",  # Available position
+        #                 "avg_cost":"0.00",  # Transaction average price
+        #                 "leverage":"2",  # Leverage
+        #                 "realized_pnl":"0.00000000",  # Realized Profit and loss
+        #                 "keepMarginRate":"0.005",  # Maintenance margin rate
+        #                 "side":"1",  # Position Direction Long or short, Mark obsolete
+        #                 "holdSide":"1",  # Position Direction Long or short
+        #                 "timestamp":"1557571623963",  # System timestamp
+        #                 "margin":"0.0000000000000000",  # Used margin
+        #                 "unrealized_pnl":"0.00000000",  # Unrealized profit and loss
+        #             }
+        #         ]
+        #     }
+        return response
+
     def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.swapGetPositionAllPosition(params)
