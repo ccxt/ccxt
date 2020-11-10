@@ -1930,7 +1930,7 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    async fetchPositions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.fetchBalance (params);
         const info = this.safeValue (response, 'info', {});
