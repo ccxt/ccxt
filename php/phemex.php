@@ -2308,7 +2308,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $code = $this->safe_string($params, 'code');
         $request = array();
@@ -2337,7 +2337,7 @@ class phemex extends Exchange {
         //             "$positions":array(
         //                 {
         //                     "accountID":6192120001,
-        //                     "$symbol":"BTCUSD",
+        //                     "symbol":"BTCUSD",
         //                     "$currency":"BTC",
         //                     "side":"None",
         //                     "positionStatus":"Normal",
