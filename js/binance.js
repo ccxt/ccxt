@@ -709,7 +709,7 @@ module.exports = class binance extends Exchange {
             let future = false;
             let delivery = false;
             if ('maintMarginPercent' in market) {
-                delivery = ('marginAsset' in market);
+                delivery = ('deliveryDate' in market);
                 future = !delivery;
                 marketType = delivery ? 'delivery' : 'future';
             }
