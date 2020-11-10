@@ -1363,7 +1363,7 @@ module.exports = class ftx extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPositions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
         //
