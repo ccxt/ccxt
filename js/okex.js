@@ -2933,7 +2933,6 @@ module.exports = class okex extends Exchange {
             // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
             // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
-
         };
         let type = undefined;
         if (symbol === undefined) {
