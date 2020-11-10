@@ -136,12 +136,13 @@ class bitget(Exchange):
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ],
                 },
                 'swap': {
@@ -155,8 +156,13 @@ class bitget(Exchange):
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan',  # conditional
+                        'order/history',
+                        'order/historyPlan',  # conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ],
                     'post': [
                         'account/leverage',
@@ -168,6 +174,7 @@ class bitget(Exchange):
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ],
                 },
             },
