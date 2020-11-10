@@ -2923,58 +2923,34 @@ module.exports = class okex extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchPositions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         let method = undefined;
-        let market = undefined;
         const request = {
-            // 'instrument_id': market['id'],
+            'instrument_id': market['id'],
             // 'order_id': id, // string
             // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
             // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
             // 'limit': limit, // optional, number of results per request, default = maximum = 100
         };
-        let type = undefined;
-        if (symbol === undefined) {
-            const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
-            type = this.safeString (params, 'type', defaultType);
-        } else {
-            market = this.market (symbol);
-            type = market['type'];
-            request['instrument_id'] = market['id'];
-        }
+        const type = market['type'];
         if ((type === 'futures') || (type === 'swap')) {
-            if (market === undefined) {
-                method = type + 'GetPosition';
-            } else {
-                method = type + 'GetInstrumentIdPosition';
-            }
+            method = type + 'GetInstrumentIdPosition';
         } else if (type === 'option') {
             const underlying = this.safeString (params, 'underlying');
             if (underlying === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires an underlying parameter for ' + type + ' market ' + symbol);
+                throw new ArgumentsRequired (this.id + ' fetchPosition() requires an underlying parameter for ' + type + ' market ' + symbol);
             }
             method = type + 'GetUnderlyingPosition';
         } else {
-            throw new NotSupported (this.id + ' fetchPositions() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option');
+            throw new NotSupported (this.id + ' fetchPosition() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option');
         }
-        params = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, params));
         //
         // futures
         //
-        //     symbol not specified
-        //
-        //     {
-        //         "result": true,
-        //         "holding": [
-        //             [
-        //                 { ... },
-        //             ]
-        //         ]
-        //     }
-        //
-        //     symbol specified, crossed margin mode
+        //     crossed margin mode
         //
         //     {
         //         "result": true,
@@ -3011,7 +2987,7 @@ module.exports = class okex extends Exchange {
         //         "margin_mode": "crossed"
         //     }
         //
-        //     symbol specified, fixed margin mode
+        //     fixed margin mode
         //
         //     {
         //         "result": true,
@@ -3056,26 +3032,33 @@ module.exports = class okex extends Exchange {
         //
         // swap
         //
-        //     symbol not specified
+        //     crossed margin mode
         //
-        //     [
-        //         {
-        //             "margin_mode": "fixed",
-        //             "timestamp": "2019-09-27T03:47:37.230Z",
-        //             "holding": [
-        //                 { ... }
-        //             ]
-        //         },
-        //         {
-        //             "margin_mode": "crossed",
-        //             "timestamp": "2019-09-27T03:49:02.018Z",
-        //             "holding": [
-        //                 { ... },
-        //             ]
-        //         }
-        //     ]
+        //     {
+        //         "margin_mode": "crossed",
+        //         "timestamp": "2019-09-27T03:49:02.018Z",
+        //         "holding": [
+        //             {
+        //                 "avail_position": "3",
+        //                 "avg_cost": "59.49",
+        //                 "instrument_id": "LTC-USD-SWAP",
+        //                 "last": "55.98",
+        //                 "leverage": "10.00",
+        //                 "liquidation_price": "4.37",
+        //                 "maint_margin_ratio": "0.0100",
+        //                 "margin": "0.0536",
+        //                 "position": "3",
+        //                 "realized_pnl": "0.0000",
+        //                 "unrealized_pnl": "0",
+        //                 "settled_pnl": "-0.0330",
+        //                 "settlement_price": "55.84",
+        //                 "side": "long",
+        //                 "timestamp": "2019-09-27T03:49:02.018Z"
+        //             },
+        //         ]
+        //     }
         //
-        //     symbol specified, fixed margin mode
+        //     fixed margin mode
         //
         //     {
         //         "margin_mode": "fixed",
@@ -3101,31 +3084,74 @@ module.exports = class okex extends Exchange {
         //         ]
         //     }
         //
-        //     symbol specified, crossed margin mode
+        // option
         //
         //     {
-        //         "margin_mode": "crossed",
-        //         "timestamp": "2019-09-27T03:49:02.018Z",
-        //         "holding": [
+        //         "holding":[
         //             {
-        //                 "avail_position": "3",
-        //                 "avg_cost": "59.49",
-        //                 "instrument_id": "LTC-USD-SWAP",
-        //                 "last": "55.98",
-        //                 "leverage": "10.00",
-        //                 "liquidation_price": "4.37",
-        //                 "maint_margin_ratio": "0.0100",
-        //                 "margin": "0.0536",
-        //                 "position": "3",
-        //                 "realized_pnl": "0.0000",
-        //                 "unrealized_pnl": "0",
-        //                 "settled_pnl": "-0.0330",
-        //                 "settlement_price": "55.84",
-        //                 "side": "long",
-        //                 "timestamp": "2019-09-27T03:49:02.018Z"
+        //                 "instrument_id":"BTC-USD-190927-12500-C",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.017",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
         //             },
+        //             {
+        //                 "instrument_id":"BTC-USD-190927-12500-P",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.019",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //             }
         //         ]
         //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        if ((type === 'futures') || (type === 'swap')) {
+            method = type + 'GetPosition';
+        } else if (type === 'option') {
+            const underlying = this.safeString (params, 'underlying');
+            if (underlying === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets');
+            }
+            method = type + 'GetUnderlyingPosition';
+        } else {
+            throw new NotSupported (this.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option');
+        }
+        params = this.omit (params, 'type');
+        const response = await this[method] (params);
+        //
+        // futures
+        //
+        //     ...
+        //
+        //
+        // swap
+        //
+        //     ...
         //
         // option
         //
