@@ -36,6 +36,7 @@ class novadax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactions' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -72,6 +73,7 @@ class novadax extends Exchange {
                         'account/subs',
                         'account/subs/balance',
                         'account/subs/transfer/record',
+                        'wallet/query/deposit-withdraw',
                     ),
                     'post' => array(
                         'orders/create',
@@ -800,42 +802,6 @@ class novadax extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "$code":"A10000",
-        //         "data" => "DR123",
-        //         "message":"Success"
-        //     }
-        //
-        $id = $this->safe_string($transaction, 'data');
-        $code = null;
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
-        return array(
-            'info' => $transaction,
-            'id' => $id,
-            'currency' => $code,
-            'amount' => null,
-            'address' => null,
-            'addressFrom' => null,
-            'addressTo' => null,
-            'tag' => null,
-            'tagFrom' => null,
-            'tagTo' => null,
-            'status' => null,
-            'type' => null,
-            'updated' => null,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'fee' => null,
-        );
-    }
-
     public function fetch_accounts($params = array ()) {
         $response = $this->privateGetAccountSubs ($params);
         //
@@ -866,6 +832,128 @@ class novadax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'type' => 'coin_in', // 'coin_out'
+            // 'direct' => 'asc', // 'desc'
+            // 'size' => $limit, // default 100
+            // 'start' => id, // offset id
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => "A10000",
+        //         "$data" => array(
+        //             {
+        //                 "id" => "DR562339304588709888",
+        //                 "type" => "COIN_IN",
+        //                 "$currency" => "XLM",
+        //                 "chain" => "XLM",
+        //                 "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //                 "addressTag" => "1000009",
+        //                 "amount" => 1.0,
+        //                 "state" => "SUCCESS",
+        //                 "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //                 "createdAt" => 1554113737000,
+        //                 "updatedAt" => 1601371273000
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        // Pending the record is wait broadcast to chain
+        // x/M confirming the comfirming state of tx, the M is total confirmings needed
+        // SUCCESS the record is success full
+        // FAIL the record failed
+        $parts = explode(' ', $status);
+        $status = $this->safe_string($parts, 1, $status);
+        $statuses = array(
+            'Pending' => 'pending',
+            'confirming' => 'pending',
+            'SUCCESS' => 'ok',
+            'FAIL' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "$code":"A10000",
+        //         "data" => "DR123",
+        //         "message":"Success"
+        //     }
+        //
+        // fetchTransactions
+        //
+        //     {
+        //         "$id" => "DR562339304588709888",
+        //         "$type" => "COIN_IN",
+        //         "$currency" => "XLM",
+        //         "chain" => "XLM",
+        //         "$address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //         "addressTag" => "1000009",
+        //         "$amount" => 1.0,
+        //         "state" => "SUCCESS",
+        //         "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //         "createdAt" => 1554113737000,
+        //         "updatedAt" => 1601371273000
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'data');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === 'COIN_IN') {
+            $type = 'deposit';
+        } else if ($type === 'COIN_OUT') {
+            $type = 'withdraw';
+        }
+        $amount = $this->safe_float($transaction, 'amount');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'addressTag');
+        $txid = $this->safe_string($transaction, 'txHash');
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $updated = $this->safe_integer($transaction, 'updatedAt');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
