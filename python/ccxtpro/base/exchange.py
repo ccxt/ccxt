@@ -47,13 +47,13 @@ class Exchange(BaseExchange):
     def gunzip(data):
         return gunzip(data)
 
-    def order_book(self, snapshot={}, depth=float('inf')):
+    def order_book(self, snapshot={}, depth=None):
         return OrderBook(snapshot, depth)
 
-    def indexed_order_book(self, snapshot={}, depth=float('inf')):
+    def indexed_order_book(self, snapshot={}, depth=None):
         return IndexedOrderBook(snapshot, depth)
 
-    def counted_order_book(self, snapshot={}, depth=float('inf')):
+    def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
