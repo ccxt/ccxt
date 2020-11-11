@@ -799,42 +799,6 @@ module.exports = class novadax extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "code":"A10000",
-        //         "data": "DR123",
-        //         "message":"Success"
-        //     }
-        //
-        const id = this.safeString (transaction, 'data');
-        let code = undefined;
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': undefined,
-            'address': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tag': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'status': undefined,
-            'type': undefined,
-            'updated': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'fee': undefined,
-        };
-    }
-
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccountSubs (params);
         //
@@ -908,6 +872,85 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        // Pending the record is wait broadcast to chain
+        // x/M confirming the comfirming state of tx, the M is total confirmings needed
+        // SUCCESS the record is success full
+        // FAIL the record failed
+        const parts = status.split (' ');
+        status = this.safeString (parts, 1, status);
+        const statuses = {
+            'Pending': 'pending',
+            'confirming': 'pending',
+            'SUCCESS': 'ok',
+            'FAIL': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code":"A10000",
+        //         "data": "DR123",
+        //         "message":"Success"
+        //     }
+        //
+        // fetchTransactions
+        //
+        //     {
+        //         "id": "DR562339304588709888",
+        //         "type": "COIN_IN",
+        //         "currency": "XLM",
+        //         "chain": "XLM",
+        //         "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //         "addressTag": "1000009",
+        //         "amount": 1.0,
+        //         "state": "SUCCESS",
+        //         "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //         "createdAt": 1554113737000,
+        //         "updatedAt": 1601371273000
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'data');
+        let type = this.safeString (transaction, 'type');
+        if (type === 'COIN_IN') {
+            type = 'deposit';
+        } else if (type === 'COIN_OUT') {
+            type = 'withdraw';
+        }
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'addressTag');
+        const txid = this.safeString (transaction, 'txHash');
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        const updated = this.safeInteger (transaction, 'updatedAt');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
