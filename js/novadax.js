@@ -27,6 +27,7 @@ module.exports = class novadax extends Exchange {
                 'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -39,6 +40,16 @@ module.exports = class novadax extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': 'ONE_MIN',
+                '5m': 'FIVE_MIN',
+                '15m': 'FIFTEEN_MIN',
+                '30m': 'HALF_HOU',
+                '1h': 'ONE_HOU',
+                '1d': 'ONE_DAY',
+                '1w': 'ONE_WEE',
+                '1M': 'ONE_MON',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -63,6 +74,7 @@ module.exports = class novadax extends Exchange {
                         'market/ticker',
                         'market/depth',
                         'market/trades',
+                        'market/kline/history',
                     ],
                 },
                 'private': {
@@ -127,7 +139,10 @@ module.exports = class novadax extends Exchange {
                 'broad': {
                 },
             },
-            'commonCurrencies': {
+            'options': {
+                'fetchOHLCV': {
+                    'volume': 'amount', // 'amount' for base volume or 'vol' for quote volume
+                },
             },
         });
     }
@@ -469,6 +484,76 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'unit': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.seconds ();
+        if (limit === undefined) {
+            limit = 3000; // max
+        }
+        if (since === undefined) {
+            request['from'] = now - limit * duration;
+            request['to'] = now;
+        } else {
+            const startFrom = parseInt (since / 1000);
+            request['from'] = startFrom;
+            request['to'] = this.sum (startFrom, limit * duration);
+        }
+        const response = await this.publicGetMarketKlineHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "amount": 8.25709100,
+        //                 "closePrice": 62553.20,
+        //                 "count": 29,
+        //                 "highPrice": 62592.87,
+        //                 "lowPrice": 62553.20,
+        //                 "openPrice": 62554.23,
+        //                 "score": 1602501480,
+        //                 "symbol": "BTC_BRL",
+        //                 "vol": 516784.2504067500
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "amount": 8.25709100,
+        //         "closePrice": 62553.20,
+        //         "count": 29,
+        //         "highPrice": 62592.87,
+        //         "lowPrice": 62553.20,
+        //         "openPrice": 62554.23,
+        //         "score": 1602501480,
+        //         "symbol": "BTC_BRL",
+        //         "vol": 516784.2504067500
+        //     }
+        //
+        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const volumeField = this.safeString (options, 'volume', 'amount'); // or vol
+        return [
+            this.safeTimestamp (ohlcv, 'score'),
+            this.safeFloat (ohlcv, 'openPrice'),
+            this.safeFloat (ohlcv, 'highPrice'),
+            this.safeFloat (ohlcv, 'lowPrice'),
+            this.safeFloat (ohlcv, 'closePrice'),
+            this.safeFloat (ohlcv, volumeField),
+        ];
     }
 
     async fetchBalance (params = {}) {
