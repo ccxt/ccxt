@@ -201,7 +201,7 @@ class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
         old_price = None
         index = None
         contains_index = order_id in self._hashmap
-        if contains_index:
+        if size > 0 and contains_index:
             # handling for incremental stuff
             old_price = self._hashmap[order_id]
             index_price = index_price or old_price
