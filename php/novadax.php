@@ -26,7 +26,9 @@ class novadax extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -37,6 +39,7 @@ class novadax extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -69,6 +72,7 @@ class novadax extends Exchange {
                         'orders/get',
                         'orders/list',
                         'orders/fill',
+                        'orders/fills',
                         'account/getBalance',
                         'account/subs',
                         'account/subs/balance',
@@ -383,6 +387,22 @@ class novadax extends Exchange {
         //         "$amount" => "0.0988",
         //         "$price" => "45514.76",
         //         "$fee" => "0.0000988 BTC",
+        //         "role" => "MAKER",
+        //         "$timestamp" => 1565171053345
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "$id" => "608717046691139584",
+        //         "$orderId" => "608716957545402368",
+        //         "$symbol" => "BTC_BRL",
+        //         "$side" => "BUY",
+        //         "$amount" => "0.0988",
+        //         "$price" => "45514.76",
+        //         "$fee" => "0.0000988 BTC",
+        //         "feeAmount" => "0.0000988",
+        //         "feeCurrency" => "BTC",
         //         "role" => "MAKER",
         //         "$timestamp" => 1565171053345
         //     }
@@ -834,6 +854,20 @@ class novadax extends Exchange {
         return $result;
     }
 
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'type' => 'coin_in',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'type' => 'coin_out',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
@@ -954,6 +988,68 @@ class novadax extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
         );
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            //  'orderId' => id, // Order ID, string
+            //  'symbol' => $market['id'], // The trading $symbol, like BTC_BRL, string
+            //  'fromId' => fromId, // Search fill id to begin with, string
+            //  'toId' => toId, // Search fill id to end up with, string
+            //  'fromTimestamp' => $since, // Search order fill time to begin with, in milliseconds, string
+            //  'toTimestamp' => $this->milliseconds(), // Search order fill time to end up with, in milliseconds, string
+            //  'limit' => $limit, // The number of fills to return, default 100, max 100, string
+            //  'accountId' => subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['fromTimestamp'] = $since;
+        }
+        $response = $this->privateGetOrdersFills (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "A10000",
+        //         "$data" => array(
+        //             array(
+        //                 "id" => "608717046691139584",
+        //                 "orderId" => "608716957545402368",
+        //                 "$symbol" => "BTC_BRL",
+        //                 "side" => "BUY",
+        //                 "amount" => "0.0988",
+        //                 "price" => "45514.76",
+        //                 "fee" => "0.0000988 BTC",
+        //                 "feeAmount" => "0.0000988",
+        //                 "feeCurrency" => "BTC",
+        //                 "role" => "MAKER",
+        //                 "timestamp" => 1565171053345
+        //             ),
+        //             {
+        //                 "id" => "608717065729085441",
+        //                 "orderId" => "608716957545402368",
+        //                 "$symbol" => "BTC_BRL",
+        //                 "side" => "BUY",
+        //                 "amount" => "0.0242",
+        //                 "price" => "45514.76",
+        //                 "fee" => "0.0000242 BTC",
+        //                 "feeAmount" => "0.0000988",
+        //                 "feeCurrency" => "BTC",
+        //                 "role" => "MAKER",
+        //                 "timestamp" => 1565171057882
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
