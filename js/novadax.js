@@ -70,6 +70,7 @@ module.exports = class novadax extends Exchange {
                         'account/subs',
                         'account/subs/balance',
                         'account/subs/transfer/record',
+                        'wallet/query/deposit-withdraw',
                     ],
                     'post': [
                         'orders/create',
@@ -864,6 +865,49 @@ module.exports = class novadax extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'currency': currency['id'],
+            // 'type': 'coin_in', // 'coin_out'
+            // 'direct': 'asc', // 'desc'
+            // 'size': limit, // default 100
+            // 'start': id, // offset id
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.privateGetWalletQueryDepositWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "id": "DR562339304588709888",
+        //                 "type": "COIN_IN",
+        //                 "currency": "XLM",
+        //                 "chain": "XLM",
+        //                 "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //                 "addressTag": "1000009",
+        //                 "amount": 1.0,
+        //                 "state": "SUCCESS",
+        //                 "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //                 "createdAt": 1554113737000,
+        //                 "updatedAt": 1601371273000
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
