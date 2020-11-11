@@ -39,6 +39,7 @@ class novadax(Exchange):
                 'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -51,6 +52,16 @@ class novadax(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+            },
+            'timeframes': {
+                '1m': 'ONE_MIN',
+                '5m': 'FIVE_MIN',
+                '15m': 'FIFTEEN_MIN',
+                '30m': 'HALF_HOU',
+                '1h': 'ONE_HOU',
+                '1d': 'ONE_DAY',
+                '1w': 'ONE_WEE',
+                '1M': 'ONE_MON',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -75,6 +86,7 @@ class novadax(Exchange):
                         'market/ticker',
                         'market/depth',
                         'market/trades',
+                        'market/kline/history',
                     ],
                 },
                 'private': {
@@ -139,7 +151,10 @@ class novadax(Exchange):
                 'broad': {
                 },
             },
-            'commonCurrencies': {
+            'options': {
+                'fetchOHLCV': {
+                    'volume': 'amount',  # 'amount' for base volume or 'vol' for quote volume
+                },
             },
         })
 
@@ -466,6 +481,72 @@ class novadax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'unit': self.timeframes[timeframe],
+        }
+        duration = self.parse_timeframe(timeframe)
+        now = self.seconds()
+        if limit is None:
+            limit = 3000  # max
+        if since is None:
+            request['from'] = now - limit * duration
+            request['to'] = now
+        else:
+            startFrom = int(since / 1000)
+            request['from'] = startFrom
+            request['to'] = self.sum(startFrom, limit * duration)
+        response = await self.publicGetMarketKlineHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "amount": 8.25709100,
+        #                 "closePrice": 62553.20,
+        #                 "count": 29,
+        #                 "highPrice": 62592.87,
+        #                 "lowPrice": 62553.20,
+        #                 "openPrice": 62554.23,
+        #                 "score": 1602501480,
+        #                 "symbol": "BTC_BRL",
+        #                 "vol": 516784.2504067500
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "amount": 8.25709100,
+        #         "closePrice": 62553.20,
+        #         "count": 29,
+        #         "highPrice": 62592.87,
+        #         "lowPrice": 62553.20,
+        #         "openPrice": 62554.23,
+        #         "score": 1602501480,
+        #         "symbol": "BTC_BRL",
+        #         "vol": 516784.2504067500
+        #     }
+        #
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        volumeField = self.safe_string(options, 'volume', 'amount')  # or vol
+        return [
+            self.safe_timestamp(ohlcv, 'score'),
+            self.safe_float(ohlcv, 'openPrice'),
+            self.safe_float(ohlcv, 'highPrice'),
+            self.safe_float(ohlcv, 'lowPrice'),
+            self.safe_float(ohlcv, 'closePrice'),
+            self.safe_float(ohlcv, volumeField),
+        ]
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

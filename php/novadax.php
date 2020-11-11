@@ -29,6 +29,7 @@ class novadax extends Exchange {
                 'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -41,6 +42,16 @@ class novadax extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+            ),
+            'timeframes' => array(
+                '1m' => 'ONE_MIN',
+                '5m' => 'FIVE_MIN',
+                '15m' => 'FIFTEEN_MIN',
+                '30m' => 'HALF_HOU',
+                '1h' => 'ONE_HOU',
+                '1d' => 'ONE_DAY',
+                '1w' => 'ONE_WEE',
+                '1M' => 'ONE_MON',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -65,6 +76,7 @@ class novadax extends Exchange {
                         'market/ticker',
                         'market/depth',
                         'market/trades',
+                        'market/kline/history',
                     ),
                 ),
                 'private' => array(
@@ -129,7 +141,10 @@ class novadax extends Exchange {
                 'broad' => array(
                 ),
             ),
-            'commonCurrencies' => array(
+            'options' => array(
+                'fetchOHLCV' => array(
+                    'volume' => 'amount', // 'amount' for base volume or 'vol' for quote volume
+                ),
             ),
         ));
     }
@@ -471,6 +486,76 @@ class novadax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'unit' => $this->timeframes[$timeframe],
+        );
+        $duration = $this->parse_timeframe($timeframe);
+        $now = $this->seconds();
+        if ($limit === null) {
+            $limit = 3000; // max
+        }
+        if ($since === null) {
+            $request['from'] = $now - $limit * $duration;
+            $request['to'] = $now;
+        } else {
+            $startFrom = intval($since / 1000);
+            $request['from'] = $startFrom;
+            $request['to'] = $this->sum($startFrom, $limit * $duration);
+        }
+        $response = $this->publicGetMarketKlineHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "A10000",
+        //         "$data" => array(
+        //             {
+        //                 "amount" => 8.25709100,
+        //                 "closePrice" => 62553.20,
+        //                 "count" => 29,
+        //                 "highPrice" => 62592.87,
+        //                 "lowPrice" => 62553.20,
+        //                 "openPrice" => 62554.23,
+        //                 "score" => 1602501480,
+        //                 "$symbol" => "BTC_BRL",
+        //                 "vol" => 516784.2504067500
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "amount" => 8.25709100,
+        //         "closePrice" => 62553.20,
+        //         "count" => 29,
+        //         "highPrice" => 62592.87,
+        //         "lowPrice" => 62553.20,
+        //         "openPrice" => 62554.23,
+        //         "score" => 1602501480,
+        //         "symbol" => "BTC_BRL",
+        //         "vol" => 516784.2504067500
+        //     }
+        //
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $volumeField = $this->safe_string($options, 'volume', 'amount'); // or vol
+        return array(
+            $this->safe_timestamp($ohlcv, 'score'),
+            $this->safe_float($ohlcv, 'openPrice'),
+            $this->safe_float($ohlcv, 'highPrice'),
+            $this->safe_float($ohlcv, 'lowPrice'),
+            $this->safe_float($ohlcv, 'closePrice'),
+            $this->safe_float($ohlcv, $volumeField),
+        );
     }
 
     public function fetch_balance($params = array ()) {
