@@ -26,7 +26,10 @@ class novadax extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -36,7 +39,19 @@ class novadax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
+            ),
+            'timeframes' => array(
+                '1m' => 'ONE_MIN',
+                '5m' => 'FIVE_MIN',
+                '15m' => 'FIFTEEN_MIN',
+                '30m' => 'HALF_HOU',
+                '1h' => 'ONE_HOU',
+                '1d' => 'ONE_DAY',
+                '1w' => 'ONE_WEE',
+                '1M' => 'ONE_MON',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg',
@@ -61,6 +76,7 @@ class novadax extends Exchange {
                         'market/ticker',
                         'market/depth',
                         'market/trades',
+                        'market/kline/history',
                     ),
                 ),
                 'private' => array(
@@ -68,10 +84,12 @@ class novadax extends Exchange {
                         'orders/get',
                         'orders/list',
                         'orders/fill',
+                        'orders/fills',
                         'account/getBalance',
                         'account/subs',
                         'account/subs/balance',
                         'account/subs/transfer/record',
+                        'wallet/query/deposit-withdraw',
                     ),
                     'post' => array(
                         'orders/create',
@@ -123,7 +141,10 @@ class novadax extends Exchange {
                 'broad' => array(
                 ),
             ),
-            'commonCurrencies' => array(
+            'options' => array(
+                'fetchOHLCV' => array(
+                    'volume' => 'amount', // 'amount' for base volume or 'vol' for quote volume
+                ),
             ),
         ));
     }
@@ -385,6 +406,22 @@ class novadax extends Exchange {
         //         "$timestamp" => 1565171053345
         //     }
         //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "$id" => "608717046691139584",
+        //         "$orderId" => "608716957545402368",
+        //         "$symbol" => "BTC_BRL",
+        //         "$side" => "BUY",
+        //         "$amount" => "0.0988",
+        //         "$price" => "45514.76",
+        //         "$fee" => "0.0000988 BTC",
+        //         "feeAmount" => "0.0000988",
+        //         "feeCurrency" => "BTC",
+        //         "role" => "MAKER",
+        //         "$timestamp" => 1565171053345
+        //     }
+        //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -449,6 +486,76 @@ class novadax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'unit' => $this->timeframes[$timeframe],
+        );
+        $duration = $this->parse_timeframe($timeframe);
+        $now = $this->seconds();
+        if ($limit === null) {
+            $limit = 3000; // max
+        }
+        if ($since === null) {
+            $request['from'] = $now - $limit * $duration;
+            $request['to'] = $now;
+        } else {
+            $startFrom = intval($since / 1000);
+            $request['from'] = $startFrom;
+            $request['to'] = $this->sum($startFrom, $limit * $duration);
+        }
+        $response = $this->publicGetMarketKlineHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "A10000",
+        //         "$data" => array(
+        //             {
+        //                 "amount" => 8.25709100,
+        //                 "closePrice" => 62553.20,
+        //                 "count" => 29,
+        //                 "highPrice" => 62592.87,
+        //                 "lowPrice" => 62553.20,
+        //                 "openPrice" => 62554.23,
+        //                 "score" => 1602501480,
+        //                 "$symbol" => "BTC_BRL",
+        //                 "vol" => 516784.2504067500
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "amount" => 8.25709100,
+        //         "closePrice" => 62553.20,
+        //         "count" => 29,
+        //         "highPrice" => 62592.87,
+        //         "lowPrice" => 62553.20,
+        //         "openPrice" => 62554.23,
+        //         "score" => 1602501480,
+        //         "symbol" => "BTC_BRL",
+        //         "vol" => 516784.2504067500
+        //     }
+        //
+        $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+        $volumeField = $this->safe_string($options, 'volume', 'amount'); // or vol
+        return array(
+            $this->safe_timestamp($ohlcv, 'score'),
+            $this->safe_float($ohlcv, 'openPrice'),
+            $this->safe_float($ohlcv, 'highPrice'),
+            $this->safe_float($ohlcv, 'lowPrice'),
+            $this->safe_float($ohlcv, 'closePrice'),
+            $this->safe_float($ohlcv, $volumeField),
+        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -800,42 +907,6 @@ class novadax extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "$code":"A10000",
-        //         "data" => "DR123",
-        //         "message":"Success"
-        //     }
-        //
-        $id = $this->safe_string($transaction, 'data');
-        $code = null;
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
-        return array(
-            'info' => $transaction,
-            'id' => $id,
-            'currency' => $code,
-            'amount' => null,
-            'address' => null,
-            'addressFrom' => null,
-            'addressTo' => null,
-            'tag' => null,
-            'tagFrom' => null,
-            'tagTo' => null,
-            'status' => null,
-            'type' => null,
-            'updated' => null,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'fee' => null,
-        );
-    }
-
     public function fetch_accounts($params = array ()) {
         $response = $this->privateGetAccountSubs ($params);
         //
@@ -866,6 +937,204 @@ class novadax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'type' => 'coin_in',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'type' => 'coin_out',
+        );
+        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'type' => 'coin_in', // 'coin_out'
+            // 'direct' => 'asc', // 'desc'
+            // 'size' => $limit, // default 100
+            // 'start' => id, // offset id
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->privateGetWalletQueryDepositWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => "A10000",
+        //         "$data" => array(
+        //             {
+        //                 "id" => "DR562339304588709888",
+        //                 "type" => "COIN_IN",
+        //                 "$currency" => "XLM",
+        //                 "chain" => "XLM",
+        //                 "address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //                 "addressTag" => "1000009",
+        //                 "amount" => 1.0,
+        //                 "state" => "SUCCESS",
+        //                 "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //                 "createdAt" => 1554113737000,
+        //                 "updatedAt" => 1601371273000
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status($status) {
+        // Pending the record is wait broadcast to chain
+        // x/M confirming the comfirming state of tx, the M is total confirmings needed
+        // SUCCESS the record is success full
+        // FAIL the record failed
+        $parts = explode(' ', $status);
+        $status = $this->safe_string($parts, 1, $status);
+        $statuses = array(
+            'Pending' => 'pending',
+            'confirming' => 'pending',
+            'SUCCESS' => 'ok',
+            'FAIL' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "$code":"A10000",
+        //         "data" => "DR123",
+        //         "message":"Success"
+        //     }
+        //
+        // fetchTransactions
+        //
+        //     {
+        //         "$id" => "DR562339304588709888",
+        //         "$type" => "COIN_IN",
+        //         "$currency" => "XLM",
+        //         "chain" => "XLM",
+        //         "$address" => "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        //         "addressTag" => "1000009",
+        //         "$amount" => 1.0,
+        //         "state" => "SUCCESS",
+        //         "txHash" => "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        //         "createdAt" => 1554113737000,
+        //         "updatedAt" => 1601371273000
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'data');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === 'COIN_IN') {
+            $type = 'deposit';
+        } else if ($type === 'COIN_OUT') {
+            $type = 'withdraw';
+        }
+        $amount = $this->safe_float($transaction, 'amount');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'addressTag');
+        $txid = $this->safe_string($transaction, 'txHash');
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $updated = $this->safe_integer($transaction, 'updatedAt');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => null,
+        );
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            //  'orderId' => id, // Order ID, string
+            //  'symbol' => $market['id'], // The trading $symbol, like BTC_BRL, string
+            //  'fromId' => fromId, // Search fill id to begin with, string
+            //  'toId' => toId, // Search fill id to end up with, string
+            //  'fromTimestamp' => $since, // Search order fill time to begin with, in milliseconds, string
+            //  'toTimestamp' => $this->milliseconds(), // Search order fill time to end up with, in milliseconds, string
+            //  'limit' => $limit, // The number of fills to return, default 100, max 100, string
+            //  'accountId' => subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['fromTimestamp'] = $since;
+        }
+        $response = $this->privateGetOrdersFills (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "A10000",
+        //         "$data" => array(
+        //             array(
+        //                 "id" => "608717046691139584",
+        //                 "orderId" => "608716957545402368",
+        //                 "$symbol" => "BTC_BRL",
+        //                 "side" => "BUY",
+        //                 "amount" => "0.0988",
+        //                 "price" => "45514.76",
+        //                 "fee" => "0.0000988 BTC",
+        //                 "feeAmount" => "0.0000988",
+        //                 "feeCurrency" => "BTC",
+        //                 "role" => "MAKER",
+        //                 "timestamp" => 1565171053345
+        //             ),
+        //             {
+        //                 "id" => "608717065729085441",
+        //                 "orderId" => "608716957545402368",
+        //                 "$symbol" => "BTC_BRL",
+        //                 "side" => "BUY",
+        //                 "amount" => "0.0242",
+        //                 "price" => "45514.76",
+        //                 "fee" => "0.0000242 BTC",
+        //                 "feeAmount" => "0.0000988",
+        //                 "feeCurrency" => "BTC",
+        //                 "role" => "MAKER",
+        //                 "timestamp" => 1565171057882
+        //             }
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

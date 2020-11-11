@@ -254,6 +254,9 @@ class btcmarkets extends Exchange {
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
+        if ($fee) {
+            $amount -= $fee;
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $txid,
