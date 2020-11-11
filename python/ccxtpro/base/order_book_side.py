@@ -43,10 +43,9 @@ class OrderBookSide(list):
     def limit(self, n=None):
         self._n = sys.maxsize if n is None else n
         difference = len(self) - self._depth
-        while difference > 0:
+        for _ in range(difference):
             self.remove_index(self.pop())
             self._index.pop()
-            difference -= 1
 
     def remove_index(self, order):
         pass
