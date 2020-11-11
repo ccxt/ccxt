@@ -132,8 +132,53 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         response = self.privatePostOrdersHistory(self.extend(request, params))
+        #
+        #     {
+        #         "status":"ok",
+        #         "orders":[
+        #             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        #         ],
+        #     }
+        #
         trades = self.safe_value(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "amount":0.00102091,
+        #         "rate":21549.09999991,
+        #         "total":21.99969168,
+        #         "coin":"BTC",
+        #         "solddate":1604890646143,
+        #         "market":"BTC/AUD"
+        #     }
+        #
+        price = self.safe_float(trade, 'rate')
+        amount = self.safe_float(trade, 'amount')
+        cost = self.safe_float(trade, 'total')
+        if (cost is None) and (price is not None) and (amount is not None):
+            cost = price * amount
+        timestamp = self.safe_integer(trade, 'solddate')
+        marketId = self.safe_string(trade, 'market')
+        symbol = self.safe_symbol(marketId, market, '/')
+        return {
+            'info': trade,
+            'id': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'order': None,
+            'type': None,
+            'side': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

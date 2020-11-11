@@ -721,7 +721,7 @@ class binance(Exchange):
             future = False
             delivery = False
             if 'maintMarginPercent' in market:
-                delivery = ('marginAsset' in market)
+                delivery = ('deliveryDate' in market)
                 future = not delivery
                 marketType = 'delivery' if delivery else 'future'
             spot = not (future or delivery)
@@ -1831,6 +1831,56 @@ class binance(Exchange):
             return self.parse_orders(response, market)
         else:
             return response
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.fetch_balance(params)
+        info = self.safe_value(response, 'info', {})
+        #
+        # futures, delivery
+        #
+        #     {
+        #         "feeTier":0,
+        #         "canTrade":true,
+        #         "canDeposit":true,
+        #         "canWithdraw":true,
+        #         "updateTime":0,
+        #         "assets":[
+        #             {
+        #                 "asset":"ETH",
+        #                 "walletBalance":"0.09886711",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "marginBalance":"0.09886711",
+        #                 "maintMargin":"0.00000000",
+        #                 "initialMargin":"0.00000000",
+        #                 "positionInitialMargin":"0.00000000",
+        #                 "openOrderInitialMargin":"0.00000000",
+        #                 "maxWithdrawAmount":"0.09886711",
+        #                 "crossWalletBalance":"0.09886711",
+        #                 "crossUnPnl":"0.00000000",
+        #                 "availableBalance":"0.09886711"
+        #             }
+        #         ],
+        #         "positions":[
+        #             {
+        #                 "symbol":"BTCUSD_201225",
+        #                 "initialMargin":"0",
+        #                 "maintMargin":"0",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "positionInitialMargin":"0",
+        #                 "openOrderInitialMargin":"0",
+        #                 "leverage":"20",
+        #                 "isolated":false,
+        #                 "positionSide":"BOTH",
+        #                 "entryPrice":"0.00000000",
+        #                 "maxQty":"250",  # "maxNotional" on futures
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_value_2(info, 'positions', 'userAssets', [])
+        # todo unify parsePosition/parsePositions
+        return positions
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

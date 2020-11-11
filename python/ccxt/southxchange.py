@@ -281,9 +281,10 @@ class southxchange(Exchange):
         if type == 'limit':
             request['limitPrice'] = price
         response = self.privatePostPlaceOrder(self.extend(request, params))
+        id = json.loads(response)
         return {
             'info': response,
-            'id': str(response),
+            'id': id,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

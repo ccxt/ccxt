@@ -56,7 +56,11 @@ module.exports = class gemini extends Exchange {
                 'test': {
                     'public': 'https://api.sandbox.gemini.com',
                     'private': 'https://api.sandbox.gemini.com',
-                    'web': 'https://docs.sandbox.gemini.com',
+                    // use the true doc instead of the sandbox doc
+                    // since they differ in parsing
+                    // https://github.com/ccxt/ccxt/issues/7874
+                    // https://github.com/ccxt/ccxt/issues/7894
+                    'web': 'https://docs.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -197,8 +201,6 @@ module.exports = class gemini extends Exchange {
         if (numRows < 2) {
             throw new NotSupported (error);
         }
-        const apiSymbols = await this.fetchMarketsFromAPI (params);
-        const indexedSymbols = this.indexBy (apiSymbols, 'id');
         const result = [];
         // skip the first element (empty string)
         for (let i = 1; i < numRows; i++) {
@@ -215,58 +217,52 @@ module.exports = class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const id = cells[0].replace ('<td>', '');
+            const marketId = cells[0].replace ('<td>', '');
             // const base = this.safeCurrencyCode (baseId);
-            const quoteIds = [ 'usd', 'btc', 'eth', 'bch', 'ltc', 'dai' ];
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
             const minAmount = this.safeFloat (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
-            for (let j = 0; j < quoteIds.length; j++) {
-                const idLength = id.length - 0;
-                const quoteId = id.slice (idLength - 3, idLength);
-                const quote = this.safeCurrencyCode (quoteId);
-                const pricePrecisionString = cells[3].replace ('<td>', '');
-                const pricePrecisionParts = pricePrecisionString.split (' ');
-                const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
-                if (!(id in indexedSymbols)) {
-                    continue;
-                }
-                const baseId = id.replace (quoteId, '');
-                const base = this.safeCurrencyCode (baseId);
-                const symbol = base + '/' + quote;
-                const active = undefined;
-                result.push ({
-                    'id': id,
-                    'info': row,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
+            const idLength = marketId.length - 0;
+            const quoteId = marketId.slice (idLength - 3, idLength);
+            const quote = this.safeCurrencyCode (quoteId);
+            const pricePrecisionString = cells[3].replace ('<td>', '');
+            const pricePrecisionParts = pricePrecisionString.split (' ');
+            const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+            const baseId = marketId.replace (quoteId, '');
+            const base = this.safeCurrencyCode (baseId);
+            const symbol = base + '/' + quote;
+            const active = undefined;
+            result.push ({
+                'id': marketId,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
                     },
-                    'limits': {
-                        'amount': {
-                            'min': minAmount,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                });
-            }
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
         }
         return result;
     }
@@ -275,11 +271,11 @@ module.exports = class gemini extends Exchange {
         const response = await this.publicGetV1Symbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const id = response[i];
-            const market = id;
-            const idLength = id.length - 0;
-            const baseId = id.slice (0, idLength - 3);
-            const quoteId = id.slice (idLength - 3, idLength);
+            const marketId = response[i];
+            const market = marketId;
+            const idLength = marketId.length - 0;
+            const baseId = marketId.slice (0, idLength - 3);
+            const quoteId = marketId.slice (idLength - 3, idLength);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -288,7 +284,7 @@ module.exports = class gemini extends Exchange {
                 'price': undefined,
             };
             result.push ({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,

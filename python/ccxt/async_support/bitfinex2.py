@@ -55,7 +55,7 @@ class bitfinex2(bitfinex):
                 'fetchTickers': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
-                'fetchTransactions': False,
+                'fetchTransactions': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1120,6 +1120,15 @@ class bitfinex2(bitfinex):
             'info': response,
         }
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # withdraw
@@ -1145,46 +1154,144 @@ class bitfinex2(bitfinex):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
-        # todo add support for all movements, deposits and withdrawals
+        # fetchTransactions
         #
-        data = self.safe_value(transaction, 4, [])
-        timestamp = self.safe_integer(transaction, 0)
+        #     [
+        #         13293039,  # ID
+        #         'ETH',  # CURRENCY
+        #         'ETHEREUM',  # CURRENCY_NAME
+        #         null,
+        #         null,
+        #         1574175052000,  # MTS_STARTED
+        #         1574181326000,  # MTS_UPDATED
+        #         null,
+        #         null,
+        #         'CANCELED',  # STATUS
+        #         null,
+        #         null,
+        #         -0.24,  # AMOUNT, negative for withdrawals
+        #         -0.00135,  # FEES
+        #         null,
+        #         null,
+        #         'DESTINATION_ADDRESS',
+        #         null,
+        #         null,
+        #         null,
+        #         'TRANSACTION_ID',
+        #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #     ]
+        #
+        transactionLength = len(transaction)
+        timestamp = None
+        updated = None
         code = None
-        if currency is not None:
-            code = currency['code']
-        feeCost = self.safe_float(data, 8)
-        if feeCost is not None:
-            feeCost = abs(feeCost)
-        amount = self.safe_float(data, 5)
-        id = self.safe_value(data, 0)
-        status = 'ok'
-        if id == 0:
-            id = None
-            status = 'failed'
-        tag = self.safe_string(data, 3)
+        amount = None
+        id = None
+        status = None
+        tag = None
+        type = None
+        feeCost = None
+        txid = None
+        addressTo = None
+        if transactionLength < 9:
+            data = self.safe_value(transaction, 4, [])
+            timestamp = self.safe_integer(transaction, 0)
+            if currency is not None:
+                code = currency['code']
+            feeCost = self.safe_float(data, 8)
+            if feeCost is not None:
+                feeCost = -feeCost
+            amount = self.safe_float(data, 5)
+            id = self.safe_value(data, 0)
+            status = 'ok'
+            if id == 0:
+                id = None
+                status = 'failed'
+            tag = self.safe_string(data, 3)
+            type = 'withdrawal'
+        else:
+            id = self.safe_string(transaction, 0)
+            timestamp = self.safe_integer(transaction, 5)
+            updated = self.safe_integer(transaction, 6)
+            status = self.parse_transaction_status(self.safe_string(transaction, 9))
+            amount = self.safe_float(transaction, 12)
+            if amount is not None:
+                if amount < 0:
+                    type = 'withdrawal'
+                else:
+                    type = 'deposit'
+            feeCost = self.safe_float(transaction, 13)
+            if feeCost is not None:
+                feeCost = -feeCost
+            addressTo = self.safe_string(transaction, 16)
+            txid = self.safe_string(transaction, 20)
         return {
             'info': transaction,
             'id': id,
-            'txid': None,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': None,  # self is actually the tag for XRP transfers(the address is missing)
-            'addressTo': None,
+            'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
+            'addressTo': addressTo,
             'tagFrom': None,
             'tag': tag,  # refix it properly for the tag from description
             'tagTo': tag,
-            'type': 'withdrawal',
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': None,
+            'updated': updated,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
                 'rate': None,
             },
         }
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        method = 'privatePostAuthRMovementsHist'
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'privatePostAuthRMovementsCurrencyHist'
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 1000
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             13293039,  # ID
+        #             'ETH',  # CURRENCY
+        #             'ETHEREUM',  # CURRENCY_NAME
+        #             null,
+        #             null,
+        #             1574175052000,  # MTS_STARTED
+        #             1574181326000,  # MTS_UPDATED
+        #             null,
+        #             null,
+        #             'CANCELED',  # STATUS
+        #             null,
+        #             null,
+        #             -0.24,  # AMOUNT, negative for withdrawals
+        #             -0.00135,  # FEES
+        #             null,
+        #             null,
+        #             'DESTINATION_ADDRESS',
+        #             null,
+        #             null,
+        #             null,
+        #             'TRANSACTION_ID',
+        #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #         ]
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -1230,6 +1337,46 @@ class bitfinex2(bitfinex):
         return self.extend(transaction, {
             'address': address,
         })
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostPositions(params)
+        #
+        #     [
+        #         [
+        #             "tBTCUSD",  # SYMBOL
+        #             "ACTIVE",  # STATUS
+        #             0.0195,  # AMOUNT
+        #             8565.0267019,  # BASE_PRICE
+        #             0,  # MARGIN_FUNDING
+        #             0,  # MARGIN_FUNDING_TYPE
+        #             -0.33455568705000516,  # PL
+        #             -0.0003117550117425625,  # PL_PERC
+        #             7045.876419249083,  # PRICE_LIQ
+        #             3.0673001895895604,  # LEVERAGE
+        #             null,  # _PLACEHOLDER
+        #             142355652,  # POSITION_ID
+        #             1574002216000,  # MTS_CREATE
+        #             1574002216000,  # MTS_UPDATE
+        #             null,  # _PLACEHOLDER
+        #             0,  # TYPE
+        #             null,  # _PLACEHOLDER
+        #             0,  # COLLATERAL
+        #             0,  # COLLATERAL_MIN
+        #             # META
+        #             {
+        #                 "reason":"TRADE",
+        #                 "order_id":34271018124,
+        #                 "liq_stage":null,
+        #                 "trade_price":"8565.0267019",
+        #                 "trade_amount":"0.0195",
+        #                 "order_id_oppo":34277498022
+        #             }
+        #         ]
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def nonce(self):
         return self.milliseconds()

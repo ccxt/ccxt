@@ -48,7 +48,7 @@ class bitfinex2 extends bitfinex {
                 'fetchTickers' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => false,
+                'fetchTransactions' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1190,6 +1190,16 @@ class bitfinex2 extends bitfinex {
         );
     }
 
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'ERROR' => 'failed',
+            'FAILURE' => 'failed',
+            'CANCELED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
         //
         // withdraw
@@ -1215,49 +1225,155 @@ class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     )
         //
-        // todo add support for all movements, deposits and withdrawals
+        // fetchTransactions
         //
-        $data = $this->safe_value($transaction, 4, array());
-        $timestamp = $this->safe_integer($transaction, 0);
+        //     array(
+        //         13293039, // ID
+        //         'ETH', // CURRENCY
+        //         'ETHEREUM', // CURRENCY_NAME
+        //         null,
+        //         null,
+        //         1574175052000, // MTS_STARTED
+        //         1574181326000, // MTS_UPDATED
+        //         null,
+        //         null,
+        //         'CANCELED', // STATUS
+        //         null,
+        //         null,
+        //         -0.24, // AMOUNT, negative for withdrawals
+        //         -0.00135, // FEES
+        //         null,
+        //         null,
+        //         'DESTINATION_ADDRESS',
+        //         null,
+        //         null,
+        //         null,
+        //         'TRANSACTION_ID',
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //     )
+        //
+        $transactionLength = is_array($transaction) ? count($transaction) : 0;
+        $timestamp = null;
+        $updated = null;
         $code = null;
-        if ($currency !== null) {
-            $code = $currency['code'];
+        $amount = null;
+        $id = null;
+        $status = null;
+        $tag = null;
+        $type = null;
+        $feeCost = null;
+        $txid = null;
+        $addressTo = null;
+        if ($transactionLength < 9) {
+            $data = $this->safe_value($transaction, 4, array());
+            $timestamp = $this->safe_integer($transaction, 0);
+            if ($currency !== null) {
+                $code = $currency['code'];
+            }
+            $feeCost = $this->safe_float($data, 8);
+            if ($feeCost !== null) {
+                $feeCost = -$feeCost;
+            }
+            $amount = $this->safe_float($data, 5);
+            $id = $this->safe_value($data, 0);
+            $status = 'ok';
+            if ($id === 0) {
+                $id = null;
+                $status = 'failed';
+            }
+            $tag = $this->safe_string($data, 3);
+            $type = 'withdrawal';
+        } else {
+            $id = $this->safe_string($transaction, 0);
+            $timestamp = $this->safe_integer($transaction, 5);
+            $updated = $this->safe_integer($transaction, 6);
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
+            $amount = $this->safe_float($transaction, 12);
+            if ($amount !== null) {
+                if ($amount < 0) {
+                    $type = 'withdrawal';
+                } else {
+                    $type = 'deposit';
+                }
+            }
+            $feeCost = $this->safe_float($transaction, 13);
+            if ($feeCost !== null) {
+                $feeCost = -$feeCost;
+            }
+            $addressTo = $this->safe_string($transaction, 16);
+            $txid = $this->safe_string($transaction, 20);
         }
-        $feeCost = $this->safe_float($data, 8);
-        if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
-        }
-        $amount = $this->safe_float($data, 5);
-        $id = $this->safe_value($data, 0);
-        $status = 'ok';
-        if ($id === 0) {
-            $id = null;
-            $status = 'failed';
-        }
-        $tag = $this->safe_string($data, 3);
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => null,
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => null, // this is actually the $tag for XRP transfers (the address is missing)
-            'addressTo' => null,
+            'address' => $addressTo, // this is actually the $tag for XRP transfers (the address is missing)
+            'addressTo' => $addressTo,
             'tagFrom' => null,
             'tag' => $tag, // refix it properly for the $tag from description
             'tagTo' => $tag,
-            'type' => 'withdrawal',
+            'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
+            'updated' => $updated,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
                 'rate' => null,
             ),
         );
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        $method = 'privatePostAuthRMovementsHist';
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+            $method = 'privatePostAuthRMovementsCurrencyHist';
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 1000
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             13293039, // ID
+        //             'ETH', // CURRENCY
+        //             'ETHEREUM', // CURRENCY_NAME
+        //             null,
+        //             null,
+        //             1574175052000, // MTS_STARTED
+        //             1574181326000, // MTS_UPDATED
+        //             null,
+        //             null,
+        //             'CANCELED', // STATUS
+        //             null,
+        //             null,
+        //             -0.24, // AMOUNT, negative for withdrawals
+        //             -0.00135, // FEES
+        //             null,
+        //             null,
+        //             'DESTINATION_ADDRESS',
+        //             null,
+        //             null,
+        //             null,
+        //             'TRANSACTION_ID',
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         )
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1306,6 +1422,47 @@ class bitfinex2 extends bitfinex {
         return array_merge($transaction, array(
             'address' => $address,
         ));
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostPositions ($params);
+        //
+        //     array(
+        //         array(
+        //             "tBTCUSD", // SYMBOL
+        //             "ACTIVE", // STATUS
+        //             0.0195, // AMOUNT
+        //             8565.0267019, // BASE_PRICE
+        //             0, // MARGIN_FUNDING
+        //             0, // MARGIN_FUNDING_TYPE
+        //             -0.33455568705000516, // PL
+        //             -0.0003117550117425625, // PL_PERC
+        //             7045.876419249083, // PRICE_LIQ
+        //             3.0673001895895604, // LEVERAGE
+        //             null, // _PLACEHOLDER
+        //             142355652, // POSITION_ID
+        //             1574002216000, // MTS_CREATE
+        //             1574002216000, // MTS_UPDATE
+        //             null, // _PLACEHOLDER
+        //             0, // TYPE
+        //             null, // _PLACEHOLDER
+        //             0, // COLLATERAL
+        //             0, // COLLATERAL_MIN
+        //             // META
+        //             {
+        //                 "reason":"TRADE",
+        //                 "order_id":34271018124,
+        //                 "liq_stage":null,
+        //                 "trade_price":"8565.0267019",
+        //                 "trade_amount":"0.0195",
+        //                 "order_id_oppo":34277498022
+        //             }
+        //         )
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
     }
 
     public function nonce() {

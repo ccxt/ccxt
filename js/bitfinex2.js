@@ -42,7 +42,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchTickers': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1184,6 +1184,16 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
@@ -1209,49 +1219,155 @@ module.exports = class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     ]
         //
-        // todo add support for all movements, deposits and withdrawals
+        // fetchTransactions
         //
-        const data = this.safeValue (transaction, 4, []);
-        const timestamp = this.safeInteger (transaction, 0);
+        //     [
+        //         13293039, // ID
+        //         'ETH', // CURRENCY
+        //         'ETHEREUM', // CURRENCY_NAME
+        //         null,
+        //         null,
+        //         1574175052000, // MTS_STARTED
+        //         1574181326000, // MTS_UPDATED
+        //         null,
+        //         null,
+        //         'CANCELED', // STATUS
+        //         null,
+        //         null,
+        //         -0.24, // AMOUNT, negative for withdrawals
+        //         -0.00135, // FEES
+        //         null,
+        //         null,
+        //         'DESTINATION_ADDRESS',
+        //         null,
+        //         null,
+        //         null,
+        //         'TRANSACTION_ID',
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //     ]
+        //
+        const transactionLength = transaction.length;
+        let timestamp = undefined;
+        let updated = undefined;
         let code = undefined;
-        if (currency !== undefined) {
-            code = currency['code'];
+        let amount = undefined;
+        let id = undefined;
+        let status = undefined;
+        let tag = undefined;
+        let type = undefined;
+        let feeCost = undefined;
+        let txid = undefined;
+        let addressTo = undefined;
+        if (transactionLength < 9) {
+            const data = this.safeValue (transaction, 4, []);
+            timestamp = this.safeInteger (transaction, 0);
+            if (currency !== undefined) {
+                code = currency['code'];
+            }
+            feeCost = this.safeFloat (data, 8);
+            if (feeCost !== undefined) {
+                feeCost = -feeCost;
+            }
+            amount = this.safeFloat (data, 5);
+            id = this.safeValue (data, 0);
+            status = 'ok';
+            if (id === 0) {
+                id = undefined;
+                status = 'failed';
+            }
+            tag = this.safeString (data, 3);
+            type = 'withdrawal';
+        } else {
+            id = this.safeString (transaction, 0);
+            timestamp = this.safeInteger (transaction, 5);
+            updated = this.safeInteger (transaction, 6);
+            status = this.parseTransactionStatus (this.safeString (transaction, 9));
+            amount = this.safeFloat (transaction, 12);
+            if (amount !== undefined) {
+                if (amount < 0) {
+                    type = 'withdrawal';
+                } else {
+                    type = 'deposit';
+                }
+            }
+            feeCost = this.safeFloat (transaction, 13);
+            if (feeCost !== undefined) {
+                feeCost = -feeCost;
+            }
+            addressTo = this.safeString (transaction, 16);
+            txid = this.safeString (transaction, 20);
         }
-        let feeCost = this.safeFloat (data, 8);
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
-        }
-        const amount = this.safeFloat (data, 5);
-        let id = this.safeValue (data, 0);
-        let status = 'ok';
-        if (id === 0) {
-            id = undefined;
-            status = 'failed';
-        }
-        const tag = this.safeString (data, 3);
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
-            'addressTo': undefined,
+            'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
+            'addressTo': addressTo,
             'tagFrom': undefined,
             'tag': tag, // refix it properly for the tag from description
             'tagTo': tag,
-            'type': 'withdrawal',
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': updated,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        let method = 'privatePostAuthRMovementsHist';
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privatePostAuthRMovementsCurrencyHist';
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 1000
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             13293039, // ID
+        //             'ETH', // CURRENCY
+        //             'ETHEREUM', // CURRENCY_NAME
+        //             null,
+        //             null,
+        //             1574175052000, // MTS_STARTED
+        //             1574181326000, // MTS_UPDATED
+        //             null,
+        //             null,
+        //             'CANCELED', // STATUS
+        //             null,
+        //             null,
+        //             -0.24, // AMOUNT, negative for withdrawals
+        //             -0.00135, // FEES
+        //             null,
+        //             null,
+        //             'DESTINATION_ADDRESS',
+        //             null,
+        //             null,
+        //             null,
+        //             'TRANSACTION_ID',
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         ]
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1300,6 +1416,47 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.extend (transaction, {
             'address': address,
         });
+    }
+
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostPositions (params);
+        //
+        //     [
+        //         [
+        //             "tBTCUSD", // SYMBOL
+        //             "ACTIVE", // STATUS
+        //             0.0195, // AMOUNT
+        //             8565.0267019, // BASE_PRICE
+        //             0, // MARGIN_FUNDING
+        //             0, // MARGIN_FUNDING_TYPE
+        //             -0.33455568705000516, // PL
+        //             -0.0003117550117425625, // PL_PERC
+        //             7045.876419249083, // PRICE_LIQ
+        //             3.0673001895895604, // LEVERAGE
+        //             null, // _PLACEHOLDER
+        //             142355652, // POSITION_ID
+        //             1574002216000, // MTS_CREATE
+        //             1574002216000, // MTS_UPDATE
+        //             null, // _PLACEHOLDER
+        //             0, // TYPE
+        //             null, // _PLACEHOLDER
+        //             0, // COLLATERAL
+        //             0, // COLLATERAL_MIN
+        //             // META
+        //             {
+        //                 "reason":"TRADE",
+        //                 "order_id":34271018124,
+        //                 "liq_stage":null,
+        //                 "trade_price":"8565.0267019",
+        //                 "trade_amount":"0.0195",
+        //                 "order_id_oppo":34277498022
+        //             }
+        //         ]
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
     }
 
     nonce () {

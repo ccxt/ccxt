@@ -387,7 +387,7 @@ class bithumb(Exchange):
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'units_traded')
+        amount = self.safe_float_2(trade, 'units_traded', 'units')
         cost = self.safe_float(trade, 'total')
         if cost is None:
             if amount is not None:
@@ -486,25 +486,26 @@ class bithumb(Exchange):
         #     {
         #         "status": "0000",
         #         "data": {
-        #             "transaction_date": "1572497603668315",
-        #             "type": "bid",
-        #             "order_status": "Completed",
-        #             "order_currency": "BTC",
-        #             "payment_currency": "KRW",
-        #             "order_price": "8601000",
-        #             "order_qty": "0.007",
-        #             "cancel_date": "",
-        #             "cancel_type": "",
-        #             "contract": [
+        #             order_date: '1603161798539254',
+        #             type: 'ask',
+        #             order_status: 'Cancel',
+        #             order_currency: 'BTC',
+        #             payment_currency: 'KRW',
+        #             watch_price: '0',
+        #             order_price: '13344000',
+        #             order_qty: '0.0125',
+        #             cancel_date: '1603161803809993',
+        #             cancel_type: '사용자취소',
+        #             contract: [
         #                 {
-        #                     "transaction_date": "1572497603902030",
-        #                     "price": "8601000",
-        #                     "units": "0.005",
-        #                     "fee_currency": "KRW",
-        #                     "fee": "107.51",
-        #                     "total": "43005"
-        #                 },
-        #             ]
+        #                     transaction_date: '1603161799976383',
+        #                     price: '13344000',
+        #                     units: '0.0015',
+        #                     fee_currency: 'KRW',
+        #                     fee: '0',
+        #                     total: '20016'
+        #                 }
+        #             ],
         #         }
         #     }
         #
@@ -520,6 +521,7 @@ class bithumb(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
         #
         # fetchOrder
         #
@@ -543,6 +545,29 @@ class bithumb(Exchange):
         #                 "total": "43005"
         #             },
         #         ]
+        #     }
+        #
+        #     {
+        #         order_date: '1603161798539254',
+        #         type: 'ask',
+        #         order_status: 'Cancel',
+        #         order_currency: 'BTC',
+        #         payment_currency: 'KRW',
+        #         watch_price: '0',
+        #         order_price: '13344000',
+        #         order_qty: '0.0125',
+        #         cancel_date: '1603161803809993',
+        #         cancel_type: '사용자취소',
+        #         contract: [
+        #             {
+        #                 transaction_date: '1603161799976383',
+        #                 price: '13344000',
+        #                 units: '0.0015',
+        #                 fee_currency: 'KRW',
+        #                 fee: '0',
+        #                 total: '20016'
+        #             }
+        #         ],
         #     }
         #
         # fetchOpenOrders
@@ -572,11 +597,8 @@ class bithumb(Exchange):
         if remaining is None:
             if status == 'closed':
                 remaining = 0
-            else:
+            elif status != 'canceled':
                 remaining = amount
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
         symbol = None
         baseId = self.safe_string(order, 'order_currency')
         quoteId = self.safe_string(order, 'payment_currency')
@@ -586,16 +608,56 @@ class bithumb(Exchange):
             symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
+        filled = None
+        cost = None
+        average = None
+        id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract')
         trades = None
-        id = self.safe_string(order, 'order_id')
+        fee = None
+        fees = None
+        feesByCurrency = None
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {
                 'side': side,
                 'symbol': symbol,
                 'order': id,
             })
-        return {
+            filled = 0
+            feesByCurrency = {}
+            for i in range(0, len(trades)):
+                trade = trades[i]
+                filled = self.sum(filled, trade['amount'])
+                cost = self.sum(cost, trade['cost'])
+                tradeFee = trade['fee']
+                feeCurrency = tradeFee['currency']
+                if feeCurrency in feesByCurrency:
+                    feesByCurrency[feeCurrency] = {
+                        'currency': feeCurrency,
+                        'cost': self.sum(feesByCurrency[feeCurrency]['cost'], tradeFee['cost']),
+                    }
+                else:
+                    feesByCurrency[feeCurrency] = {
+                        'currency': feeCurrency,
+                        'cost': tradeFee['cost'],
+                    }
+            feeCurrencies = list(feesByCurrency.keys())
+            feeCurrenciesLength = len(feeCurrencies)
+            if feeCurrenciesLength > 1:
+                fees = []
+                for i in range(0, len(feeCurrencies)):
+                    feeCurrency = feeCurrencies[i]
+                    fees.append(feesByCurrency[feeCurrency])
+            else:
+                fee = self.safe_value(feesByCurrency, feeCurrencies[0])
+            if filled != 0:
+                average = cost / filled
+        if amount is not None:
+            if (filled is None) and (remaining is not None):
+                filled = max(0, amount - remaining)
+            if (remaining is None) and (filled is not None):
+                remaining = max(0, amount - filled)
+        result = {
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -607,14 +669,19 @@ class bithumb(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': None,
-            'average': None,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': trades,
         }
+        if fee is not None:
+            result['fee'] = fee
+        elif fees is not None:
+            result['fees'] = fees
+        return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

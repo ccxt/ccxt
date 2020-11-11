@@ -54,6 +54,7 @@ class bitpanda(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -158,12 +159,6 @@ class bitpanda(Exchange):
                 'apiKey': True,
                 'secret': False,
             },
-            # exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
-                },
-            },
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -249,6 +244,13 @@ class bitpanda(Exchange):
             },
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+            },
+            # exchange-specific options
+            'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
+                'fiat': ['EUR', 'CHF'],
             },
         })
 
@@ -1023,6 +1025,51 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': code,
+            'amount': self.currency_to_precision(code, amount),
+            # 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2',  # fiat only
+            # 'recipient': { # crypto only
+            #     'address': address,
+            #     # 'destination_tag': '',
+            # },
+        }
+        options = self.safe_value(self.options, 'fiat', [])
+        isFiat = self.in_array(code, options)
+        method = 'privatePostAccountWithdrawFiat' if isFiat else 'privatePostAccountWithdrawCrypto'
+        if isFiat:
+            payoutAccountId = self.safe_string(params, 'payout_account_id')
+            if payoutAccountId is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals')
+        else:
+            recipient = {'address': address}
+            if tag is not None:
+                recipient['destination_tag'] = tag
+            request['recipient'] = recipient
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        # fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits, fetchWithdrawals
@@ -1041,16 +1088,37 @@ class bitpanda(Exchange):
         #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         #     }
         #
+        # withdraw
+        #
+        #
+        #     crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        #     fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
         id = self.safe_string(transaction, 'transaction_id')
         amount = self.safe_float(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
-        status = None
-        feeCost = self.safe_float(transaction, 'fee_amount')
+        currency = self.safe_currency(currencyId, currency)
+        status = 'ok'  # the exchange returns cleared transactions only
+        feeCost = self.safe_float_2(transaction, 'fee_amount', 'fee')
         fee = None
+        addressTo = self.safe_string(transaction, 'recipient')
+        tagTo = self.safe_string(transaction, 'destination_tag')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency')
+            feeCurrencyId = self.safe_string(transaction, 'fee_currency', currencyId)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
@@ -1059,14 +1127,14 @@ class bitpanda(Exchange):
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
-            'address': None,
+            'address': addressTo,
             'addressFrom': None,
-            'addressTo': None,
-            'tag': None,
+            'addressTo': addressTo,
+            'tag': tagTo,
             'tagFrom': None,
-            'tagTo': None,
+            'tagTo': tagTo,
             'status': status,
             'type': None,
             'updated': None,

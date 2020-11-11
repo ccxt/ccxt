@@ -233,6 +233,7 @@ class liquid extends Exchange {
             $amountPrecision = $this->safe_integer($currency, 'display_precision');
             $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
             $precision = max ($amountPrecision, $pricePrecision);
+            $decimalPrecision = 1 / pow(10, $precision);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -240,7 +241,7 @@ class liquid extends Exchange {
                 'name' => $code,
                 'active' => $active,
                 'fee' => $this->safe_float($currency, 'withdrawal_fee'),
-                'precision' => $precision,
+                'precision' => $decimalPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$amountPrecision),

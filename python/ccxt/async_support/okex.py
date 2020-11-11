@@ -282,6 +282,7 @@ class okex(Exchange):
                 'option': {
                     'get': [
                         'accounts',
+                        'position',
                         '{underlying}/position',
                         'accounts/{underlying}',
                         'orders/{underlying}',
@@ -2802,6 +2803,271 @@ class okex(Exchange):
             # 'limit': limit,  # optional, number of results per request, default = maximum = 100
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        method = None
+        request = {
+            'instrument_id': market['id'],
+            # 'order_id': id,  # string
+            # 'after': '1',  # pagination of data to return records earlier than the requested ledger_id
+            # 'before': '1',  # P=pagination of data to return records newer than the requested ledger_id
+            # 'limit': limit,  # optional, number of results per request, default = maximum = 100
+        }
+        type = market['type']
+        if (type == 'futures') or (type == 'swap'):
+            method = type + 'GetInstrumentIdPosition'
+        elif type == 'option':
+            underlying = self.safe_string(params, 'underlying')
+            if underlying is None:
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires an underlying parameter for ' + type + ' market ' + symbol)
+            method = type + 'GetUnderlyingPosition'
+        else:
+            raise NotSupported(self.id + ' fetchPosition() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # futures
+        #
+        #     crossed margin mode
+        #
+        #     {
+        #         "result": True,
+        #         "holding": [
+        #             {
+        #                 "long_qty": "2",
+        #                 "long_avail_qty": "2",
+        #                 "long_avg_cost": "8260",
+        #                 "long_settlement_price": "8260",
+        #                 "realised_pnl": "0.00020928",
+        #                 "short_qty": "2",
+        #                 "short_avail_qty": "2",
+        #                 "short_avg_cost": "8259.99",
+        #                 "short_settlement_price": "8259.99",
+        #                 "liquidation_price": "113.81",
+        #                 "instrument_id": "BTC-USD-191227",
+        #                 "leverage": "10",
+        #                 "created_at": "2019-09-25T07:58:42.129Z",
+        #                 "updated_at": "2019-10-08T14:02:51.029Z",
+        #                 "margin_mode": "crossed",
+        #                 "short_margin": "0.00242197",
+        #                 "short_pnl": "6.63E-6",
+        #                 "short_pnl_ratio": "0.002477997",
+        #                 "short_unrealised_pnl": "6.63E-6",
+        #                 "long_margin": "0.00242197",
+        #                 "long_pnl": "-6.65E-6",
+        #                 "long_pnl_ratio": "-0.002478",
+        #                 "long_unrealised_pnl": "-6.65E-6",
+        #                 "long_settled_pnl": "0",
+        #                 "short_settled_pnl": "0",
+        #                 "last": "8257.57"
+        #             }
+        #         ],
+        #         "margin_mode": "crossed"
+        #     }
+        #
+        #     fixed margin mode
+        #
+        #     {
+        #         "result": True,
+        #         "holding": [
+        #             {
+        #                 "long_qty": "4",
+        #                 "long_avail_qty": "4",
+        #                 "long_margin": "0.00323844",
+        #                 "long_liqui_price": "7762.09",
+        #                 "long_pnl_ratio": "0.06052306",
+        #                 "long_avg_cost": "8234.43",
+        #                 "long_settlement_price": "8234.43",
+        #                 "realised_pnl": "-0.00000296",
+        #                 "short_qty": "2",
+        #                 "short_avail_qty": "2",
+        #                 "short_margin": "0.00241105",
+        #                 "short_liqui_price": "9166.74",
+        #                 "short_pnl_ratio": "0.03318052",
+        #                 "short_avg_cost": "8295.13",
+        #                 "short_settlement_price": "8295.13",
+        #                 "instrument_id": "BTC-USD-191227",
+        #                 "long_leverage": "15",
+        #                 "short_leverage": "10",
+        #                 "created_at": "2019-09-25T07:58:42.129Z",
+        #                 "updated_at": "2019-10-08T13:12:09.438Z",
+        #                 "margin_mode": "fixed",
+        #                 "short_margin_ratio": "0.10292507",
+        #                 "short_maint_margin_ratio": "0.005",
+        #                 "short_pnl": "7.853E-5",
+        #                 "short_unrealised_pnl": "7.853E-5",
+        #                 "long_margin_ratio": "0.07103743",
+        #                 "long_maint_margin_ratio": "0.005",
+        #                 "long_pnl": "1.9841E-4",
+        #                 "long_unrealised_pnl": "1.9841E-4",
+        #                 "long_settled_pnl": "0",
+        #                 "short_settled_pnl": "0",
+        #                 "last": "8266.99"
+        #             }
+        #         ],
+        #         "margin_mode": "fixed"
+        #     }
+        #
+        # swap
+        #
+        #     crossed margin mode
+        #
+        #     {
+        #         "margin_mode": "crossed",
+        #         "timestamp": "2019-09-27T03:49:02.018Z",
+        #         "holding": [
+        #             {
+        #                 "avail_position": "3",
+        #                 "avg_cost": "59.49",
+        #                 "instrument_id": "LTC-USD-SWAP",
+        #                 "last": "55.98",
+        #                 "leverage": "10.00",
+        #                 "liquidation_price": "4.37",
+        #                 "maint_margin_ratio": "0.0100",
+        #                 "margin": "0.0536",
+        #                 "position": "3",
+        #                 "realized_pnl": "0.0000",
+        #                 "unrealized_pnl": "0",
+        #                 "settled_pnl": "-0.0330",
+        #                 "settlement_price": "55.84",
+        #                 "side": "long",
+        #                 "timestamp": "2019-09-27T03:49:02.018Z"
+        #             },
+        #         ]
+        #     }
+        #
+        #     fixed margin mode
+        #
+        #     {
+        #         "margin_mode": "fixed",
+        #         "timestamp": "2019-09-27T03:47:37.230Z",
+        #         "holding": [
+        #             {
+        #                 "avail_position": "20",
+        #                 "avg_cost": "8025.0",
+        #                 "instrument_id": "BTC-USD-SWAP",
+        #                 "last": "8113.1",
+        #                 "leverage": "15.00",
+        #                 "liquidation_price": "7002.6",
+        #                 "maint_margin_ratio": "0.0050",
+        #                 "margin": "0.0454",
+        #                 "position": "20",
+        #                 "realized_pnl": "-0.0001",
+        #                 "unrealized_pnl": "0",
+        #                 "settled_pnl": "0.0076",
+        #                 "settlement_price": "8279.2",
+        #                 "side": "long",
+        #                 "timestamp": "2019-09-27T03:47:37.230Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "holding":[
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-C",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.017",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             },
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-P",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.019",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
+        type = self.safe_string(params, 'type', defaultType)
+        if (type == 'futures') or (type == 'swap'):
+            method = type + 'GetPosition'
+        elif type == 'option':
+            underlying = self.safe_string(params, 'underlying')
+            if underlying is None:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets')
+            method = type + 'GetUnderlyingPosition'
+        else:
+            raise NotSupported(self.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option')
+        params = self.omit(params, 'type')
+        response = await getattr(self, method)(params)
+        #
+        # futures
+        #
+        #     ...
+        #
+        #
+        # swap
+        #
+        #     ...
+        #
+        # option
+        #
+        #     {
+        #         "holding":[
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-C",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.017",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             },
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-P",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.019",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

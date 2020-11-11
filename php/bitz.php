@@ -39,6 +39,7 @@ class bitz extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -85,6 +86,7 @@ class bitz extends Exchange {
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut', // withdraw
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
@@ -1097,6 +1099,16 @@ class bitz extends Exchange {
         //         "memo":""
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":397574,
+        //         "email":"***@email.com",
+        //         "coin":"usdt",
+        //         "network_fee":"",
+        //         "eid":23112
+        //     }
+        //
         $timestamp = $this->safe_integer($transaction, 'updated');
         if ($timestamp === 0) {
             $timestamp = null;
@@ -1105,6 +1117,14 @@ class bitz extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'network_fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'code' => $code,
+            );
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
@@ -1117,7 +1137,7 @@ class bitz extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $timestamp,
-            'fee' => null,
+            'fee' => $fee,
             'info' => $transaction,
         );
     }
@@ -1169,6 +1189,40 @@ class bitz extends Exchange {
         $response = $this->tradePostDepositOrWithdraw (array_merge($request, $params));
         $transactions = $this->safe_value($response['data'], 'data', array());
         return $this->parse_transactions_by_type($type, $transactions, $code, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'number' => $this->currency_to_precision($code, $amount),
+            'address' => $address,
+            // 'type' => 'erc20', // omni, trc20, optional
+        );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
+        $response = $this->tradePostCoinOut (array_merge($request, $params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "$data":array(
+        //             "id":397574,
+        //             "email":"***@email.com",
+        //             "coin":"usdt",
+        //             "network_fee":"",
+        //             "eid":23112
+        //         ),
+        //         "time":1552641646,
+        //         "microtime":"0.70304500 1552641646",
+        //         "source":"api"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function nonce() {

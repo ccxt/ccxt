@@ -1447,7 +1447,7 @@ class bitstamp extends Exchange {
             $response = json_decode($response, $as_associative_array = true);
         }
         $address = $v1 ? $response : $this->safe_string($response, 'address');
-        $tag = $v1 ? null : $this->safe_string($response, 'destination_tag');
+        $tag = $v1 ? null : $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
         return array(
             'currency' => $code,

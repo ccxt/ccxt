@@ -514,7 +514,9 @@ class bittrex(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         options = self.safe_value(self.options, 'fetchTickers', {})
-        method = self.safe_string(options, 'method', 'publicGetMarketsTickers')
+        defaultMethod = self.safe_string(options, 'method', 'publicGetMarketsTickers')
+        method = self.safe_string(params, 'method', defaultMethod)
+        params = self.omit(params, 'method')
         response = await getattr(self, method)(params)
         #
         # publicGetMarketsTickers
@@ -555,7 +557,9 @@ class bittrex(Exchange):
             'marketSymbol': market['id'],
         }
         options = self.safe_value(self.options, 'fetchTicker', {})
-        method = self.safe_string(options, 'method', 'publicGetMarketsMarketSymbolTicker')
+        defaultMethod = self.safe_string(options, 'method', 'publicGetMarketsMarketSymbolTicker')
+        method = self.safe_string(params, 'method', defaultMethod)
+        params = self.omit(params, 'method')
         response = await getattr(self, method)(self.extend(request, params))
         #
         # publicGetMarketsMarketSymbolTicker

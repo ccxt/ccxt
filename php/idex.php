@@ -80,6 +80,7 @@ class idex extends Exchange {
                         'candles',
                         'trades',
                         'orderbook',
+                        'wsToken',
                     ),
                 ),
                 'private' => array(
@@ -124,6 +125,11 @@ class idex extends Exchange {
             ),
             'paddingMode' => PAD_WITH_ZERO,
             'commonCurrencies' => array(),
+            'requireCredentials' => array(
+                'privateKey' => true,
+                'apiKey' => true,
+                'secret' => true,
+            ),
         ));
     }
 
@@ -549,6 +555,7 @@ class idex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        $this->check_required_credentials();
         $this->load_markets();
         $nonce1 = $this->uuidv1();
         $request = array(
@@ -565,6 +572,9 @@ class idex extends Exchange {
         //   ), ...
         // )
         $extendedRequest = array_merge($request, $params);
+        if ($extendedRequest['wallet'] === null) {
+            throw new BadRequest($this->id . ' wallet is null, set $this->walletAddress or "address" in params');
+        }
         $response = null;
         try {
             $response = $this->privateGetBalances ($extendedRequest);
@@ -597,6 +607,7 @@ class idex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->check_required_credentials();
         $this->load_markets();
         $market = null;
         $request = array(
@@ -634,6 +645,9 @@ class idex extends Exchange {
         //   }
         // )
         $extendedRequest = array_merge($request, $params);
+        if ($extendedRequest['wallet'] === null) {
+            throw new BadRequest($this->id . ' $walletAddress is null, set $this->walletAddress or "address" in params');
+        }
         $response = null;
         try {
             $response = $this->privateGetFills ($extendedRequest);
@@ -1070,6 +1084,7 @@ class idex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $this->check_required_credentials();
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {

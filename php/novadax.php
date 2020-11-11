@@ -754,7 +754,7 @@ class novadax extends Exchange {
                 'currency' => null,
             );
         }
-        $marketId = $this->safe_string($order, 'marketId');
+        $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,

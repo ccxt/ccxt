@@ -77,7 +77,11 @@ class gemini(Exchange):
                 'test': {
                     'public': 'https://api.sandbox.gemini.com',
                     'private': 'https://api.sandbox.gemini.com',
-                    'web': 'https://docs.sandbox.gemini.com',
+                    # use the True doc instead of the sandbox doc
+                    # since they differ in parsing
+                    # https://github.com/ccxt/ccxt/issues/7874
+                    # https://github.com/ccxt/ccxt/issues/7894
+                    'web': 'https://docs.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -213,8 +217,6 @@ class gemini(Exchange):
         numRows = len(rows)
         if numRows < 2:
             raise NotSupported(error)
-        apiSymbols = self.fetch_markets_from_api(params)
-        indexedSymbols = self.index_by(apiSymbols, 'id')
         result = []
         # skip the first element(empty string)
         for i in range(1, numRows):
@@ -230,67 +232,63 @@ class gemini(Exchange):
             #         '<td>0.01 USD',  # quote currency price increment
             #         '</tr>'
             #     ]
-            id = cells[0].replace('<td>', '')
+            marketId = cells[0].replace('<td>', '')
             # base = self.safe_currency_code(baseId)
-            quoteIds = ['usd', 'btc', 'eth', 'bch', 'ltc', 'dai']
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
             amountPrecision = self.safe_float(amountPrecisionParts, 0)
-            for j in range(0, len(quoteIds)):
-                idLength = len(id) - 0
-                quoteId = id[idLength - 3:idLength]
-                quote = self.safe_currency_code(quoteId)
-                pricePrecisionString = cells[3].replace('<td>', '')
-                pricePrecisionParts = pricePrecisionString.split(' ')
-                pricePrecision = self.safe_float(pricePrecisionParts, 0)
-                if not (id in indexedSymbols):
-                    continue
-                baseId = id.replace(quoteId, '')
-                base = self.safe_currency_code(baseId)
-                symbol = base + '/' + quote
-                active = None
-                result.append({
-                    'id': id,
-                    'info': row,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
+            idLength = len(marketId) - 0
+            quoteId = marketId[idLength - 3:idLength]
+            quote = self.safe_currency_code(quoteId)
+            pricePrecisionString = cells[3].replace('<td>', '')
+            pricePrecisionParts = pricePrecisionString.split(' ')
+            pricePrecision = self.safe_float(pricePrecisionParts, 0)
+            baseId = marketId.replace(quoteId, '')
+            base = self.safe_currency_code(baseId)
+            symbol = base + '/' + quote
+            active = None
+            result.append({
+                'id': marketId,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': None,
                     },
-                    'limits': {
-                        'amount': {
-                            'min': minAmount,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                    'price': {
+                        'min': None,
+                        'max': None,
                     },
-                })
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
         return result
 
     def fetch_markets_from_api(self, params={}):
         response = self.publicGetV1Symbols(params)
         result = []
         for i in range(0, len(response)):
-            id = response[i]
-            market = id
-            idLength = len(id) - 0
-            baseId = id[0:idLength - 3]
-            quoteId = id[idLength - 3:idLength]
+            marketId = response[i]
+            market = marketId
+            idLength = len(marketId) - 0
+            baseId = marketId[0:idLength - 3]
+            quoteId = marketId[idLength - 3:idLength]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -299,7 +297,7 @@ class gemini(Exchange):
                 'price': None,
             }
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
