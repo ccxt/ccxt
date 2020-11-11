@@ -24,6 +24,7 @@ module.exports = class novadax extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -35,6 +36,7 @@ module.exports = class novadax extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
@@ -830,6 +832,20 @@ module.exports = class novadax extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'type': 'coin_in',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'type': 'coin_out',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
