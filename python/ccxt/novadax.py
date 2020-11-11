@@ -46,6 +46,7 @@ class novadax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransactions': True,
                 'withdraw': True,
             },
             'urls': {
@@ -82,6 +83,7 @@ class novadax(Exchange):
                         'account/subs',
                         'account/subs/balance',
                         'account/subs/transfer/record',
+                        'wallet/query/deposit-withdraw',
                     ],
                     'post': [
                         'orders/create',
@@ -770,40 +772,6 @@ class novadax(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
-        #
-        # withdraw
-        #
-        #     {
-        #         "code":"A10000",
-        #         "data": "DR123",
-        #         "message":"Success"
-        #     }
-        #
-        id = self.safe_string(transaction, 'data')
-        code = None
-        if currency is not None:
-            code = currency['code']
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': None,
-            'address': None,
-            'addressFrom': None,
-            'addressTo': None,
-            'tag': None,
-            'tagFrom': None,
-            'tagTo': None,
-            'status': None,
-            'type': None,
-            'updated': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'fee': None,
-        }
-
     def fetch_accounts(self, params={}):
         response = self.privateGetAccountSubs(params)
         #
@@ -833,6 +801,122 @@ class novadax(Exchange):
                 'info': account,
             })
         return result
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'type': 'coin_in',  # 'coin_out'
+            # 'direct': 'asc',  # 'desc'
+            # 'size': limit,  # default 100
+            # 'start': id,  # offset id
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['size'] = limit
+        response = self.privateGetWalletQueryDepositWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "id": "DR562339304588709888",
+        #                 "type": "COIN_IN",
+        #                 "currency": "XLM",
+        #                 "chain": "XLM",
+        #                 "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        #                 "addressTag": "1000009",
+        #                 "amount": 1.0,
+        #                 "state": "SUCCESS",
+        #                 "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        #                 "createdAt": 1554113737000,
+        #                 "updatedAt": 1601371273000
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        # Pending the record is wait broadcast to chain
+        # x/M confirming the comfirming state of tx, the M is total confirmings needed
+        # SUCCESS the record is success full
+        # FAIL the record failed
+        parts = status.split(' ')
+        status = self.safe_string(parts, 1, status)
+        statuses = {
+            'Pending': 'pending',
+            'confirming': 'pending',
+            'SUCCESS': 'ok',
+            'FAIL': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "code":"A10000",
+        #         "data": "DR123",
+        #         "message":"Success"
+        #     }
+        #
+        # fetchTransactions
+        #
+        #     {
+        #         "id": "DR562339304588709888",
+        #         "type": "COIN_IN",
+        #         "currency": "XLM",
+        #         "chain": "XLM",
+        #         "address": "GCUTK7KHPJC3ZQJ3OMWWFHAK2OXIBRD4LNZQRCCOVE7A2XOPP2K5PU5Q",
+        #         "addressTag": "1000009",
+        #         "amount": 1.0,
+        #         "state": "SUCCESS",
+        #         "txHash": "39210645748822f8d4ce673c7559aa6622e6e9cdd7073bc0fcae14b1edfda5f4",
+        #         "createdAt": 1554113737000,
+        #         "updatedAt": 1601371273000
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'data')
+        type = self.safe_string(transaction, 'type')
+        if type == 'COIN_IN':
+            type = 'deposit'
+        elif type == 'COIN_OUT':
+            type = 'withdraw'
+        amount = self.safe_float(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'addressTag')
+        txid = self.safe_string(transaction, 'txHash')
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        updated = self.safe_integer(transaction, 'updatedAt')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
