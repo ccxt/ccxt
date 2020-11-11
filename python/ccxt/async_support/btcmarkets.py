@@ -247,6 +247,8 @@ class btcmarkets(Exchange):
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'amount')
+        if fee:
+            amount -= fee
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': txid,
