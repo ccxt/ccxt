@@ -26,6 +26,7 @@ module.exports = class novadax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -69,6 +70,7 @@ module.exports = class novadax extends Exchange {
                         'orders/get',
                         'orders/list',
                         'orders/fill',
+                        'orders/fills',
                         'account/getBalance',
                         'account/subs',
                         'account/subs/balance',
@@ -383,6 +385,22 @@ module.exports = class novadax extends Exchange {
         //         "amount": "0.0988",
         //         "price": "45514.76",
         //         "fee": "0.0000988 BTC",
+        //         "role": "MAKER",
+        //         "timestamp": 1565171053345
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "id": "608717046691139584",
+        //         "orderId": "608716957545402368",
+        //         "symbol": "BTC_BRL",
+        //         "side": "BUY",
+        //         "amount": "0.0988",
+        //         "price": "45514.76",
+        //         "fee": "0.0000988 BTC",
+        //         "feeAmount": "0.0000988",
+        //         "feeCurrency": "BTC",
         //         "role": "MAKER",
         //         "timestamp": 1565171053345
         //     }
@@ -968,6 +986,68 @@ module.exports = class novadax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
         };
+    }
+
+    async fetchMyTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            //  'orderId': id, // Order ID, string
+            //  'symbol': market['id'], // The trading symbol, like BTC_BRL, string
+            //  'fromId': fromId, // Search fill id to begin with, string
+            //  'toId': toId, // Search fill id to end up with, string
+            //  'fromTimestamp': since, // Search order fill time to begin with, in milliseconds, string
+            //  'toTimestamp': this.milliseconds (), // Search order fill time to end up with, in milliseconds, string
+            //  'limit': limit, // The number of fills to return, default 100, max 100, string
+            //  'accountId': subaccountId, // Sub account ID, if not informed, the fills will be return under master account, string
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['fromTimestamp'] = since;
+        }
+        const response = await this.privateGetOrdersFills (this.extend (request, params));
+        //
+        //     {
+        //         "code": "A10000",
+        //         "data": [
+        //             {
+        //                 "id": "608717046691139584",
+        //                 "orderId": "608716957545402368",
+        //                 "symbol": "BTC_BRL",
+        //                 "side": "BUY",
+        //                 "amount": "0.0988",
+        //                 "price": "45514.76",
+        //                 "fee": "0.0000988 BTC",
+        //                 "feeAmount": "0.0000988",
+        //                 "feeCurrency": "BTC",
+        //                 "role": "MAKER",
+        //                 "timestamp": 1565171053345
+        //             },
+        //             {
+        //                 "id": "608717065729085441",
+        //                 "orderId": "608716957545402368",
+        //                 "symbol": "BTC_BRL",
+        //                 "side": "BUY",
+        //                 "amount": "0.0242",
+        //                 "price": "45514.76",
+        //                 "fee": "0.0000242 BTC",
+        //                 "feeAmount": "0.0000988",
+        //                 "feeCurrency": "BTC",
+        //                 "role": "MAKER",
+        //                 "timestamp": 1565171057882
+        //             }
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
