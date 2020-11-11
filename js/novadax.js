@@ -34,6 +34,7 @@ module.exports = class novadax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTransactions': true,
                 'withdraw': true,
             },
             'urls': {
