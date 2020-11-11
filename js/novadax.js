@@ -988,7 +988,7 @@ module.exports = class novadax extends Exchange {
         };
     }
 
-    async fetchMyTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             //  'orderId': id, // Order ID, string
