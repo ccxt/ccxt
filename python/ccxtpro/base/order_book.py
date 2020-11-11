@@ -2,12 +2,13 @@
 
 from ccxtpro.base import order_book_side
 from ccxt import Exchange
+import sys
 
 
 class OrderBook(dict):
     def __init__(self, snapshot={}, depth=None):
         self.cache = []
-        depth = depth or float('inf')
+        depth = depth or sys.maxsize
         defaults = {
             'bids': [],
             'asks': [],
@@ -25,16 +26,18 @@ class OrderBook(dict):
         # merge to self
         super(OrderBook, self).__init__(defaults)
 
-    def limit(self, n=float('inf')):
+    def limit(self, n=None):
         self['asks'].limit(n)
         self['bids'].limit(n)
         return self
 
     def reset(self, snapshot={}):
         self['asks']._index.clear()
+        self['asks'].clear()
         for ask in snapshot.get('asks', []):
             self['asks'].storeArray(ask)
         self['bids']._index.clear()
+        self['bids'].clear()
         for bid in snapshot.get('bids', []):
             self['bids'].storeArray(bid)
         self['nonce'] = snapshot.get('nonce')
