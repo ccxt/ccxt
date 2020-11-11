@@ -36,7 +36,9 @@ class novadax(Exchange):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -47,6 +49,7 @@ class novadax(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -79,6 +82,7 @@ class novadax(Exchange):
                         'orders/get',
                         'orders/list',
                         'orders/fill',
+                        'orders/fills',
                         'account/getBalance',
                         'account/subs',
                         'account/subs/balance',
@@ -382,6 +386,22 @@ class novadax(Exchange):
         #         "amount": "0.0988",
         #         "price": "45514.76",
         #         "fee": "0.0000988 BTC",
+        #         "role": "MAKER",
+        #         "timestamp": 1565171053345
+        #     }
+        #
+        # private fetchMyTrades
+        #
+        #     {
+        #         "id": "608717046691139584",
+        #         "orderId": "608716957545402368",
+        #         "symbol": "BTC_BRL",
+        #         "side": "BUY",
+        #         "amount": "0.0988",
+        #         "price": "45514.76",
+        #         "fee": "0.0000988 BTC",
+        #         "feeAmount": "0.0000988",
+        #         "feeCurrency": "BTC",
         #         "role": "MAKER",
         #         "timestamp": 1565171053345
         #     }
@@ -802,6 +822,18 @@ class novadax(Exchange):
             })
         return result
 
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'coin_in',
+        }
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'coin_out',
+        }
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
+
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
@@ -917,6 +949,64 @@ class novadax(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': None,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            #  'orderId': id,  # Order ID, string
+            #  'symbol': market['id'],  # The trading symbol, like BTC_BRL, string
+            #  'fromId': fromId,  # Search fill id to begin with, string
+            #  'toId': toId,  # Search fill id to end up with, string
+            #  'fromTimestamp': since,  # Search order fill time to begin with, in milliseconds, string
+            #  'toTimestamp': self.milliseconds(),  # Search order fill time to end up with, in milliseconds, string
+            #  'limit': limit,  # The number of fills to return, default 100, max 100, string
+            #  'accountId': subaccountId,  # Sub account ID, if not informed, the fills will be return under master account, string
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['fromTimestamp'] = since
+        response = await self.privateGetOrdersFills(self.extend(request, params))
+        #
+        #     {
+        #         "code": "A10000",
+        #         "data": [
+        #             {
+        #                 "id": "608717046691139584",
+        #                 "orderId": "608716957545402368",
+        #                 "symbol": "BTC_BRL",
+        #                 "side": "BUY",
+        #                 "amount": "0.0988",
+        #                 "price": "45514.76",
+        #                 "fee": "0.0000988 BTC",
+        #                 "feeAmount": "0.0000988",
+        #                 "feeCurrency": "BTC",
+        #                 "role": "MAKER",
+        #                 "timestamp": 1565171053345
+        #             },
+        #             {
+        #                 "id": "608717065729085441",
+        #                 "orderId": "608716957545402368",
+        #                 "symbol": "BTC_BRL",
+        #                 "side": "BUY",
+        #                 "amount": "0.0242",
+        #                 "price": "45514.76",
+        #                 "fee": "0.0000242 BTC",
+        #                 "feeAmount": "0.0000988",
+        #                 "feeCurrency": "BTC",
+        #                 "role": "MAKER",
+        #                 "timestamp": 1565171057882
+        #             }
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
