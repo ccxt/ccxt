@@ -537,7 +537,6 @@ declare module 'ccxt' {
     export class ripio extends Exchange {}
     export class southxchange extends Exchange {}
     export class stex extends Exchange {}
-    export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
