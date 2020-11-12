@@ -109,6 +109,7 @@ class bytetrade extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                '1' => 'ByteTrade',
                 '44' => 'ByteHub',
                 '48' => 'Blocktonic',
                 '133' => 'TerraCredit',

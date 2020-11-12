@@ -114,6 +114,7 @@ class bytetrade(Exchange):
                 },
             },
             'commonCurrencies': {
+                '1': 'ByteTrade',
                 '44': 'ByteHub',
                 '48': 'Blocktonic',
                 '133': 'TerraCredit',
