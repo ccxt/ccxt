@@ -1340,14 +1340,14 @@ module.exports = class bitmex extends Exchange {
             const request = {
                 'symbol': market['id'],
                 'side': this.capitalize (side),
-                'orderQty': amount,
+                'orderQty': amount[i],
                 'ordType': orderType,
             };
             if (price !== undefined) {
                 if (orderType === 'Stop') {
-                    request['stopPx'] = price;
+                    request['stopPx'] = price[i];
                 } else {
-                    request['price'] = price;
+                    request['price'] = price[i];
                 }
             }
             const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
