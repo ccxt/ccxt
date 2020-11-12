@@ -61,13 +61,10 @@ class OrderBookSide(list):
         return min(length, self._n)
 
     def __getitem__(self, item):
-        length = len(self)
         if isinstance(item, slice):
-            start, stop, step = item.indices(length)
+            start, stop, step = item.indices(len(self))
             return [self[i] for i in range(start, stop, step)]
         else:
-            if item >= length:
-                raise IndexError('list index out of range')
             return super(OrderBookSide, self).__getitem__(item)
 
     def __eq__(self, other):
