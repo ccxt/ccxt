@@ -90,6 +90,14 @@ incrementalIndexedOrderBookTarget = {
     'nonce': 69,
 }
 
+incrementalIndexedOrderBookDeletedTarget = {
+    'bids': [[9.1, 11, '1235'], [8.2, 12, '1236'], [7.3, 13, '1237'], [6.4, 14, '1238'], [4.5, 13, '1239']],
+    'asks': [[11.1, 27, '1244'], [13.3, 13, '1243'], [14.4, 12, '1242'], [15.5, 11, '1241'], [16.6, 10, '1240']],
+    'timestamp': 1574827239000,
+    'datetime': '2019-11-27T04:00:39.000Z',
+    'nonce': 69,
+}
+
 limitedIncrementalIndexedOrderBookTarget = {
     'bids': [[10.0, 10, '1234'], [9.1, 11, '1235'], [8.2, 12, '1236'], [7.3, 13, '1237'], [6.4, 14, '1238']],
     'asks': [[11.1, 27, '1244'], [13.3, 13, '1243'], [14.4, 12, '1242'], [15.5, 11, '1241'], [16.6, 10, '1240']],
@@ -335,9 +343,15 @@ bids = incrementalIndexedOrderBook['bids']
 bids.store(5, 0, 'xxyy')
 incrementalIndexedOrderBook.limit()
 assert equals(incrementalIndexedOrderBook, incrementalIndexedOrderBookTarget)
+
 bids.store(10.0, 3, '1234')  # price does match merge size
 incrementalIndexedOrderBook.limit()
 assert equals(incrementalIndexedOrderBook, storedIncrementalIndexedOrderBookTarget)
+
+bids.store(0, 0, '1234')
+incrementalIndexedOrderBook.limit()
+assert equals(incrementalIndexedOrderBook, incrementalIndexedOrderBookDeletedTarget)
+
 incrementalIndexedOrderBook = IncrementalIndexedOrderBook(indexedOrderBookInput)
 bids = incrementalIndexedOrderBook['bids']
 bids.store(10.2, 3, '1234')  # price does not match merge size

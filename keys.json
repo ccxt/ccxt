@@ -1,5 +1,6 @@
 {
     "bitfinex": {"skip": false},
     "dsx": {"skip": true},
-    "idex": {"skip": true}
+    "idex": {"skip": true},
+    "upbit": {"skip": true}
 }

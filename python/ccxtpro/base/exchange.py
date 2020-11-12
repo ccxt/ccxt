@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.61'
+__version__ = '0.4.64'
 
 # -----------------------------------------------------------------------------
 
@@ -47,13 +47,13 @@ class Exchange(BaseExchange):
     def gunzip(data):
         return gunzip(data)
 
-    def order_book(self, snapshot={}, depth=float('inf')):
+    def order_book(self, snapshot={}, depth=None):
         return OrderBook(snapshot, depth)
 
-    def indexed_order_book(self, snapshot={}, depth=float('inf')):
+    def indexed_order_book(self, snapshot={}, depth=None):
         return IndexedOrderBook(snapshot, depth)
 
-    def counted_order_book(self, snapshot={}, depth=float('inf')):
+    def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
@@ -155,7 +155,7 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            # connection closed due to an error, do nothing
+            # connection closed due to an error
             pass
         else:
             # server disconnected a working connection
