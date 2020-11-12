@@ -2244,7 +2244,7 @@ class Exchange {
         throw new NotSupported($this->id . ' cancel_order() not supported or not supported yet');
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array()) {
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
         if (!$this->enableRateLimit) {
             throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
         }
@@ -2276,7 +2276,7 @@ class Exchange {
         return $this->edit_limit_order($id, $symbol, $side, $amount, $price, $params);
     }
 
-    public function editOrder($id, $symbol, $type, $side, $amount, $price, $params = array()) {
+    public function editOrder($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
         return $this->edit_order($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
