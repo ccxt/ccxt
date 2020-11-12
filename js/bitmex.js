@@ -1336,18 +1336,18 @@ module.exports = class bitmex extends Exchange {
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
         const response = [];
-        for(const i = 0; i < amount.length; i++){
+        for (let i = 0; i < amount.length; i++) {
             const request = {
                 'symbol': market['id'],
                 'side': this.capitalize (side),
-                'orderQty': amount,
+                'orderQty': amount[i],
                 'ordType': orderType,
             };
             if (price !== undefined) {
                 if (orderType === 'Stop') {
-                    request['stopPx'] = price;
+                    request['stopPx'] = price[i];
                 } else {
-                    request['price'] = price;
+                    request['price'] = price[i];
                 }
             }
             const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
@@ -1355,7 +1355,7 @@ module.exports = class bitmex extends Exchange {
                 request['clOrdID'] = clientOrderId;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
             }
-            response.push(await this.privatePostOrder (this.extend (request, params)));
+            response.push (this.privatePostOrder (this.extend (request, params)));
         }
         return this.parseOrder (response, market);
     }
