@@ -250,10 +250,10 @@ asks.store (15.5, 0);
 limited.limit ();
 assert (equals (limited, limitedDeletedOrderBookTarget));
 
-limited.limit (5)
-asks.store (100, 1)
-asks.store (101, 1)
-asks.store (101, 3)
+limited.limit (5);
+asks.store (100, 1);
+asks.store (101, 1);
+asks.store (101, 3);
 
 // --------------------------------------------------------------------------------------------------------------------
 
