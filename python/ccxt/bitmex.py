@@ -1257,6 +1257,29 @@ class bitmex(Exchange):
         response = self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
+    def create_order_bulk(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        response = []
+        count = len(price) if len(amount) > len(price) else len(amount)
+        for i in range(count) :
+            request = {
+                'symbol': self.market_id(symbol),
+                'side': self.capitalize(side),
+                'orderQty': amount[i],
+                'ordType': self.capitalize(type),
+            }
+            if price is not None:
+                request['price'] = price[i]
+            clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+            if clientOrderId is not None:
+                request['clOrdID'] = clientOrderId
+                params = self.omit(params, ['clOrdID', 'clientOrderId'])
+            response.append(self.privatePostOrder(self.extend(request, params)))
+        order = self.parse_order(response)
+        id = self.safe_string(order, 'id')
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
+
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         request = {}
