@@ -47,6 +47,7 @@ class ftx(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
@@ -832,7 +833,7 @@ class ftx(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        # limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder, editOrder
         #
         #     {
         #         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -890,6 +891,29 @@ class ftx(Exchange):
         #         "error": null,
         #         "triggeredAt": null,
         #         "reduceOnly": False
+        #     }
+        #
+        # editOrder(conditional, stop, trailing stop, take profit)
+        #
+        #     {
+        #         "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        #         "future": "XRP-PERP",
+        #         "id": 9596912,
+        #         "market": "XRP-PERP",
+        #         "triggerPrice": 0.306225,
+        #         "orderId": null,
+        #         "side": "sell",
+        #         "size": 31431,
+        #         "status": "open",
+        #         "type": "stop",
+        #         "orderPrice": null,
+        #         "error": null,
+        #         "triggeredAt": null,
+        #         "reduceOnly": False,
+        #         "orderType": "market",
+        #         "filledSize": 0,
+        #         "avgFillPrice": null,
+        #         "retryUntilFilled": False
         #     }
         #
         # canceled order with a closed status
@@ -1054,6 +1078,96 @@ class ftx(Exchange):
         #
         #
         result = self.safe_value(response, 'result', [])
+        return self.parse_order(result, market)
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        method = None
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        triggerPrice = self.safe_float(params, 'triggerPrice')
+        orderPrice = self.safe_float(params, 'orderPrice')
+        trailValue = self.safe_float(params, 'trailValue')
+        params = self.omit(params, ['client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue'])
+        triggerPriceIsDefined = (triggerPrice is not None)
+        orderPriceIsDefined = (orderPrice is not None)
+        trailValueIsDefined = (trailValue is not None)
+        if triggerPriceIsDefined or orderPriceIsDefined or trailValueIsDefined:
+            method = 'privatePostConditionalOrdersOrderIdModify'
+            request['order_id'] = id
+            if triggerPriceIsDefined:
+                request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
+            if orderPriceIsDefined:
+                # only for stop limit or take profit limit orders
+                request['orderPrice'] = float(self.price_to_precision(symbol, orderPrice))
+            if trailValueIsDefined:
+                # negative for sell orders, positive for buy orders
+                request['trailValue'] = float(self.price_to_precision(symbol, trailValue))
+        else:
+            if clientOrderId is None:
+                method = 'privatePostOrdersByClientIdClientOrderIdModify'
+                request['client_order_id'] = clientOrderId
+                # request['clientId'] = clientOrderId
+            else:
+                method = 'privatePostOrdersOrderIdModify'
+                request['order_id'] = id
+            if price is not None:
+                request['price'] = float(self.price_to_precision(symbol, price))
+        if amount is not None:
+            request['size'] = float(self.amount_to_precision(symbol, amount))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # regular order
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "createdAt": "2019-03-05T11:56:55.728933+00:00",
+        #             "filledSize": 0,
+        #             "future": "XRP-PERP",
+        #             "id": 9596932,
+        #             "market": "XRP-PERP",
+        #             "price": 0.326525,
+        #             "remainingSize": 31431,
+        #             "side": "sell",
+        #             "size": 31431,
+        #             "status": "open",
+        #             "type": "limit",
+        #             "reduceOnly": False,
+        #             "ioc": False,
+        #             "postOnly": False,
+        #             "clientId": null,
+        #         }
+        #     }
+        #
+        # conditional trigger order
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        #             "future": "XRP-PERP",
+        #             "id": 9596912,
+        #             "market": "XRP-PERP",
+        #             "triggerPrice": 0.306225,
+        #             "orderId": null,
+        #             "side": "sell",
+        #             "size": 31431,
+        #             "status": "open",
+        #             "type": "stop",
+        #             "orderPrice": null,
+        #             "error": null,
+        #             "triggeredAt": null,
+        #             "reduceOnly": False,
+        #             "orderType": "market",
+        #             "filledSize": 0,
+        #             "avgFillPrice": null,
+        #             "retryUntilFilled": False
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
     def cancel_order(self, id, symbol=None, params={}):
