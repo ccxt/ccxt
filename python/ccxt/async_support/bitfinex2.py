@@ -40,6 +40,7 @@ class bitfinex2(bitfinex):
                 'createOrder': True,
                 'deposit': False,
                 'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
