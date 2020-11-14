@@ -26,6 +26,20 @@ module.exports = class delta extends Exchange {
                 'fetchTrades': true,
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '1d': '1d',
+                '7d': '7d',
+                '1w': '1w',
+                '2w': '2w',
+                '1M': '30d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg',
@@ -563,7 +577,6 @@ module.exports = class delta extends Exchange {
             'info': trade,
         };
     }
-
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
