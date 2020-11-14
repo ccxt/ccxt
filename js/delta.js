@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -602,6 +602,39 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        limit = limit ? limit : 2000; // max 2000
+        if (since === undefined) {
+            const end = this.seconds ();
+            request['end'] = end;
+            request['start'] = end - limit * duration;
+        } else {
+            const start = parseInt (since / 1000);
+            request['start'] = start;
+            request['end'] = this.sum (start, limit * duration);
+        }
+        const response = await this.publicGetHistoryCandles (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             {"time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565},
+        //             {"time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24},
+        //             {"time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288},
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
