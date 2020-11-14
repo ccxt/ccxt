@@ -513,6 +513,32 @@ module.exports = class delta extends Exchange {
         return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "buyer_role":"maker",
+        //                 "price":"15896.5",
+        //                 "seller_role":"taker",
+        //                 "size":241,
+        //                 "symbol":"BTCUSDT",
+        //                 "timestamp":1605376684714595
+        //             }
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
