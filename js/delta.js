@@ -17,6 +17,7 @@ module.exports = class delta extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
             },
             'timeframes': {
             },
@@ -121,7 +122,74 @@ module.exports = class delta extends Exchange {
                 'broad': {
                 },
             },
+            'markets': {},
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetAssets (params);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "base_withdrawal_fee":"0.0005",
+        //                 "deposit_status":"enabled",
+        //                 "id":2,
+        //                 "interest_credit":true,
+        //                 "interest_slabs":[
+        //                     {"limit":"0.1","rate":"0"},
+        //                     {"limit":"1","rate":"0.05"},
+        //                     {"limit":"5","rate":"0.075"},
+        //                     {"limit":"10","rate":"0.1"},
+        //                     {"limit":"9999999999999999","rate":"0"}
+        //                 ],
+        //                 "kyc_deposit_limit":"10",
+        //                 "kyc_withdrawal_limit":"2",
+        //                 "min_withdrawal_amount":"0.001",
+        //                 "minimum_precision":4,
+        //                 "name":"Bitcoin",
+        //                 "precision":8,
+        //                 "sort_priority":1,
+        //                 "symbol":"BTC",
+        //                 "variable_withdrawal_fee":"0",
+        //                 "withdrawal_status":"enabled"
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const numericId = this.safeInteger (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const depositStatus = this.safeString (currency, 'depositl_status');
+            const withdrawalStatus = this.safeString (currency, 'withdrawal_status');
+            const depositsEnabled = (depositStatus === 'enabled');
+            const withdrawalsEnabled = (withdrawalStatus === 'enabled');
+            const active = depositsEnabled && withdrawalsEnabled;
+            result[code] = {
+                'id': id,
+                'numericId': numericId,
+                'code': code,
+                'name': this.safeString (currency, 'name'),
+                'info': currency, // the original payload
+                'active': active,
+                'fee': this.safeFloat (currency, 'base_withdrawal_fee'),
+                'precision': this.safeInteger (currency, 'precision'),
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'min_withdrawal_amount'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
