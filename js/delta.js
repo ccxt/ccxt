@@ -272,26 +272,48 @@ module.exports = class delta extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            let type = this.safeString (market, 'contract_type');
             const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue (market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
             const baseId = this.safeString (underlyingAsset, 'symbol');
             const quoteId = this.safeString (quotingAsset, 'symbol');
-            const id = baseId + '_' + quoteId;
+            const id = this.safeString (market, 'symbol');
+            const numericId = this.safeInteger (market, 'id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = id;
+            let swap = false;
+            let future = false;
+            let option = false;
+            if (type === 'perpetual_futures') {
+                type = 'swap';
+                swap = true;
+                future = false;
+                option = false;
+                symbol = base + '/' + quote;
+            } else if ((type === 'call_options') || (type === 'put_options') || (type === 'move_options')) {
+                type = 'option';
+                swap = false;
+                option = true;
+                future = false;
+            } else if (type === 'futures') {
+                type = 'future';
+                swap = false;
+                option = false;
+                future = true;
+            }
             const precision = {
-                'amount': this.safeInteger (market, 'amount_precision'),
-                'price': this.safeInteger (market, 'market_precision'),
+                'amount': 1, // number of contracts
+                'price': this.safeFloat (market, 'tick_size'),
             };
             const limits = {
                 'amount': {
-                    'min': undefined,
+                    'min': 1,
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
+                    'min': precision['price'],
                     'max': undefined,
                 },
                 'cost': {
@@ -305,11 +327,16 @@ module.exports = class delta extends Exchange {
             const taker = this.safeFloat (market, 'taker_commission_rate');
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
+                'option': option,
+                'swap': swap,
+                'future': future,
                 'maker': maker,
                 'taker': taker,
                 'precision': precision,
