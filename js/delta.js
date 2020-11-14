@@ -20,6 +20,7 @@ module.exports = class delta extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -602,6 +603,27 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "time":1605393120,
+        //         "open":15989,
+        //         "high":15989,
+        //         "low":15987.5,
+        //         "close":15987.5,
+        //         "volume":565
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
