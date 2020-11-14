@@ -20,6 +20,7 @@ module.exports = class delta extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
             },
@@ -479,6 +480,37 @@ module.exports = class delta extends Exchange {
             result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetL2orderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result":{
+        //             "buy":[
+        //                 {"price":"15814.0","size":912},
+        //                 {"price":"15813.5","size":1279},
+        //                 {"price":"15813.0","size":1634},
+        //             ],
+        //             "sell":[
+        //                 {"price":"15814.5","size":625},
+        //                 {"price":"15815.0","size":982},
+        //                 {"price":"15815.5","size":1328},
+        //             ],
+        //             "symbol":"BTCUSDT"
+        //         },
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
