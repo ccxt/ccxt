@@ -33,6 +33,7 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -854,7 +855,7 @@ module.exports = class ftx extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder, editOrder
         //
         //     {
         //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -912,6 +913,29 @@ module.exports = class ftx extends Exchange {
         //         "error": null,
         //         "triggeredAt": null,
         //         "reduceOnly": false
+        //     }
+        //
+        // editOrder (conditional, stop, trailing stop, take profit)
+        //
+        //     {
+        //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //         "future": "XRP-PERP",
+        //         "id": 9596912,
+        //         "market": "XRP-PERP",
+        //         "triggerPrice": 0.306225,
+        //         "orderId": null,
+        //         "side": "sell",
+        //         "size": 31431,
+        //         "status": "open",
+        //         "type": "stop",
+        //         "orderPrice": null,
+        //         "error": null,
+        //         "triggeredAt": null,
+        //         "reduceOnly": false,
+        //         "orderType": "market",
+        //         "filledSize": 0,
+        //         "avgFillPrice": null,
+        //         "retryUntilFilled": false
         //     }
         //
         // canceled order with a closed status
@@ -1086,6 +1110,104 @@ module.exports = class ftx extends Exchange {
         //
         //
         const result = this.safeValue (response, 'result', []);
+        return this.parseOrder (result, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        const triggerPrice = this.safeFloat (params, 'triggerPrice');
+        const orderPrice = this.safeFloat (params, 'orderPrice');
+        const trailValue = this.safeFloat (params, 'trailValue');
+        params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ]);
+        const triggerPriceIsDefined = (triggerPrice !== undefined);
+        const orderPriceIsDefined = (orderPrice !== undefined);
+        const trailValueIsDefined = (trailValue !== undefined);
+        if (triggerPriceIsDefined || orderPriceIsDefined || trailValueIsDefined) {
+            method = 'privatePostConditionalOrdersOrderIdModify';
+            request['order_id'] = id;
+            if (triggerPriceIsDefined) {
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
+            }
+            if (orderPriceIsDefined) {
+                // only for stop limit or take profit limit orders
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, orderPrice));
+            }
+            if (trailValueIsDefined) {
+                // negative for sell orders, positive for buy orders
+                request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue));
+            }
+        } else {
+            if (clientOrderId === undefined) {
+                method = 'privatePostOrdersByClientIdClientOrderIdModify';
+                request['client_order_id'] = clientOrderId;
+                // request['clientId'] = clientOrderId;
+            } else {
+                method = 'privatePostOrdersOrderIdModify';
+                request['order_id'] = id;
+            }
+            if (price !== undefined) {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            }
+        }
+        if (amount !== undefined) {
+            request['size'] = parseFloat (this.amountToPrecision (symbol, amount));
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // regular order
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "createdAt": "2019-03-05T11:56:55.728933+00:00",
+        //             "filledSize": 0,
+        //             "future": "XRP-PERP",
+        //             "id": 9596932,
+        //             "market": "XRP-PERP",
+        //             "price": 0.326525,
+        //             "remainingSize": 31431,
+        //             "side": "sell",
+        //             "size": 31431,
+        //             "status": "open",
+        //             "type": "limit",
+        //             "reduceOnly": false,
+        //             "ioc": false,
+        //             "postOnly": false,
+        //             "clientId": null,
+        //         }
+        //     }
+        //
+        // conditional trigger order
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //             "future": "XRP-PERP",
+        //             "id": 9596912,
+        //             "market": "XRP-PERP",
+        //             "triggerPrice": 0.306225,
+        //             "orderId": null,
+        //             "side": "sell",
+        //             "size": 31431,
+        //             "status": "open",
+        //             "type": "stop",
+        //             "orderPrice": null,
+        //             "error": null,
+        //             "triggeredAt": null,
+        //             "reduceOnly": false,
+        //             "orderType": "market",
+        //             "filledSize": 0,
+        //             "avgFillPrice": null,
+        //             "retryUntilFilled": false
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
 

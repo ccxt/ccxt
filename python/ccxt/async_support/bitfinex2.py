@@ -40,6 +40,7 @@ class bitfinex2(bitfinex):
                 'createOrder': True,
                 'deposit': False,
                 'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': True,
@@ -115,6 +116,7 @@ class bitfinex2(bitfinex):
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -335,12 +337,19 @@ class bitfinex2(bitfinex):
 
     async def fetch_markets(self, params={}):
         # todo drop v1 in favor of v2 configs
-        # pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
-        response = await self.v1GetSymbolsDetails(params)
+        # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
+        v2response = await self.publicGetConfPubListPairFutures(params)
+        v1response = await self.v1GetSymbolsDetails(params)
+        futuresMarketIds = self.safe_value(v2response, 0, [])
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        for i in range(0, len(v1response)):
+            market = v1response[i]
             id = self.safe_string_upper(market, 'pair')
+            spot = True
+            if self.in_array(id, futuresMarketIds):
+                spot = False
+            futures = not spot
+            type = 'spot' if spot else 'futures'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -385,9 +394,10 @@ class bitfinex2(bitfinex):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'type': type,
                 'swap': False,
-                'spot': False,
-                'futures': False,
+                'spot': spot,
+                'futures': futures,
             })
         return result
 

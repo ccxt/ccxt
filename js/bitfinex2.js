@@ -27,6 +27,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createOrder': true,
                 'deposit': false,
                 'editOrder': false,
+                'fetchBalance': true,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -102,6 +103,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -326,12 +328,20 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchMarkets (params = {}) {
         // todo drop v1 in favor of v2 configs
-        // pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
-        const response = await this.v1GetSymbolsDetails (params);
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
+        const v2response = await this.publicGetConfPubListPairFutures (params);
+        const v1response = await this.v1GetSymbolsDetails (params);
+        const futuresMarketIds = this.safeValue (v2response, 0, []);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < v1response.length; i++) {
+            const market = v1response[i];
             let id = this.safeStringUpper (market, 'pair');
+            let spot = true;
+            if (this.inArray (id, futuresMarketIds)) {
+                spot = false;
+            }
+            const futures = !spot;
+            const type = spot ? 'spot' : 'futures';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -377,9 +387,10 @@ module.exports = class bitfinex2 extends bitfinex {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'type': type,
                 'swap': false,
-                'spot': false,
-                'futures': false,
+                'spot': spot,
+                'futures': futures,
             });
         }
         return result;

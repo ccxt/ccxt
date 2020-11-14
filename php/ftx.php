@@ -35,6 +35,7 @@ class ftx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => true,
@@ -856,7 +857,7 @@ class ftx extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder, editOrder
         //
         //     {
         //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
@@ -914,6 +915,29 @@ class ftx extends Exchange {
         //         "error" => null,
         //         "triggeredAt" => null,
         //         "reduceOnly" => false
+        //     }
+        //
+        // editOrder (conditional, stop, trailing stop, take profit)
+        //
+        //     {
+        //         "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+        //         "future" => "XRP-PERP",
+        //         "$id" => 9596912,
+        //         "$market" => "XRP-PERP",
+        //         "triggerPrice" => 0.306225,
+        //         "orderId" => null,
+        //         "$side" => "sell",
+        //         "size" => 31431,
+        //         "$status" => "open",
+        //         "$type" => "stop",
+        //         "orderPrice" => null,
+        //         "error" => null,
+        //         "triggeredAt" => null,
+        //         "reduceOnly" => false,
+        //         "orderType" => "$market",
+        //         "filledSize" => 0,
+        //         "avgFillPrice" => null,
+        //         "retryUntilFilled" => false
         //     }
         //
         // canceled $order with a closed $status
@@ -1086,6 +1110,104 @@ class ftx extends Exchange {
         //         )
         //     }
         //
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_order($result, $market);
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array();
+        $method = null;
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+        $triggerPrice = $this->safe_float($params, 'triggerPrice');
+        $orderPrice = $this->safe_float($params, 'orderPrice');
+        $trailValue = $this->safe_float($params, 'trailValue');
+        $params = $this->omit($params, array( 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ));
+        $triggerPriceIsDefined = ($triggerPrice !== null);
+        $orderPriceIsDefined = ($orderPrice !== null);
+        $trailValueIsDefined = ($trailValue !== null);
+        if ($triggerPriceIsDefined || $orderPriceIsDefined || $trailValueIsDefined) {
+            $method = 'privatePostConditionalOrdersOrderIdModify';
+            $request['order_id'] = $id;
+            if ($triggerPriceIsDefined) {
+                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+            }
+            if ($orderPriceIsDefined) {
+                // only for stop limit or take profit limit orders
+                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $orderPrice));
+            }
+            if ($trailValueIsDefined) {
+                // negative for sell orders, positive for buy orders
+                $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue));
+            }
+        } else {
+            if ($clientOrderId === null) {
+                $method = 'privatePostOrdersByClientIdClientOrderIdModify';
+                $request['client_order_id'] = $clientOrderId;
+                // $request['clientId'] = $clientOrderId;
+            } else {
+                $method = 'privatePostOrdersOrderIdModify';
+                $request['order_id'] = $id;
+            }
+            if ($price !== null) {
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            }
+        }
+        if ($amount !== null) {
+            $request['size'] = floatval($this->amount_to_precision($symbol, $amount));
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // regular order
+        //
+        //     {
+        //         "success" => true,
+        //         "$result" => {
+        //             "createdAt" => "2019-03-05T11:56:55.728933+00:00",
+        //             "filledSize" => 0,
+        //             "future" => "XRP-PERP",
+        //             "$id" => 9596932,
+        //             "$market" => "XRP-PERP",
+        //             "$price" => 0.326525,
+        //             "remainingSize" => 31431,
+        //             "$side" => "sell",
+        //             "size" => 31431,
+        //             "status" => "open",
+        //             "$type" => "limit",
+        //             "reduceOnly" => false,
+        //             "ioc" => false,
+        //             "postOnly" => false,
+        //             "clientId" => null,
+        //         }
+        //     }
+        //
+        // conditional trigger order
+        //
+        //     {
+        //         "success" => true,
+        //         "$result" => {
+        //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+        //             "future" => "XRP-PERP",
+        //             "$id" => 9596912,
+        //             "$market" => "XRP-PERP",
+        //             "$triggerPrice" => 0.306225,
+        //             "orderId" => null,
+        //             "$side" => "sell",
+        //             "size" => 31431,
+        //             "status" => "open",
+        //             "$type" => "stop",
+        //             "$orderPrice" => null,
+        //             "error" => null,
+        //             "triggeredAt" => null,
+        //             "reduceOnly" => false,
+        //             "orderType" => "$market",
+        //             "filledSize" => 0,
+        //             "avgFillPrice" => null,
+        //             "retryUntilFilled" => false
+        //         }
+        //     }
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);

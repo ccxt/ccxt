@@ -109,6 +109,7 @@ class bytetrade extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                '1' => 'ByteTrade',
                 '44' => 'ByteHub',
                 '48' => 'Blocktonic',
                 '133' => 'TerraCredit',
@@ -203,10 +204,7 @@ class bytetrade extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
-                'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => null,
-                ),
+                'precision' => $amountPrecision,
                 'fee' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
@@ -622,11 +620,11 @@ class bytetrade extends Exchange {
         $baseId = $market['baseId'];
         $baseCurrency = $this->currency($market['base']);
         $amountTruncated = $this->amount_to_precision($symbol, $amount);
-        $amountChain = $this->to_wei($amountTruncated, $baseCurrency['precision']['amount']);
+        $amountChain = $this->to_wei($amountTruncated, $baseCurrency['precision']);
         $quoteId = $market['quoteId'];
         $quoteCurrency = $this->currency($market['quote']);
         $priceRounded = $this->price_to_precision($symbol, $price);
-        $priceChain = $this->to_wei($priceRounded, $quoteCurrency['precision']['amount']);
+        $priceChain = $this->to_wei($priceRounded, $quoteCurrency['precision']);
         $now = $this->milliseconds();
         $expiration = $this->milliseconds();
         $datetime = $this->iso8601($now);
@@ -969,7 +967,7 @@ class bytetrade extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
-        $amountChain = $this->to_wei($amountTruncate, $currency['precision']['amount']);
+        $amountChain = $this->to_wei($amountTruncate, $currency['precision']);
         $assetType = intval($currency['id']);
         $now = $this->milliseconds();
         $expiration = $now;

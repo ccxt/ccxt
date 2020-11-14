@@ -33,6 +33,7 @@ class bitfinex2 extends bitfinex {
                 'createOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
+                'fetchBalance' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => true,
@@ -108,6 +109,7 @@ class bitfinex2 extends bitfinex {
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -332,12 +334,20 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_markets($params = array ()) {
         // todo drop v1 in favor of v2 configs
-        // pub:list:pair:exchange,pub:list:pair:margin,pub:info:pair
-        $response = $this->v1GetSymbolsDetails ($params);
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:$futures,pub:info:pair
+        $v2response = $this->publicGetConfPubListPairFutures ($params);
+        $v1response = $this->v1GetSymbolsDetails ($params);
+        $futuresMarketIds = $this->safe_value($v2response, 0, array());
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        for ($i = 0; $i < count($v1response); $i++) {
+            $market = $v1response[$i];
             $id = $this->safe_string_upper($market, 'pair');
+            $spot = true;
+            if ($this->in_array($id, $futuresMarketIds)) {
+                $spot = false;
+            }
+            $futures = !$spot;
+            $type = $spot ? 'spot' : 'futures';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -383,9 +393,10 @@ class bitfinex2 extends bitfinex {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
+                'type' => $type,
                 'swap' => false,
-                'spot' => false,
-                'futures' => false,
+                'spot' => $spot,
+                'futures' => $futures,
             );
         }
         return $result;
