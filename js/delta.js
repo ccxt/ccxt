@@ -20,6 +20,7 @@ module.exports = class delta extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchTicker': true,
             },
             'timeframes': {
             },
@@ -346,6 +347,69 @@ module.exports = class delta extends Exchange {
             });
         }
         return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker, fetchTickers
+        //
+        //     {
+        //         "close":15837.5,
+        //         "high":16354,
+        //         "low":15751.5,
+        //         "mark_price":"15820.100867",
+        //         "open":16140.5,
+        //         "product_id":139,
+        //         "size":640552,
+        //         "spot_price":"15827.050000000001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":1605373550208262,
+        //         "turnover":10298630.3735,
+        //         "turnover_symbol":"USDT",
+        //         "turnover_usd":10298630.3735,
+        //         "volume":640.5520000000001
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeFloat (ticker, 'close');
+        const open = this.safeFloat (ticker, 'open');
+        let change = undefined;
+        let average = undefined;
+        let percentage = undefined;
+        if ((open !== undefined) && (last !== undefined)) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open !== 0.0) {
+                percentage = (change / open) * 100;
+            }
+        }
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        const quoteVolume = this.safeFloat (ticker, 'turnover');
+        const vwap = this.vwap (baseVolume, quoteVolume);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {
