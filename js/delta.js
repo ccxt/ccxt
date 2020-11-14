@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ module.exports = class delta extends Exchange {
             // new metainfo interface
             'has': {
                 'fetchCurrencies': true,
+                'fetchMarkets': true,
             },
             'timeframes': {
             },
@@ -112,6 +114,7 @@ module.exports = class delta extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,
@@ -122,7 +125,6 @@ module.exports = class delta extends Exchange {
                 'broad': {
                 },
             },
-            'markets': {},
         });
     }
 
@@ -169,6 +171,7 @@ module.exports = class delta extends Exchange {
             const depositsEnabled = (depositStatus === 'enabled');
             const withdrawalsEnabled = (withdrawalStatus === 'enabled');
             const active = depositsEnabled && withdrawalsEnabled;
+            const precision = this.safeInteger (currency, 'precision');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -177,7 +180,7 @@ module.exports = class delta extends Exchange {
                 'info': currency, // the original payload
                 'active': active,
                 'fee': this.safeFloat (currency, 'base_withdrawal_fee'),
-                'precision': this.safeInteger (currency, 'precision'),
+                'precision': 1 / Math.pow (10, precision),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'price': { 'min': undefined, 'max': undefined },
@@ -188,6 +191,132 @@ module.exports = class delta extends Exchange {
                     },
                 },
             };
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetProducts (params);
+        //
+        //     {
+        //         "meta":{
+        //             "after":null,
+        //             "before":null,
+        //             "limit":100,
+        //             "total_count":81
+        //         },
+        //         "result":[
+        //             {
+        //                 "annualized_funding":"5.475000000000000000",
+        //                 "is_quanto":false,
+        //                 "ui_config":{
+        //                     "default_trading_view_candle":"15",
+        //                     "leverage_slider_values":[1,3,5,10,25,50],
+        //                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
+        //                     "show_bracket_orders":false,
+        //                     "sort_priority":29,
+        //                     "tags":[]
+        //                 },
+        //                 "basis_factor_max_limit":"0.15",
+        //                 "symbol":"P-LINK-D-151120",
+        //                 "id":1584,
+        //                 "default_leverage":"5.000000000000000000",
+        //                 "maker_commission_rate":"0.0005",
+        //                 "contract_unit_currency":"LINK",
+        //                 "strike_price":"12.507948",
+        //                 "settling_asset":{
+        //                     // asset structure
+        //                 },
+        //                 "auction_start_time":null,
+        //                 "auction_finish_time":null,
+        //                 "settlement_time":"2020-11-15T12:00:00Z",
+        //                 "launch_time":"2020-11-14T11:55:05Z",
+        //                 "spot_index":{
+        //                     // index structure
+        //                 },
+        //                 "trading_status":"operational",
+        //                 "tick_size":"0.001",
+        //                 "position_size_limit":100000,
+        //                 "notional_type":"vanilla", // vanilla, inverse
+        //                 "price_band":"0.4",
+        //                 "barrier_price":null,
+        //                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
+        //                 "insurance_fund_margin_contribution":"1",
+        //                 "quoting_asset":{
+        //                     // asset structure
+        //                 },
+        //                 "liquidation_penalty_factor":"0.2",
+        //                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
+        //                 "initial_margin_scaling_factor":"0.0001",
+        //                 "underlying_asset":{
+        //                     // asset structure
+        //                 },
+        //                 "state":"live",
+        //                 "contract_value":"1",
+        //                 "initial_margin":"2",
+        //                 "impact_size":5000,
+        //                 "settlement_price":null,
+        //                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
+        //                 "taker_commission_rate":"0.0005",
+        //                 "maintenance_margin":"1",
+        //                 "short_description":"LINK Daily PUT Options",
+        //                 "maintenance_margin_scaling_factor":"0.00005",
+        //                 "funding_method":"mark_price",
+        //                 "max_leverage_notional":"20000"
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const markets = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const settlingAsset = this.safeValue (market, 'settling_asset', {});
+            const quotingAsset = this.safeValue (market, 'quoting_asset', {});
+            const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
+            const baseId = this.safeString (underlyingAsset, 'symbol');
+            const quoteId = this.safeString (quotingAsset, 'symbol');
+            const id = baseId + '_' + quoteId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'amount': this.safeInteger (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'market_precision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeFloat (market, 'min_size'),
+                    'max': undefined,
+                },
+            };
+            const state = this.safeString (market, 'state');
+            const active = (state === 'live');
+            const maker = this.safeFloat (market, 'maker_commission_rate');
+            const taker = this.safeFloat (market, 'taker_commission_rate');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+                'active': active,
+            });
         }
         return result;
     }
