@@ -397,7 +397,7 @@ module.exports = class coinmate extends Exchange {
             'status': status,
             'fee': {
                 'cost': fee,
-                'currency': currency,
+                'currency': code,
             },
             'info': item,
         };
