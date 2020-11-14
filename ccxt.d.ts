@@ -104,7 +104,7 @@ declare module 'ccxt' {
         order?: string;                  // string order id or undefined/None/null
         price: number;                   // float price in quote currency
         timestamp: number;               // Unix timestamp in milliseconds
-        type?: 'market' | 'limit';       // order type, 'market', 'limit' or undefined/None/null
+        type?: string;                   // order type, 'market', 'limit', ... or undefined/None/null
         side: 'buy' | 'sell';            // direction of the trade, 'buy' or 'sell'
         symbol: string;                  // symbol in CCXT format
         takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
