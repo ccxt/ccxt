@@ -348,6 +348,38 @@ module.exports = class delta extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "result":{
+        //             "close":15837.5,
+        //             "high":16354,
+        //             "low":15751.5,
+        //             "mark_price":"15820.100867",
+        //             "open":16140.5,
+        //             "product_id":139,
+        //             "size":640552,
+        //             "spot_price":"15827.050000000001",
+        //             "symbol":"BTCUSDT",
+        //             "timestamp":1605373550208262,
+        //             "turnover":10298630.3735,
+        //             "turnover_symbol":"USDT",
+        //             "turnover_usd":10298630.3735,
+        //             "volume":640.5520000000001
+        //         },
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTicker (result, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
