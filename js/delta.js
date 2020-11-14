@@ -21,6 +21,7 @@ module.exports = class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
             },
             'timeframes': {
             },
@@ -442,6 +443,42 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTickers (params);
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "close":0.003966,
+        //                 "high":0.004032,
+        //                 "low":0.003606,
+        //                 "mark_price":"0.00396328",
+        //                 "open":0.003996,
+        //                 "product_id":1327,
+        //                 "size":6242,
+        //                 "spot_price":"0.0039555",
+        //                 "symbol":"AAVEBTC",
+        //                 "timestamp":1605374143864107,
+        //                 "turnover":23.997904999999996,
+        //                 "turnover_symbol":"BTC",
+        //                 "turnover_usd":387957.4544782897,
+        //                 "volume":6242
+        //             },
+        //         ],
+        //         "success":true
+        //     }
+        //
+        const tickers = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
