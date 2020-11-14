@@ -23,6 +23,7 @@ module.exports = class delta extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
             },
@@ -512,6 +513,57 @@ module.exports = class delta extends Exchange {
         const result = this.safeValue (response, 'result', {});
         return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
     }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "buyer_role":"maker",
+        //         "price":"15896.5",
+        //         "seller_role":"taker",
+        //         "size":241,
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":1605376684714595
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001);
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        let cost = undefined;
+        if ((amount !== undefined) && (price !== undefined)) {
+            cost = amount * price;
+        }
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const sellerRole = this.safeString (trade, 'seller_role');
+        let side = undefined;
+        if (sellerRole === 'taker') {
+            side = 'sell';
+        } else if (sellerRole === 'maker') {
+            side = 'buy';
+        }
+        return {
+            'id': undefined,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
