@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -157,6 +157,7 @@ module.exports = class delta extends Exchange {
                     'bad_schema': BadRequest, // {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
                     'invalid_api_key': AuthenticationError, // {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError, // {"success":false,"error":{"code":"invalid_signature"}}
+                    'open_order_not_found': OrderNotFound, // {"error":{"code":"open_order_not_found"},"success":false}
                 },
                 'broad': {
                 },
