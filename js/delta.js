@@ -57,6 +57,7 @@ module.exports = class delta extends Exchange {
                     'https://docs.delta.exchange',
                 ],
                 'fees': 'https://www.delta.exchange/fees',
+                'referral': 'https://www.delta.exchange/app/signup/?code=IULYNB',
             },
             'api': {
                 'public': {
@@ -323,13 +324,13 @@ module.exports = class delta extends Exchange {
                 future = true;
             }
             const precision = {
-                'amount': 1, // number of contracts
+                'amount': 1.0, // number of contracts
                 'price': this.safeFloat (market, 'tick_size'),
             };
             const limits = {
                 'amount': {
-                    'min': 1,
-                    'max': undefined,
+                    'min': 1.0,
+                    'max': this.safeFloat (market, 'position_size_limit'),
                 },
                 'price': {
                     'min': precision['price'],
