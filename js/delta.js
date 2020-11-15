@@ -711,6 +711,30 @@ module.exports = class delta extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetPositionsMargined (params);
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "user_id": 0,
+        //                 "size": 0,
+        //                 "entry_price": "string",
+        //                 "margin": "string",
+        //                 "liquidation_price": "string",
+        //                 "bankruptcy_price": "string",
+        //                 "adl_level": 0,
+        //                 "product_id": 0
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
