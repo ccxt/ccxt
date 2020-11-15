@@ -18,6 +18,8 @@ module.exports = class delta extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -815,7 +817,7 @@ module.exports = class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': id,
+            'id': parseInt (id),
             'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (symbol, price),
             // 'size': this.amountToPrecision (symbol, amount),
@@ -827,7 +829,25 @@ module.exports = class delta extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePutOrders (this.extend (request, params));
-        return this.parseOrder (response, market);
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": "ashb1212",
+        //             "product_id": 27,
+        //             "limit_price": "9200",
+        //             "side": "buy",
+        //             "size": 100,
+        //             "unfilled_size": 50,
+        //             "user_id": 1,
+        //             "order_type": "limit_order",
+        //             "state": "open",
+        //             "created_at": "..."
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -841,6 +861,23 @@ module.exports = class delta extends Exchange {
             'product_id': market['numericId'],
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": "ashb1212",
+        //             "product_id": 27,
+        //             "limit_price": "9200",
+        //             "side": "buy",
+        //             "size": 100,
+        //             "unfilled_size": 50,
+        //             "user_id": 1,
+        //             "order_type": "limit_order",
+        //             "state": "open",
+        //             "created_at": "..."
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result, market);
     }
@@ -885,6 +922,27 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, market, since, limit);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+            // 'cancel_limit_orders': 'true',
+            // 'cancel_stop_orders': 'true',
+        };
+        const response = this.privateDeleteOrdersAll (this.extend (request, params));
+        //
+        //     {
+        //         "result":{},
+        //         "success":true
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
