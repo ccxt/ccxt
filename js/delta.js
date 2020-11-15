@@ -680,7 +680,8 @@ module.exports = class delta extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -688,18 +689,25 @@ module.exports = class delta extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            // headers = {
-            //     'Accept': 'application/json',
-            //     'Authorization': 'Bearer ' + this.apiKey,
-            // };
-            // if (method === 'POST') {
-            //     body = this.json (query);
-            //     headers['Content-Type'] = 'application/json';
-            // } else {
-            //     if (Object.keys (query).length) {
-            //         url += '?' + this.urlencode (query);
-            //     }
-            // }
+            const timestamp = this.seconds ().toString ();
+            headers = {
+                'api-key': this.apiKey,
+                'timestamp': timestamp,
+            };
+            let auth = method + timestamp + requestPath;
+            if ((method === 'GET') || (method === 'DELETE')) {
+                if (Object.keys (query).length) {
+                    const queryString = '?' + this.urlencode (query);
+                    auth += queryString;
+                    url += queryString;
+                }
+            } else {
+                body = this.json (query);
+                auth += body;
+                headers['Content-Type'] = 'application/json';
+            }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
