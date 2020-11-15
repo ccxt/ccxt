@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -145,8 +145,6 @@ module.exports = class delta extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                },
-                'broad': {
                     // Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin': InsufficientFunds, // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available': InvalidOrder, // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
@@ -156,6 +154,11 @@ module.exports = class delta extends Exchange {
                     'out_of_bankruptcy': InvalidOrder, // Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only': InvalidOrder, // Self matching is not allowed during auction.
                     'immediate_execution_post_only': InvalidOrder, // orders couldn't be placed as it includes post only orders which will be immediately executed
+                    'bad_schema': BadRequest, // {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
+                    'invalid_api_key': AuthenticationError, // {"success":false,"error":{"code":"invalid_api_key"}}
+                    'invalid_signature': AuthenticationError, // {"success":false,"error":{"code":"invalid_signature"}}
+                },
+                'broad': {
                 },
             },
         });
@@ -812,7 +815,7 @@ module.exports = class delta extends Exchange {
         const market = this.market (symbol);
         const request = {
             'id': id,
-            'product': market['numericId'],
+            'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (symbol, price),
             // 'size': this.amountToPrecision (symbol, amount),
         };
@@ -824,6 +827,21 @@ module.exports = class delta extends Exchange {
         }
         const response = await this.privatePutOrders (this.extend (request, params));
         return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': parseInt (id),
+            'product_id': market['numericId'],
+        };
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
