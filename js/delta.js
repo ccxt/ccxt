@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { InsufficientFunds, BadRequest, BadSymbol, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -144,6 +144,15 @@ module.exports = class delta extends Exchange {
                 'exact': {
                 },
                 'broad': {
+                    // Margin required to place order with selected leverage and quantity is insufficient.
+                    'insufficient_margin': InsufficientFunds, // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
+                    'order_size_exceed_available': InvalidOrder, // The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
+                    'risk_limits_breached': BadRequest, // orders couldn't be placed as it will breach allowed risk limits.
+                    'invalid_contract': BadSymbol, // The contract/product is either doesn't exist or has already expired.
+                    'immediate_liquidation': InvalidOrder, // Order will cause immediate liquidation.
+                    'out_of_bankruptcy': InvalidOrder, // Order prices are out of position bankruptcy limits.
+                    'self_matching_disrupted_post_only': InvalidOrder, // Self matching is not allowed during auction.
+                    'immediate_execution_post_only': InvalidOrder, // orders couldn't be placed as it includes post only orders which will be immediately executed
                 },
             },
         });
