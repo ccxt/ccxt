@@ -24,7 +24,9 @@ module.exports = class delta extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
                 'fetchCurrencies': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -93,6 +95,7 @@ module.exports = class delta extends Exchange {
                         'wallet/balances',
                         'wallet/transactions',
                         'wallet/transactions/download',
+                        'deposits/address',
                     ],
                     'post': [
                         'orders',
@@ -1010,6 +1013,82 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'asset_id': currency['numericId'],
+            // 'end_time': this.seconds (),
+            // 'after': 'string', // after cursor for pagination
+            // 'before': 'string', // before cursor for pagination
+            // 'page_size': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset_id'] = currency['numericId'];
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.privateGetWalletTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "id": 0,
+        //                 "amount": "string",
+        //                 "balance": "string",
+        //                 "transaction_type": "pnl",
+        //                 "meta_data": {},
+        //                 "product_id": 0,
+        //                 "asset_id": 0,
+        //                 "created_at": "string"
+        //             }
+        //         ],
+        //         "meta": {
+        //             "after": "string",
+        //             "before": "string"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseLedger (result, currency, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset_symbol': currency['id'],
+        };
+        const response = await this.privateGetDepositsAddress (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":{
+        //             "id":19628,
+        //             "user_id":22142,
+        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
+        //             "status":"active",
+        //             "updated_at":"2020-11-15T20:25:53.000Z",
+        //             "created_at":"2020-11-15T20:25:53.000Z",
+        //             "asset_symbol":"USDT",
+        //             "custodian":"onc"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const address = this.safeString (result, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
