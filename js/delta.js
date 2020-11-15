@@ -34,6 +34,7 @@ module.exports = class delta extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
             },
             'timeframes': {
@@ -73,6 +74,7 @@ module.exports = class delta extends Exchange {
                 'public': {
                     'get': [
                         'assets',
+                        'settings',
                         'indices',
                         'products',
                         'tickers',
@@ -170,6 +172,26 @@ module.exports = class delta extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetSettings (params);
+        //
+        //     {
+        //         "result":{
+        //             "server_time":1605472733766141,
+        //             "deto_referral_mining_daily_reward":"25000",
+        //             "deto_total_reward_pool":"100000000",
+        //             "deto_trade_mining_daily_reward":"75000",
+        //             "kyc_deposit_limit":"20",
+        //             "kyc_withdrawal_limit":"2",
+        //             "under_maintenance":"false"
+        //         },
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return = this.safeIntegerProdut (result, 'server_time', 0.001);
     }
 
     async fetchCurrencies (params = {}) {
