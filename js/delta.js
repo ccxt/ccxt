@@ -756,6 +756,45 @@ module.exports = class delta extends Exchange {
         return result;
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const orderType = type + '_order';
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+            // 'limit_price': this.priceToPrecision (symbol, price),
+            'size': this.amountToPrecision (symbol, amount),
+            'side': side,
+            'order_type': orderType,
+            // 'time_in_force': 'gtc', // gtc, ioc, fok
+            // 'post_only': 'false', // 'true',
+            // 'reduce_only': 'false', // 'true',
+        };
+        if (type === 'limit') {
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": "ashb1212",
+        //             "product_id": 27,
+        //             "limit_price": "9200",
+        //             "side": "buy",
+        //             "size": 100,
+        //             "unfilled_size": 50,
+        //             "user_id": 1,
+        //             "order_type": "limit_order",
+        //             "state": "open",
+        //             "created_at": "..."
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
