@@ -26,6 +26,7 @@ module.exports = class delta extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
@@ -883,6 +884,27 @@ module.exports = class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['numericId'],
+            // 'cancel_limit_orders': 'true',
+            // 'cancel_stop_orders': 'true',
+        };
+        const response = this.privateDeleteOrdersAll (this.extend (request, params));
+        //
+        //     {
+        //         "result":{},
+        //         "success":true
+        //     }
+        //
+        return response;
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
@@ -942,25 +964,52 @@ module.exports = class delta extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
-        }
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'product_id': market['numericId'],
-            // 'cancel_limit_orders': 'true',
-            // 'cancel_stop_orders': 'true',
+            // 'product_ids': market['id'], // comma-separated
+            // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            // 'start_time': since * 1000,
+            // 'end_time': this.microseconds (),
+            // 'after': string, // after cursor for pagination
+            // 'before': string, // before cursor for pagination
+            // 'page_size': limit, // number of records per page
         };
-        const response = this.privateDeleteOrdersAll (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
+        }
+        if (since !== undefined) {
+            request['start_time'] = since.toString () + '000';
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.privateGetFills (this.extend (request, params));
         //
         //     {
-        //         "result":{},
-        //         "success":true
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "id": 0,
+        //                 "size": 0,
+        //                 "side": "buy",
+        //                 "price": "string",
+        //                 "role": "taker",
+        //                 "commission": "string",
+        //                 "created_at": "string",
+        //                 "product_id": 0
+        //             }
+        //         ],
+        //         "meta": {
+        //             "after": "string",
+        //             "before": "string"
+        //         }
         //     }
         //
-        return response;
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
