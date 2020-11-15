@@ -810,18 +810,18 @@ module.exports = class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': parseInt (id),
+            'id': id,
             'product': market['numericId'],
             // 'limit_price': this.priceToPrecision (symbol, price),
             // 'size': this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = this.amountToPrecision (symbol, amount);
+            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostMoveOrder (this.extend (request, params));
+        const response = await this.privatePutOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
