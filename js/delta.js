@@ -32,6 +32,7 @@ module.exports = class delta extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -191,7 +192,20 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return = this.safeIntegerProdut (result, 'server_time', 0.001);
+        return this.safeIntegerProdut (result, 'server_time', 0.001);
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetSettings (params);
+        const result = this.safeValue (response, 'result', {});
+        const underMaintenance = this.safeValue (result, 'under_maintenance');
+        const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
+        const updated = this.safeIntegerProdut (result, 'server_time', 0.001);
+        this.status = this.extend (this.status, {
+            'status': status,
+            'updated': updated,
+        });
+        return this.status;
     }
 
     async fetchCurrencies (params = {}) {
