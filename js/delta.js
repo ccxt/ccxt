@@ -18,6 +18,7 @@ module.exports = class delta extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -180,13 +181,14 @@ module.exports = class delta extends Exchange {
         //         "success":true
         //     }
         //
+        const currencies = this.safeValue (response, 'result', []);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const depositStatus = this.safeString (currency, 'depositl_status');
+            const depositStatus = this.safeString (currency, 'deposit_status');
             const withdrawalStatus = this.safeString (currency, 'withdrawal_status');
             const depositsEnabled = (depositStatus === 'enabled');
             const withdrawalsEnabled = (withdrawalStatus === 'enabled');
@@ -213,6 +215,15 @@ module.exports = class delta extends Exchange {
             };
         }
         return result;
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+        }
+        return markets;
     }
 
     async fetchMarkets (params = {}) {
@@ -664,16 +675,37 @@ module.exports = class delta extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
         //
+        //     {
+        //         "result":[
+        //             {
+        //                 "asset_id":1,
+        //                 "available_balance":"0",
+        //                 "balance":"0",
+        //                 "commission":"0",
+        //                 "id":154883,
+        //                 "interest_credit":"0",
+        //                 "order_margin":"0",
+        //                 "pending_referral_bonus":"0",
+        //                 "pending_trading_fee_credit":"0",
+        //                 "position_margin":"0",
+        //                 "trading_fee_credit":"0",
+        //                 "user_id":22142
+        //             },
+        //         ],
+        //         "success":true
+        //     }
         //
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeValue (response, 'result', []);
         const result = { 'info': response };
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
+            const currencyId = this.safeString (balance, 'asset_id');
+            const currency = this.safeValue (currenciesByNumericId, currencyId);
+            const code = (currency === undefined) ? currencyId : currency['code'];
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeFloat (balance, 'available_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
