@@ -24,6 +24,7 @@ module.exports = class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -823,6 +824,48 @@ module.exports = class delta extends Exchange {
         }
         const response = await this.privatePutOrders (this.extend (request, params));
         return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
+        }
+        if (since !== undefined) {
+            request['start_time'] = since.toString () + '000';
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": [
+        //             {
+        //                 "id": "ashb1212",
+        //                 "product_id": 27,
+        //                 "limit_price": "9200",
+        //                 "side": "buy",
+        //                 "size": 100,
+        //                 "unfilled_size": 50,
+        //                 "user_id": 1,
+        //                 "order_type": "limit_order",
+        //                 "state": "open",
+        //                 "created_at": "..."
+        //             }
+        //         ],
+        //         "meta": {
+        //             "after": "string",
+        //             "before": "string"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
