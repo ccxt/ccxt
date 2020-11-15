@@ -19,6 +19,7 @@ module.exports = class delta extends Exchange {
             // new metainfo interface
             'has': {
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
@@ -803,6 +804,25 @@ module.exports = class delta extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': parseInt (id),
+            'product': market['numericId'],
+            // 'limit_price': this.priceToPrecision (symbol, price),
+            // 'size': this.amountToPrecision (symbol, amount),
+        };
+        if (amount !== undefined) {
+            request['size'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostMoveOrder (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
