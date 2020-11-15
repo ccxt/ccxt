@@ -23,6 +23,7 @@ module.exports = class delta extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -883,8 +884,25 @@ module.exports = class delta extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
+    }
+
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'product_ids': market['id'], // comma-separated
+            // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
+            // 'start_time': since * 1000,
+            // 'end_time': this.microseconds (),
+            // 'after': string, // after cursor for pagination
+            // 'before': string, // before cursor for pagination
+            // 'page_size': limit, // number of records per page
+        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -896,7 +914,7 @@ module.exports = class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
