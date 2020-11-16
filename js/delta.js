@@ -812,6 +812,125 @@ module.exports = class delta extends Exchange {
         return result;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'pending': 'open',
+            'closed': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder, cancelOrder
+        //
+        //     {
+        //         "average_fill_price":null,
+        //         "bracket_order":null,
+        //         "bracket_stop_loss_limit_price":null,
+        //         "bracket_stop_loss_price":null,
+        //         "bracket_take_profit_limit_price":null,
+        //         "bracket_take_profit_price":null,
+        //         "bracket_trail_amount":null,
+        //         "cancellation_reason":null,
+        //         "client_order_id":null,
+        //         "close_on_trigger":"false",
+        //         "commission":"0",
+        //         "created_at":"2020-11-16T02:38:26Z",
+        //         "id":152870626,
+        //         "limit_price":"10000",
+        //         "meta_data":{"source":"api"},
+        //         "order_type":"limit_order",
+        //         "paid_commission":"0",
+        //         "product_id":139,
+        //         "reduce_only":false,
+        //         "side":"buy",
+        //         "size":0,
+        //         "state":"open",
+        //         "stop_order_type":null,
+        //         "stop_price":null,
+        //         "stop_trigger_method":"mark_price",
+        //         "time_in_force":"gtc",
+        //         "trail_amount":null,
+        //         "unfilled_size":0,
+        //         "user_id":22142
+        //     }
+        //
+
+        const id = this.safeString (order, 'orderId');
+        const timestamp = this.safeInteger (order, 'created');
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'orderType');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        let remaining = this.safeFloat (order, 'amountRemaining');
+        let filled = this.safeFloat (order, 'filledAmount');
+        const remainingCost = this.safeFloat (order, 'remainingCost');
+        if ((remainingCost !== undefined) && (remainingCost === 0.0)) {
+            remaining = 0;
+        }
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        const cost = this.safeFloat (order, 'filledAmountQuote');
+        let average = undefined;
+        if (cost !== undefined) {
+            if (filled) {
+                average = cost / filled;
+            }
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'feePaid');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        let lastTradeTimestamp = undefined;
+        const rawTrades = this.safeValue (order, 'fills');
+        let trades = undefined;
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+                'symbol': symbol,
+                'order': id,
+                'side': side,
+            });
+            const numTrades = trades.length;
+            if (numTrades > 0) {
+                const lastTrade = this.safeValue (trades, numTrades - 1);
+                lastTradeTimestamp = lastTrade['timestamp'];
+            }
+        }
+        return {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const orderType = type + '_order';
