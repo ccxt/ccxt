@@ -279,6 +279,10 @@ module.exports = class delta extends Exchange {
         if ((currenciesByNumericId === undefined) || reload) {
             this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
         }
+        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId');
+        if ((marketsByNumericId === undefined) || reload) {
+            this.options['marketsByNumericId'] = this.indexBy (this.markets, 'numericId');
+        }
         return markets;
     }
 
@@ -859,33 +863,31 @@ module.exports = class delta extends Exchange {
         //     }
         //
 
-        const id = this.safeString (order, 'orderId');
-        const timestamp = this.safeInteger (order, 'created');
-        const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'client_order_id');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const marketId = this.safeString (order, 'product_id');
+        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
+        market = this.safeValue (marketsByNumericId, marketId, market);
+        const symbol = (market === undefined) ? marketId : market['symbol'];
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'orderType');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        let remaining = this.safeFloat (order, 'amountRemaining');
-        let filled = this.safeFloat (order, 'filledAmount');
-        const remainingCost = this.safeFloat (order, 'remainingCost');
-        if ((remainingCost !== undefined) && (remainingCost === 0.0)) {
-            remaining = 0;
-        }
+        let type = this.safeString (order, 'order_type');
+        type = type.replace ('_order', '');
+        const price = this.safeFloat (order, 'limit_price');
+        const amount = this.safeFloat (order, 'size');
+        const remaining = this.safeFloat (order, 'unfilled_size');
+        let filled = undefined;
         if ((amount !== undefined) && (remaining !== undefined)) {
             filled = Math.max (0, amount - remaining);
         }
-        const cost = this.safeFloat (order, 'filledAmountQuote');
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
+        let cost = undefined;
+        const average = this.safeFloat (order, 'average_fill_price');
+        if ((average !== undefined) && filled) {
+            cost = average * filled;
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'feePaid');
+        const feeCost = this.safeFloat (order, 'paid_commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -894,28 +896,13 @@ module.exports = class delta extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let lastTradeTimestamp = undefined;
-        const rawTrades = this.safeValue (order, 'fills');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': symbol,
-                'order': id,
-                'side': side,
-            });
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                const lastTrade = this.safeValue (trades, numTrades - 1);
-                lastTradeTimestamp = lastTrade['timestamp'];
-            }
-        }
         return {
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -927,7 +914,7 @@ module.exports = class delta extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
+            'trades': undefined,
         };
     }
 
