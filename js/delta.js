@@ -828,7 +828,7 @@ module.exports = class delta extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder, cancelOrder
+        // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "average_fill_price":null,
@@ -1169,23 +1169,47 @@ module.exports = class delta extends Exchange {
         const response = await this.privateGetFills (this.extend (request, params));
         //
         //     {
-        //         "success": true,
-        //         "result": [
+        //         "meta":{
+        //             "after":null,
+        //             "before":null,
+        //             "limit":10,
+        //             "total_count":2
+        //         },
+        //         "result":[
         //             {
-        //                 "id": 0,
-        //                 "size": 0,
-        //                 "side": "buy",
-        //                 "price": "string",
-        //                 "role": "taker",
-        //                 "commission": "string",
-        //                 "created_at": "string",
-        //                 "product_id": 0
+        //                 "commission":"0.008335000000000000",
+        //                 "created_at":"2020-11-16T19:07:19Z",
+        //                 "fill_type":"normal",
+        //                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
+        //                 "meta_data":{
+        //                     "effective_commission_rate":"0.0005",
+        //                     "order_price":"16249",
+        //                     "order_size":1,
+        //                     "order_type":"market_order",
+        //                     "order_unfilled_size":0,
+        //                     "trading_fee_credits_used":"0"
+        //                 },
+        //                 "order_id":"152999629",
+        //                 "price":"16669",
+        //                 "product":{
+        //                     "contract_type":"perpetual_futures",
+        //                     "contract_unit_currency":"BTC",
+        //                     "contract_value":"0.001",
+        //                     "id":139,
+        //                     "notional_type":"vanilla",
+        //                     "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //                     "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //                     "symbol":"BTCUSDT",
+        //                     "tick_size":"0.5",
+        //                     "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
+        //                 },
+        //                 "product_id":139,
+        //                 "role":"taker",
+        //                 "side":"sell",
+        //                 "size":1
         //             }
         //         ],
-        //         "meta": {
-        //             "after": "string",
-        //             "before": "string"
-        //         }
+        //         "success":true
         //     }
         //
         const result = this.safeValue (response, 'result', []);
