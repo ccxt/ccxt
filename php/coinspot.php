@@ -58,6 +58,8 @@ class coinspot extends Exchange {
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/transactions',
                     ),
                 ),
             ),
