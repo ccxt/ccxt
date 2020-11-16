@@ -189,7 +189,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.safeIntegerProdut (result, 'server_time', 0.001);
+        return this.safeIntegerProduct (result, 'server_time', 0.001);
     }
 
     async fetchStatus (params = {}) {
@@ -197,7 +197,7 @@ module.exports = class delta extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const underMaintenance = this.safeValue (result, 'under_maintenance');
         const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
-        const updated = this.safeIntegerProdut (result, 'server_time', 0.001);
+        const updated = this.safeIntegerProduct (result, 'server_time', 0.001);
         this.status = this.extend (this.status, {
             'status': status,
             'updated': updated,
@@ -1068,27 +1068,100 @@ module.exports = class delta extends Exchange {
         const response = await this.privateGetWalletTransactions (this.extend (request, params));
         //
         //     {
-        //         "success": true,
-        //         "result": [
+        //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
+        //         "result":[
         //             {
-        //                 "id": 0,
-        //                 "amount": "string",
-        //                 "balance": "string",
-        //                 "transaction_type": "pnl",
-        //                 "meta_data": {},
-        //                 "product_id": 0,
-        //                 "asset_id": 0,
-        //                 "created_at": "string"
+        //                 "amount":"29.889184",
+        //                 "asset_id":5,
+        //                 "balance":"29.889184",
+        //                 "created_at":"2020-11-15T21:25:01Z",
+        //                 "meta_data":{
+        //                     "deposit_id":3884,
+        //                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
+        //                 },
+        //                 "transaction_type":"deposit",
+        //                 "user_id":22142,
+        //                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
         //             }
         //         ],
-        //         "meta": {
-        //             "after": "string",
-        //             "before": "string"
-        //         }
+        //         "success":true
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeValue (response, 'result', []);
         return this.parseLedger (result, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'pnl': 'pnl',
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'commission': 'fee',
+            'conversion': 'trade',
+            // 'perpetual_futures_funding': 'perpetual_futures_funding',
+            // 'withdrawal_cancellation': 'withdrawal_cancellation',
+            'referral_bonus': 'referral',
+            'commission_rebate': 'rebate',
+            // 'promo_credit': 'promo_credit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "amount":"29.889184",
+        //         "asset_id":5,
+        //         "balance":"29.889184",
+        //         "created_at":"2020-11-15T21:25:01Z",
+        //         "meta_data":{
+        //             "deposit_id":3884,
+        //             "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
+        //         },
+        //         "transaction_type":"deposit",
+        //         "user_id":22142,
+        //         "uuid":"70bb5679da3c4637884e2dc63efaa846"
+        //     }
+        //
+        const id = this.safeString (item, 'uuid');
+        let direction = undefined;
+        const account = undefined;
+        const metaData = this.safeValue (item, 'meta_data', {});
+        const referenceId = this.safeString (metaData, 'transaction_id');
+        const referenceAccount = undefined;
+        let type = this.safeString (item, 'transaction_type');
+        if ((type === 'deposit') || (type === 'commission_rebate') || (type === 'referral_bonus') || (type === 'pnl') || (type === 'withdrawal_cancellation') || (type === 'promo_credit')) {
+            direction = 'in';
+        } else if ((type === 'withdrawal') || (type === 'commission') || (type === 'conversion') || (type === 'perpetual_futures_funding')) {
+            direction = 'out';
+        }
+        type = this.parseLedgerEntryType (type);
+        const currencyId = this.safeInteger (item, 'asset_id');
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
+        currency = this.safeValue (currenciesByNumericId, currencyId, currency);
+        const code = (currency === undefined) ? undefined : currency['code'];
+        const amount = this.safeFloat (item, 'amount');
+        const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
+        const after = this.safeFloat (item, 'balance');
+        const before = Math.max (0, after - amount);
+        const status = 'ok';
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {
