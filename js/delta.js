@@ -832,19 +832,38 @@ module.exports = class delta extends Exchange {
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
-        //         "success": true,
-        //         "result": {
-        //             "id": "ashb1212",
-        //             "product_id": 27,
-        //             "limit_price": "9200",
-        //             "side": "buy",
-        //             "size": 100,
-        //             "unfilled_size": 50,
-        //             "user_id": 1,
-        //             "order_type": "limit_order",
-        //             "state": "open",
-        //             "created_at": "..."
-        //         }
+        //         "result":{
+        //             "average_fill_price":null,
+        //             "bracket_order":null,
+        //             "bracket_stop_loss_limit_price":null,
+        //             "bracket_stop_loss_price":null,
+        //             "bracket_take_profit_limit_price":null,
+        //             "bracket_take_profit_price":null,
+        //             "bracket_trail_amount":null,
+        //             "cancellation_reason":null,
+        //             "client_order_id":null,
+        //             "close_on_trigger":"false",
+        //             "commission":"0",
+        //             "created_at":"2020-11-16T02:38:26Z",
+        //             "id":152870626,
+        //             "limit_price":"10000",
+        //             "meta_data":{"source":"api"},
+        //             "order_type":"limit_order",
+        //             "paid_commission":"0",
+        //             "product_id":139,
+        //             "reduce_only":false,
+        //             "side":"buy",
+        //             "size":0,
+        //             "state":"open",
+        //             "stop_order_type":null,
+        //             "stop_price":null,
+        //             "stop_trigger_method":"mark_price",
+        //             "time_in_force":"gtc",
+        //             "trail_amount":null,
+        //             "unfilled_size":0,
+        //             "user_id":22142
+        //         },
+        //         "success":true
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -901,19 +920,38 @@ module.exports = class delta extends Exchange {
         const response = await this.privateDeleteOrders (this.extend (request, params));
         //
         //     {
-        //         "success": true,
-        //         "result": {
-        //             "id": "ashb1212",
-        //             "product_id": 27,
-        //             "limit_price": "9200",
-        //             "side": "buy",
-        //             "size": 100,
-        //             "unfilled_size": 50,
-        //             "user_id": 1,
-        //             "order_type": "limit_order",
-        //             "state": "open",
-        //             "created_at": "..."
-        //         }
+        //         "result":{
+        //             "average_fill_price":null,
+        //             "bracket_order":null,
+        //             "bracket_stop_loss_limit_price":null,
+        //             "bracket_stop_loss_price":null,
+        //             "bracket_take_profit_limit_price":null,
+        //             "bracket_take_profit_price":null,
+        //             "bracket_trail_amount":null,
+        //             "cancellation_reason":"cancelled_by_user",
+        //             "client_order_id":null,
+        //             "close_on_trigger":"false",
+        //             "commission":"0",
+        //             "created_at":"2020-11-16T02:38:26Z",
+        //             "id":152870626,
+        //             "limit_price":"10000",
+        //             "meta_data":{"source":"api"},
+        //             "order_type":"limit_order",
+        //             "paid_commission":"0",
+        //             "product_id":139,
+        //             "reduce_only":false,
+        //             "side":"buy",
+        //             "size":0,
+        //             "state":"cancelled",
+        //             "stop_order_type":null,
+        //             "stop_price":null,
+        //             "stop_trigger_method":"mark_price",
+        //             "time_in_force":"gtc",
+        //             "trail_amount":null,
+        //             "unfilled_size":0,
+        //             "user_id":22142
+        //         },
+        //         "success":true
         //     }
         //
         const result = this.safeValue (response, 'result');
