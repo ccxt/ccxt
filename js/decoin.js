@@ -149,17 +149,29 @@ module.exports = class decoin extends Exchange {
     async fetchMarkets (params = {}) {
         // public
         const response = await this.publicGetMarketExchangeInfo (params);
+        const res = await this.publicGetMarketGetCurrencies (params);
         const result = [];
+        let baseId = '';
+        let quoteId = '';
+        let id = '';
         for (let i = 0; i < response['Symbols'].length; i++) {
             const market = response['Symbols'][i];
-            const PairSymbol = response['Symbols'][i]['Symbol'];
-            const ar = PairSymbol.split ('/');
-            const baseId = ar[0];
-            const quoteId = ar[1];
-            const id = baseId + this.options['symbolSeparator'] + quoteId;
+            const symbol = this.safeString (response['Symbols'][i], 'Symbol');
+            for (let j = 0; j < res.length; j++) {
+                if (res[j]['Name'] === response['Symbols'][i]['BaseAsset']) {
+                    baseId = res[j]['Symbol'];
+                }
+                if (res[j]['Name'] === response['Symbols'][i]['QuoteAsset']) {
+                    quoteId = res[j]['Symbol'];
+                }
+            }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            if (symbol.indexOf ('/') > -1) {
+                id = base + this.options['symbolSeparator'] + quote;
+            } else {
+                id = this.safeString (response['Symbols'][i], 'Symbol');
+            }
             const pricePrecision = this.safeInteger (market, 'precision', 8);
             const precision = {
                 'amount': 8,
@@ -370,8 +382,9 @@ module.exports = class decoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol.replace ('/', '-'),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, 0 = unlimited
@@ -467,7 +480,7 @@ module.exports = class decoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['base'] + '-' + market['quote'],
+            'symbol': market['id'],
         };
         const response = await this.publicGetMarketGetTickerSymbol (
             this.extend (request, params)
@@ -556,6 +569,7 @@ module.exports = class decoin extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
+            code = this.safeCurrencyCode (code);
             currency = this.currency (code);
             request['Currency'] = currency['name'];
         }
@@ -591,6 +605,7 @@ module.exports = class decoin extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
+            code = this.safeCurrencyCode (code);
             currency = this.currency (code);
             request['Currency'] = currency['name'];
         }
@@ -682,7 +697,7 @@ module.exports = class decoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['base'] + '-' + market['quote'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -897,6 +912,7 @@ module.exports = class decoin extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
+            code = this.safeCurrencyCode (code);
             currency = this.currency (code);
             request['Currency'] = currency['name'];
         }
@@ -952,7 +968,7 @@ module.exports = class decoin extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['Id'] = market['base'] + '-' + market['quote'];
+            request['Id'] = market['id'];
         }
         if (since !== undefined) {
             request['Lastdate'] = since;
@@ -968,6 +984,7 @@ module.exports = class decoin extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        code = this.safeCurrencyCode (code);
         const currency = this.currency (code);
         const request = {
             'Currency': currency['name'],
@@ -990,6 +1007,7 @@ module.exports = class decoin extends Exchange {
         // private
         await this.loadMarkets ();
         this.checkAddress (address);
+        code = this.safeCurrencyCode (code);
         const currency = this.currency (code);
         const label = address.slice (0, 20);
         const request = {
@@ -1019,6 +1037,7 @@ module.exports = class decoin extends Exchange {
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
+            code = this.safeCurrencyCode (code);
             currency = this.currency (code);
             request['Currency'] = currency['name'];
         }
