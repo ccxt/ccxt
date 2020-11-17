@@ -436,6 +436,34 @@ module.exports = class bitflyer extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_code': market['id'],
+        };
+        const response = await this.privateGetpositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "product_code": "FX_BTC_JPY",
+        //             "side": "BUY",
+        //             "price": 36000,
+        //             "size": 10,
+        //             "commission": 0,
+        //             "swap_point_accumulate": -35,
+        //             "require_collateral": 120000,
+        //             "open_date": "2015-11-03T10:04:45.011",
+        //             "leverage": 3,
+        //             "pnl": 965,
+        //             "sfd": -0.5
+        //         }
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
