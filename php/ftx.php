@@ -1720,7 +1720,7 @@ class ftx extends Exchange {
             $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $request;
             $headers = array();
-            if ($method === 'POST') {
+            if (($method === 'POST') || ($method === 'DELETE')) {
                 $body = $this->json($query);
                 $auth .= $body;
                 $headers['Content-Type'] = 'application/json';

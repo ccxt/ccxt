@@ -390,7 +390,7 @@ class coinmate(Exchange):
             'status': status,
             'fee': {
                 'cost': fee,
-                'currency': currency,
+                'currency': code,
             },
             'info': item,
         }
