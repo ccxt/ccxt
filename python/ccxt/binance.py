@@ -1509,6 +1509,7 @@ class binance(Exchange):
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'info': order,
             'id': id,
@@ -1518,6 +1519,7 @@ class binance(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
