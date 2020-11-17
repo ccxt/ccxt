@@ -70,12 +70,14 @@ declare module 'ccxt' {
 
     export interface Order {
         id: string;
+        clientOrderId: string;
         datetime: string;
         timestamp: number;
         lastTradeTimestamp: number;
         status: 'open' | 'closed' | 'canceled';
         symbol: string;
         type: string;
+        timeInForce?: string;
         side: 'buy' | 'sell';
         price: number;
         average?: number;
