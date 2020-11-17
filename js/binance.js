@@ -1566,6 +1566,7 @@ module.exports = class binance extends Exchange {
             }
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -1575,6 +1576,7 @@ module.exports = class binance extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
