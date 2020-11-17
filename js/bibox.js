@@ -60,7 +60,7 @@ module.exports = class bibox extends Exchange {
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
