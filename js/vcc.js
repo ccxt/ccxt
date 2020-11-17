@@ -428,7 +428,6 @@ module.exports = class vcc extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
-        const fee = this.safeFloat (trade, 'fee');
         const side = this.safeString (trade, 'trade_type');
         return {
             'info': trade,
@@ -637,6 +636,11 @@ module.exports = class vcc extends Exchange {
             price = this.safeFloat (order, 'executed_price');
         }
         let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+        }
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
