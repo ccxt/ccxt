@@ -429,7 +429,6 @@ module.exports = class vcc extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
         const fee = this.safeFloat (trade, 'fee');
-        const cost = price * amount + fee;
         const side = this.safeString (trade, 'trade_type');
         return {
             'info': trade,
@@ -443,7 +442,7 @@ module.exports = class vcc extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
         };
     }
@@ -564,12 +563,8 @@ module.exports = class vcc extends Exchange {
             'coin': market['base'].toLowerCase (),
             'currency': market['quote'].toLowerCase (),
             'trade_type': side,
-            'quantity': this.amountToPrecision (symbol, amount),
             'type': type,
         };
-        if (type === 'ceiling_market' && (market['base'].toLowerCase () === 'vnd' || market['quote'].toLowerCase () === 'vnd')) {
-            throw new InvalidOrder ('Ceiling market order is only supported for non-VND pairs');
-        }
         if (type === 'ceiling_market' && !ceiling) {
             throw new InvalidOrder ('Ceiling is required for ceiling_market order');
         }
@@ -578,6 +573,9 @@ module.exports = class vcc extends Exchange {
         }
         if (ceiling) {
             request['ceiling'] = ceiling;
+        }
+        if (type === 'limit') {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (price) {
             request['price'] = price;
@@ -639,15 +637,6 @@ module.exports = class vcc extends Exchange {
             price = this.safeFloat (order, 'executed_price');
         }
         let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
@@ -668,7 +657,7 @@ module.exports = class vcc extends Exchange {
             'price': price,
             'average': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
