@@ -712,8 +712,8 @@ class wavesexchange(Exchange):
         items = self.safe_value(supportedCurrencies, 'items', [])
         for i in range(0, len(items)):
             entry = items[i]
-            code = self.safe_string(entry, 'id')
-            currencies[code] = True
+            currencyCode = self.safe_string(entry, 'id')
+            currencies[currencyCode] = True
         if not (code in currencies):
             codes = list(currencies.keys())
             raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + str(codes))
@@ -1463,8 +1463,8 @@ class wavesexchange(Exchange):
             items = self.safe_value(supportedCurrencies, 'items', [])
             for i in range(0, len(items)):
                 entry = items[i]
-                code = self.safe_string(entry, 'id')
-                currencies[code] = True
+                currencyCode = self.safe_string(entry, 'id')
+                currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
                 raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))

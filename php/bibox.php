@@ -19,6 +19,7 @@ class bibox extends Exchange {
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
             'version' => 'v1',
+            'hostname' => 'bibox365.com',
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,
@@ -58,13 +59,13 @@ class bibox extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api' => 'https://api.bibox.com',
-                'www' => 'https://www.bibox.com',
+                'api' => 'https://api.{hostname}',
+                'www' => 'https://www.bibox365.com',
                 'doc' => array(
                     'https://biboxcom.github.io/en/',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral' => 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral' => 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             ),
             'api' => array(
                 'public' => array(
@@ -990,7 +991,7 @@ class bibox extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
+        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/' . $this->version . '/' . $path;
         $cmds = $this->json(array( $params ));
         if ($api === 'public') {
             if ($method !== 'GET') {

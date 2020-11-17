@@ -1644,7 +1644,7 @@ class ftx(Exchange):
             timestamp = str(self.milliseconds())
             auth = timestamp + method + request
             headers = {}
-            if method == 'POST':
+            if (method == 'POST') or (method == 'DELETE'):
                 body = self.json(query)
                 auth += body
                 headers['Content-Type'] = 'application/json'

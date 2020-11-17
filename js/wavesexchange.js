@@ -740,8 +740,8 @@ module.exports = class wavesexchange extends Exchange {
         const items = this.safeValue (supportedCurrencies, 'items', []);
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
-            const code = this.safeString (entry, 'id');
-            currencies[code] = true;
+            const currencyCode = this.safeString (entry, 'id');
+            currencies[currencyCode] = true;
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
@@ -1551,8 +1551,8 @@ module.exports = class wavesexchange extends Exchange {
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
                 const entry = items[i];
-                const code = this.safeString (entry, 'id');
-                currencies[code] = true;
+                const currencyCode = this.safeString (entry, 'id');
+                currencies[currencyCode] = true;
             }
             if (!(code in currencies)) {
                 const codes = Object.keys (currencies);
