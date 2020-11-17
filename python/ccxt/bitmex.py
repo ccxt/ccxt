@@ -1146,6 +1146,15 @@ class bitmex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        mapping = {
+            'Day': 'Day',
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+        }
+        return self.safe_string(mapping, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
@@ -1170,6 +1179,7 @@ class bitmex(Exchange):
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'clOrdID')
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         return {
             'info': order,
             'id': id,
@@ -1179,6 +1189,7 @@ class bitmex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
