@@ -29,9 +29,6 @@ matrix:
   fast_finish: true
 build: off
 # shallow_clone: true
-before_test:
-  - cinst pandoc --version 2.3.1
-  - pandoc -v
 test_script:
   - refreshenv
   - node --version

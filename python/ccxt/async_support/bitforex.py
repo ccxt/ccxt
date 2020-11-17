@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -27,19 +28,20 @@ class bitforex(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
-                'fetchBalance': True,
-                'fetchMarkets': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': False,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
-                'fetchMyTrades': False,
                 'fetchTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOHLCV': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -55,7 +57,7 @@ class bitforex(Exchange):
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
@@ -233,12 +235,15 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CREDIT': 'TerraCredit',
+                'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
+                '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '3002': InsufficientFunds,
                 '10204': DDoSProtection,
             },
@@ -380,7 +385,18 @@ class bitforex(Exchange):
             'info': response,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "close":0.02505143,
+        #         "currencyVol":0,
+        #         "high":0.02506422,
+        #         "low":0.02505143,
+        #         "open":0.02506095,
+        #         "time":1591508940000,
+        #         "vol":51.1869
+        #     }
+        #
         return [
             self.safe_integer(ohlcv, 'time'),
             self.safe_float(ohlcv, 'open'),
@@ -400,8 +416,19 @@ class bitforex(Exchange):
         if limit is not None:
             request['size'] = limit  # default 1, max 600
         response = await self.publicGetApiV1MarketKline(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        #
+        #     {
+        #         "data":[
+        #             {"close":0.02505143,"currencyVol":0,"high":0.02506422,"low":0.02505143,"open":0.02506095,"time":1591508940000,"vol":51.1869},
+        #             {"close":0.02503914,"currencyVol":0,"high":0.02506687,"low":0.02503914,"open":0.02505358,"time":1591509000000,"vol":9.1082},
+        #             {"close":0.02505172,"currencyVol":0,"high":0.02507466,"low":0.02503895,"open":0.02506371,"time":1591509060000,"vol":63.7431},
+        #         ],
+        #         "success":true,
+        #         "time":1591509427131
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

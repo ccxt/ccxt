@@ -70,6 +70,7 @@ module.exports = class bw extends Exchange {
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
+                'referral': 'https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -332,16 +333,8 @@ module.exports = class bw extends Exchange {
         //         "469849357.2364"  // quote volume
         //     ]
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 0);
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.milliseconds ();
         const close = parseFloat (this.safeValue (ticker, 1));
         const bid = this.safeValue (ticker, 'bid', {});
@@ -429,7 +422,7 @@ module.exports = class bw extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -557,7 +550,25 @@ module.exports = class bw extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "K",
+        //         "305",
+        //         "eth_btc",
+        //         "1591511280",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.0123",
+        //         "0",
+        //         "285740.17",
+        //         "1M",
+        //         "false",
+        //         "0.000308"
+        //     ]
+        //
         return [
             this.safeTimestamp (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
@@ -580,9 +591,18 @@ module.exports = class bw extends Exchange {
             request['dataSize'] = limit;
         }
         const response = await this.publicGetApiDataV1Klines (this.extend (request, params));
+        //
+        //     {
+        //         "datas":[
+        //             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        //             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        //             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        //         ],
+        //         "resMsg":{"code":"1","method":null,"message":"success !"}
+        //     }
+        //
         const data = this.safeValue (response, 'datas', []);
-        const ohlcvs = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return this.sortBy (ohlcvs, 0);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -705,9 +725,7 @@ module.exports = class bw extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'marketId');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'createTime');
         let side = this.safeString (order, 'type');
         if (side === '0') {
@@ -740,7 +758,7 @@ module.exports = class bw extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': price,

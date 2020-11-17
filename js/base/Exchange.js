@@ -30,7 +30,7 @@ const {
     , defaultFetch
 } = functions
 
-const {
+const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
@@ -41,25 +41,9 @@ const {
     , ExchangeNotAvailable
     , RateLimitExceeded } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
-
-// ----------------------------------------------------------------------------
-// web3 / 0x imports
-
-let ethAbi = undefined
-    , ethUtil = undefined
-
-try {
-    const requireFunction = require;
-    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
-    // we prefer bignumber.js over BN.js
-    // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
-} catch (e) {
-    // nothing
-}
 
 // ----------------------------------------------------------------------------
 
@@ -75,6 +59,7 @@ module.exports = class Exchange {
             'certified': false,
             'pro': false,
             'has': {
+                'loadMarkets': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -115,6 +100,7 @@ module.exports = class Exchange {
                 'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
+                'signIn': false,
                 'withdraw': false,
             },
             'urls': {
@@ -198,6 +184,7 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'paddingMode': NO_PADDING,
             'limits': {
                 'amount': { 'min': undefined, 'max': undefined },
                 'price': { 'min': undefined, 'max': undefined },
@@ -259,12 +246,14 @@ module.exports = class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
-        this.orders       = {}
+        this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
+        this.myTrades     = undefined
 
         this.requiresWeb3 = false
+        this.requiresEddsa = false
         this.precision = {}
 
         this.enableLastJsonResponse = true
@@ -276,7 +265,9 @@ module.exports = class Exchange {
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                for (const k of Object.getOwnPropertyNames (obj)) {
+                const ownPropertyNames = Object.getOwnPropertyNames (obj)
+                for (let i = 0; i < ownPropertyNames.length; i++) {
+                    const k = ownPropertyNames[i]
                     this[unCamelCase (k)] = this[k]
                 }
                 unCamelCaseProperties (Object.getPrototypeOf (obj))
@@ -284,24 +275,33 @@ module.exports = class Exchange {
         }
         unCamelCaseProperties ()
 
-        // merge configs
-        const config = deepExtend (this.describe (), userConfig)
-
         // merge to this
-        for (const [property, value] of Object.entries (config)) {
-            this[property] = deepExtend (this[property], value)
+        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
+        for (let i = 0; i < configEntries.length; i++) {
+            const [property, value] = configEntries[i]
+            if (value && Object.getPrototypeOf (value) === Object.prototype) {
+                this[property] = deepExtend (this[property], value)
+            } else {
+                this[property] = value
+            }
         }
 
-        if (!this.httpAgent) {
-            this.httpAgent = defaultFetch.http ? new defaultFetch.http.Agent ({ 'keepAlive': true }) : undefined
+        const agentOptions = {
+            'keepAlive': true,
         }
 
-        if (!this.httpsAgent) {
-            this.httpsAgent = defaultFetch.https ? new defaultFetch.https.Agent ({ 'keepAlive': true }) : undefined
+        if (!this.httpAgent && defaultFetch.http && isNode) {
+            this.httpAgent = new defaultFetch.http.Agent (agentOptions)
+        }
+
+        if (!this.httpsAgent && defaultFetch.https && isNode) {
+            this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
 
         // generate old metainfo interface
-        for (const k in this.has) {
+        const hasKeys = Object.keys (this.has)
+        for (let i = 0; i < hasKeys.length; i++) {
+            const k = hasKeys[i]
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
 
@@ -381,7 +381,6 @@ module.exports = class Exchange {
             const params = { method, headers, body, timeout: this.timeout }
 
             if (this.agent) {
-                this.agent.keepAlive = true
                 params['agent'] = this.agent
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
                 params['agent'] = this.httpAgent
@@ -430,52 +429,41 @@ module.exports = class Exchange {
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
-
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
-
-                let paths = api[type][httpMethod]
-                for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ()
-                    let splitPath = path.split (/[^a-zA-Z0-9]/)
-
-                    let uppercaseMethod  = httpMethod.toUpperCase ()
-                    let lowercaseMethod  = httpMethod.toLowerCase ()
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod)
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
-
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
-                    let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
-
-                    if ('suffixes' in options) {
-                        if ('camelcase' in options['suffixes']) {
-                            camelcase += options['suffixes']['camelcase']
-                        }
-                        if ('underscore' in options.suffixes) {
-                            underscore += options['suffixes']['underscore']
-                        }
-                    }
-
-                    if ('underscore_suffix' in options) {
-                        underscore += options.underscoreSuffix;
-                    }
-                    if ('camelcase_suffix' in options) {
-                        camelcase += options.camelcaseSuffix;
-                    }
-
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {})
-
+    defineRestApi (api, methodName, paths = []) {
+        const keys = Object.keys (api)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            const value = api[key]
+            if (Array.isArray (value)) {
+                const uppercaseMethod = key.toUpperCase ()
+                const lowercaseMethod = key.toLowerCase ()
+                const camelcaseMethod = this.capitalize (lowercaseMethod)
+                for (let k = 0; k < value.length; k++) {
+                    const path = value[k].trim ()
+                    const splitPath = path.split (/[^a-zA-Z0-9]/)
+                    const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
+                    const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
+                    const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+                    const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
+                    const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+                    const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+                    const typeArgument = (paths.length > 1) ? paths : paths[0]
+                    const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
                     this[camelcase]  = partial
                     this[underscore] = partial
                 }
+            } else {
+                this.defineRestApi (value, methodName, paths.concat ([ key ]))
             }
         }
     }
 
     print (... args) {
         console.log (... args)
+    }
+
+    setHeaders (headers) {
+        return headers;
     }
 
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
@@ -505,6 +493,7 @@ module.exports = class Exchange {
         }
 
         headers = extend (this.headers, headers)
+        headers = this.setHeaders (headers)
 
         if (this.verbose) {
             this.print ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n")
@@ -567,39 +556,11 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, headers, body, response) {
-        if ((code >= 200) && (code <= 299)) {
-            return
-        }
-        let details = body
+    handleHttpStatusCode (code, reason, url, method, body) {
         const codeAsString = code.toString ()
-        let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
-            ErrorClass = this.httpExceptions[codeAsString]
-        }
-        if (response === undefined) {
-            const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
-            if (maintenance) {
-                ErrorClass = ExchangeNotAvailable
-                details += ' offline, on maintenance, or unreachable from this location at the moment'
-            }
-            if (ddosProtection) {
-                ErrorClass = DDoSProtection
-            }
-        }
-        if (ErrorClass === ExchangeNotAvailable) {
-            details += ' (possible reasons: ' + [
-                'invalid API keys',
-                'bad or old nonce',
-                'exchange is down or offline',
-                'on maintenance',
-                'DDoS protection',
-                'rate-limiting',
-            ].join (', ') + ')'
-        }
-        if (ErrorClass !== undefined) {
-            throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+            const ErrorClass = this.httpExceptions[codeAsString]
+            throw new ErrorClass ([ this.id, method, url, code, reason, body ].join (' '))
         }
     }
 
@@ -625,11 +586,11 @@ module.exports = class Exchange {
             }
 
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_http_response = responseBody
             }
 
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+                this.last_json_response = json
             }
 
             if (this.verbose) {
@@ -637,7 +598,7 @@ module.exports = class Exchange {
             }
 
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
-            this.defaultErrorHandler (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
+            this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
 
             return json || responseBody
         })
@@ -657,16 +618,16 @@ module.exports = class Exchange {
             this.currencies = deepExtend (currencies, this.currencies)
         } else {
             let baseCurrencies =
-                values.filter (market => 'base' in market)
-                    .map (market => ({
+                values.filter ((market) => 'base' in market)
+                    .map ((market) => ({
                         id: market.baseId || market.base,
                         numericId: (market.baseNumericId !== undefined) ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
             let quoteCurrencies =
-                values.filter (market => 'quote' in market)
-                    .map (market => ({
+                values.filter ((market) => 'quote' in market)
+                    .map ((market) => ({
                         id: market.quoteId || market.quote,
                         numericId: (market.quoteNumericId !== undefined) ? market.quoteNumericId : undefined,
                         code: market.quote,
@@ -678,9 +639,9 @@ module.exports = class Exchange {
             this.quoteCurrencies = indexBy (quoteCurrencies, 'code')
             const allCurrencies = baseCurrencies.concat (quoteCurrencies)
             const groupedCurrencies = groupBy (allCurrencies, 'code')
-            const currencies = Object.keys (groupedCurrencies).map (code =>
-                groupedCurrencies[code].reduce ((previous, current) =>
-                    ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]))
+            const currencies = Object.keys (groupedCurrencies).map ((code) =>
+                groupedCurrencies[code].reduce ((previous, current) => // eslint-disable-line implicit-arrow-linebreak
+                    ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0])) // eslint-disable-line implicit-arrow-linebreak
             const sortedCurrencies = sortBy (flatten (currencies), 'code')
             this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
         }
@@ -736,22 +697,24 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        if (!this.has['fetchTrades'])
+    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+        }
         await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limits, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
+        const trades = await this.fetchTrades (symbol, since, limit, params)
+        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        if (!this.has['fetchTrades'])
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+        }
         await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limits, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
-        return ohlcvc.map (c => c.slice (0, -1))
+        const trades = await this.fetchTrades (symbol, since, limit, params)
+        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
+        return ohlcvc.map ((c) => c.slice (0, -1))
     }
 
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -799,16 +762,6 @@ module.exports = class Exchange {
 
     fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
-    }
-
-    purgeCachedOrders (before) {
-        const orders = Object
-            .values (this.orders)
-            .filter (order =>
-                (order.status === 'open') ||
-                (order.timestamp >= before))
-        this.orders = indexBy (orders, 'id')
-        return this.orders
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {
@@ -889,8 +842,9 @@ module.exports = class Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
+        if (!this.substituteCommonCurrencyCodes) {
             return currency
+        }
         return this.safeString (this.commonCurrencies, currency, currency)
     }
 
@@ -916,22 +870,26 @@ module.exports = class Exchange {
 
     currency (code) {
 
-        if (this.currencies === undefined)
+        if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
+        }
 
-        if ((typeof code === 'string') && (code in this.currencies))
+        if ((typeof code === 'string') && (code in this.currencies)) {
             return this.currencies[code]
+        }
 
         throw new ExchangeError (this.id + ' does not have currency code ' + code)
     }
 
     market (symbol) {
 
-        if (this.markets === undefined)
+        if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded')
+        }
 
-        if ((typeof symbol === 'string') && (symbol in this.markets))
+        if ((typeof symbol === 'string') && (symbol in this.markets)) {
             return this.markets[symbol]
+        }
 
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
@@ -942,7 +900,7 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
-        return symbols.map (symbol => this.marketId (symbol));
+        return symbols.map ((symbol) => this.marketId (symbol))
     }
 
     symbol (symbol) {
@@ -952,8 +910,9 @@ module.exports = class Exchange {
     url (path, params = {}) {
         let result = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path))
-        if (Object.keys (query).length)
+        if (Object.keys (query).length) {
             result += '?' + this.urlencode (query)
+        }
         return result
     }
 
@@ -964,7 +923,7 @@ module.exports = class Exchange {
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
+        return Object.values (bidasks || []).map ((bidask) => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
@@ -987,33 +946,33 @@ module.exports = class Exchange {
 
     parseBalance (balance) {
 
-        const currencies = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
+        const codes = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
 
-        for (const currency of currencies) {
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i]
+            if (balance[code].total === undefined) {
+                if (balance[code].free !== undefined && balance[code].used !== undefined) {
+                    balance[code].total = this.sum (balance[code].free, balance[code].used)
+                }
+            }
+            if (balance[code].free === undefined) {
+                if (balance[code].total !== undefined && balance[code].used !== undefined) {
+                    balance[code].free = this.sum (balance[code].total, -balance[code].used)
+                }
+            }
+            if (balance[code].used === undefined) {
+                if (balance[code].total !== undefined && balance[code].free !== undefined) {
+                    balance[code].used = this.sum (balance[code].total, -balance[code].free)
+                }
+            }
 
-            if (balance[currency].total === undefined) {
-                if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
-                    balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
-                }
-            }
-            if (balance[currency].free === undefined) {
-                if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
-                    balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
-                }
-            }
-            if (balance[currency].used === undefined) {
-                if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
-                    balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
-                }
-            }
-
-            balance.free[currency] = balance[currency].free
-            balance.used[currency] = balance[currency].used
-            balance.total[currency] = balance[currency].total
+            balance.free[code] = balance[code].free
+            balance.used[code] = balance[code].used
+            balance.total[code] = balance[code].total
         }
 
         return balance
@@ -1089,15 +1048,13 @@ module.exports = class Exchange {
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = Object.values (array).filter ((entry) =>
+            array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
 
         if (limit !== undefined && limit !== null) {
-            array = ((tail && !sinceIsDefined) ?
-                Object.values (array).slice (-limit) :
-                Object.values (array).slice (0, limit))
+            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
         }
 
         return array
@@ -1171,36 +1128,95 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        // this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (orders)) {
-        //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
-        // }
-        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
+        let result = Array.isArray (orders) ?
+            Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params)) :
+            Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
+    safeCurrency (currencyId, currency = undefined) {
+        if ((currencyId === undefined) && (currency !== undefined)) {
+            return currency
+        }
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+            return this.currencies_by_id[currencyId]
+        }
+        return {
+            'id': currencyId,
+            'code': (currencyId === undefined) ? currencyId : this.commonCurrencyCode (currencyId.toUpperCase ()),
+        }
+    }
+
     safeCurrencyCode (currencyId, currency = undefined) {
-        let code = undefined
-        if (currencyId !== undefined) {
-            if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code']
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ())
+        currency = this.safeCurrency (currencyId, currency)
+        return currency['code']
+    }
+
+    safeMarket (marketId, market = undefined, delimiter = undefined) {
+        if (marketId !== undefined) {
+            if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId]
+            } else if (delimiter !== undefined) {
+                const [ baseId, quoteId ] = marketId.split (delimiter)
+                const base = this.safeCurrencyCode (baseId)
+                const quote = this.safeCurrencyCode (quoteId)
+                const symbol = base + '/' + quote
+                return {
+                    'id': marketId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                }
             }
         }
-        if (code === undefined && currency !== undefined) {
-            code = currency['code']
+        if (market !== undefined) {
+            return market
         }
-        return code
+        return {
+            'id': marketId,
+            'symbol': marketId,
+            'base': undefined,
+            'quote': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+        }
+    }
+
+    safeSymbol (marketId, market = undefined, delimiter = undefined) {
+        market = this.safeMarket (marketId, market, delimiter)
+        return market['symbol'];
     }
 
     filterBySymbol (array, symbol = undefined) {
-        return ((symbol !== undefined) ? array.filter (entry => entry.symbol === symbol) : array)
+        return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
@@ -1215,7 +1231,7 @@ module.exports = class Exchange {
             if (limit && (result.length >= limit)) {
                 break;
             }
-            const ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit)
+            const ohlcv = this.parseOHLCV (ohlcvs[i], market)
             if (since && (ohlcv[0] < since)) {
                 continue
             }
@@ -1237,8 +1253,9 @@ module.exports = class Exchange {
     }
 
     async editOrder (id, symbol, ...args) {
-        if (!this.enableRateLimit)
+        if (!this.enableRateLimit) {
             throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
+        }
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }
@@ -1268,23 +1285,23 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
+        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1299,26 +1316,19 @@ module.exports = class Exchange {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // web3 / 0x methods
-    static hasWeb3 () {
-        return ethUtil && ethAbi
-    }
-
     checkRequiredDependencies () {
-        if (!Exchange.hasWeb3 ()) {
-            throw new ExchangeError ('Required dependencies missing: \nnpm i ethereumjs-util ethereumjs-abi --no-save');
-        }
+        return
     }
 
     soliditySha3 (array) {
         // we only support address, uint256, and string solidity types
         const encoded = []
-        for (const value of array) {
+        for (let i = 0; i < array.length; i++) {
+            const value = array[i]
             if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
                 encoded.push (this.numberToBE (this.numberToString (value), 32))
             } else {
-                const noPrefix = Exchange.remove0xPrefix (value)
+                const noPrefix = this.remove0xPrefix (value)
                 if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
                     encoded.push (this.base16ToBinary (noPrefix))
                 } else {
@@ -1330,108 +1340,7 @@ module.exports = class Exchange {
         return '0x' + this.hash (concated, 'keccak', 'hex')
     }
 
-    getZeroExOrderHash (order) {
-        return this.soliditySha3 ([
-            order['exchangeContractAddress'], // address
-            order['maker'], // address
-            order['taker'], // address
-            order['makerTokenAddress'], // address
-            order['takerTokenAddress'], // address
-            order['feeRecipient'], // address
-            order['makerTokenAmount'], // uint256
-            order['takerTokenAmount'], // uint256
-            order['makerFee'], // uint256
-            order['takerFee'], // uint256
-            order['expirationUnixTimestampSec'], // uint256
-            order['salt'], // uint256
-        ]);
-    }
-
-    getZeroExOrderHashV2 (order) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        const addressPadding = '000000000000000000000000';
-        const header = '1901';
-        const domainStructHeader = '91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766f0f24618f4c4be1e62e026fb039a20ef96f4495294817d1027ffaa6d1f70e61ead7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
-        const orderSchemaHash = '770501f88a26ede5c04a20ef877969e961eb11fc13b78aaf414b633da0d4f86f';
-
-        const domainStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address'
-            ],
-            [
-                Buffer.from (domainStructHeader, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['exchangeAddress']
-            ]
-        );
-        const orderStructHash = ethAbi.soliditySHA3 (
-            [
-                'bytes',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'bytes',
-                'address',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'uint256',
-                'string',
-                'string'
-            ],
-            [
-                Buffer.from (orderSchemaHash, 'hex'),
-                Buffer.from (addressPadding, 'hex'),
-                order['makerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['takerAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['feeRecipientAddress'],
-                Buffer.from (addressPadding, 'hex'),
-                order['senderAddress'],
-                order['makerAssetAmount'],
-                order['takerAssetAmount'],
-                order['makerFee'],
-                order['takerFee'],
-                order['expirationTimeSeconds'],
-                order['salt'],
-                ethUtil.keccak (Buffer.from (order['makerAssetData'].slice (2), 'hex')),
-                ethUtil.keccak (Buffer.from (order['takerAssetData'].slice (2), 'hex')),
-            ]
-        );
-        return '0x' + ethUtil.keccak (Buffer.concat ([
-            Buffer.from (header, 'hex'),
-            domainStructHash,
-            orderStructHash
-        ])).toString ('hex');
-    }
-
-    signZeroExOrderV2 (order, privateKey) {
-        const orderHash = this.getZeroExOrderHashV2 (order);
-        const signature = this.signMessage (orderHash, privateKey);
-        return this.extend (order, {
-            'orderHash': orderHash,
-            'signature': this.convertECSignatureToSignatureHex (signature),
-        })
-    }
-
-    convertECSignatureToSignatureHex (signature) {
-        // https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
-        let v = signature.v;
-        if (v !== 27 && v !== 28) {
-            v = v + 27;
-        }
-        return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
-    }
-
-    static remove0xPrefix (hexData) {
+    remove0xPrefix (hexData) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2)
         } else {
@@ -1441,7 +1350,7 @@ module.exports = class Exchange {
 
     hashMessage (message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (Exchange.remove0xPrefix (message))
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
@@ -1457,6 +1366,13 @@ module.exports = class Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    signMessageString (message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage (message, privateKey)
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']));
     }
 
     oath () {

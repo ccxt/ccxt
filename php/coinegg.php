@@ -16,11 +16,18 @@ class coinegg extends Exchange {
             'name' => 'CoinEgg',
             'countries' => array( 'CN', 'UK' ),
             'has' => array(
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => 'emulated',
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
+                'fetchOpenOrders' => 'emulated',
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => false,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
@@ -395,7 +402,6 @@ class coinegg extends Exchange {
             'type' => $side,
             'info' => $response,
         ), $market);
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -419,7 +425,8 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         );
         $response = $this->privatePostTradeViewRegionQuote (array_merge($request, $params));
-        return $this->parse_order($response['data'], $market);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -433,7 +440,8 @@ class coinegg extends Exchange {
             $request['since'] = $since / 1000;
         }
         $response = $this->privatePostTradeListRegionQuote (array_merge($request, $params));
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -24,7 +23,6 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -44,24 +42,32 @@ class kraken(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'cancelOrder': True,
+                'CORS': False,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchLedgerEntry': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': 'emulated',
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
                 'fetchWithdrawals': True,
-                'fetchDeposits': True,
                 'withdraw': True,
-                'fetchLedgerEntry': True,
-                'fetchLedger': True,
-                'fetchOrderTrades': 'emulated',
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -175,7 +181,6 @@ class kraken(Exchange):
                     'get': [
                         # we should really refrain from putting fixed fee numbers and stop hardcoding
                         # we will be using their web APIs to scrape all numbers from these articles
-                        '205893708',  # -What-is-the-minimum-order-size-
                         '360000292886',  # -What-are-the-deposit-fees-
                         '201893608',  # -What-are-the-withdrawal-fees-
                     ],
@@ -232,7 +237,6 @@ class kraken(Exchange):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'fetchMinOrderAmounts': True,
             },
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
@@ -248,6 +252,8 @@ class kraken(Exchange):
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Order minimum not met': InvalidOrder,
             },
         })
 
@@ -256,29 +262,6 @@ class kraken(Exchange):
 
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
-
-    async def fetch_min_order_amounts(self, params={}):
-        response = await self.zendeskGet205893708(params)
-        article = self.safe_value(response, 'article')
-        html = self.safe_string(article, 'body')
-        parts = html.split('<td class="wysiwyg-text-align-right">')
-        numParts = len(parts)
-        if numParts < 3:
-            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://kraken.zendesk.com/api/v2/help_center/en-us/articles/205893708')
-        result = {}
-        # skip the part before the header and the header itself
-        for i in range(2, len(parts)):
-            part = parts[i]
-            chunks = part.split('</td>')
-            amountAndCode = chunks[0]
-            if amountAndCode != 'To Be Announced':
-                pieces = amountAndCode.split(' ')
-                numPieces = len(pieces)
-                if numPieces == 2:
-                    amount = float(pieces[0])
-                    code = self.safe_currency_code(pieces[1])
-                    result[code] = amount
-        return result
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetAssetPairs(params)
@@ -323,15 +306,12 @@ class kraken(Exchange):
         #                 ],
         #                 "fee_volume_currency":"ZUSD",
         #                 "margin_call":80,
-        #                 "margin_stop":40
+        #                 "margin_stop":40,
+        #                 "ordermin": "1"
         #             },
         #         }
         #     }
         #
-        fetchMinOrderAmounts = self.safe_value(self.options, 'fetchMinOrderAmounts', False)
-        limits = {}
-        if fetchMinOrderAmounts:
-            limits = await self.fetch_min_order_amounts()
         keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):
@@ -350,9 +330,7 @@ class kraken(Exchange):
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             }
-            minAmount = math.pow(10, -precision['amount'])
-            if base in limits:
-                minAmount = limits[base]
+            minAmount = self.safe_float(market, 'ordermin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -568,8 +546,8 @@ class kraken(Exchange):
         await self.load_markets()
         symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.markets[symbol]
             if market['active'] and not market['darkpool']:
                 marketIds.append(market['id'])
@@ -585,9 +563,8 @@ class kraken(Exchange):
             market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = tickers[id]
-            if self.in_array(symbol, symbols):
-                result[symbol] = self.parse_ticker(ticker, market)
-        return result
+            result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -602,14 +579,26 @@ class kraken(Exchange):
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1591475640,
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "0.02500",
+        #         "9.12201000",
+        #         5
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            float(ohlcv[1]),
-            float(ohlcv[2]),
-            float(ohlcv[3]),
-            float(ohlcv[4]),
-            float(ohlcv[6]),
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 6),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -622,7 +611,21 @@ class kraken(Exchange):
         if since is not None:
             request['since'] = int((since - 1) / 1000)
         response = await self.publicGetOHLC(self.extend(request, params))
-        ohlcvs = response['result'][market['id']]
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "XETHXXBT":[
+        #                 [1591475580,"0.02499","0.02499","0.02499","0.02499","0.00000","0.00000000",0],
+        #                 [1591475640,"0.02500","0.02500","0.02500","0.02500","0.02500","9.12201000",5],
+        #                 [1591475700,"0.02499","0.02499","0.02499","0.02499","0.02499","1.28681415",2],
+        #                 [1591475760,"0.02499","0.02499","0.02499","0.02499","0.02499","0.08800000",1],
+        #             ],
+        #             "last":1591517580
+        #         }
+        #     }
+        result = self.safe_value(response, 'result', {})
+        ohlcvs = self.safe_value(result, market['id'], [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -915,39 +918,28 @@ class kraken(Exchange):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
+        query = self.omit(params, ['userref', 'clientOrderId'])
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
         priceIsDefined = (price is not None)
         marketOrder = (type == 'market')
         limitOrder = (type == 'limit')
         shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
         if shouldIncludePrice:
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostAddOrder(self.extend(request, params))
-        id = self.safe_value(response['result'], 'txid')
-        if id is not None:
-            if isinstance(id, list):
-                length = len(id)
-                id = id if (length > 1) else id[0]
-        clientOrderId = self.safe_string(params, 'userref')
-        return {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': None,
-            'average': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
-            'fee': None,
-            'trades': None,
-        }
+        response = await self.privatePostAddOrder(self.extend(request, query))
+        #
+        #     {
+        #         error: [],
+        #         result: {
+        #             descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #             txid: ['OEKVV2-IH52O-TPL6GZ']
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
         if id in self.marketsByAltname:
@@ -1000,10 +992,31 @@ class kraken(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #         txid: ['OEKVV2-IH52O-TPL6GZ']
+        #     }
+        #
         description = self.safe_value(order, 'descr', {})
-        side = self.safe_string(description, 'type')
-        type = self.safe_string(description, 'ordertype')
-        marketId = self.safe_string(description, 'pair')
+        orderDescription = self.safe_string(description, 'order')
+        side = None
+        type = None
+        marketId = None
+        price = None
+        amount = None
+        if orderDescription is not None:
+            parts = orderDescription.split(' ')
+            side = self.safe_string(parts, 0)
+            amount = self.safe_float(parts, 1)
+            marketId = self.safe_string(parts, 2)
+            type = self.safe_string(parts, 4)
+            price = self.safe_float(parts, 5)
+        side = self.safe_string(description, 'type', side)
+        type = self.safe_string(description, 'ordertype', type)
+        marketId = self.safe_string(description, 'pair', marketId)
         foundMarket = self.find_market_by_altname_or_id(marketId)
         symbol = None
         if foundMarket is not None:
@@ -1012,15 +1025,17 @@ class kraken(Exchange):
             # delisted market ids go here
             market = self.get_delisted_market_by_id(marketId)
         timestamp = self.safe_timestamp(order, 'opentm')
-        amount = self.safe_float(order, 'vol')
+        amount = self.safe_float(order, 'vol', amount)
         filled = self.safe_float(order, 'vol_exec')
-        remaining = amount - filled
+        remaining = None
+        if (amount is not None) and (filled is not None):
+            remaining = amount - filled
         fee = None
         cost = self.safe_float(order, 'cost')
-        price = self.safe_float(description, 'price')
-        if (price is None) or (price == 0):
+        price = self.safe_float(description, 'price', price)
+        if (price is None) or (price == 0.0):
             price = self.safe_float(description, 'price2')
-        if (price is None) or (price == 0):
+        if (price is None) or (price == 0.0):
             price = self.safe_float(order, 'price', price)
         average = self.safe_float(order, 'price')
         if market is not None:
@@ -1038,6 +1053,9 @@ class kraken(Exchange):
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
+        if id is None:
+            txid = self.safe_value(order, 'txid')
+            id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
         trades = None
@@ -1063,18 +1081,6 @@ class kraken(Exchange):
             'fee': fee,
             'trades': trades,
         }
-
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1248,10 +1254,10 @@ class kraken(Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
-        result = self.parse_trades(trades, None, since, limit)
-        if symbol is None:
-            return result
-        return self.filter_by_symbol(result, symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(trades, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1273,10 +1279,12 @@ class kraken(Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['open'], None, since, limit)
-        if symbol is None:
-            return orders
-        return self.filter_by_symbol(orders, symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = self.safe_value(response, 'result', {})
+        orders = self.safe_value(result, 'open', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1284,10 +1292,51 @@ class kraken(Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostClosedOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['closed'], None, since, limit)
-        if symbol is None:
-            return orders
-        return self.filter_by_symbol(orders, symbol)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "closed":{
+        #                 "OETZYO-UL524-QJMXCT":{
+        #                     "refid":null,
+        #                     "userref":null,
+        #                     "status":"canceled",
+        #                     "reason":"User requested",
+        #                     "opentm":1601489313.3898,
+        #                     "closetm":1601489346.5507,
+        #                     "starttm":0,
+        #                     "expiretm":0,
+        #                     "descr":{
+        #                         "pair":"ETHUSDT",
+        #                         "type":"buy",
+        #                         "ordertype":"limit",
+        #                         "price":"330.00",
+        #                         "price2":"0",
+        #                         "leverage":"none",
+        #                         "order":"buy 0.02100000 ETHUSDT @ limit 330.00",
+        #                         "close":""
+        #                     },
+        #                     "vol":"0.02100000",
+        #                     "vol_exec":"0.00000000",
+        #                     "cost":"0.00000",
+        #                     "fee":"0.00000",
+        #                     "price":"0.00000",
+        #                     "stopprice":"0.00000",
+        #                     "limitprice":"0.00000",
+        #                     "misc":"",
+        #                     "oflags":"fciq"
+        #                 },
+        #             },
+        #             "count":16
+        #         }
+        #     }
+        #
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = self.safe_value(response, 'result', {})
+        orders = self.safe_value(result, 'closed', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_deposit_methods(self, code, params={}):
         await self.load_markets()
@@ -1296,7 +1345,7 @@ class kraken(Exchange):
             'asset': currency['id'],
         }
         response = await self.privatePostDepositMethods(self.extend(request, params))
-        return response['result']
+        return self.safe_value(response, 'result')
 
     def parse_transaction_status(self, status):
         # IFEX transaction states
@@ -1404,6 +1453,21 @@ class kraken(Exchange):
         #
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
+    async def fetch_time(self, params={}):
+        # https://www.kraken.com/en-us/features/api#get-server-time
+        response = await self.publicGetTime(params)
+        #
+        #    {
+        #        "error": [],
+        #        "result": {
+        #            "unixtime": 1591502873,
+        #            "rfc1123": "Sun,  7 Jun 20 04:07:53 +0000"
+        #        }
+        #    }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.safe_timestamp(result, 'unixtime')
+
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
@@ -1504,11 +1568,11 @@ class kraken(Exchange):
             hash = self.hash(auth, 'sha256', 'binary')
             binary = self.encode(url)
             binhash = self.binary_concat(binary, hash)
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             signature = self.hmac(binhash, secret, hashlib.sha512, 'base64')
             headers = {
                 'API-Key': self.apiKey,
-                'API-Sign': self.decode(signature),
+                'API-Sign': signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         else:

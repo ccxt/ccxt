@@ -21,27 +21,32 @@ class hbtc extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTime' => true,
+                'createOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchBidAsk' => true,
                 'fetchBidsAsks' => true,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchDepositAddress' => false,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchTradingLimits' => true,
+                'fetchCurrencies' => false,
+                'fetchDepositAddress' => false,
+                'fetchDeposits' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'withdraw' => true,
-                'fetchCurrencies' => false,
-                'fetchDeposits' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
-                'fetchAccounts' => true,
-                'fetchLedger' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -755,7 +760,7 @@ class hbtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         1587906000000, // open time
@@ -1663,14 +1668,8 @@ class hbtc extends Exchange {
         //         "askQty" => "9.00000000"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
         $open = $this->safe_float($ticker, 'openPrice');
         $close = $this->safe_float($ticker, 'lastPrice');
@@ -1686,10 +1685,7 @@ class hbtc extends Exchange {
         }
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1875,16 +1871,8 @@ class hbtc extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'transactTime');
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
-            if ($marketId !== null) {
-                $marketId = strtoupper($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $price = $this->safe_float($order, 'price');
@@ -1921,9 +1909,6 @@ class hbtc extends Exchange {
             $average = null;
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         $result = array(
             'info' => $order,
             'id' => $id,

@@ -20,12 +20,19 @@ class btcalpha extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'has' => array(
-                'fetchTicker' => false,
-                'fetchOHLCV' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => false,
+                'fetchTrades' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -201,7 +208,7 @@ class btcalpha extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string_2($trade, 'id', 'tid');
@@ -239,7 +246,17 @@ class btcalpha extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "time":1591296000,
+        //         "open":0.024746,
+        //         "close":0.024728,
+        //         "low":0.024728,
+        //         "high":0.024753,
+        //         "volume":16.624
+        //     }
+        //
         return array(
             $this->safe_timestamp($ohlcv, 'time'),
             $this->safe_float($ohlcv, 'open'),
@@ -261,9 +278,16 @@ class btcalpha extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval($since / 1000);
         }
         $response = $this->publicGetChartsPairTypeChart (array_merge($request, $params));
+        //
+        //     array(
+        //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
+        //         array("time":1591295700,"open":0.024718,"close":0.02475,"low":0.024711,"high":0.02475,"volume":31.645),
+        //         array("time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071)
+        //     )
+        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,15 +15,23 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -125,9 +133,10 @@ module.exports = class cex extends Exchange {
                     'Nonce must be incremented': InvalidNonce,
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
-                    'Rate limit exceeded': RateLimitExceeded,
+                    'limit exceeded': RateLimitExceeded, // {"error":"rate limit exceeded"}
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
+                    'Sorry, too many clients already': DDoSProtection,
                 },
             },
             'options': {
@@ -137,7 +146,7 @@ module.exports = class cex extends Exchange {
                     'status': {
                         'c': 'canceled',
                         'd': 'closed',
-                        'cd': 'closed',
+                        'cd': 'canceled',
                         'a': 'open',
                     },
                 },
@@ -393,14 +402,24 @@ module.exports = class cex extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1591403940,
+        //         0.024972,
+        //         0.024972,
+        //         0.024969,
+        //         0.024969,
+        //         0.49999900
+        //     ]
+        //
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
         ];
     }
 
@@ -423,8 +442,15 @@ module.exports = class cex extends Exchange {
         };
         try {
             const response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
+            //
+            //     {
+            //         "time":20200606,
+            //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
+            //     }
+            //
             const key = 'data' + this.timeframes[timeframe];
-            const ohlcvs = JSON.parse (response[key]);
+            const data = this.safeString (response, key);
+            const ohlcvs = JSON.parse (data);
             return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
         } catch (e) {
             if (e instanceof NullResponse) {
@@ -484,7 +510,7 @@ module.exports = class cex extends Exchange {
             const market = this.markets[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -904,7 +930,108 @@ module.exports = class cex extends Exchange {
             'id': id.toString (),
         };
         const response = await this.privatePostGetOrderTx (this.extend (request, params));
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data', {});
+        //
+        //     {
+        //         "id": "5442731603",
+        //         "type": "sell",
+        //         "time": 1516132358071,
+        //         "lastTxTime": 1516132378452,
+        //         "lastTx": "5442734452",
+        //         "pos": null,
+        //         "user": "up106404164",
+        //         "status": "d",
+        //         "symbol1": "ETH",
+        //         "symbol2": "EUR",
+        //         "amount": "0.50000000",
+        //         "kind": "api",
+        //         "price": "923.3386",
+        //         "tfacf": "1",
+        //         "fa:EUR": "0.55",
+        //         "ta:EUR": "369.77",
+        //         "remains": "0.00000000",
+        //         "tfa:EUR": "0.22",
+        //         "tta:EUR": "91.95",
+        //         "a:ETH:cds": "0.50000000",
+        //         "a:EUR:cds": "461.72",
+        //         "f:EUR:cds": "0.77",
+        //         "tradingFeeMaker": "0.15",
+        //         "tradingFeeTaker": "0.23",
+        //         "tradingFeeStrategy": "userVolumeAmount",
+        //         "tradingFeeUserVolumeAmount": "2896912572",
+        //         "orderId": "5442731603",
+        //         "next": false,
+        //         "vtx": [
+        //             {
+        //                 "id": "5442734452",
+        //                 "type": "sell",
+        //                 "time": "2018-01-16T19:52:58.452Z",
+        //                 "user": "up106404164",
+        //                 "c": "user:up106404164:a:EUR",
+        //                 "d": "order:5442731603:a:EUR",
+        //                 "a": "104.53000000",
+        //                 "amount": "104.53000000",
+        //                 "balance": "932.71000000",
+        //                 "symbol": "EUR",
+        //                 "order": "5442731603",
+        //                 "buy": "5442734443",
+        //                 "sell": "5442731603",
+        //                 "pair": null,
+        //                 "pos": null,
+        //                 "office": null,
+        //                 "cs": "932.71",
+        //                 "ds": 0,
+        //                 "price": 923.3386,
+        //                 "symbol2": "ETH",
+        //                 "fee_amount": "0.16"
+        //             },
+        //             {
+        //                 "id": "5442731609",
+        //                 "type": "sell",
+        //                 "time": "2018-01-16T19:52:38.071Z",
+        //                 "user": "up106404164",
+        //                 "c": "user:up106404164:a:EUR",
+        //                 "d": "order:5442731603:a:EUR",
+        //                 "a": "91.73000000",
+        //                 "amount": "91.73000000",
+        //                 "balance": "563.49000000",
+        //                 "symbol": "EUR",
+        //                 "order": "5442731603",
+        //                 "buy": "5442618127",
+        //                 "sell": "5442731603",
+        //                 "pair": null,
+        //                 "pos": null,
+        //                 "office": null,
+        //                 "cs": "563.49",
+        //                 "ds": 0,
+        //                 "price": 924.0092,
+        //                 "symbol2": "ETH",
+        //                 "fee_amount": "0.22"
+        //             },
+        //             {
+        //                 "id": "5442731604",
+        //                 "type": "sell",
+        //                 "time": "2018-01-16T19:52:38.071Z",
+        //                 "user": "up106404164",
+        //                 "c": "order:5442731603:a:ETH",
+        //                 "d": "user:up106404164:a:ETH",
+        //                 "a": "0.50000000",
+        //                 "amount": "-0.50000000",
+        //                 "balance": "15.80995000",
+        //                 "symbol": "ETH",
+        //                 "order": "5442731603",
+        //                 "buy": null,
+        //                 "sell": null,
+        //                 "pair": null,
+        //                 "pos": null,
+        //                 "office": null,
+        //                 "cs": "0.50000000",
+        //                 "ds": "15.80995000"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseOrder (data);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

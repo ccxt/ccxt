@@ -32,28 +32,32 @@ class deribit(Exchange):
             'userAgent': None,
             'rateLimit': 500,
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': True,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
                 'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchOrderTrades': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
-                'withdraw': True,
-                'fetchTime': True,
-                'fetchStatus': True,
                 'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchStatus': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -653,11 +657,7 @@ class deribit(Exchange):
         #
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
         marketId = self.safe_string(ticker, 'instrument_name')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
         return {
@@ -854,13 +854,8 @@ class deribit(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'trade_id')
-        symbol = None
         marketId = self.safe_string(trade, 'instrument_name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         price = self.safe_float(trade, 'price')
@@ -1054,17 +1049,7 @@ class deribit(Exchange):
                 cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
-        symbol = None
-        base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
+        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         fee = None
@@ -1072,7 +1057,7 @@ class deribit(Exchange):
             feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': market['base'],
             }
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
@@ -1086,7 +1071,7 @@ class deribit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

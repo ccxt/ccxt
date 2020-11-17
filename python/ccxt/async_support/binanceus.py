@@ -38,4 +38,7 @@ class binanceus(binance):
                     'maker': 0.001,  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
+            'options': {
+                'quoteOrderQty': False,
+            },
         })

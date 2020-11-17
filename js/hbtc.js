@@ -17,27 +17,32 @@ module.exports = class hbtc extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTime': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidAsk': true,
                 'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchDepositAddress': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTradingLimits': true,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchCurrencies': false,
-                'fetchDeposits': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
-                'fetchAccounts': true,
-                'fetchLedger': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -751,7 +756,7 @@ module.exports = class hbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
         //         1587906000000, // open time
@@ -1659,14 +1664,8 @@ module.exports = class hbtc extends Exchange {
         //         "askQty": "9.00000000"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'time');
         const open = this.safeFloat (ticker, 'openPrice');
         const close = this.safeFloat (ticker, 'lastPrice');
@@ -1682,10 +1681,7 @@ module.exports = class hbtc extends Exchange {
         }
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const baseVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1871,16 +1867,8 @@ module.exports = class hbtc extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId !== undefined) {
-                marketId = marketId.toUpperCase ();
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         let price = this.safeFloat (order, 'price');
@@ -1917,9 +1905,6 @@ module.exports = class hbtc extends Exchange {
             average = undefined;
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const result = {
             'info': order,
             'id': id,

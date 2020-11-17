@@ -17,16 +17,16 @@ module.exports = async (exchange, code) => {
 
         // log ('fetching transactions...')
 
-        let transactions = await exchange.fetchTransactions (code)
+        const transactions = await exchange.fetchTransactions (code)
 
         log ('fetched', transactions.length.toString ().green, 'transactions, asserting each...')
 
         assert (transactions instanceof Array)
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < transactions.length; i++) {
-            let transaction = transactions[i]
+            const transaction = transactions[i]
             testTransaction (exchange, transaction, code, now)
         }
 

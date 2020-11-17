@@ -22,11 +22,18 @@ class coinegg(Exchange):
             'name': 'CoinEgg',
             'countries': ['CN', 'UK'],
             'has': {
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': 'emulated',
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': False,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
@@ -381,7 +388,6 @@ class coinegg(Exchange):
             'type': side,
             'info': response,
         }, market)
-        self.orders[id] = order
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -403,7 +409,8 @@ class coinegg(Exchange):
             'quote': market['quoteId'],
         }
         response = await self.privatePostTradeViewRegionQuote(self.extend(request, params))
-        return self.parse_order(response['data'], market)
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -415,7 +422,8 @@ class coinegg(Exchange):
         if since is not None:
             request['since'] = since / 1000
         response = await self.privatePostTradeListRegionQuote(self.extend(request, params))
-        return self.parse_orders(response['data'], market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {

@@ -19,8 +19,14 @@ class coinspot extends Exchange {
             'countries' => array( 'AU' ), // Australia
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => false,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -52,6 +58,8 @@ class coinspot extends Exchange {
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/transactions',
                     ),
                 ),
             ),
@@ -131,8 +139,55 @@ class coinspot extends Exchange {
             'cointype' => $market['id'],
         );
         $response = $this->privatePostOrdersHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "orders":array(
+        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"$market":"BTC/AUD"),
+        //         ),
+        //     }
+        //
         $trades = $this->safe_value($response, 'orders', array());
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function parse_trade($trade, $market = null) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "$amount":0.00102091,
+        //         "rate":21549.09999991,
+        //         "total":21.99969168,
+        //         "coin":"BTC",
+        //         "solddate":1604890646143,
+        //         "$market":"BTC/AUD"
+        //     }
+        //
+        $price = $this->safe_float($trade, 'rate');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = $this->safe_float($trade, 'total');
+        if (($cost === null) && ($price !== null) && ($amount !== null)) {
+            $cost = $price * $amount;
+        }
+        $timestamp = $this->safe_integer($trade, 'solddate');
+        $marketId = $this->safe_string($trade, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '/');
+        return array(
+            'info' => $trade,
+            'id' => null,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

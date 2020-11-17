@@ -21,22 +21,30 @@ class gateio extends Exchange {
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'createMarketOrder' => false,
-                'fetchTickers' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchTransactions' => true,
                 'createDepositAddress' => true,
-                'fetchDepositAddress' => true,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrderTrades' => true,
-                'fetchOrders' => true,
                 'fetchOrder' => true,
-                'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => 60,
@@ -71,6 +79,7 @@ class gateio extends Exchange {
                     'get' => array(
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -148,7 +157,6 @@ class gateio extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
@@ -160,10 +168,92 @@ class gateio extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BOX' => 'DefiBox',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'TNC' => 'Trinity Network Credit',
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = $this->publicGetCoininfo ($params);
+        //
+        //     {
+        //         "$result":"true",
+        //         "$coins":array(
+        //             {
+        //                 "CNYX":array(
+        //                     "$delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":0
+        //                 }
+        //             ),
+        //             {
+        //                 "USDT_ETH":{
+        //                     "$delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":1
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $coins = $this->safe_value($response, 'coins');
+        if (!$coins) {
+            throw new ExchangeError($this->id . ' fetchCurrencies got an unrecognized response');
+        }
+        $result = array();
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
+            $ids = is_array($coin) ? array_keys($coin) : array();
+            for ($j = 0; $j < count($ids); $j++) {
+                $id = $ids[$j];
+                $currency = $coin[$id];
+                $code = $this->safe_currency_code($id);
+                $delisted = $this->safe_value($currency, 'delisted', 0);
+                $withdrawDisabled = $this->safe_value($currency, 'withdraw_disabled', 0);
+                $depositDisabled = $this->safe_value($currency, 'deposit_disabled', 0);
+                $tradeDisabled = $this->safe_value($currency, 'trade_disabled', 0);
+                $listed = ($delisted === 0);
+                $withdrawEnabled = ($withdrawDisabled === 0);
+                $depositEnabled = ($depositDisabled === 0);
+                $tradeEnabled = ($tradeDisabled === 0);
+                $active = $listed && $withdrawEnabled && $depositEnabled && $tradeEnabled;
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'active' => $active,
+                    'info' => $currency,
+                    'name' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -213,7 +303,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => 8,
+                'amount' => $this->safe_integer($details, 'amount_decimal_places'),
                 'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
@@ -288,16 +378,16 @@ class gateio extends Exchange {
         return $this->parse_order_book($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         // they return array( Timestamp, Volume, Close, High, Low, Open )
-        return [
-            intval ($ohlcv[0]),   // t
-            floatval ($ohlcv[5]), // o
-            floatval ($ohlcv[3]), // h
-            floatval ($ohlcv[4]), // l
-            floatval ($ohlcv[2]), // c
-            floatval ($ohlcv[1]), // v
-        ];
+        return array(
+            $this->safe_integer($ohlcv, 0), // t
+            $this->safe_float($ohlcv, 5), // o
+            $this->safe_float($ohlcv, 3), // h
+            $this->safe_float($ohlcv, 4), // l
+            $this->safe_float($ohlcv, 2), // c
+            $this->safe_float($ohlcv, 1), // v
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -310,7 +400,7 @@ class gateio extends Exchange {
         // max $limit = 1001
         if ($limit !== null) {
             $periodDurationInSeconds = $this->parse_timeframe($timeframe);
-            $hours = intval (($periodDurationInSeconds * $limit) / 3600);
+            $hours = intval(($periodDurationInSeconds * $limit) / 3600);
             $request['range_hour'] = max (0, $hours - 1);
         }
         $response = $this->publicGetCandlestick2Id (array_merge($request, $params));
@@ -380,22 +470,11 @@ class gateio extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            list($baseId, $quoteId) = explode('_', $id);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $market = null;
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                $market = $this->markets[$symbol];
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-            }
+            $market = $this->safe_market($id, null, '_');
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -481,7 +560,12 @@ class gateio extends Exchange {
         $request = array(
             'id' => $market['id'],
         );
-        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        $method = null;
+        if (is_array($params) && array_key_exists('tid', $params)) {
+            $method = 'publicGetTradeHistoryIdTid';
+        } else {
+            $method = 'publicGetTradeHistoryId';
+        }
         $response = $this->$method (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
@@ -572,14 +656,8 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string_2($order, 'orderNumber', 'id');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -754,29 +832,6 @@ class gateio extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $prefix = ($api === 'private') ? ($api . '/') : '';
-        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else {
-            $this->check_required_credentials();
-            $nonce = $this->nonce();
-            $request = array( 'nonce' => $nonce );
-            $body = $this->urlencode(array_merge($request, $query));
-            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
-            $headers = array(
-                'Key' => $this->apiKey,
-                'Sign' => $signature,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_transactions_by_type($type = null, $code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
@@ -900,5 +955,31 @@ class gateio extends Exchange {
             $feedback = $this->safe_string($this->exceptions['errorCodeNames'], $errorCode, $message);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $prefix = ($api === 'private') ? ($api . '/') : '';
+        $url = $this->urls['api'][$api] . $this->version . '/1/' . $prefix . $this->implode_params($path, $params);
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $nonce = $this->nonce();
+            $request = array( 'nonce' => $nonce );
+            $body = $this->rawencode(array_merge($request, $query));
+            // gateio does not like the plus sign in the URL $query
+            // https://github.com/ccxt/ccxt/issues/4529
+            $body = str_replace('+', ' ', $body);
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512');
+            $headers = array(
+                'Key' => $this->apiKey,
+                'Sign' => $signature,
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

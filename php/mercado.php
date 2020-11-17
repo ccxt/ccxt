@@ -20,15 +20,20 @@ class mercado extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => true,
-                'fetchOrder' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchOHLCV' => true,
-                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -95,6 +100,7 @@ class mercado extends Exchange {
                 'BCH/BRL' => array( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'BCash' ),
                 'XRP/BRL' => array( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ripple' ),
                 'ETH/BRL' => array( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ethereum' ),
+                'USDC/BRL' => array( 'id' => 'BRLUSDC', 'symbol' => 'USDC/BRL', 'base' => 'USDC', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'USDC' ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -192,7 +198,7 @@ class mercado extends Exchange {
         );
         if ($since !== null) {
             $method .= 'From';
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
         if ($to !== null) {
@@ -332,14 +338,8 @@ class mercado extends Exchange {
             $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'coin_pair');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'coin_pair');
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'created_timestamp');
         $fee = array(
             'cost' => $this->safe_float($order, 'fee'),
@@ -360,7 +360,7 @@ class mercado extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $side,
             'price' => $price,
@@ -383,7 +383,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
-            'order_id' => intval ($id),
+            'order_id' => intval($id),
         );
         $response = $this->privatePostGetOrder (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());
@@ -427,7 +427,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'timestamp'),
             $this->safe_float($ohlcv, 'open'),
@@ -446,10 +446,10 @@ class mercado extends Exchange {
             'coin' => strtolower($market['id']),
         );
         if ($limit !== null && $since !== null) {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
         } else if ($since !== null) {
-            $request['from'] = intval ($since / 1000);
+            $request['from'] = intval($since / 1000);
             $request['to'] = $this->sum($this->seconds(), 1);
         } else if ($limit !== null) {
             $request['to'] = $this->seconds();

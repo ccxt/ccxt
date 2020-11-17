@@ -17,22 +17,30 @@ module.exports = class gateio extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': true,
                 'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
-                'fetchMyTrades': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -67,6 +75,7 @@ module.exports = class gateio extends Exchange {
                     'get': [
                         'candlestick2/{id}',
                         'pairs',
+                        'coininfo',
                         'marketinfo',
                         'marketlist',
                         'coininfo',
@@ -144,7 +153,6 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -156,10 +164,92 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'TNC': 'Trinity Network Credit',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCoininfo (params);
+        //
+        //     {
+        //         "result":"true",
+        //         "coins":[
+        //             {
+        //                 "CNYX":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":0
+        //                 }
+        //             },
+        //             {
+        //                 "USDT_ETH":{
+        //                     "delisted":0,
+        //                     "withdraw_disabled":1,
+        //                     "withdraw_delayed":0,
+        //                     "deposit_disabled":0,
+        //                     "trade_disabled":1
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const coins = this.safeValue (response, 'coins');
+        if (!coins) {
+            throw new ExchangeError (this.id + ' fetchCurrencies got an unrecognized response');
+        }
+        const result = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const ids = Object.keys (coin);
+            for (let j = 0; j < ids.length; j++) {
+                const id = ids[j];
+                const currency = coin[id];
+                const code = this.safeCurrencyCode (id);
+                const delisted = this.safeValue (currency, 'delisted', 0);
+                const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', 0);
+                const depositDisabled = this.safeValue (currency, 'deposit_disabled', 0);
+                const tradeDisabled = this.safeValue (currency, 'trade_disabled', 0);
+                const listed = (delisted === 0);
+                const withdrawEnabled = (withdrawDisabled === 0);
+                const depositEnabled = (depositDisabled === 0);
+                const tradeEnabled = (tradeDisabled === 0);
+                const active = listed && withdrawEnabled && depositEnabled && tradeEnabled;
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'active': active,
+                    'info': currency,
+                    'name': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -209,7 +299,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': 8,
+                'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': this.safeInteger (details, 'decimal_places'),
             };
             const amountLimits = {
@@ -284,15 +374,15 @@ module.exports = class gateio extends Exchange {
         return this.parseOrderBook (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
-            parseInt (ohlcv[0]),   // t
-            parseFloat (ohlcv[5]), // o
-            parseFloat (ohlcv[3]), // h
-            parseFloat (ohlcv[4]), // l
-            parseFloat (ohlcv[2]), // c
-            parseFloat (ohlcv[1]), // v
+            this.safeInteger (ohlcv, 0), // t
+            this.safeFloat (ohlcv, 5), // o
+            this.safeFloat (ohlcv, 3), // h
+            this.safeFloat (ohlcv, 4), // l
+            this.safeFloat (ohlcv, 2), // c
+            this.safeFloat (ohlcv, 1), // v
         ];
     }
 
@@ -376,22 +466,11 @@ module.exports = class gateio extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const [ baseId, quoteId ] = id.split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            let market = undefined;
-            if (symbol in this.markets) {
-                market = this.markets[symbol];
-            }
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-            }
+            const market = this.safeMarket (id, undefined, '_');
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -477,7 +556,12 @@ module.exports = class gateio extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        let method = undefined;
+        if ('tid' in params) {
+            method = 'publicGetTradeHistoryIdTid';
+        } else {
+            method = 'publicGetTradeHistoryId';
+        }
         const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -568,14 +652,8 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString2 (order, 'orderNumber', 'id');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'ctime');
         const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -750,29 +828,6 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const prefix = (api === 'private') ? (api + '/') : '';
-        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const request = { 'nonce': nonce };
-            body = this.urlencode (this.extend (request, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
-            headers = {
-                'Key': this.apiKey,
-                'Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -896,5 +951,31 @@ module.exports = class gateio extends Exchange {
             const feedback = this.safeString (this.exceptions['errorCodeNames'], errorCode, message);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const prefix = (api === 'private') ? (api + '/') : '';
+        let url = this.urls['api'][api] + this.version + '/1/' + prefix + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            const request = { 'nonce': nonce };
+            body = this.rawencode (this.extend (request, query));
+            // gateio does not like the plus sign in the URL query
+            // https://github.com/ccxt/ccxt/issues/4529
+            body = body.replace ('+', ' ');
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            headers = {
+                'Key': this.apiKey,
+                'Sign': signature,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };

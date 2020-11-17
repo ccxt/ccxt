@@ -51,7 +51,35 @@ spl_autoload_register(function ($class) {
         require_once $file;
 });
 
-require_once PATH_TO_CCXT_BASE . 'errors.php';
+require_once PATH_TO_CCXT_BASE . 'BaseError.php';
+require_once PATH_TO_CCXT_BASE . 'ExchangeError.php';
+require_once PATH_TO_CCXT_BASE . 'AuthenticationError.php';
+require_once PATH_TO_CCXT_BASE . 'PermissionDenied.php';
+require_once PATH_TO_CCXT_BASE . 'AccountSuspended.php';
+require_once PATH_TO_CCXT_BASE . 'ArgumentsRequired.php';
+require_once PATH_TO_CCXT_BASE . 'BadRequest.php';
+require_once PATH_TO_CCXT_BASE . 'BadSymbol.php';
+require_once PATH_TO_CCXT_BASE . 'BadResponse.php';
+require_once PATH_TO_CCXT_BASE . 'NullResponse.php';
+require_once PATH_TO_CCXT_BASE . 'InsufficientFunds.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidAddress.php';
+require_once PATH_TO_CCXT_BASE . 'AddressPending.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidOrder.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotFound.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotCached.php';
+require_once PATH_TO_CCXT_BASE . 'CancelPending.php';
+require_once PATH_TO_CCXT_BASE . 'OrderImmediatelyFillable.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotFillable.php';
+require_once PATH_TO_CCXT_BASE . 'DuplicateOrderId.php';
+require_once PATH_TO_CCXT_BASE . 'NotSupported.php';
+require_once PATH_TO_CCXT_BASE . 'NetworkError.php';
+require_once PATH_TO_CCXT_BASE . 'DDoSProtection.php';
+require_once PATH_TO_CCXT_BASE . 'RateLimitExceeded.php';
+require_once PATH_TO_CCXT_BASE . 'ExchangeNotAvailable.php';
+require_once PATH_TO_CCXT_BASE . 'OnMaintenance.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidNonce.php';
+require_once PATH_TO_CCXT_BASE . 'RequestTimeout.php';
+
 require_once PATH_TO_CCXT_BASE . 'Exchange.php';
 
 spl_autoload_register (function ($class_name) {

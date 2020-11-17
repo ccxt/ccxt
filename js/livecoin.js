@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, OnMaintenance, BadResponse, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -17,18 +17,25 @@ module.exports = class livecoin extends Exchange {
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelOrder': true,
+                'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'CORS': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchCurrencies': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -100,11 +107,13 @@ module.exports = class livecoin extends Exchange {
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
                 'LEO': 'LeoCoin',
+                'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
                 'ORE': 'Orectic',
                 'PLN': 'Plutaneum', // conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'UNUS': 'LEO', // https://github.com/ccxt/ccxt/issues/7496
                 'WAX': 'WAXP',
                 'wETT': 'WETT',
                 'XBT': 'Bricktox',
@@ -189,6 +198,13 @@ module.exports = class livecoin extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetInfoCoinInfo (params);
+        if (typeof response === 'string') {
+            if (response.indexOf ('site is under maintenance') >= 0) {
+                throw new OnMaintenance (this.id + ' fetchCurrencies() failed to fetch the currencies, the exchange is on maintenance');
+            } else {
+                throw new BadResponse (this.id + ' fetchCurrencies() failed to fetch the currencies');
+            }
+        }
         const currencies = this.safeValue (response, 'info');
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -376,12 +392,12 @@ module.exports = class livecoin extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -439,21 +455,8 @@ module.exports = class livecoin extends Exchange {
                 cost = amount * price;
             }
         }
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         return {
             'id': id,
             'info': trade,
@@ -578,14 +581,8 @@ module.exports = class livecoin extends Exchange {
         // let trades = this.parseTrades (order['trades'], market, since, limit);
         const trades = undefined;
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'currencyPair');
-            marketId = this.safeString (order, 'symbol', marketId);
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString2 (order, 'symbol', 'currencyPair');
+        const symbol = this.safeSymbol (marketId, market, '/');
         let type = this.safeStringLower (order, 'type');
         let side = undefined;
         if (type !== undefined) {
@@ -611,9 +608,11 @@ module.exports = class livecoin extends Exchange {
         if (cost !== undefined && feeRate !== undefined) {
             feeCost = cost * feeRate;
         }
+        if ((market === undefined) && (symbol in this.markets)) {
+            market = this.markets[symbol];
+        }
         let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
         return {

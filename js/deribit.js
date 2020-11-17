@@ -18,28 +18,32 @@ module.exports = class deribit extends Exchange {
             'userAgent': undefined,
             'rateLimit': 500,
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': true,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
                 'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'fetchOrderTrades': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'withdraw': true,
-                'fetchTime': true,
-                'fetchStatus': true,
                 'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -649,13 +653,7 @@ module.exports = class deribit extends Exchange {
         //
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         const marketId = this.safeString (ticker, 'instrument_name');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
         return {
@@ -860,15 +858,8 @@ module.exports = class deribit extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'trade_id');
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument_name');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
         const price = this.safeFloat (trade, 'price');
@@ -1078,21 +1069,7 @@ module.exports = class deribit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
-        let symbol = undefined;
-        let base = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-            base = market['base'];
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-            if (base === undefined) {
-                base = market['base'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (order, 'direction');
         let feeCost = this.safeFloat (order, 'commission');
         let fee = undefined;
@@ -1100,7 +1077,7 @@ module.exports = class deribit extends Exchange {
             feeCost = Math.abs (feeCost);
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': market['base'],
             };
         }
         const type = this.safeString (order, 'order_type');
@@ -1116,7 +1093,7 @@ module.exports = class deribit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
