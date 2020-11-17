@@ -93,7 +93,7 @@ module.exports = class vcc extends Exchange {
                         'orders', // Create new order
                     ],
                     'put': [
-                        'orders/{order_id}/cancel', // Create new order
+                        'orders/{order_id}/cancel', // Cancel order
                     ],
                 },
             },
