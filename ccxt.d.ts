@@ -229,20 +229,6 @@ declare module 'ccxt' {
         };
         options: {
             [key: string]: any;
-            fetchTradesMethod: 'publicGetAggTrades' | string;
-            fetchTickersMethod: 'publicGetTicker24hr' | string;
-            defaultTimeInForce: 'GTC' | string;
-            defaultLimitOrderType: 'limit' | 'market' | string;
-            hasAlreadyAuthenticatedSuccessfully: boolean;
-            warnOnFetchOpenOrdersWithoutSymbol: boolean;
-            recvWindow: number;
-            timeDifference: number;
-            adjustForTimeDifference: boolean;
-            parseOrderToPrecision: boolean;
-            newOrderRespType: {
-                market: 'FULL' | string;
-                limit: 'RESULT' | string;
-            };
         };
         urls: {
             logo: string;
