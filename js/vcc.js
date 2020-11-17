@@ -60,7 +60,6 @@ module.exports = class vcc extends Exchange {
                     'private': 'https://api.vcc.exchange/v3',
                 },
                 'www': 'https://vcc.exchange',
-                'referral': 'https://vcc.exchange?ref=dirfhU',
                 'doc': [
                     'https://vcc.exchange/api/',
                 ],
