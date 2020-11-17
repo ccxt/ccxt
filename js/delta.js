@@ -616,37 +616,91 @@ module.exports = class delta extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "commission":"0.008335000000000000",
+        //         "created_at":"2020-11-16T19:07:19Z",
+        //         "fill_type":"normal",
+        //         "id":"e7ff05c233a74245b72381f8dd91d1ce",
+        //         "meta_data":{
+        //             "effective_commission_rate":"0.0005",
+        //             "order_price":"16249",
+        //             "order_size":1,
+        //             "order_type":"market_order",
+        //             "order_unfilled_size":0,
+        //             "trading_fee_credits_used":"0"
+        //         },
+        //         "order_id":"152999629",
+        //         "price":"16669",
+        //         "product":{
+        //             "contract_type":"perpetual_futures",
+        //             "contract_unit_currency":"BTC",
+        //             "contract_value":"0.001",
+        //             "id":139,
+        //             "notional_type":"vanilla",
+        //             "quoting_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //             "settling_asset":{"minimum_precision":2,"precision":6,"symbol":"USDT"},
+        //             "symbol":"BTCUSDT",
+        //             "tick_size":"0.5",
+        //             "underlying_asset":{"minimum_precision":4,"precision":8,"symbol":"BTC"}
+        //         },
+        //         "product_id":139,
+        //         "role":"taker",
+        //         "side":"sell",
+        //         "size":1
+        //     }
         //
-        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001);
+        const id = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'order_id');
+        let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
         let cost = undefined;
         if ((amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
         }
-        const marketId = this.safeString (trade, 'symbol');
+        const product = this.safeValue (trade, 'product', {});
+        const marketId = this.safeString (product, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const sellerRole = this.safeString (trade, 'seller_role');
-        let side = undefined;
-        if (sellerRole === 'taker') {
-            side = 'sell';
-        } else if (sellerRole === 'maker') {
-            side = 'buy';
+        let side = this.safeString (trade, 'side');
+        if (side === undefined) {
+            if (sellerRole === 'taker') {
+                side = 'sell';
+            } else if (sellerRole === 'maker') {
+                side = 'buy';
+            }
+        }
+        const takerOrMaker = this.safeString (trade, 'role');
+        const metaData = this.safeValue (trade, 'meta_data', {});
+        let type = this.safeString (metaData, 'order_type');
+        if (type !== undefined) {
+            type = type.replace ('_order', '');
+        }
+        const feeCost = this.safeFloat (trade, 'commission');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const settlingAsset = this.safeValue (product, 'settling_asset', {});
+            const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
         }
         return {
-            'id': undefined,
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': undefined,
-            'fee': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
             'info': trade,
         };
     }
