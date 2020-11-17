@@ -916,7 +916,6 @@ module.exports = class delta extends Exchange {
         //         "user_id":22142
         //     }
         //
-
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
@@ -943,8 +942,12 @@ module.exports = class delta extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (order, 'paid_commission');
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (order, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                const settlingAsset = this.safeValue (market['info'], 'settling_asset', {});
+                const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
+                feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -982,12 +985,18 @@ module.exports = class delta extends Exchange {
             'size': this.amountToPrecision (symbol, amount),
             'side': side,
             'order_type': orderType,
+            // 'client_order_id': 'string',
             // 'time_in_force': 'gtc', // gtc, ioc, fok
             // 'post_only': 'false', // 'true',
             // 'reduce_only': 'false', // 'true',
         };
         if (type === 'limit') {
             request['limit_price'] = this.priceToPrecision (symbol, price);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
