@@ -1611,6 +1611,43 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetPosition (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 404,
+        //         "result": {
+        //             "average_price": 0,
+        //             "delta": 0,
+        //             "direction": "buy",
+        //             "estimated_liquidation_price": 0,
+        //             "floating_profit_loss": 0,
+        //             "index_price": 3555.86,
+        //             "initial_margin": 0,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "leverage": 100,
+        //             "kind": "future",
+        //             "maintenance_margin": 0,
+        //             "mark_price": 3556.62,
+        //             "open_orders_margin": 0.000165889,
+        //             "realized_profit_loss": 0,
+        //             "settlement_price": 3555.44,
+        //             "size": 0,
+        //             "size_currency": 0,
+        //             "total_profit_loss": 0
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return result;
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
