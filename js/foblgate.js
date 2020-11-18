@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, BadRequest, InvalidOrder } = require ('./base/errors');
+const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -59,6 +60,7 @@ module.exports = class foblgate extends Exchange {
             'requiredCredentials': {
                 'uid': true,
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
                 '400': BadRequest,
                 '401': AuthenticationError,
@@ -66,6 +68,10 @@ module.exports = class foblgate extends Exchange {
                 '500': ExchangeError,
             },
         });
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarkets (params = {}) {
