@@ -1075,6 +1075,10 @@ module.exports = class decoin extends Exchange {
             // parameters required to request, in LimitOrder rate is mendatory
             // create string by concating all the required values in gives sequence
             url = url.replace ('%20', ' ');
+            const keys = Object.keys (params);
+            for (let i = 0; i < keys.length; i++) {
+                params[keys[i]] = params[keys[i]].toString ();
+            }
             const signatureString = this.apiKey + this.urls['api'][api] + url + method + this.json (params) + time.toString () + exp_time.toString ();
             // Remember: signature should be in HmacSHA256
             const signature = this.hmac (this.encode (signatureString), this.encode (this.secret));
