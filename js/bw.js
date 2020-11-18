@@ -760,6 +760,7 @@ module.exports = class bw extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,
