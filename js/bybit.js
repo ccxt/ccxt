@@ -967,6 +967,16 @@ module.exports = class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+            'PostOnly': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1115,6 +1125,7 @@ module.exports = class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         return {
             'info': order,
             'id': id,
@@ -1124,6 +1135,7 @@ module.exports = class bybit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
