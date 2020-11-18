@@ -992,6 +992,15 @@ class bittrex(Exchange):
         quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_TIL_CANCELLED': 'GTC',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -1049,6 +1058,7 @@ class bittrex(Exchange):
         status = self.safe_string_lower(order, 'status')
         if (status == 'closed') and (remaining is not None) and (remaining > 0):
             status = 'canceled'
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -1057,6 +1067,7 @@ class bittrex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
             'cost': proceeds,
