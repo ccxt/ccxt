@@ -774,6 +774,7 @@ class eterbase(Exchange):
         if cost is not None:
             if filled:
                 average = cost / filled
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'info': order,
             'id': id,
@@ -784,6 +785,7 @@ class eterbase(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'timeInForce': timeInForce,
             'price': price,
             'amount': amount,
             'cost': cost,
