@@ -367,6 +367,7 @@ class bitbay(Exchange):
             'status': None,
             'symbol': symbol,
             'type': self.safe_string(order, 'mode'),
+            'timeInForce': None,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_float(order, 'rate'),
             'amount': amount,

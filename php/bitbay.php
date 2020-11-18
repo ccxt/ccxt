@@ -363,6 +363,7 @@ class bitbay extends Exchange {
             'status' => null,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'mode'),
+            'timeInForce' => null,
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_float($order, 'rate'),
             'amount' => $amount,
