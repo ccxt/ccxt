@@ -914,6 +914,7 @@ module.exports = class probit extends Exchange {
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
+        const timeInForce = this.safeStringUpper (order, 'time_in_force');
         return {
             'id': id,
             'info': order,
@@ -923,6 +924,7 @@ module.exports = class probit extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'status': status,
             'price': price,
