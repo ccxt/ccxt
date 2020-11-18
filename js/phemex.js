@@ -1516,7 +1516,7 @@ module.exports = class phemex extends Exchange {
     parseTimeInForce (timeInForce) {
         const timeInForces = {
             'GoodTillCancel': 'GTC',
-            'PostOnly': 'PostOnly',
+            'PostOnly': 'PO',
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
         };
