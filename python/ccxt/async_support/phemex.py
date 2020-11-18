@@ -1472,7 +1472,7 @@ class phemex(Exchange):
     def parse_time_in_force(self, timeInForce):
         timeInForces = {
             'GoodTillCancel': 'GTC',
-            'PostOnly': 'PostOnly',
+            'PostOnly': 'PO',
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
         }

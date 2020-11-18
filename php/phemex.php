@@ -1520,7 +1520,7 @@ class phemex extends Exchange {
     public function parse_time_in_force($timeInForce) {
         $timeInForces = array(
             'GoodTillCancel' => 'GTC',
-            'PostOnly' => 'PostOnly',
+            'PostOnly' => 'PO',
             'ImmediateOrCancel' => 'IOC',
             'FillOrKill' => 'FOK',
         );

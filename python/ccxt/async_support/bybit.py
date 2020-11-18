@@ -940,6 +940,15 @@ class bybit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+            'PostOnly': 'PO',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1076,6 +1085,7 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(order, 'order_link_id')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         return {
             'info': order,
             'id': id,
@@ -1085,6 +1095,7 @@ class bybit(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

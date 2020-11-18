@@ -1001,6 +1001,14 @@ class deribit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1064,6 +1072,7 @@ class deribit(Exchange):
         trades = self.safe_value(order, 'trades')
         if trades is not None:
             trades = self.parse_trades(trades, market)
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         return {
             'info': order,
             'id': id,
@@ -1073,6 +1082,7 @@ class deribit(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

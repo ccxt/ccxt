@@ -969,6 +969,16 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GoodTillCancel' => 'GTC',
+            'ImmediateOrCancel' => 'IOC',
+            'FillOrKill' => 'FOK',
+            'PostOnly' => 'PO',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // createOrder
@@ -1117,6 +1127,7 @@ class bybit extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null;
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1126,6 +1137,7 @@ class bybit extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

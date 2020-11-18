@@ -1812,7 +1812,7 @@ class hbtc extends Exchange {
         //         "origQty":"1000",
         //         "executedQty":"0",
         //         "$status":"NEW",
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "$type":"MARKET",
         //         "$side":"BUY"
         //     }
@@ -1832,7 +1832,7 @@ class hbtc extends Exchange {
         //         "cummulativeQuoteQty":"682.606",
         //         "avgPrice":"6826.06",
         //         "$status":"FILLED",
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "$type":"MARKET",
         //         "$side":"SELL",
         //         "stopPrice":"0.0",
@@ -1859,7 +1859,7 @@ class hbtc extends Exchange {
         //         orderType => "LIMIT",
         //         $side => "SELL_OPEN",
         //         $fees => array(),
-        //         timeInForce => "GTC",
+        //         $timeInForce => "GTC",
         //         $status => "CANCELED",
         //         priceType => "INPUT"
         //     }
@@ -1909,6 +1909,7 @@ class hbtc extends Exchange {
             $average = null;
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         $result = array(
             'info' => $order,
             'id' => $id,
@@ -1918,6 +1919,7 @@ class hbtc extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'average' => $average,
