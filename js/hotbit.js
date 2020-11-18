@@ -60,15 +60,15 @@ module.exports = class hotbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-    // {
-    //     "name": "QASHBTC",
-    //     "stock": "QASH",
-    //     "money": "BTC",
-    //     "fee_prec": 4,  #the precision of the rate of transaction fee is 4 digits after decimal point
-    //     "stock_prec": 2, #stock precision
-    //     "money_prec": 8, #money precision
-    //     "min_amount": "0.1" #Minimum value of order placement
-    // },
+        // {
+        //     "name": "QASHBTC",
+        //     "stock": "QASH",
+        //     "money": "BTC",
+        //     "fee_prec": 4,  #the precision of the rate of transaction fee is 4 digits after decimal point
+        //     "stock_prec": 2, #stock precision
+        //     "money_prec": 8, #money precision
+        //     "min_amount": "0.1" #Minimum value of order placement
+        // },
         const response = await this.publicGetMarketList (params);
         const result = [];
         for (let i = 0; i < response['result'].length; i++) {

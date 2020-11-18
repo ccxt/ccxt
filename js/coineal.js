@@ -63,13 +63,13 @@ module.exports = class coineal extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-    // {
-    //     "symbol": "btcusdt",
-    //     "count_coin": "usdt",
-    //     "amount_precision": 5,
-    //     "base_coin": "btc",
-    //     "price_precision": 2
-    // },
+        // {
+        //     "symbol": "btcusdt",
+        //     "count_coin": "usdt",
+        //     "amount_precision": 5,
+        //     "base_coin": "btc",
+        //     "price_precision": 2
+        // },
         const response = await this.publicGetCommonSymbols (params);
         const result = [];
         for (let i = 0; i < response['data'].length; i++) {
@@ -157,7 +157,6 @@ module.exports = class coineal extends Exchange {
             request['since'] = parseInt (since / 1000);
         }
         const response = await this.publicGetGetRecords (request);
-        const { data } = response;
         // 'code': '0',
         // 'msg': 'suc',
         // 'data': [
@@ -170,7 +169,7 @@ module.exports = class coineal extends Exchange {
         //                 0.0       //Transaction Volume
         //             ]
         //         ]
-        return this.parseOHLCVs (data, undefined, timeframe, since, limit);
+        return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

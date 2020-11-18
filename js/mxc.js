@@ -223,7 +223,7 @@ module.exports = class mxc extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-    // they return [ Timestamp, Volume, Close, High, Low, Open ]
+        // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
             parseInt (ohlcv[0]),   // t
             parseFloat (ohlcv[1]), // o
@@ -433,8 +433,8 @@ module.exports = class mxc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-    // Different API endpoints returns order info in different format...
-    // with different fields filled.
+        // Different API endpoints returns order info in different format...
+        // with different fields filled.
         let id = this.safeString (order, 'id');
         if (id === undefined) {
             id = this.safeString (order, 'data');

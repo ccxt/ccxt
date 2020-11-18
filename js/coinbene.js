@@ -63,18 +63,18 @@ module.exports = class coinbene extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-    // {
-    //     "symbol": "ABBC/BTC",
-    //     "baseAsset": "ABBC",
-    //     "quoteAsset": "BTC",
-    //     "pricePrecision": "8",
-    //     "amountPrecision": "2",
-    //     "takerFeeRate": "0.001",
-    //     "makerFeeRate": "0.001",
-    //     "minAmount": "50",
-    //     "priceFluctuation": "0.20",
-    //     "site": "MAIN"
-    // },
+        // {
+        //     "symbol": "ABBC/BTC",
+        //     "baseAsset": "ABBC",
+        //     "quoteAsset": "BTC",
+        //     "pricePrecision": "8",
+        //     "amountPrecision": "2",
+        //     "takerFeeRate": "0.001",
+        //     "makerFeeRate": "0.001",
+        //     "minAmount": "50",
+        //     "priceFluctuation": "0.20",
+        //     "site": "MAIN"
+        // },
         const response = await this.publicGetMarketTradePairList (params);
         const result = [];
         for (let i = 0; i < response['data'].length; i++) {
@@ -131,7 +131,6 @@ module.exports = class coinbene extends Exchange {
             request['since'] = parseInt (since / 1000);
         }
         const response = await this.publicGetMarketInstrumentsCandles (request);
-        const { data } = response;
         // Description of the returned array format:
         //     [
         //     timestamp start time
@@ -141,7 +140,7 @@ module.exports = class coinbene extends Exchange {
         //     close closing price
         //     volume
         //     ]
-        return this.parseOHLCVs (data, undefined, timeframe, since, limit);
+        return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
     }
 
     async fetchTicker (symbol, params = {}) {

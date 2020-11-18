@@ -61,13 +61,13 @@ module.exports = class wbf extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-    // {
-    //     "symbol": "ethbtc",
-    //     "count_coin": "btc",
-    //     "amount_precision": 3,
-    //     "base_coin": "eth",
-    //     "price_precision": 8
-    //     },
+        // {
+        //     "symbol": "ethbtc",
+        //     "count_coin": "btc",
+        //     "amount_precision": 3,
+        //     "base_coin": "eth",
+        //     "price_precision": 8
+        //     },
         const response = await this.publicGetCommonSymbols (params);
         const result = [];
         for (let i = 0; i < response['data'].length; i++) {
@@ -123,29 +123,20 @@ module.exports = class wbf extends Exchange {
             request['since'] = parseInt (since / 1000);
         }
         const response = await this.publicGetGetRecords (request);
-        const { data } = response;
-        // [
-        //     1595727000,  //Time，second
-        //     9674.4758,   //Open
-        //     9675.8867,   //High
-        //     9652.9081,   //Low
-        //     9654.2835,   //Close
-        //     369.67841    //Amount
-        // ],
-        return this.parseOHLCVs (data, undefined, timeframe, since, limit);
+        return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
     }
 
     async fetchTicker (symbol, params = {}) {
-    // {
-    //     "high": 1,//Maximum value
-    //     "vol": 10232.26315789,//Trading volume
-    //     "last": 173.60263169,//Latest Transaction Price
-    //     "low": 0.01,//Minimum value
-    //     "buy": "0.01000000",//Buy one price
-    //     "sell": "1.12345680",//Selling price
-    //     "rose": -0.44564773,//Ups and downs
-    //     "time": 1514448473626
-    // }
+        // {
+        //     "high": 1,//Maximum value
+        //     "vol": 10232.26315789,//Trading volume
+        //     "last": 173.60263169,//Latest Transaction Price
+        //     "low": 0.01,//Minimum value
+        //     "buy": "0.01000000",//Buy one price
+        //     "sell": "1.12345680",//Selling price
+        //     "rose": -0.44564773,//Ups and downs
+        //     "time": 1514448473626
+        // }
         await this.loadMarkets ();
         const timestamp = this.milliseconds ();
         const market = this.market (symbol);
