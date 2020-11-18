@@ -980,11 +980,13 @@ class kucoin(Exchange):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
         clientOrderId = self.safe_string(order, 'clientOid')
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'amount': amount,
             'price': price,
