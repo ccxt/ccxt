@@ -922,6 +922,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,
