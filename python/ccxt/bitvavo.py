@@ -1133,6 +1133,7 @@ class bitvavo(Exchange):
             if numTrades > 0:
                 lastTrade = self.safe_value(trades, numTrades - 1)
                 lastTradeTimestamp = lastTrade['timestamp']
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'info': order,
             'id': id,
@@ -1142,6 +1143,7 @@ class bitvavo(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
