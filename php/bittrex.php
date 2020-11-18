@@ -1031,6 +1031,16 @@ class bittrex extends Exchange {
         return $base . '/' . $quote;
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GOOD_TIL_CANCELLED' => 'GTC',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED' => 'POST_ONLY_GOOD_TIL_CANCELLED',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
     public function parse_order($order, $market = null) {
         //
         //     {
@@ -1040,7 +1050,7 @@ class bittrex extends Exchange {
         //         $type => 'LIMIT',
         //         $quantity => '0.50000000',
         //         $limit => '0.17846699',
-        //         timeInForce => 'GOOD_TIL_CANCELLED',
+        //         $timeInForce => 'GOOD_TIL_CANCELLED',
         //         $fillQuantity => '0.50000000',
         //         $commission => '0.00022286',
         //         $proceeds => '0.08914915',
@@ -1095,6 +1105,7 @@ class bittrex extends Exchange {
         if (($status === 'closed') && ($remaining !== null) && ($remaining > 0)) {
             $status = 'canceled';
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         return array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -1103,6 +1114,7 @@ class bittrex extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $direction,
             'price' => $limit,
             'cost' => $proceeds,

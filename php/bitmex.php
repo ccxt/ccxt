@@ -1213,13 +1213,13 @@ class bitmex extends Exchange {
     }
 
     public function parse_time_in_force($timeInForce) {
-        $mapping = array(
+        $timeInForces = array(
             'Day' => 'Day',
             'GoodTillCancel' => 'GTC',
             'ImmediateOrCancel' => 'IOC',
             'FillOrKill' => 'FOK',
         );
-        return $this->safe_string($mapping, $timeInForce, $timeInForce);
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function parse_order($order, $market = null) {
