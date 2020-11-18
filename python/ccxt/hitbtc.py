@@ -828,6 +828,7 @@ class hitbtc(Exchange):
                     'cost': feeCost,
                     'currency': market['quote'],
                 }
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'id': id,
             'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
@@ -837,6 +838,7 @@ class hitbtc(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'average': average,
