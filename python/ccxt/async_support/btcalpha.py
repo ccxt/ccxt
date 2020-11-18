@@ -325,6 +325,7 @@ class btcalpha(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': None,
