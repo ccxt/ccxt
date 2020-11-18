@@ -347,6 +347,7 @@ class acx extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
             'amount' => $this->safe_float($order, 'volume'),
