@@ -22,6 +22,8 @@ def test_order(exchange, order, symbol, now):
     assert order
     assert 'id' in order
     assert isinstance(order['id'], basestring)
+    assert 'clientOrderId' in order
+    assert(order['clientOrderId'] is None) or (isinstance(order['clientOrderId'], basestring))
     assert 'timestamp' in order
     assert isinstance(order['timestamp'], numbers.Real)
     assert order['timestamp'] > 1230940800000  # 03 Jan 2009 - first block
