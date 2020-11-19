@@ -81,32 +81,44 @@ class bybit extends Exchange {
                         'tickers',
                         'trading-records',
                         'symbols',
+                        'liq-records',
+                        'mark-price-kline',
+                        'open-interest',
+                        'big-deal',
+                        'account-ratio',
                         'time',
                         'announcement',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        'order/list',
                         'order',
+                        'stop-order/list',
                         'stop-order',
                         'position/list',
                         'wallet/balance',
                         'execution/list',
                         'trade/closed-pnl/list',
+                        'account/lcp',
+                        'exchange-order/list',
                     ),
                     'post' => array(
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
+                        'stop-order/create',
+                        'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                     ),
                 ),
                 'openapi' => array(
                     'get' => array(
-                        'order/list',
-                        'stop-order/list',
+                        'order/list', // deprecated
+                        'stop-order/list', // deprecated
                         'wallet/risk-limit/list',
-                        'wallet/risk-limit',
                         'funding/prev-funding-rate',
                         'funding/prev-funding',
                         'funding/predicted-funding',
@@ -115,11 +127,12 @@ class bybit extends Exchange {
                         'wallet/withdraw/list',
                     ),
                     'post' => array(
-                        'order/replace',
-                        'stop-order/create',
-                        'stop-order/cancel',
-                        'stop-order/replace',
+                        'order/replace', // deprecated
+                        'stop-order/create', // deprecated
+                        'stop-order/cancel', // deprecated
+                        'stop-order/replace', // deprecated
                         'position/trading-stop',
+                        'wallet/risk-limit',
                     ),
                 ),
                 'publicLinear' => array(
@@ -128,6 +141,7 @@ class bybit extends Exchange {
                         'recent-trading-records',
                         'funding/prev-funding-rate',
                         'mark-price-kline',
+                        'risk-limit',
                     ),
                 ),
                 'privateLinear' => array(
@@ -139,7 +153,6 @@ class bybit extends Exchange {
                         'position/list',
                         'trade/execution/list',
                         'trade/closed-pnl/list',
-                        'risk-limit',
                         'funding/prev-funding',
                         'funding/predicted-funding',
                     ),
@@ -154,6 +167,7 @@ class bybit extends Exchange {
                         'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
+                        'tpsl/switch-mode',
                         'position/set-leverage',
                         'position/trading-stop',
                         'position/add-margin',
@@ -166,7 +180,7 @@ class bybit extends Exchange {
                 ),
                 'user' => array(
                     'get' => array(
-                        'leverage',
+                        'leverage', // deprecated
                     ),
                     'post' => array(
                         'leverage/save',
