@@ -112,54 +112,54 @@ module.exports = class vcc extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
-        //     [
-        // {
-        //     "id": "btcvnd",
-        //     "symbol": "BTC/VND",
-        //     "coin": "btc",   // base
-        //     "currency": "vnd", // quote
-        //     "baseId": 1,
-        //     "quoteId": 0,
-        //     "active": true,
-        //     "base_precision": "0.0000010000",
-        //     "quote_precision": "1.0000000000",
-        //     "minimum_quantity": "0.0000010000",
-        //     "minimum_amount": "250000.0000000000",
-        //     "precision": {
-        //       "price": 0,
-        //       "amount": 6,
-        //       "cost": 6
-        //     },
-        //     "limits": {
-        //       "amount": {
-        //         "min": "0.0000010000"
-        //       },
-        //       "price": {
-        //         "min": "1.0000000000"
-        //       },
-        //       "cost": {
-        //         "min": "250000.0000000000"
-        //       }
-        //     }
-        //   }
-        //     ]
         //
-        const result = [];
+        //     {
+        //         "message":null,
+        //         "dataVersion":"4677e56a42f0c29872f3a6e75f5d39d2f07c748c",
+        //         "data":{
+        //             "timezone":"UTC",
+        //             "serverTime":1605821914333,
+        //             "symbols":[
+        //                 {
+        //                     "id":"btcvnd",
+        //                     "symbol":"BTC\/VND",
+        //                     "coin":"btc",
+        //                     "currency":"vnd",
+        //                     "baseId":1,
+        //                     "quoteId":0,
+        //                     "active":true,
+        //                     "base_precision":"0.0000010000",
+        //                     "quote_precision":"1.0000000000",
+        //                     "minimum_quantity":"0.0000010000",
+        //                     "minimum_amount":"250000.0000000000",
+        //                     "precision":{"price":0,"amount":6,"cost":6},
+        //                     "limits":{
+        //                         "amount":{"min":"0.0000010000"},
+        //                         "price":{"min":"1.0000000000"},
+        //                         "cost":{"min":"250000.0000000000"},
+        //                     },
+        //                 },
+        //             ],
+        //         },
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        const symbols = this.safeValue (data, 'symbols');
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.safeValue (symbols, i);
+        const markets = this.safeValue (data, 'symbols');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = this.safeValue (markets, i);
             const id = this.safeString (market, 'id');
             const symbol = this.safeString (market, 'symbol');
             const base = this.safeStringUpper (market, 'coin');
             const quote = this.safeStringUpper (market, 'currency');
             const baseId = this.safeString (market, 'baseId');
             const quoteId = this.safeString (market, 'quoteId');
-            const active = market['active'];
-            const precision = {
-                'price': this.safeFloat (market['precision'], 'price'),
-                'amount': this.safeFloat (market['precision'], 'amount'),
-            };
+            const active = this.safeValue (market, 'active');
+            const precision = this.safeValue (response, 'precision', {});
+            const limits = this.safeValue (market, 'limits', {});
+            const amountLimits = this.safeValue (limits, 'amount', {});
+            const priceLimits = this.safeValue (limits, 'price', {});
+            const costLimits = this.safeValue (limits, 'cost', {});
             const entry = {
                 'info': market,
                 'id': id,
@@ -169,18 +169,22 @@ module.exports = class vcc extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'precision': precision,
+                'precision': {
+                    'price': this.safeInteger (precision, 'price'),
+                    'amount': this.safeInteger (precision, 'amount'),
+                    'cost': this.safeInteger (precision, 'cost'),
+                },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market['limits']['amount'], 'min'),
+                        'min': this.safeFloat (amountLimits, 'min'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market['limits']['price'], 'min'),
+                        'min': this.safeFloat (priceLimits, 'min'),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (market['limits']['cost'], 'min'),
+                        'min': this.safeFloat (costLimits, 'min'),
                         'max': undefined,
                     },
                 },
