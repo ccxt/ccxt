@@ -663,13 +663,14 @@ class aax(Exchange):
             # == Required according to ordeType ==
             # price : string  # limit price in limit and stop-limit orders
             # stopPrice : string  # Trigger price for stop-limit order and stop order
-            # ==Optional ==
+            # == Optional ==
             # clOrdID : string
             # timeInForce :string  # GTC/IOC/FOK，default is GTC
             'orderType': type,
             'symbol': market['id'],
             'orderQty': self.amount_to_precision(symbol, amount),
             'side': side.upper(),
+            'clOrdID': 'quadency',
         }
         if (type == 'LIMIT') or (type == 'STOP-LIMIT'):
             if price is None:

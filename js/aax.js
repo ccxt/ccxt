@@ -704,13 +704,14 @@ module.exports = class aax extends Exchange {
             // === Required according to ordeType ===
             // price : string // limit price in limit and stop-limit orders
             // stopPrice : string // Trigger price for stop-limit order and stop order
-            // ===Optional ===
+            // === Optional ===
             // clOrdID : string
             // timeInForce :string // GTC/IOC/FOK，default is GTC
             'orderType': type,
             'symbol': market['id'],
             'orderQty': this.amountToPrecision (symbol, amount),
             'side': side.toUpperCase (),
+            'clOrdID': 'quadency',
         };
         if ((type === 'LIMIT') || (type === 'STOP-LIMIT')) {
             if (price === undefined) {
