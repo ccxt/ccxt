@@ -868,6 +868,7 @@ class liquid extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
+            'timeInForce' => null,
             'status' => $status,
             'symbol' => $symbol,
             'side' => $side,
