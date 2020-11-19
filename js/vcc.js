@@ -789,24 +789,20 @@ module.exports = class vcc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.version + '/';
+        let url = this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            url += this.implodeParams (path, params);
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else if (Object.keys (query).length) {
-                body = this.json (query);
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
+            if (method !== 'GET') {
+                body = this.json (query);
             }
             const auth = method + ' ' + url;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
