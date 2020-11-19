@@ -150,10 +150,10 @@ module.exports = class vcc extends Exchange {
             const market = this.safeValue (markets, i);
             const id = this.safeString (market, 'id');
             const symbol = this.safeString (market, 'symbol');
-            const base = this.safeStringUpper (market, 'coin');
-            const quote = this.safeStringUpper (market, 'currency');
-            const baseId = this.safeString (market, 'baseId');
-            const quoteId = this.safeString (market, 'quoteId');
+            const baseId = this.safeString (market, 'coin');
+            const quoteId = this.safeString (market, 'currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const active = this.safeValue (market, 'active');
             const precision = this.safeValue (response, 'precision', {});
             const limits = this.safeValue (market, 'limits', {});
@@ -196,36 +196,47 @@ module.exports = class vcc extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
-        // {
-        //     "BTC":{
-        //         "name":"Bitcoin",
-        //         "unified_cryptoasset_id":1,
-        //         "can_withdraw":true,
-        //         "can_deposit":true,
-        //         "min_withdraw":"0.0020000000",
-        //         "max_withdraw":"100.0000000000",
-        //         "maker_fee":"0.002",
-        //         "taker_fee":"0.002"
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"2514c8012d94ea375018fc13e0b5d4d896e435df",
+        //         "data":{
+        //             "BTC":{
+        //                 "name":"Bitcoin",
+        //                 "unified_cryptoasset_id":1,
+        //                 "can_withdraw":1,
+        //                 "can_deposit":1,
+        //                 "min_withdraw":"0.0011250000",
+        //                 "max_withdraw":"100.0000000000",
+        //                 "maker_fee":"0.002",
+        //                 "taker_fee":"0.002",
+        //                 "decimal":8,
+        //                 "withdrawal_fee":"0.0006250000",
+        //             },
+        //         },
         //     }
-        // }
+        //
         const result = {};
         const data = this.safeValue (response, 'data');
         const ids = Object.keys (data);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const entryValue = this.safeValue (data, id);
+            const currency = this.safeValue (data, id);
             const code = this.safeCurrencyCode (id);
+            const canDeposit = this.safeValue (currency, 'can_deposit');
+            const canWithdraw = this.safeValue (currency, 'can_withdraw');
+            const active = (canDeposit && canWithdraw);
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': this.safeString (entryValue, 'name'),
-                'active': this.safeValue (entryValue, 'can_withdraw'),
-                'fee': this.safeFloat (entryValue, 'withdrawal_fee'),
-                'precision': this.safeInteger (entryValue, 'decimal'),
+                'name': this.safeString (currency, 'name'),
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': this.safeInteger (currency, 'decimal'),
                 'limits': {
                     'withdraw': {
-                        'min': this.safeFloat (entryValue, 'min_withdraw'),
-                        'max': this.safeFloat (entryValue, 'max_withdraw'),
+                        'min': this.safeFloat (currency, 'min_withdraw'),
+                        'max': this.safeFloat (currency, 'max_withdraw'),
                     },
                 },
             };
