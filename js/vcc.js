@@ -147,8 +147,8 @@ module.exports = class vcc extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeValue (markets, i);
-            const id = this.safeString (market, 'id');
             const symbol = this.safeString (market, 'symbol');
+            const id = symbol.replace ('/', '_');
             const baseId = this.safeString (market, 'coin');
             const quoteId = this.safeString (market, 'currency');
             const base = this.safeCurrencyCode (baseId);
@@ -385,24 +385,34 @@ module.exports = class vcc extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
-        // {
-        // "ETH_BTC":{
-        //     "base_id":1027,
-        //     "quote_id":1,
-        //     "last_price":"0.0218771300",
-        //     "base_volume":"4042.2638948900",
-        //     "quote_volume":"87.9219942331",
-        //     "isFrozen":0
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
+        //         "data":{
+        //             "BTC_VND":{
+        //                 "base_id":1,
+        //                 "quote_id":0,
+        //                 "last_price":"411119457",
+        //                 "max_price":"419893173.0000000000",
+        //                 "min_price":"401292577.0000000000",
+        //                 "open_price":null,
+        //                 "base_volume":"10.5915050000",
+        //                 "quote_volume":"4367495977.4484430060",
+        //                 "isFrozen":0
+        //             },
+        //         }
         //     }
-        // }
+        //
         const result = {};
         const data = this.safeValue (response, 'data');
-        const symbolList = Object.keys (data);
-        for (let i = 0; i < symbolList.length; i++) {
-            const symbol = symbolList[i];
-            const ticker = this.safeValue (data, symbol);
-            result[symbol] = this.parseTicker (ticker, symbol);
+        const marketIds = Object.keys (data);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            result[symbol] = this.parseTicker (data[marketId], symbol);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
