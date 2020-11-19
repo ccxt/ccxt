@@ -12,9 +12,9 @@ module.exports = class vcc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vcc',
             'name': 'VCC Exchange',
-            'countries': [ 'VN' ],
+            'countries': [ 'VN' ], // Vietnam
             'rateLimit': 1000,
-            'version': '1',
+            'version': 'v3',
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -56,30 +56,31 @@ module.exports = class vcc extends Exchange {
             'urls': {
                 'logo': 'https://vcc.exchange/images/home-page/branding/logo-header.svg',
                 'api': {
-                    'public': 'https://api.vcc.exchange/v3',
-                    'private': 'https://api.vcc.exchange/v3',
+                    'public': 'https://api.vcc.exchange',
+                    'private': 'https://api.vcc.exchange',
                 },
                 'www': 'https://vcc.exchange',
                 'doc': [
-                    'https://vcc.exchange/api/',
+                    'https://vcc.exchange/api',
                 ],
-                'fees': [
-                    'https://support.vcc.exchange/hc/en-us/articles/360016401754',
-                ],
+                'fees': 'https://support.vcc.exchange/hc/en-us/articles/360016401754',
             },
             'api': {
                 'public': {
                     'get': [
+                        'summary',
                         'exchange_info',
                         'assets', // Available Currencies
                         'ticker', // Ticker list for all symbols
                         'trades/{market_pair}', // Recent trades
                         'orderbook/{market_pair}', // Orderbook
                         'chart/bars', // Candles
+                        'tick_sizes',
                     ],
                 },
                 'private': {
                     'get': [
+                        'user',
                         'balance', // Get trading balance
                         'orders/{order_id}', // Get a single order by order_id
                         'orders/open', // Get open orders
@@ -93,6 +94,8 @@ module.exports = class vcc extends Exchange {
                     ],
                     'put': [
                         'orders/{order_id}/cancel', // Cancel order
+                        'orders/cancel-by-type',
+                        'orders/cancel-all',
                     ],
                 },
             },
@@ -104,7 +107,6 @@ module.exports = class vcc extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
-            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -787,7 +789,7 @@ module.exports = class vcc extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/';
+        let url = this.version + '/';
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += this.implodeParams (path, params);
@@ -796,6 +798,7 @@ module.exports = class vcc extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();
             url += this.implodeParams (path, params);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
@@ -805,16 +808,16 @@ module.exports = class vcc extends Exchange {
                 body = this.json (query);
                 url += '?' + this.urlencode (query);
             }
-            const auth = method + ' v3' + url;
+            const auth = method + ' ' + url;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'Authorization': 'Bearer ' + this.apiKey,
                 'Content-Type': 'application/json',
-                'timestamp': this.milliseconds (),
+                'timestamp': timestamp,
                 'signature': signature,
             };
         }
-        url = this.urls['api'][api] + url;
+        url = this.urls['api'][api] + '/' + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
