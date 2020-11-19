@@ -791,16 +791,12 @@ module.exports = class vcc extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
+        if (Object.keys (query).length) {
+            url += '?' + this.urlencode (query);
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
             if (method !== 'GET') {
                 body = this.json (query);
             }
