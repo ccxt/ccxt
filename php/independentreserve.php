@@ -288,6 +288,7 @@ class independentreserve extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

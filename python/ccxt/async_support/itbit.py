@@ -500,6 +500,7 @@ class itbit(Exchange):
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,
