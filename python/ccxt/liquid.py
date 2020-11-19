@@ -821,6 +821,7 @@ class liquid(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': None,
             'status': status,
             'symbol': symbol,
             'side': side,
