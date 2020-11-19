@@ -1024,6 +1024,16 @@ module.exports = class bittrex extends Exchange {
         return base + '/' + quote;
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GOOD_TIL_CANCELLED': 'GTC',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -1088,6 +1098,7 @@ module.exports = class bittrex extends Exchange {
         if ((status === 'closed') && (remaining !== undefined) && (remaining > 0)) {
             status = 'canceled';
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -1096,6 +1107,7 @@ module.exports = class bittrex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
             'cost': proceeds,

@@ -343,6 +343,7 @@ class bitflyer(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,
@@ -402,6 +403,34 @@ class bitflyer(Exchange):
             request['count'] = limit
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a `symbols` argument, exactly one symbol in an array')
+        self.load_markets()
+        request = {
+            'product_code': self.market_ids(symbols),
+        }
+        response = self.privateGetpositions(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "product_code": "FX_BTC_JPY",
+        #             "side": "BUY",
+        #             "price": 36000,
+        #             "size": 10,
+        #             "commission": 0,
+        #             "swap_point_accumulate": -35,
+        #             "require_collateral": 120000,
+        #             "open_date": "2015-11-03T10:04:45.011",
+        #             "leverage": 3,
+        #             "pnl": 965,
+        #             "sfd": -0.5
+        #         }
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

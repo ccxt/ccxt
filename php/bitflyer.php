@@ -368,6 +368,7 @@ class bitflyer extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
@@ -438,6 +439,36 @@ class bitflyer extends Exchange {
         }
         $response = $this->privateGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchPositions requires a `$symbols` argument, exactly one symbol in an array');
+        }
+        $this->load_markets();
+        $request = array(
+            'product_code' => $this->market_ids($symbols),
+        );
+        $response = $this->privateGetpositions (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "product_code" => "FX_BTC_JPY",
+        //             "side" => "BUY",
+        //             "price" => 36000,
+        //             "size" => 10,
+        //             "commission" => 0,
+        //             "swap_point_accumulate" => -35,
+        //             "require_collateral" => 120000,
+        //             "open_date" => "2015-11-03T10:04:45.011",
+        //             "leverage" => 3,
+        //             "pnl" => 965,
+        //             "sfd" => -0.5
+        //         }
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

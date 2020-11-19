@@ -12,6 +12,8 @@ function test_order($exchange, $order, $symbol, $now) {
     assert ($order);
     assert (is_array($order) && array_key_exists('id', $order));
     assert (gettype($order['id']) === 'string');
+    assert (is_array($order) && array_key_exists('clientOrderId', $order));
+    assert (($order['clientOrderId'] === null) || (gettype($order['clientOrderId']) === 'string'));
     assert (is_array($order) && array_key_exists('timestamp', $order));
     assert ((is_float($order['timestamp']) || is_int($order['timestamp'])));
     assert ($order['timestamp'] > 1230940800000); // 03 Jan 2009 - first block

@@ -847,6 +847,7 @@ class bitfinex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
             'average': self.safe_float(order, 'avg_execution_price'),

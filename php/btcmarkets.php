@@ -823,7 +823,7 @@ class btcmarkets extends Exchange {
         //         "openAmount" => "1.034",
         //         "$status" => "Accepted",
         //         "$clientOrderId" => "1234-5678",
-        //         "timeInForce" => "IOC",
+        //         "$timeInForce" => "IOC",
         //         "postOnly" => false,
         //         "selfTrade" => "P",
         //         "triggerAmount" => "105",
@@ -869,6 +869,7 @@ class btcmarkets extends Exchange {
         }
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -878,6 +879,7 @@ class btcmarkets extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

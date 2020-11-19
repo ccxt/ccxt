@@ -1513,6 +1513,16 @@ module.exports = class phemex extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GoodTillCancel': 'GTC',
+            'PostOnly': 'PO',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
     parseSpotOrder (order, market = undefined) {
         //
         // spot
@@ -1603,6 +1613,7 @@ module.exports = class phemex extends Exchange {
                 filled = Math.min (0, amount - remaining);
             }
         }
+        const timeInForce = this.parseTimeInForce (this.safeStirng (order, 'timeInForce'));
         return {
             'info': order,
             'id': id,
@@ -1612,6 +1623,7 @@ module.exports = class phemex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1681,6 +1693,7 @@ module.exports = class phemex extends Exchange {
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         return {
             'info': order,
             'id': id,
@@ -1690,6 +1703,7 @@ module.exports = class phemex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

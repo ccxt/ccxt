@@ -1016,6 +1016,15 @@ module.exports = class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1086,6 +1095,7 @@ module.exports = class deribit extends Exchange {
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         return {
             'info': order,
             'id': id,
@@ -1095,6 +1105,7 @@ module.exports = class deribit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

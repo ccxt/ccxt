@@ -1317,6 +1317,7 @@ module.exports = class exmo extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,

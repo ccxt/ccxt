@@ -705,6 +705,7 @@ class coinbasepro(Exchange):
             'status': status,
             'symbol': market['symbol'],
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

@@ -657,7 +657,7 @@ class crex24 extends Exchange {
         //         "$type" => "limit",
         //         "$status" => "submitting",
         //         "cancellationReason" => null,
-        //         "timeInForce" => "GTC",
+        //         "$timeInForce" => "GTC",
         //         "volume" => 4.0,
         //         "$price" => 0.000025,
         //         "stopPrice" => null,
@@ -712,6 +712,7 @@ class crex24 extends Exchange {
                 $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -721,6 +722,7 @@ class crex24 extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

@@ -1326,6 +1326,7 @@ class bitpanda extends Exchange {
                 $cost = $average * $filled;
             }
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $result = array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1335,6 +1336,7 @@ class bitpanda extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1373,6 +1375,16 @@ class bitpanda extends Exchange {
             $result['fee'] = null;
         }
         return $result;
+    }
+
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GOOD_TILL_CANCELLED' => 'GTC',
+            'GOOD_TILL_TIME' => 'GTT',
+            'IMMEDIATE_OR_CANCELLED' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

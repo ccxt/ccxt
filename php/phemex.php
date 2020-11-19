@@ -1517,6 +1517,16 @@ class phemex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GoodTillCancel' => 'GTC',
+            'PostOnly' => 'PO',
+            'ImmediateOrCancel' => 'IOC',
+            'FillOrKill' => 'FOK',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
     public function parse_spot_order($order, $market = null) {
         //
         // spot
@@ -1534,7 +1544,7 @@ class phemex extends Exchange {
         //         "$side" => "Buy",
         //         "baseQtyEv" => 0,
         //         "ordType" => "Limit",
-        //         "timeInForce" => "GoodTillCancel",
+        //         "$timeInForce" => "GoodTillCancel",
         //         "ordStatus" => "Created",
         //         "cumFeeEv" => 0,
         //         "cumBaseQtyEv" => 0,
@@ -1565,7 +1575,7 @@ class phemex extends Exchange {
         //         "quoteQtyEv":250000000000,
         //         "priceEp":25000000000,
         //         "ordType":"Limit",
-        //         "timeInForce":"GoodTillCancel",
+        //         "$timeInForce":"GoodTillCancel",
         //         "ordStatus":"Rejected",
         //         "execStatus":"NewRejected",
         //         "createTimeNs":1592675305266037130,
@@ -1607,6 +1617,7 @@ class phemex extends Exchange {
                 $filled = min (0, $amount - $remaining);
             }
         }
+        $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1616,6 +1627,7 @@ class phemex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1644,7 +1656,7 @@ class phemex extends Exchange {
         //         "$price":226.75000000,
         //         "orderQty":1,
         //         "displayQty":0,
-        //         "timeInForce":"ImmediateOrCancel",
+        //         "$timeInForce":"ImmediateOrCancel",
         //         "reduceOnly":false,
         //         "closedPnlEv":0,
         //         "closedPnl":0E-8,
@@ -1685,6 +1697,7 @@ class phemex extends Exchange {
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1694,6 +1707,7 @@ class phemex extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

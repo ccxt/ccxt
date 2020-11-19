@@ -433,6 +433,7 @@ module.exports = class bitso extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,

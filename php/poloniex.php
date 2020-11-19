@@ -967,8 +967,8 @@ class poloniex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
+        if ($type === 'market') {
+            throw new ExchangeError($this->id . ' createOrder() does not accept $market orders');
         }
         $this->load_markets();
         $method = 'privatePost' . $this->capitalize($side);

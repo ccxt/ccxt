@@ -520,6 +520,7 @@ class coinone extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

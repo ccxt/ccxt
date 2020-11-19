@@ -334,6 +334,7 @@ module.exports = class btctradeua extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
             'side': this.safeString (order, 'type'),
             'price': this.safeFloat (order, 'price'),
             'amount': this.safeFloat (order, 'amnt_trade'),

@@ -969,12 +969,12 @@ class kucoin extends Exchange {
         //         "stop" => "",            // stop $type
         //         "stopTriggered" => false,  // stop $order is triggered
         //         "stopPrice" => "0",      // stop $price
-        //         "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+        //         "$timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
         //         "postOnly" => false,     // postOnly
         //         "hidden" => false,       // hidden $order
         //         "iceberg" => false,      // iceberg $order
         //         "visibleSize" => "0",    // display quantity for iceberg $order
-        //         "cancelAfter" => 0,      // cancel orders time，requires timeInForce to be GTT
+        //         "cancelAfter" => 0,      // cancel orders time，requires $timeInForce to be GTT
         //         "channel" => "IOS",      // $order source
         //         "clientOid" => "",       // user-entered $order unique mark
         //         "remark" => "",          // remark
@@ -1018,11 +1018,13 @@ class kucoin extends Exchange {
             }
         }
         $clientOrderId = $this->safe_string($order, 'clientOid');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,

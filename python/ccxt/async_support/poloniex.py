@@ -905,8 +905,8 @@ class poloniex(Exchange):
             return self.parse_orders(response, market, since, limit, extension)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+        if type == 'market':
+            raise ExchangeError(self.id + ' createOrder() does not accept market orders')
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)

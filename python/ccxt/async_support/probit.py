@@ -869,6 +869,7 @@ class probit(Exchange):
         clientOrderId = self.safe_string(order, 'client_order_id')
         if clientOrderId == '':
             clientOrderId = None
+        timeInForce = self.safe_string_upper(order, 'time_in_force')
         return {
             'id': id,
             'info': order,
@@ -878,6 +879,7 @@ class probit(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'status': status,
             'price': price,

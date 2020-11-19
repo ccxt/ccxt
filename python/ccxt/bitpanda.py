@@ -1271,6 +1271,7 @@ class bitpanda(Exchange):
         if cost is None:
             if (average is not None) and (filled is not None):
                 cost = average * filled
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1280,6 +1281,7 @@ class bitpanda(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1314,6 +1316,15 @@ class bitpanda(Exchange):
         else:
             result['fee'] = None
         return result
+
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_TILL_CANCELLED': 'GTC',
+            'GOOD_TILL_TIME': 'GTT',
+            'IMMEDIATE_OR_CANCELLED': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

@@ -269,6 +269,7 @@ class independentreserve(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

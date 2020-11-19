@@ -1209,13 +1209,13 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        const mapping = {
+        const timeInForces = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
         };
-        return this.safeString (mapping, timeInForce, timeInForce);
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseOrder (order, market = undefined) {

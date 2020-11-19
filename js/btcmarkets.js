@@ -866,6 +866,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -875,6 +876,7 @@ module.exports = class btcmarkets extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'cost': cost,

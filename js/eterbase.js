@@ -805,6 +805,7 @@ module.exports = class eterbase extends Exchange {
                 average = cost / filled;
             }
         }
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -815,6 +816,7 @@ module.exports = class eterbase extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'timeInForce': timeInForce,
             'price': price,
             'amount': amount,
             'cost': cost,

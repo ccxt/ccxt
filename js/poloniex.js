@@ -964,8 +964,8 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
         }
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);

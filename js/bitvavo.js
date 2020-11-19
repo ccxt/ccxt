@@ -1182,6 +1182,7 @@ module.exports = class bitvavo extends Exchange {
                 lastTradeTimestamp = lastTrade['timestamp'];
             }
         }
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -1191,6 +1192,7 @@ module.exports = class bitvavo extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
