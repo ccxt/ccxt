@@ -362,6 +362,7 @@ class mercado extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $market['symbol'],
             'type' => 'limit',
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
