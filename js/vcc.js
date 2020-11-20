@@ -31,7 +31,7 @@ module.exports = class vcc extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchTicker': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
@@ -343,7 +343,20 @@ module.exports = class vcc extends Exchange {
         return this.parseOrderBook (data, this.safeValue (data, 'timestamp'), 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, symbol = undefined) {
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "base_id":1,
+        //         "quote_id":0,
+        //         "last_price":"411119457",
+        //         "max_price":"419893173.0000000000",
+        //         "min_price":"401292577.0000000000",
+        //         "open_price":null,
+        //         "base_volume":"10.5915050000",
+        //         "quote_volume":"4367495977.4484430060",
+        //         "isFrozen":0
+        //     }
+        //
         const timestamp = this.milliseconds ();
         const baseVolume = this.safeFloat (ticker, 'base_volume');
         const quoteVolume = this.safeFloat (ticker, 'quote_volume');
@@ -360,12 +373,13 @@ module.exports = class vcc extends Exchange {
             }
         }
         const vwap = this.vwap (baseVolume, quoteVolume);
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeFloat (ticker, 'max_price'),
+            'low': this.safeFloat (ticker, 'min_price'),
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
@@ -382,6 +396,34 @@ module.exports = class vcc extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetTicker (params);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
+        //         "data":{
+        //             "BTC_VND":{
+        //                 "base_id":1,
+        //                 "quote_id":0,
+        //                 "last_price":"411119457",
+        //                 "max_price":"419893173.0000000000",
+        //                 "min_price":"401292577.0000000000",
+        //                 "open_price":null,
+        //                 "base_volume":"10.5915050000",
+        //                 "quote_volume":"4367495977.4484430060",
+        //                 "isFrozen":0
+        //             },
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const ticker = this.safeValue (data, market['id']);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -411,8 +453,9 @@ module.exports = class vcc extends Exchange {
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const symbol = this.safeSymbol (marketId, undefined, '_');
-            result[symbol] = this.parseTicker (data[marketId], symbol);
+            const market = this.safeMarket (marketId, undefined, '_');
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (data[marketId], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
