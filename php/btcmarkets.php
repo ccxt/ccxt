@@ -494,10 +494,7 @@ class btcmarkets extends Exchange {
         $last = $this->safe_float($ticker, 'lastPrice');
         $baseVolume = $this->safe_float($ticker, 'volume24h');
         $quoteVolume = $this->safe_float($ticker, 'volumeQte24h');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = $this->safe_float($ticker, 'price24h');
         $percentage = $this->safe_float($ticker, 'pricePct24h');
         return array(
