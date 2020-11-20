@@ -284,13 +284,14 @@ module.exports = class vcc extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
-        //         "timestamp":"2015-08-20T19:01:00.000Z",
-        //         "open":"0.006",
-        //         "close":"0.006",
-        //         "min":"0.006",
-        //         "max":"0.006",
-        //         "volume":"0.003",
-        //         "volumeQuote":"0.000018"
+        //         "low":"415805323.0000000000",
+        //         "high":"415805323.0000000000",
+        //         "open":"415805323.0000000000",
+        //         "close":"415805323.0000000000",
+        //         "time":"1605845940000",
+        //         "volume":"0.0065930000",
+        //         "opening_time":1605845963263,
+        //         "closing_time":1605845963263
         //     }
         //
         return [
@@ -306,27 +307,30 @@ module.exports = class vcc extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resolution = this.timeframes[timeframe];
         const request = {
             'coin': market['baseId'],
             'currency': market['quoteId'],
-            'resolution': resolution,
+            'resolution': this.timeframes[timeframe],
         };
-        if (since !== undefined) {
-            request['from'] = Math.floor (since / 1000);
-            if (limit === undefined) {
-                limit = 100; // max = 100
-            }
-            const size = (limit - 1) * resolution;
-            request['to'] = Math.floor (this.sum (size, since) / 1000);
+        limit = (limit === undefined) ? 100 : limit;
+        limit = Math.min (100, limit);
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            const end = this.seconds ();
+            request['to'] = end;
+            request['from'] = end - limit * duration;
+        } else {
+            const start = parseInt (since / 1000);
+            request['from'] = start;
+            request['to'] = this.sum (start, limit * duration);
         }
         const response = await this.publicGetChartBars (this.extend (request, params));
         //
-        // [
-        //      { "low": 0, "high": 0, "open": 0, "close": 0, "volume": "0", "time": 874454400000, "opening_time": 874454400000, "closing_time": 874454400000 },
-        //      { "low": 0, "high": 0, "open": 0, "close": 0, "volume": "0", "time": 874540800000, "opening_time": 874540800000, "closing_time": 874540800000 },
-        //      { "low": 0, "high": 0, "open": 0, "close": 0, "volume": "0", "time": 874627200000, "opening_time": 874627200000, "closing_time": 874627200000 }
-        // ]
+        //     [
+        //         {"low":"415805323.0000000000","high":"415805323.0000000000","open":"415805323.0000000000","close":"415805323.0000000000","time":"1605845940000","volume":"0.0065930000","opening_time":1605845963263,"closing_time":1605845963263},
+        //         {"low":"416344148.0000000000","high":"416344148.0000000000","open":"415805323.0000000000","close":"416344148.0000000000","time":"1605846000000","volume":"0.0052810000","opening_time":1605846011490,"closing_time":1605846011490},
+        //         {"low":"416299269.0000000000","high":"417278376.0000000000","open":"416344148.0000000000","close":"417278376.0000000000","time":"1605846060000","volume":"0.0136750000","opening_time":1605846070727,"closing_time":1605846102282},
+        //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
