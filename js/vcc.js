@@ -639,12 +639,30 @@ module.exports = class vcc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market_pair': market['symbol'].replace ('/', '_'),
+            'market_pair': market['id'],
+            // 'type': 'buy', // 'sell'
+            // 'count': limit, // default 500, max 1000
         };
         if (limit !== undefined) {
-            request['limit'] = limit > 1000 ? 1000 : limit;
+            request['count'] = Math.min (1000, limit);
         }
         const response = await this.publicGetTradesMarketPair (this.extend (request, params));
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"1f811b533143f739008a3e4ecaaab2ec82ea50d4",
+        //         "data":[
+        //             {
+        //                 "trade_id":181509285,
+        //                 "price":"415933022.0000000000",
+        //                 "base_volume":"0.0022080000",
+        //                 "quote_volume":"918380.1125760000",
+        //                 "trade_timestamp":1605842150357,
+        //                 "type":"buy",
+        //             },
+        //         ],
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
