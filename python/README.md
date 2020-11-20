@@ -223,13 +223,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.38.3/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.38.3/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.38.4/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.38.4/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.38.3/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.38.4/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -364,7 +364,7 @@ const ccxt = require ('ccxt');
 
     console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
     console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
-    console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/CNY'))
+    console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/USDT'))
 
     console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
@@ -417,7 +417,7 @@ print(huobipro.id, huobipro.load_markets())
 
 print(hitbtc.fetch_order_book(hitbtc.symbols[0]))
 print(bitmex.fetch_ticker('BTC/USD'))
-print(huobipro.fetch_trades('LTC/CNY'))
+print(huobipro.fetch_trades('LTC/USDT'))
 
 print(exmo.fetch_balance())
 
