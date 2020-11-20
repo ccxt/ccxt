@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -109,7 +109,12 @@ module.exports = class vcc extends Exchange {
             },
             'exceptions': {
                 'exact': {},
-                'broad': {},
+                'broad': {
+                    'Unauthenticated': AuthenticationError, // {"message":"Unauthenticated."} // wrong api key
+                    'signature is invalid': AuthenticationError, // {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
+                    'Timeout': RequestTimeout, // {"code":504,"message":"Gateway Timeout","description":""}
+                    'Too many requests': RateLimitExceeded, // {"code":429,"message":"Too many requests","description":"Too many requests"}
+                },
             },
         });
     }
