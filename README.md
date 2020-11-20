@@ -364,7 +364,7 @@ const ccxt = require ('ccxt');
 
     console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
     console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
-    console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/CNY'))
+    console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/USDT'))
 
     console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
@@ -417,7 +417,7 @@ print(huobipro.id, huobipro.load_markets())
 
 print(hitbtc.fetch_order_book(hitbtc.symbols[0]))
 print(bitmex.fetch_ticker('BTC/USD'))
-print(huobipro.fetch_trades('LTC/CNY'))
+print(huobipro.fetch_trades('LTC/USDT'))
 
 print(exmo.fetch_balance())
 
