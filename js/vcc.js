@@ -266,17 +266,28 @@ module.exports = class vcc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetBalance ();
+        const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        //         "data":{
+        //             "vnd":{"balance":0,"available_balance":0},
+        //             "btc":{"balance":0,"available_balance":0},
+        //             "eth":{"balance":0,"available_balance":0},
+        //         },
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': data };
-        const currencies = Object.keys (data);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const code = this.safeCurrencyCode (currency);
-            const balanceData = this.safeValue (data, currency);
+        const result = { 'info': response };
+        const currencyIds = Object.keys (data);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (data, currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balanceData, 'available_balance');
-            account['total'] = this.safeFloat (balanceData, 'balance');
+            account['free'] = this.safeFloat (balance, 'available_balance');
+            account['total'] = this.safeFloat (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
