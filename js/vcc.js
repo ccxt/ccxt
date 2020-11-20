@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -114,6 +114,13 @@ module.exports = class vcc extends Exchange {
                     'signature is invalid': AuthenticationError, // {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
                     'Timeout': RequestTimeout, // {"code":504,"message":"Gateway Timeout","description":""}
                     'Too many requests': RateLimitExceeded, // {"code":429,"message":"Too many requests","description":"Too many requests"}
+                    'quantity field is required': InvalidOrder, // {"message":"The given data was invalid.","errors":{"quantity":["The quantity field is required when type is market."]}}
+                    'price field is required': InvalidOrder,  // {"message":"The given data was invalid.","errors":{"price":["The price field is required when type is limit."]}}
+                    'error_security_level': ExchangeError, // {"message":"error_security_level"}
+                    'pair is invalid': BadSymbol, // {"message":"The given data was invalid.","errors":{"coin":["Trading pair is invalid","Trading pair is offline"]}}
+                    // {"message":"The given data was invalid.","errors":{"type":["The selected type is invalid."]}}
+                    // {"message":"The given data was invalid.","errors":{"trade_type":["The selected trade type is invalid."]}}
+                    'type is invalid': InvalidOrder,
                 },
             },
         });
