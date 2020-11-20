@@ -487,14 +487,30 @@ module.exports = class vcc extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseTrade (trade, market) {
-        const timestamp = this.safeValue (trade, 'trade_timestamp');
-        const symbol = market['symbol'];
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "trade_id":181509285,
+        //         "price":"415933022.0000000000",
+        //         "base_volume":"0.0022080000",
+        //         "quote_volume":"918380.1125760000",
+        //         "trade_timestamp":1605842150357,
+        //         "type":"buy",
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        const timestamp = this.safeInteger (trade, 'trade_timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'base_volume');
         const cost = this.safeFloat (trade, 'quote_volume');
         const side = this.safeString (trade, 'type');
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString (trade, 'trade_id');
         return {
             'info': trade,
             'id': id,
@@ -510,6 +526,38 @@ module.exports = class vcc extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market_pair': market['id'],
+            // 'type': 'buy', // 'sell'
+            // 'count': limit, // default 500, max 1000
+        };
+        if (limit !== undefined) {
+            request['count'] = Math.min (1000, limit);
+        }
+        const response = await this.publicGetTradesMarketPair (this.extend (request, params));
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"1f811b533143f739008a3e4ecaaab2ec82ea50d4",
+        //         "data":[
+        //             {
+        //                 "trade_id":181509285,
+        //                 "price":"415933022.0000000000",
+        //                 "base_volume":"0.0022080000",
+        //                 "quote_volume":"918380.1125760000",
+        //                 "trade_timestamp":1605842150357,
+        //                 "type":"buy",
+        //             },
+        //         ],
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseMyTrade (trade, market) {
@@ -633,38 +681,6 @@ module.exports = class vcc extends Exchange {
             'withdraw': 'withdrawal',
         };
         return this.safeString (types, type, type);
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market_pair': market['id'],
-            // 'type': 'buy', // 'sell'
-            // 'count': limit, // default 500, max 1000
-        };
-        if (limit !== undefined) {
-            request['count'] = Math.min (1000, limit);
-        }
-        const response = await this.publicGetTradesMarketPair (this.extend (request, params));
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"1f811b533143f739008a3e4ecaaab2ec82ea50d4",
-        //         "data":[
-        //             {
-        //                 "trade_id":181509285,
-        //                 "price":"415933022.0000000000",
-        //                 "base_volume":"0.0022080000",
-        //                 "quote_volume":"918380.1125760000",
-        //                 "trade_timestamp":1605842150357,
-        //                 "type":"buy",
-        //             },
-        //         ],
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseTrades (data, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
