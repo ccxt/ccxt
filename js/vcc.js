@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -715,6 +716,10 @@ module.exports = class vcc extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['cost'], this.precisionMode, this.paddingMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -729,12 +734,12 @@ module.exports = class vcc extends Exchange {
             throw new InvalidOrder ('Ceiling is required for ceiling_market order');
         }
         if (ceiling) {
-            request['ceiling'] = ceiling;
+            request['ceiling'] = this.costToPrecision (symbol, ceiling);
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit') {
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const is_stop = this.safeValue (params, 'is_stop');
         const stop_price = this.safeValue (params, 'stop_price');
