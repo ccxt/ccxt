@@ -571,6 +571,7 @@ class yobit(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

@@ -1203,6 +1203,7 @@ module.exports = class upbit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,

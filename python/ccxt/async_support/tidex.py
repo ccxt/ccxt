@@ -553,6 +553,7 @@ class tidex(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'type': 'limit',
+            'timeInForce': None,
             'side': self.safe_string(order, 'type'),
             'price': price,
             'cost': cost,

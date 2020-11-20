@@ -181,6 +181,14 @@ class luno extends Exchange {
         return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
+    public function parse_order_status($status) {
+        $statuses = array(
+            // todo add other $statuses
+            'PENDING' => 'open',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order($order, $market = null) {
         //
         //     {
@@ -200,7 +208,8 @@ class luno extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
-        $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $status = ($status === 'open') ? $status : $status;
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -238,6 +247,7 @@ class luno extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

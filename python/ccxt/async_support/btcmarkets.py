@@ -471,9 +471,7 @@ class btcmarkets(Exchange):
         last = self.safe_float(ticker, 'lastPrice')
         baseVolume = self.safe_float(ticker, 'volume24h')
         quoteVolume = self.safe_float(ticker, 'volumeQte24h')
-        vwap = None
-        if (baseVolume is not None) and (quoteVolume is not None):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         change = self.safe_float(ticker, 'price24h')
         percentage = self.safe_float(ticker, 'pricePct24h')
         return {
