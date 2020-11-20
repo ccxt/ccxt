@@ -40,17 +40,17 @@ module.exports = class vcc extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': 60000,
-                '5m': 300000,
-                '15m': 900000,
-                '30m': 1800000,
-                '1h': 3600000,
-                '2h': 7200000,
-                '4h': 14400000,
-                '6h': 21600000,
-                '12h': 43200000,
-                '1d': 86400000,
-                '1w': 604800000,
+                '1m': '60000',
+                '5m': '300000',
+                '15m': '900000',
+                '30m': '1800000',
+                '1h': '3600000',
+                '2h': '7200000',
+                '4h': '14400000',
+                '6h': '21600000',
+                '12h': '43200000',
+                '1d': '86400000',
+                '1w': '604800000',
             },
             'urls': {
                 'logo': 'https://vcc.exchange/images/home-page/branding/logo-header.svg',
@@ -308,8 +308,8 @@ module.exports = class vcc extends Exchange {
         const market = this.market (symbol);
         const resolution = this.timeframes[timeframe];
         const request = {
-            'coin': market['base'].toLowerCase (),
-            'currency': market['quote'].toLowerCase (),
+            'coin': market['baseId'],
+            'currency': market['quoteId'],
             'resolution': resolution,
         };
         if (since !== undefined) {
