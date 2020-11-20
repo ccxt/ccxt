@@ -171,7 +171,7 @@ module.exports = class vcc extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const active = this.safeValue (market, 'active');
-            const precision = this.safeValue (response, 'precision', {});
+            const precision = this.safeValue (market, 'precision', {});
             const limits = this.safeValue (market, 'limits', {});
             const amountLimits = this.safeValue (limits, 'amount', {});
             const priceLimits = this.safeValue (limits, 'price', {});
@@ -718,28 +718,23 @@ module.exports = class vcc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        amount = parseFloat (amount);
         const ceiling = this.safeValue (params, 'ceiling');
         const request = {
-            'coin': market['base'].toLowerCase (),
-            'currency': market['quote'].toLowerCase (),
+            'coin': market['baseId'],
+            'currency': market['quoteId'],
             'trade_type': side,
             'type': type,
         };
         if (type === 'ceiling_market' && !ceiling) {
             throw new InvalidOrder ('Ceiling is required for ceiling_market order');
         }
-        if (!price && type === 'limit') {
-            throw new InvalidOrder ('Price is required for limit order');
-        }
         if (ceiling) {
             request['ceiling'] = ceiling;
-        }
-        if (type === 'limit') {
+        } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        if (price) {
-            request['price'] = price;
+        if (type === 'limit') {
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const is_stop = this.safeValue (params, 'is_stop');
         const stop_price = this.safeValue (params, 'stop_price');
@@ -753,11 +748,7 @@ module.exports = class vcc extends Exchange {
             request['stop_condition'] = stop_condition;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const order = this.parseOrder (response);
-        if (order['status'] === 'rejected') {
-            throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
-        }
-        return order;
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
