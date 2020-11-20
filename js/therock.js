@@ -963,6 +963,7 @@ module.exports = class therock extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,
