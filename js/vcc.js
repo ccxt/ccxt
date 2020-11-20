@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, BadRequest } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -106,6 +106,10 @@ module.exports = class vcc extends Exchange {
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {},
             },
         });
     }
@@ -961,17 +965,17 @@ module.exports = class vcc extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (code >= 400) {
+        //
+        //     {"message":"Unauthenticated."} // wrong api key
+        //     {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
+        //     {"code":504,"message":"Gateway Timeout","description":""}
+        //     {"code":429,"message":"Too many requests","description":"Too many requests"}
+        //
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
             const feedback = this.id + ' ' + body;
-            // {"code":504,"message":"Gateway Timeout","description":""}
-            if ((code === 503) || (code === 504)) {
-                throw new ExchangeNotAvailable (feedback);
-            }
-            // fallback to default error handler on rate limit errors
-            // {"code":429,"message":"Too many requests","description":"Too many requests"}
-            if (code === 429) {
-                return;
-            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback);
         }
     }
