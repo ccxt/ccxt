@@ -63,6 +63,7 @@ module.exports = class vcc extends Exchange {
                     'https://vcc.exchange/api',
                 ],
                 'fees': 'https://support.vcc.exchange/hc/en-us/articles/360016401754',
+                'referral': 'https://vcc.exchange?ref=l4xhrH',
             },
             'api': {
                 'public': {
