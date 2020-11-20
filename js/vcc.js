@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -335,12 +335,39 @@ module.exports = class vcc extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market_pair': market['symbol'].replace ('/', '_'),
-            'level': 3,
+            'market_pair': market['id'],
+            // 'depth': 0, // 0 = full orderbook, 5, 10, 20, 50, 100, 500
+            'level': 2, // 1 = best bidask, 2 = aggregated by price, 3 = no aggregation
         };
+        if (limit !== undefined) {
+            if ((limit !== 0) && (limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500)) {
+                throw new BadRequest (this.id + ' fetchOrderBook limit must be 0, 5, 10, 20, 50, 100, 500 if specified');
+            }
+            request['depth'] = limit;
+        }
         const response = await this.publicGetOrderbookMarketPair (this.extend (request, params));
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"376cee43af26deabcd3762ab11a876b6e7a71e82",
+        //         "data":{
+        //             "bids":[
+        //                 ["413342637.0000000000","0.165089"],
+        //                 ["413274576.0000000000","0.03"],
+        //                 ["413274574.0000000000","0.03"],
+        //             ],
+        //             "asks":[
+        //                 ["416979125.0000000000","0.122835"],
+        //                 ["417248934.0000000000","0.030006"],
+        //                 ["417458879.0000000000","0.1517"],
+        //             ],
+        //             "timestamp":"1605841619147"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data, this.safeValue (data, 'timestamp'), 'bids', 'asks', 0, 1);
+        const timestamp = this.safeValue (data, 'timestamp');
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {
