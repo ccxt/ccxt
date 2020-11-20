@@ -1207,6 +1207,7 @@ class upbit extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $market['symbol'],
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
