@@ -38,7 +38,6 @@ module.exports = class vcc extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
-                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60000',
