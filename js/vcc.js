@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -923,21 +923,40 @@ module.exports = class vcc extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['code'].toLowerCase (),
+            'currency': currency['id'],
         };
         const response = await this.privateGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
+        //         "data":{
+        //             "status": "REQUESTED",
+        //             "blockchain_address": "",
+        //             "currency": "btc"
+        //         }
+        //     }
+        //
+        //     {
+        //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
+        //         "data":{
+        //             "status": "PROVISIONED",
+        //             "blockchain_address": "rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //             "blockchain_tag": "920396135",
+        //             "currency": "xrp"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
         const status = this.safeString (data, 'status');
         if (status === 'REQUESTED') {
-            return {
-                'info': data,
-            };
+            throw new AddressPending (this.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress one more time later to retrieve the generated address');
         }
         const address = this.safeString (data, 'blockchain_address');
         this.checkAddress (address);
         const tag = this.safeString (data, 'blockchain_tag');
+        const currencyId = this.safeString (data, 'currency');
         return {
-            'currency': this.safeStringUpper (data, 'currency'),
+            'currency': this.safeCurrencyCode (currencyId),
             'address': address,
             'tag': tag,
             'info': data,
