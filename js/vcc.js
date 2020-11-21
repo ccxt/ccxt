@@ -891,31 +891,60 @@ module.exports = class vcc extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'limit': !limit || limit > 1000 ? 1000 : limit,
-            'start_date': since,
+            // 'page': 1,
+            // 'limit': limit, // max 1000
+            // 'start_date': since,
+            // 'end_date': this.milliseconds (),
+            // 'currency': market['quoteId'],
+            // 'coin': market['baseId'],
+            // 'trade_type': 'buy', // or 'sell'
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['coin'] = this.safeStringLower (market, 'base');
-            request['currency'] = this.safeStringLower (market, 'quote');
+            request['coin'] = market['baseId'];
+            request['currency'] = market['quoteId'];
+        }
+        if (since !== undefined) {
+            request['start_date'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 1000
         }
         const response = await this.privateGetOrdersTrades (this.extend (request, params));
-        // [
+        //
         //     {
-        //         "trade_type":"sell",
-        //         "fee":"0.0284700000",
-        //         "created_at":1557625985566,
-        //         "currency":"usdt",
-        //         "coin":"neo",
-        //         "price":"9.4900000000",
-        //         "quantity":"1.0000000000",
-        //         "amount":"9.4900000000"
+        //         "dataVersion":"7ee12aeac98264ea7f4a731bf38741e0b38aea93",
+        //         "data":{
+        //             "current_page":1,
+        //             "data":[
+        //                 {
+        //                     "trade_type":"sell",
+        //                     "fee":"0.0284700000",
+        //                     "created_at":1557625985566,
+        //                     "currency":"usdt",
+        //                     "coin":"neo",
+        //                     "price":"9.4900000000",
+        //                     "quantity":"1.0000000000",
+        //                     "amount":"9.4900000000",
+        //                 },
+        //             ],
+        //             "first_page_url":"https:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
+        //             "from":1,
+        //             "last_page":1,
+        //             "last_page_url":"https:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
+        //             "next_page_url":null,
+        //             "path":"https:\/\/api.vcc.exchange\/v3\/orders\/trades",
+        //             "per_page":"10",
+        //             "prev_page_url":null,
+        //             "to":1,
+        //             "total":1,
+        //         },
         //     }
-        // ]
-        const responseData = this.safeValue (response, 'data');
-        const data = this.safeValue (responseData, 'data');
-        return this.parseMyTrades (data, market, since, limit);
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
