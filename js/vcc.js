@@ -534,15 +534,44 @@ module.exports = class vcc extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "trade_type":"sell",
+        //         "fee":"0.0284700000",
+        //         "created_at":1557625985566,
+        //         "currency":"usdt",
+        //         "coin":"neo",
+        //         "price":"9.4900000000",
+        //         "quantity":"1.0000000000",
+        //         "amount":"9.4900000000",
+        //     }
         //
-        const timestamp = this.safeInteger (trade, 'trade_timestamp');
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const timestamp = this.safeInteger2 (trade, 'trade_timestamp', 'created_at');
+        const baseId = this.safeStringUpper (trade, 'coin');
+        const quoteId = this.safeStringUpper (trade, 'currency');
+        let marketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
+        }
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'base_volume');
-        const cost = this.safeFloat (trade, 'quote_volume');
-        const side = this.safeString (trade, 'type');
+        const amount = this.safeFloat2 (trade, 'base_volume', 'quantity');
+        let cost = this.safeFloat2 (trade, 'quote_volume', 'amount');
+        if (cost === undefined) {
+            if ((price !== undefined) && (amount !== undefined)) {
+                cost = price * amount;
+            }
+        }
+        const side = this.safeString2 (trade, 'type', 'trade_type');
         const id = this.safeString (trade, 'trade_id');
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['base'],
+            };
+        }
         return {
             'info': trade,
             'id': id,
@@ -556,7 +585,7 @@ module.exports = class vcc extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
