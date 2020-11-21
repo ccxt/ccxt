@@ -370,13 +370,38 @@ class bybit extends Exchange {
         //         time_now => '1583930495.454196'
         //     }
         //
+        // sandbox/testnet
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "$result":array(
+        //             {
+        //                 "$symbol":"BTCUSD",
+        //                 "symbol_alias":"BTCUSD",
+        //                 "$status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999.5","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             }
+        //         ),
+        //         "time_now":"1605916574.118500"
+        //     }
+        //
         $markets = $this->safe_value($response, 'result', array());
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $linearQuoteCurrencies = $this->safe_value($options, 'linear', array( 'USDT' => true ));
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'name');
+            $id = $this->safe_string_2($market, 'name', 'symbol');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
@@ -394,12 +419,17 @@ class bybit extends Exchange {
                 'amount' => $this->safe_float($lotSizeFilter, 'qty_step'),
                 'price' => $this->safe_float($priceFilter, 'tick_size'),
             );
+            $status = $this->safe_string($market, 'status');
+            $active = null;
+            if ($status !== null) {
+                $active = ($status === 'Trading');
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => null,
+                'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->safe_float($market, 'taker_fee'),
                 'maker' => $this->safe_float($market, 'maker_fee'),
