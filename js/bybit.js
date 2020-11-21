@@ -417,12 +417,17 @@ module.exports = class bybit extends Exchange {
                 'amount': this.safeFloat (lotSizeFilter, 'qty_step'),
                 'price': this.safeFloat (priceFilter, 'tick_size'),
             };
+            const status = this.safeString (market, 'status');
+            let active = undefined;
+            if (status !== undefined) {
+                active = (status === 'Trading');
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': undefined,
+                'active': active,
                 'precision': precision,
                 'taker': this.safeFloat (market, 'taker_fee'),
                 'maker': this.safeFloat (market, 'maker_fee'),
