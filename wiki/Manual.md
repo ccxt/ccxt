@@ -2946,18 +2946,18 @@ if (exchange.has['fetchMyTrades']) {
 
 ```Python
 # Python
-# fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+# fetch_my_trades(symbol=None, since=None, limit=None, params={})
 
 if exchange.has['fetchMyTrades']:
-    exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+    exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
 
 ```PHP
 // PHP
-// fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+// fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
 
 if ($exchange->has['fetchMyTrades']) {
-    $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
+    $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
 
@@ -2993,7 +2993,31 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 ### Trades By Order Id
 
-```UNDER CONSTRUCTION```
+```JavaScript
+// JavaScript
+// fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchOrderTrades']) {
+    const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
+
+if exchange.has['fetchOrderTrades']:
+    exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
+```
+
+```PHP
+// PHP
+// fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
+
+if ($exchange->has['fetchOrderTrades']) {
+    $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
+}
+```
 
 ## Funding Your Account
 
