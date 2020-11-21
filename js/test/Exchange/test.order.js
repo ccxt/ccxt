@@ -22,7 +22,7 @@ function testOrder (exchange, order, symbol, now) {
     assert ('type' in order);
     assert ((order['type'] === undefined) || (typeof order['type'] === 'string'));
     assert ('timeInForce' in order);
-    assert ((order['timeInForce'] === undefined) || (typeof order['timeInForce'] === 'string'));    
+    assert ((order['timeInForce'] === undefined) || (typeof order['timeInForce'] === 'string'));
     assert ('side' in order);
     assert ((order['side'] === 'buy') || (order['side'] === 'sell'));
     assert ('price' in order);
