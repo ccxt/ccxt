@@ -621,36 +621,6 @@ module.exports = class vcc extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseMyTrade (trade, market) {
-        const timestamp = this.safeValue (trade, 'created_at');
-        let symbol = undefined;
-        if (!market) {
-            const base = this.safeCurrencyCode (trade, 'coin');
-            const quote = this.safeCurrencyCode (trade, 'currency');
-            symbol = base + '/' + quote;
-        } else {
-            symbol = market['symbol'];
-        }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
-        const side = this.safeString (trade, 'trade_type');
-        return {
-            'info': trade,
-            'id': undefined,
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': undefined,
-        };
-    }
-
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
@@ -854,18 +824,6 @@ module.exports = class vcc extends Exchange {
             'trades': undefined,
             'info': order,
         };
-    }
-
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = [];
-        const tradeList = Object.values (trades);
-        for (let i = 0; i < tradeList.length; i++) {
-            const trade = tradeList[i];
-            result.push (this.extend (this.parseMyTrade (trade, market), params));
-        }
-        result = this.sortBy (result, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
