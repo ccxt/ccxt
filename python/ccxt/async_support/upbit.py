@@ -1148,6 +1148,7 @@ class upbit(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

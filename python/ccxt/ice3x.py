@@ -323,6 +323,7 @@ class ice3x(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': self.safeStrin(order, 'type'),
             'price': price,
             'cost': None,

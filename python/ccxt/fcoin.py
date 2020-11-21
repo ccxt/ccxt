@@ -564,6 +564,7 @@ class fcoin(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

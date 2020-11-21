@@ -1147,13 +1147,13 @@ class bitmex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce):
-        mapping = {
+        timeInForces = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
             'FillOrKill': 'FOK',
         }
-        return self.safe_string(mapping, timeInForce, timeInForce)
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))

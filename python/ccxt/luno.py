@@ -170,6 +170,13 @@ class luno(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
+    def parse_order_status(self, status):
+        statuses = {
+            # todo add other statuses
+            'PENDING': 'open',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -189,7 +196,8 @@ class luno(Exchange):
         #     }
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
-        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        status = status if (status == 'open') else status
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
@@ -222,6 +230,7 @@ class luno(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,

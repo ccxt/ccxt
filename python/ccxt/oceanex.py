@@ -540,6 +540,7 @@ class oceanex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': self.safe_value(order, 'ord_type'),
+            'timeInForce': None,
             'side': self.safe_value(order, 'side'),
             'price': self.safe_float(order, 'price'),
             'average': self.safe_float(order, 'avg_price'),

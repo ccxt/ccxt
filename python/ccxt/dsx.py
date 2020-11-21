@@ -794,6 +794,7 @@ class dsx(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

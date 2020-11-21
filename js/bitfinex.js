@@ -886,6 +886,7 @@ module.exports = class bitfinex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
             'side': side,
             'price': this.safeFloat (order, 'price'),
             'average': this.safeFloat (order, 'avg_execution_price'),

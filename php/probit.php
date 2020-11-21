@@ -920,6 +920,7 @@ class probit extends Exchange {
         if ($clientOrderId === '') {
             $clientOrderId = null;
         }
+        $timeInForce = $this->safe_string_upper($order, 'time_in_force');
         return array(
             'id' => $id,
             'info' => $order,
@@ -929,6 +930,7 @@ class probit extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'status' => $status,
             'price' => $price,

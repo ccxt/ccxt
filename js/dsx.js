@@ -839,6 +839,7 @@ module.exports = class dsx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': orderType,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,

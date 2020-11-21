@@ -454,6 +454,7 @@ class braziliex extends Exchange {
         $id = $this->safe_string($order, 'order_number');
         $fee = $this->safe_value($order, 'fee'); // propagated from createOrder
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
+        $side = $this->safe_string($order, 'type');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -463,7 +464,8 @@ class braziliex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'timeInForce' => null,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,

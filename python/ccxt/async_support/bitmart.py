@@ -692,9 +692,7 @@ class bitmart(Exchange):
             percentage *= 100
         baseVolume = self.safe_float_2(ticker, 'base_volume_24h', 'base_coin_volume')
         quoteVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         open = self.safe_float_2(ticker, 'open_24h', 'open')
         average = None
         if (last is not None) and (open is not None):
@@ -1558,6 +1556,7 @@ class bitmart(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,

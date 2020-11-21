@@ -339,6 +339,7 @@ class zaif(Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

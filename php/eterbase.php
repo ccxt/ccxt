@@ -720,7 +720,7 @@ class eterbase extends Exchange {
         //         "limitPrice" => "1.23456",
         //         "stopPrice" => "1.23456",
         //         "postOnly" => false,
-        //         "timeInForce" => "GTC",
+        //         "$timeInForce" => "GTC",
         //         "state" => 1,
         //         "closeReason" => "FILLED",
         //         "placedAt" => 1556355722341,
@@ -739,7 +739,7 @@ class eterbase extends Exchange {
         //         "$side":1,
         //         "$cost":"25",
         //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589510846735
         //     }
@@ -755,7 +755,7 @@ class eterbase extends Exchange {
         //         "qty":"1000",
         //         "limitPrice":"100",
         //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589403938682,
         //     }
@@ -808,6 +808,7 @@ class eterbase extends Exchange {
                 $average = $cost / $filled;
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -818,6 +819,7 @@ class eterbase extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'timeInForce' => $timeInForce,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

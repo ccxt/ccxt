@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                 | name                                                                                    | ver | doc                                                                                         | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -113,7 +113,6 @@ The CCXT library currently supports the following 123 cryptocurrency exchange ma
 | [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)    | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)    | *   | [API](https://coinmate.docs.apiary.io)                                                      |                                                                                                                             |                                                                              |
 | [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                         | coinone            | [CoinOne](https://coinone.co.kr)                                                        | 2   | [API](https://doc.coinone.co.kr)                                                            |                                                                                                                             |                                                                              |
 | [![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/register?code=PJURCU)                             | coinspot           | [CoinSpot](https://www.coinspot.com.au/register?code=PJURCU)                            | *   | [API](https://www.coinspot.com.au/api)                                                      |                                                                                                                             |                                                                              |
-| [![coss](https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg)](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                          | coss               | [COSS](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                          | 1   | [API](https://api.coss.io/v1/spec)                                                          |                                                                                                                             |                                                                              |
 | [![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                 | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                | 2   | [API](https://docs.crex24.com/trade-api/v2)                                                 |                                                                                                                             |                                                                              |
 | [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)               | currencycom        | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)             | 1   | [API](https://currency.com/api)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                         | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                        | 2   | [API](https://docs.deribit.com/v2)                                                          |                                                                                                                             |                                                                              |
@@ -2500,17 +2499,18 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-    'status':     'open',         // 'open', 'closed', 'canceled'
-    'symbol':     'ETH/BTC',      // symbol
-    'type':       'limit',        // 'market', 'limit'
-    'side':       'buy',          // 'buy', 'sell'
-    'price':       0.06917684,    // float price in quote currency (may be empty for market orders)
-    'average':     0.06917684,    // float average filling price
-    'amount':      1.5,           // ordered amount of base currency
-    'filled':      1.1,           // filled amount of base currency
-    'remaining':   0.4,           // remaining amount to fill
-    'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
-    'trades':    [ ... ],         // a list of order trades/executions
+    'status':      'open',        // 'open', 'closed', 'canceled'
+    'symbol':      'ETH/BTC',     // symbol
+    'type':        'limit',       // 'market', 'limit'
+    'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'
+    'side':        'buy',         // 'buy', 'sell'
+    'price':        0.06917684,   // float price in quote currency (may be empty for market orders)
+    'average':      0.06917684,   // float average filling price
+    'amount':       1.5,          // ordered amount of base currency
+    'filled':       1.1,          // filled amount of base currency
+    'remaining':    0.4,          // remaining amount to fill
+    'cost':         0.076094524,  // 'filled' * 'price' (filling price used where available)
+    'trades':     [ ... ],        // a list of order trades/executions
     'fee': {                      // fee info, if available
         'currency': 'BTC',        // which currency the fee is (usually quote)
         'cost': 0.0009,           // the fee amount in that currency
@@ -2528,6 +2528,11 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 - The `cost` of an order is: `{ filled * price }`
 - The `cost` of an order means the total *quote* volume of the order (whereas the `amount` is the *base* volume). The value of `cost` should be as close to the actual most recent known order cost as possible. The `cost` field itself is there mostly for convenience and can be deduced from other fields.
 - The `clientOrderId` field can be set upon placing orders by the user with [custom order params](#custom-order-params). Using the `clientOrderId` the user can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time.
+- The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. Possible values for the`timeInForce` field:
+    - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+    - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+    - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+    - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
 
 ### Placing Orders
 
@@ -2941,18 +2946,18 @@ if (exchange.has['fetchMyTrades']) {
 
 ```Python
 # Python
-# fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+# fetch_my_trades(symbol=None, since=None, limit=None, params={})
 
 if exchange.has['fetchMyTrades']:
-    exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+    exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
 
 ```PHP
 // PHP
-// fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+// fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
 
 if ($exchange->has['fetchMyTrades']) {
-    $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
+    $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
 
@@ -2988,7 +2993,31 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 ### Trades By Order Id
 
-```UNDER CONSTRUCTION```
+```JavaScript
+// JavaScript
+// fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchOrderTrades']) {
+    const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
+
+if exchange.has['fetchOrderTrades']:
+    exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
+```
+
+```PHP
+// PHP
+// fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
+
+if ($exchange->has['fetchOrderTrades']) {
+    $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
+}
+```
 
 ## Funding Your Account
 
@@ -3712,7 +3741,7 @@ Thus it's advised to handle this type of exception in the following manner:
   - an `OrderNotFound` exception is raised, which means the order was either already canceled on the first attempt or has been executed (filled and closed) in the meantime between the two attempts.
 - if a request to `createOrder()` fails with a `RequestTimeout` the user should:
   - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
-  - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check. 
+  - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check.
 
 ### ExchangeNotAvailable
 

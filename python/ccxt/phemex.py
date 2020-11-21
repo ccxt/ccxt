@@ -1469,6 +1469,15 @@ class phemex(Exchange):
         }
         return self.safe_string(types, type, type)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GoodTillCancel': 'GTC',
+            'PostOnly': 'PO',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_spot_order(self, order, market=None):
         #
         # spot
@@ -1554,6 +1563,7 @@ class phemex(Exchange):
         if filled is None:
             if (amount is not None) and (remaining is not None):
                 filled = min(0, amount - remaining)
+        timeInForce = self.parse_time_in_force(self.safeStirng(order, 'timeInForce'))
         return {
             'info': order,
             'id': id,
@@ -1563,6 +1573,7 @@ class phemex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1629,6 +1640,7 @@ class phemex(Exchange):
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         return {
             'info': order,
             'id': id,
@@ -1638,6 +1650,7 @@ class phemex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
