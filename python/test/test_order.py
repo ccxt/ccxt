@@ -36,7 +36,9 @@ def test_order(exchange, order, symbol, now):
     assert 'symbol' in order
     assert order['symbol'] == symbol
     assert 'type' in order
-    assert isinstance(order['type'], basestring)
+    assert(order['type'] is None) or (isinstance(order['type'], basestring))
+    assert 'timeInForce' in order
+    assert(order['timeInForce'] is None) or (isinstance(order['timeInForce'], basestring))
     assert 'side' in order
     assert(order['side'] == 'buy') or (order['side'] == 'sell')
     assert 'price' in order
