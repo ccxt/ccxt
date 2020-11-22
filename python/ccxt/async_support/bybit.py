@@ -546,11 +546,7 @@ class bybit(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'last_price')
         open = self.safe_float(ticker, 'prev_price_24h')
         percentage = self.safe_float(ticker, 'price_24h_pcnt')
@@ -1084,10 +1080,9 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
         symbol = None
         base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
