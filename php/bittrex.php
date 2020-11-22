@@ -152,42 +152,6 @@ class bittrex extends Exchange {
                 'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => array(
-                        'BTC' => 0.0005,
-                        'LTC' => 0.01,
-                        'DOGE' => 2,
-                        'VTC' => 0.02,
-                        'PPC' => 0.02,
-                        'FTC' => 0.2,
-                        'RDD' => 2,
-                        'NXT' => 2,
-                        'DASH' => 0.05,
-                        'POT' => 0.002,
-                        'BLK' => 0.02,
-                        'EMC2' => 0.2,
-                        'XMY' => 0.2,
-                        'GLD' => 0.0002,
-                        'SLR' => 0.2,
-                        'GRS' => 0.2,
-                    ),
-                    'deposit' => array(
-                        'BTC' => 0,
-                        'LTC' => 0,
-                        'DOGE' => 0,
-                        'VTC' => 0,
-                        'PPC' => 0,
-                        'FTC' => 0,
-                        'RDD' => 0,
-                        'NXT' => 0,
-                        'DASH' => 0,
-                        'POT' => 0,
-                        'BLK' => 0,
-                        'EMC2' => 0,
-                        'XMY' => 0,
-                        'GLD' => 0,
-                        'SLR' => 0,
-                        'GRS' => 0,
-                    ),
                 ),
             ),
             'exceptions' => array(
@@ -230,7 +194,6 @@ class bittrex extends Exchange {
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
-                'symbolSeparator' => '-',
                 // With certain currencies, like
                 // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
                 // an additional tag / memo / payment id is usually required by exchanges.
@@ -474,18 +437,8 @@ class bittrex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'updatedAt'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $percentage = $this->safe_float($ticker, 'percentChange');
         $last = $this->safe_float($ticker, 'lastTradeRate');
         return array(
@@ -1022,13 +975,6 @@ class bittrex extends Exchange {
                 'cost' => $feeCost,
             ),
         );
-    }
-
-    public function parse_symbol($id) {
-        list($quoteId, $baseId) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
     }
 
     public function parse_time_in_force($timeInForce) {
