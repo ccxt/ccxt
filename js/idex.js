@@ -906,7 +906,7 @@ module.exports = class idex extends Exchange {
             'takeProfitLimit': 6,
         };
         let stopPriceString = undefined;
-        if (type === 'stopLossLimit' || type === 'takeProfitLimit' || 'stopPrice' in params) {
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
             if (!('stopPrice' in params)) {
                 throw new BadRequest (this.id + ' stopPrice is a required parameter for ' + type + 'orders');
             }
