@@ -1586,6 +1586,12 @@ module.exports = class wavesexchange extends Exchange {
                 'currency': code,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            const currency = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const minimum = this.safeFloat (allowedAmount, 'min');
+            if (amount <= minimum) {
+                throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
+            }
             // {
             //   "type": "withdrawal_addresses",
             //   "currency": {
@@ -1639,7 +1645,7 @@ module.exports = class wavesexchange extends Exchange {
             'type': type,
             'version': version,
             'attachment': '',
-            'feeAssetId': this.getAssetId (feeAssetId),
+            'feeAssetId': this.getAssetId (feeAssetId) || 'WAVES',
             'proofs': [
                 signature,
             ],
