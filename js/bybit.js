@@ -548,13 +548,7 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'last_price');
         const open = this.safeFloat (ticker, 'prev_price_24h');
         let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
@@ -1113,11 +1107,9 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         let symbol = undefined;
         let base = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
