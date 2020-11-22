@@ -1564,9 +1564,27 @@ module.exports = class wavesexchange extends Exchange {
             'address': address,
             'currency': code,
         };
+        const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        const set = {};
+        for (let i = 0; i < hexChars.length; i++) {
+            const key = hexChars[i];
+            set[key] = true;
+        }
+        let isErc20 = true;
+        const noPrefix = this.remove0xPrefix (address);
+        const lower = noPrefix.lower ();
+        for (let i = 0; i < lower.length; i++) {
+            const character = lower[i];
+            if (!(character in set)) {
+                isErc20 = false;
+                break;
+            }
+        }
         await this.getAccessToken ();
         let proxyAddress = undefined;
-        if (code !== 'WAVES') {
+        if (code === 'WAVES' && !isErc20) {
+            proxyAddress = address;
+        } else {
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             // {
             //   "type": "withdrawal_addresses",
@@ -1591,8 +1609,6 @@ module.exports = class wavesexchange extends Exchange {
             // }
             const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
             proxyAddress = this.safeString (proxyAddresses, 0);
-        } else {
-            proxyAddress = address;
         }
         const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
         const feeAssetId = 'WAVES';
