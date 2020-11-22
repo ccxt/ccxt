@@ -1645,7 +1645,7 @@ module.exports = class wavesexchange extends Exchange {
             'type': type,
             'version': version,
             'attachment': '',
-            'feeAssetId': this.getAssetId (feeAssetId) || 'WAVES',
+            'feeAssetId': this.getAssetId (feeAssetId),
             'proofs': [
                 signature,
             ],
