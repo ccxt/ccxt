@@ -1560,10 +1560,6 @@ module.exports = class wavesexchange extends Exchange {
             }
         }
         await this.loadMarkets ();
-        const withdrawAddressRequest = {
-            'address': address,
-            'currency': code,
-        };
         const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
         const set = {};
         for (let i = 0; i < hexChars.length; i++) {
@@ -1585,6 +1581,10 @@ module.exports = class wavesexchange extends Exchange {
         if (code === 'WAVES' && !isErc20) {
             proxyAddress = address;
         } else {
+            const withdrawAddressRequest = {
+                'address': address,
+                'currency': code,
+            };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             // {
             //   "type": "withdrawal_addresses",
