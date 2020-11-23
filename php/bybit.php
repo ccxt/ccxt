@@ -370,13 +370,38 @@ class bybit extends Exchange {
         //         time_now => '1583930495.454196'
         //     }
         //
+        // sandbox/testnet
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "$result":array(
+        //             {
+        //                 "$symbol":"BTCUSD",
+        //                 "symbol_alias":"BTCUSD",
+        //                 "$status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999.5","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             }
+        //         ),
+        //         "time_now":"1605916574.118500"
+        //     }
+        //
         $markets = $this->safe_value($response, 'result', array());
         $options = $this->safe_value($this->options, 'fetchMarkets', array());
         $linearQuoteCurrencies = $this->safe_value($options, 'linear', array( 'USDT' => true ));
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'name');
+            $id = $this->safe_string_2($market, 'name', 'symbol');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
@@ -394,12 +419,17 @@ class bybit extends Exchange {
                 'amount' => $this->safe_float($lotSizeFilter, 'qty_step'),
                 'price' => $this->safe_float($priceFilter, 'tick_size'),
             );
+            $status = $this->safe_string($market, 'status');
+            $active = null;
+            if ($status !== null) {
+                $active = ($status === 'Trading');
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => null,
+                'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->safe_float($market, 'taker_fee'),
                 'maker' => $this->safe_float($market, 'maker_fee'),
@@ -520,13 +550,7 @@ class bybit extends Exchange {
         //
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'last_price');
         $open = $this->safe_float($ticker, 'prev_price_24h');
         $percentage = $this->safe_float($ticker, 'price_24h_pcnt');
@@ -1085,11 +1109,9 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $symbol = null;
         $base = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');

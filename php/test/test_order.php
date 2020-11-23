@@ -26,7 +26,9 @@ function test_order($exchange, $order, $symbol, $now) {
     assert (is_array($order) && array_key_exists('symbol', $order));
     assert ($order['symbol'] === $symbol);
     assert (is_array($order) && array_key_exists('type', $order));
-    assert (gettype($order['type']) === 'string');
+    assert (($order['type'] === null) || (gettype($order['type']) === 'string'));
+    assert (is_array($order) && array_key_exists('timeInForce', $order));
+    assert (($order['timeInForce'] === null) || (gettype($order['timeInForce']) === 'string'));
     assert (is_array($order) && array_key_exists('side', $order));
     assert (($order['side'] === 'buy') || ($order['side'] === 'sell'));
     assert (is_array($order) && array_key_exists('price', $order));

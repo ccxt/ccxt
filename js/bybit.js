@@ -368,13 +368,38 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583930495.454196'
         //     }
         //
+        // sandbox/testnet
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":[
+        //             {
+        //                 "symbol":"BTCUSD",
+        //                 "symbol_alias":"BTCUSD",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
+        //                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
+        //                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
+        //             }
+        //         ],
+        //         "time_now":"1605916574.118500"
+        //     }
+        //
         const markets = this.safeValue (response, 'result', []);
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const linearQuoteCurrencies = this.safeValue (options, 'linear', { 'USDT': true });
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'name');
+            const id = this.safeString2 (market, 'name', 'symbol');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
@@ -392,12 +417,17 @@ module.exports = class bybit extends Exchange {
                 'amount': this.safeFloat (lotSizeFilter, 'qty_step'),
                 'price': this.safeFloat (priceFilter, 'tick_size'),
             };
+            const status = this.safeString (market, 'status');
+            let active = undefined;
+            if (status !== undefined) {
+                active = (status === 'Trading');
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': undefined,
+                'active': active,
                 'precision': precision,
                 'taker': this.safeFloat (market, 'taker_fee'),
                 'maker': this.safeFloat (market, 'maker_fee'),
@@ -518,13 +548,7 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'last_price');
         const open = this.safeFloat (ticker, 'prev_price_24h');
         let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
@@ -1083,11 +1107,9 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         let symbol = undefined;
         let base = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');

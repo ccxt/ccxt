@@ -2529,10 +2529,10 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 - The `cost` of an order means the total *quote* volume of the order (whereas the `amount` is the *base* volume). The value of `cost` should be as close to the actual most recent known order cost as possible. The `cost` field itself is there mostly for convenience and can be deduced from other fields.
 - The `clientOrderId` field can be set upon placing orders by the user with [custom order params](#custom-order-params). Using the `clientOrderId` the user can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time.
 - The `timeInForce` field may be `undefined/None/null` if not specified by the exchange. The unification of `timeInForce` is a work in progress. Possible values for the`timeInForce` field:
-    - `'GTC'` = Good Till Cancel(ed), the order stays on the orderbook until it is matched or canceled.
-    - `'IOC'` = Immediate Or Cancel, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
-    - `'FOK'` = Fill Or Kill, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
-    - `'PO'` = Post Only, the order has to land on the orderbook and spend at least some time there in an unfilled state, otherwise it is not placed.
+    - `'GTC'` = _Good Till Cancel(ed)_, the order stays on the orderbook until it is matched or canceled.
+    - `'IOC'` = _Immediate Or Cancel_, the order has to be matched immediately and filled either partially or completely, the unfilled remainder is canceled (or the entire order is canceled).
+    - `'FOK'` = _Fill Or Kill_, the order has to get fully filled and closed immediately, otherwise the entire order is canceled.
+    - `'PO'` = _Post Only_, the order has to land on the orderbook and spend at least some time there in an unfilled state, this makes it a maker order by definition, otherwise it is not placed. The post only `timeInForce` is not too common across the exchanges, since orders are allowed to be both `GTC` and `PO` at the same time, therefore the post only mode is often returned as a separate flag. The unification of `timeInForce` and `postOnly` is a work in progress.
 
 ### Placing Orders
 
@@ -2946,18 +2946,18 @@ if (exchange.has['fetchMyTrades']) {
 
 ```Python
 # Python
-# fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+# fetch_my_trades(symbol=None, since=None, limit=None, params={})
 
 if exchange.has['fetchMyTrades']:
-    exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+    exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
 
 ```PHP
 // PHP
-// fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+// fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
 
 if ($exchange->has['fetchMyTrades']) {
-    $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
+    $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
 
@@ -2993,7 +2993,31 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 ### Trades By Order Id
 
-```UNDER CONSTRUCTION```
+```JavaScript
+// JavaScript
+// fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchOrderTrades']) {
+    const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
+
+if exchange.has['fetchOrderTrades']:
+    exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
+```
+
+```PHP
+// PHP
+// fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
+
+if ($exchange->has['fetchOrderTrades']) {
+    $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
+}
+```
 
 ## Funding Your Account
 
