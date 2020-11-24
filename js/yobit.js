@@ -150,6 +150,7 @@ module.exports = class yobit extends Exchange {
                 'RUR': 'RUB',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
+                'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
                 'XRA': 'Ratecoin',
