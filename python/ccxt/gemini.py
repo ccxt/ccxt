@@ -223,13 +223,13 @@ class gemini(Exchange):
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
-            amountPrecision = self.safe_float(amountPrecisionParts, 0)
+            amountPrecision = self.precision_from_string(amountPrecisionParts[0])
             idLength = len(id) - 0
             quoteId = id[idLength - 3:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
-            pricePrecision = self.safe_float(pricePrecisionParts, 0)
+            pricePrecision = self.precision_from_string(pricePrecisionParts[0])
             baseId = id.replace(quoteId, '')
             base = self.safe_currency_code(baseId)
             symbol = base + '/' + quote

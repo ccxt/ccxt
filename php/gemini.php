@@ -212,13 +212,13 @@ class gemini extends Exchange {
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
-            $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
+            $amountPrecision = $this->precision_from_string($amountPrecisionParts[0]);
             $idLength = strlen($id) - 0;
             $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
-            $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+            $pricePrecision = $this->precision_from_string($pricePrecisionParts[0]);
             $baseId = str_replace($quoteId, '', $id);
             $base = $this->safe_currency_code($baseId);
             $symbol = $base . '/' . $quote;
