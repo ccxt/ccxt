@@ -550,13 +550,7 @@ class bybit extends Exchange {
         //
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'last_price');
         $open = $this->safe_float($ticker, 'prev_price_24h');
         $percentage = $this->safe_float($ticker, 'price_24h_pcnt');
@@ -1115,11 +1109,9 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $symbol = null;
         $base = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');

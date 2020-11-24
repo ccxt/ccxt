@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.38.9';
+$version = '1.38.13';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.38.9';
+    const VERSION = '1.38.13';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2730,14 +2730,16 @@ class Exchange {
     }
 
     public static function from_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%.' . $decimals . 'e', $amount);
+        $format_decimals = $decimals + floor(log($amount, 10));
+        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) - $decimals;
         return floatval($n . 'e' . strval($new_exponent));
     }
 
     public static function to_wei($amount, $decimals = 18) {
-        $exponential = sprintf('%.' . $decimals . 'e', $amount);
+        $format_decimals = $decimals + floor(log($amount, 10));
+        $exponential = sprintf('%.' . $format_decimals . 'e', $amount);
         list($n, $exponent) = explode('e', $exponential);
         $new_exponent = intval($exponent) + $decimals;
         return static::number_to_string(floatval($n . 'e' . strval($new_exponent)));
