@@ -1613,7 +1613,7 @@ module.exports = class phemex extends Exchange {
                 filled = Math.min (0, amount - remaining);
             }
         }
-        const timeInForce = this.parseTimeInForce (this.safeStirng (order, 'timeInForce'));
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         return {
             'info': order,
             'id': id,
