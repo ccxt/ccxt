@@ -1617,7 +1617,7 @@ class phemex extends Exchange {
                 $filled = min (0, $amount - $remaining);
             }
         }
-        $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         return array(
             'info' => $order,
             'id' => $id,

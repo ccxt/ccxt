@@ -1563,7 +1563,7 @@ class phemex(Exchange):
         if filled is None:
             if (amount is not None) and (remaining is not None):
                 filled = min(0, amount - remaining)
-        timeInForce = self.parse_time_in_force(self.safeStirng(order, 'timeInForce'))
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         return {
             'info': order,
             'id': id,
