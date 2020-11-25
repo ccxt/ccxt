@@ -216,6 +216,8 @@ class kraken extends Exchange {
             'commonCurrencies' => array(
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'REPV2' => 'REP',
+                'REP' => 'REPV1',
             ),
             'options' => array(
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
