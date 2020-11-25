@@ -337,6 +337,7 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ),
                 ),
                 'fapiData' => array(
