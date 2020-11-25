@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ module.exports = class vcc extends Exchange {
                     'Too many requests': RateLimitExceeded, // {"code":429,"message":"Too many requests","description":"Too many requests"}
                     'quantity field is required': InvalidOrder, // {"message":"The given data was invalid.","errors":{"quantity":["The quantity field is required when type is market."]}}
                     'price field is required': InvalidOrder,  // {"message":"The given data was invalid.","errors":{"price":["The price field is required when type is limit."]}}
-                    'error_security_level': ExchangeError, // {"message":"error_security_level"}
+                    'error_security_level': PermissionDenied, // {"message":"error_security_level"}
                     'pair is invalid': BadSymbol, // {"message":"The given data was invalid.","errors":{"coin":["Trading pair is invalid","Trading pair is offline"]}}
                     // {"message":"The given data was invalid.","errors":{"type":["The selected type is invalid."]}}
                     // {"message":"The given data was invalid.","errors":{"trade_type":["The selected trade type is invalid."]}}
@@ -751,7 +751,30 @@ module.exports = class vcc extends Exchange {
             request['stop_condition'] = stop_condition;
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response, market);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"d9b1159d2bcefa2388be156e32ddc7cc324400ee",
+        //         "data":{
+        //             "id":41230,
+        //             "trade_type":"sell",
+        //             "type":"limit",
+        //             "quantity":"1",
+        //             "price":"14.99",
+        //             "currency":"usdt",
+        //             "coin":"neo",
+        //             "status":"pending",
+        //             "is_stop": "1",
+        //             "stop_price": "13",
+        //             "stop_condition": "ge",
+        //             "fee":0,
+        //             "created_at":1560244052168,
+        //             "updated_at":1560244052168
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
