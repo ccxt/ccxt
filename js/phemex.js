@@ -2086,7 +2086,6 @@ module.exports = class phemex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-
         //
         // spot
         //
