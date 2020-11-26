@@ -337,6 +337,7 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ),
                 ),
                 'fapiData' => array(
@@ -649,7 +650,7 @@ class binance extends Exchange {
         //             array(
         //                 "$symbol" => "BTCUSD_200925",
         //                 "pair" => "BTCUSD",
-        //                 "contractType" => "CURRENT_QUARTER",
+        //                 "$contractType" => "CURRENT_QUARTER",
         //                 "deliveryDate" => 1601020800000,
         //                 "onboardDate" => 1590739200000,
         //                 "contractStatus" => "TRADING",
@@ -677,7 +678,7 @@ class binance extends Exchange {
         //             {
         //                 "$symbol" => "BTCUSD_PERP",
         //                 "pair" => "BTCUSD",
-        //                 "contractType" => "PERPETUAL",
+        //                 "$contractType" => "PERPETUAL",
         //                 "deliveryDate" => 4133404800000,
         //                 "onboardDate" => 1596006000000,
         //                 "contractStatus" => "TRADING",
@@ -715,7 +716,16 @@ class binance extends Exchange {
             $marketType = 'spot';
             $future = false;
             $delivery = false;
-            if (is_array($market) && array_key_exists('maintMarginPercent', $market)) {
+            $contractType = $this->safe_string($market, 'contractType');
+            if ($contractType === 'PERPETUAL') {
+                $future = true;
+                $delivery = false;
+                $marketType = 'future';
+            } else if (($contractType === 'CURRENT_QUARTER') || ($contractType === 'NEXT_QUARTER')) {
+                $future = false;
+                $delivery = true;
+                $marketType = 'delivery';
+            } else if (is_array($market) && array_key_exists('maintMarginPercent', $market)) {
                 $delivery = (is_array($market) && array_key_exists('deliveryDate', $market));
                 $future = !$delivery;
                 $marketType = $delivery ? 'delivery' : 'future';
@@ -1706,7 +1716,7 @@ class binance extends Exchange {
             }
             $stopPriceIsRequired = true;
         } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            $quantityIsRequired = true;
+            // $quantityIsRequired = true;
             $callbackRate = $this->safe_float($params, 'callbackRate');
             if ($callbackRate === null) {
                 throw new InvalidOrder($this->id . ' createOrder $method requires a $callbackRate extra param for a ' . $type . ' order');

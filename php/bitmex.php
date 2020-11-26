@@ -1251,6 +1251,7 @@ class bitmex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $clientOrderId = $this->safe_string($order, 'clOrdID');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $stopPrice = $this->safe_float($order, 'stopPx');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1263,6 +1264,7 @@ class bitmex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1333,7 +1335,9 @@ class bitmex extends Exchange {
         );
         if ($price !== null) {
             if ($orderType === 'Stop') {
-                $request['stopPx'] = $price;
+                $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+                $request['stopPx'] = $stopPrice;
+                $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
             } else {
                 $request['price'] = $price;
             }

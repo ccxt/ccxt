@@ -1096,6 +1096,7 @@ module.exports = class deribit extends Exchange {
             trades = this.parseTrades (trades, market);
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = undefined;
         return {
             'info': order,
             'id': id,
@@ -1108,6 +1109,7 @@ module.exports = class deribit extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1199,6 +1201,7 @@ module.exports = class deribit extends Exchange {
             } else {
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
             }
+            params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         }
         const method = 'privateGet' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));

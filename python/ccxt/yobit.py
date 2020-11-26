@@ -168,6 +168,7 @@ class yobit(Exchange):
                 'RUR': 'RUB',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
+                'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
                 'XRA': 'Ratecoin',

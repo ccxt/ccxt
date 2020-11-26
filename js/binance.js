@@ -330,6 +330,7 @@ module.exports = class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ],
                 },
                 'fapiData': {
@@ -829,7 +830,16 @@ module.exports = class binance extends Exchange {
             let marketType = 'spot';
             let future = false;
             let delivery = false;
-            if ('maintMarginPercent' in market) {
+            const contractType = this.safeString (market, 'contractType');
+            if (contractType === 'PERPETUAL') {
+                future = true;
+                delivery = false;
+                marketType = 'future';
+            } else if ((contractType === 'CURRENT_QUARTER') || (contractType === 'NEXT_QUARTER')) {
+                future = false;
+                delivery = true;
+                marketType = 'delivery';
+            } else if ('maintMarginPercent' in market) {
                 delivery = ('deliveryDate' in market);
                 future = !delivery;
                 marketType = delivery ? 'delivery' : 'future';
@@ -1820,7 +1830,7 @@ module.exports = class binance extends Exchange {
             }
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            // quantityIsRequired = true;
             const callbackRate = this.safeFloat (params, 'callbackRate');
             if (callbackRate === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order');

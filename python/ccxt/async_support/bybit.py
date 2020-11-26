@@ -1124,6 +1124,7 @@ class bybit(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
+        stopPrice = self.safe_float(order, 'stop_px')
         return {
             'info': order,
             'id': id,
@@ -1136,6 +1137,7 @@ class bybit(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1278,7 +1280,7 @@ class bybit(Exchange):
                 request['price'] = float(self.price_to_precision(symbol, price))
             else:
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-        stopPx = self.safe_value(params, 'stop_px')
+        stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value(params, 'base_price')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
@@ -1294,7 +1296,7 @@ class bybit(Exchange):
                 method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'openapiPostStopOrderCreate'
                 request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
                 request['base_price'] = float(self.price_to_precision(symbol, basePrice))
-                params = self.omit(params, ['stop_px', 'base_price'])
+                params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
         response = await getattr(self, method)(self.extend(request, params))
