@@ -1162,6 +1162,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeFloat (order, 'stop_px');
         return {
             'info': order,
             'id': id,
@@ -1174,6 +1175,7 @@ module.exports = class bybit extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1325,7 +1327,7 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
         }
-        const stopPx = this.safeValue (params, 'stop_px');
+        const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
@@ -1342,7 +1344,7 @@ module.exports = class bybit extends Exchange {
                 method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
                 request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-                params = this.omit (params, [ 'stop_px', 'base_price' ]);
+                params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price' ]);
             }
         } else if (basePrice !== undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
