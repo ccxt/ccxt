@@ -447,6 +447,7 @@ class coinfloor(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': None,

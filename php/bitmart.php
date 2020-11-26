@@ -685,10 +685,7 @@ class bitmart extends Exchange {
         }
         $baseVolume = $this->safe_float_2($ticker, 'base_volume_24h', 'base_coin_volume');
         $quoteVolume = $this->safe_float_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $open = $this->safe_float_2($ticker, 'open_24h', 'open');
         $average = null;
         if (($last !== null) && ($open !== null)) {
@@ -1607,6 +1604,7 @@ class bitmart extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

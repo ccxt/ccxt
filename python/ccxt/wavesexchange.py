@@ -712,8 +712,8 @@ class wavesexchange(Exchange):
         items = self.safe_value(supportedCurrencies, 'items', [])
         for i in range(0, len(items)):
             entry = items[i]
-            code = self.safe_string(entry, 'id')
-            currencies[code] = True
+            currencyCode = self.safe_string(entry, 'id')
+            currencies[currencyCode] = True
         if not (code in currencies):
             codes = list(currencies.keys())
             raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + str(codes))
@@ -1197,6 +1197,7 @@ class wavesexchange(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1463,20 +1464,40 @@ class wavesexchange(Exchange):
             items = self.safe_value(supportedCurrencies, 'items', [])
             for i in range(0, len(items)):
                 entry = items[i]
-                code = self.safe_string(entry, 'id')
-                currencies[code] = True
+                currencyCode = self.safe_string(entry, 'id')
+                currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
                 raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))
         self.load_markets()
-        withdrawAddressRequest = {
-            'address': address,
-            'currency': code,
-        }
+        hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+        set = {}
+        for i in range(0, len(hexChars)):
+            key = hexChars[i]
+            set[key] = True
+        isErc20 = True
+        noPrefix = self.remove0x_prefix(address)
+        lower = noPrefix.lower()
+        for i in range(0, len(lower)):
+            character = lower[i]
+            if not (character in set):
+                isErc20 = False
+                break
         self.get_access_token()
         proxyAddress = None
-        if code != 'WAVES':
+        if code == 'WAVES' and not isErc20:
+            proxyAddress = address
+        else:
+            withdrawAddressRequest = {
+                'address': address,
+                'currency': code,
+            }
             withdrawAddress = self.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest)
+            currency = self.safe_value(withdrawAddress, 'currency')
+            allowedAmount = self.safe_value(currency, 'allowed_amount')
+            minimum = self.safe_float(allowedAmount, 'min')
+            if amount <= minimum:
+                raise BadRequest(self.id + ' ' + code + ' withdraw failed, amount ' + str(amount) + ' must be greater than the minimum allowed amount of ' + str(minimum))
             # {
             #   "type": "withdrawal_addresses",
             #   "currency": {
@@ -1500,8 +1521,6 @@ class wavesexchange(Exchange):
             # }
             proxyAddresses = self.safe_value(withdrawAddress, 'proxy_addresses', [])
             proxyAddress = self.safe_string(proxyAddresses, 0)
-        else:
-            proxyAddress = address
         fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)  # 0.001 WAVES
         feeAssetId = 'WAVES'
         type = 4  # transfer

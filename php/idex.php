@@ -856,6 +856,7 @@ class idex extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -902,12 +903,36 @@ class idex extends Exchange {
         $market = $this->market($symbol);
         $nonce = $this->uuidv1();
         $typeEnum = null;
+        $stopLossTypeEnums = array(
+            'stopLoss' => 3,
+            'stopLossLimit' => 4,
+            'takeProfit' => 5,
+            'takeProfitLimit' => 6,
+        );
+        $stopPriceString = null;
+        if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
+            if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
+                throw new BadRequest($this->id . ' stopPrice is a required parameter for ' . $type . 'orders');
+            }
+            $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
+        }
+        $limitTypeEnums = array(
+            'limit' => 1,
+            'limitMaker' => 2,
+        );
         $priceString = null;
-        if ($type === 'limit') {
-            $typeEnum = 1;
+        $typeLower = strtolower($type);
+        $limitOrder = mb_strpos($typeLower, 'limit') > -1;
+        if (is_array($limitTypeEnums) && array_key_exists($type, $limitTypeEnums)) {
+            $typeEnum = $limitTypeEnums[$type];
+            $priceString = $this->price_to_precision($symbol, $price);
+        } else if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
+            $typeEnum = $stopLossTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
         } else if ($type === 'market') {
             $typeEnum = 0;
+        } else {
+            throw new BadRequest($this->id . ' ' . $type . ' is not a valid order type');
         }
         $amountEnum = 0; // base quantity
         if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
@@ -964,8 +989,12 @@ class idex extends Exchange {
             $this->encode($amountString),
             $this->number_to_be($amountEnum, 1),
         ];
-        if ($type === 'limit') {
+        if ($limitOrder) {
             $encodedPrice = $this->encode($priceString);
+            $byteArray[] = $encodedPrice;
+        }
+        if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
+            $encodedPrice = $this->encode($stopPriceString || $priceString);
             $byteArray[] = $encodedPrice;
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -993,8 +1022,11 @@ class idex extends Exchange {
             ),
             'signature' => $signature,
         );
-        if ($type === 'limit') {
+        if ($limitOrder) {
             $request['parameters']['price'] = $priceString;
+        }
+        if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
+            $request['parameters']['stopPrice'] = $stopPriceString || $priceString;
         }
         if ($amountEnum === 0) {
             $request['parameters']['quantity'] = $amountString;

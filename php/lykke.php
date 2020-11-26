@@ -500,6 +500,7 @@ class lykke extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

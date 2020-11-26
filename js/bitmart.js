@@ -680,10 +680,7 @@ module.exports = class bitmart extends Exchange {
         }
         const baseVolume = this.safeFloat2 (ticker, 'base_volume_24h', 'base_coin_volume');
         const quoteVolume = this.safeFloat2 (ticker, 'quote_volume_24h', 'quote_coin_volume');
-        let vwap = undefined;
-        if ((quoteVolume !== undefined) && (baseVolume !== undefined) && (baseVolume !== 0)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const open = this.safeFloat2 (ticker, 'open_24h', 'open');
         let average = undefined;
         if ((last !== undefined) && (open !== undefined)) {
@@ -1602,6 +1599,7 @@ module.exports = class bitmart extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,

@@ -720,6 +720,7 @@ class coinbasepro extends Exchange {
             'status' => $status,
             'symbol' => $market['symbol'],
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

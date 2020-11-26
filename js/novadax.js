@@ -870,6 +870,7 @@ module.exports = class novadax extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,

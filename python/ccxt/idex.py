@@ -813,6 +813,7 @@ class idex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,
@@ -857,12 +858,34 @@ class idex(Exchange):
         market = self.market(symbol)
         nonce = self.uuidv1()
         typeEnum = None
+        stopLossTypeEnums = {
+            'stopLoss': 3,
+            'stopLossLimit': 4,
+            'takeProfit': 5,
+            'takeProfitLimit': 6,
+        }
+        stopPriceString = None
+        if (type == 'stopLossLimit') or (type == 'takeProfitLimit') or ('stopPrice' in params):
+            if not ('stopPrice' in params):
+                raise BadRequest(self.id + ' stopPrice is a required parameter for ' + type + 'orders')
+            stopPriceString = self.price_to_precision(symbol, params['stopPrice'])
+        limitTypeEnums = {
+            'limit': 1,
+            'limitMaker': 2,
+        }
         priceString = None
-        if type == 'limit':
-            typeEnum = 1
+        typeLower = type.lower()
+        limitOrder = typeLower.find('limit') > -1
+        if type in limitTypeEnums:
+            typeEnum = limitTypeEnums[type]
+            priceString = self.price_to_precision(symbol, price)
+        elif type in stopLossTypeEnums:
+            typeEnum = stopLossTypeEnums[type]
             priceString = self.price_to_precision(symbol, price)
         elif type == 'market':
             typeEnum = 0
+        else:
+            raise BadRequest(self.id + ' ' + type + ' is not a valid order type')
         amountEnum = 0  # base quantity
         if 'quoteOrderQuantity' in params:
             if type != 'market':
@@ -914,8 +937,11 @@ class idex(Exchange):
             self.encode(amountString),
             self.number_to_be(amountEnum, 1),
         ]
-        if type == 'limit':
+        if limitOrder:
             encodedPrice = self.encode(priceString)
+            byteArray.append(encodedPrice)
+        if type in stopLossTypeEnums:
+            encodedPrice = self.encode(stopPriceString or priceString)
             byteArray.append(encodedPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -941,8 +967,10 @@ class idex(Exchange):
             },
             'signature': signature,
         }
-        if type == 'limit':
+        if limitOrder:
             request['parameters']['price'] = priceString
+        if type in stopLossTypeEnums:
+            request['parameters']['stopPrice'] = stopPriceString or priceString
         if amountEnum == 0:
             request['parameters']['quantity'] = amountString
         else:

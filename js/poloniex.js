@@ -812,16 +812,16 @@ module.exports = class poloniex extends Exchange {
         //         'side': side,
         //         'price': price,
         //         'amount': amount,
+        //         // ---------------------------------------------------------
+        //         // 'resultingTrades' in editOrder
+        //         'resultingTrades': {
+        //             'BTC_MANA': [],
+        //          }
         //     }
         //
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
-        }
-        let trades = undefined;
-        const resultingTrades = this.safeValue (order, 'resultingTrades');
-        if (resultingTrades !== undefined) {
-            trades = this.parseTrades (resultingTrades, market);
         }
         let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
@@ -837,6 +837,14 @@ module.exports = class poloniex extends Exchange {
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
+        }
+        let trades = undefined;
+        let resultingTrades = this.safeValue (order, 'resultingTrades');
+        if (!Array.isArray (resultingTrades)) {
+            resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+        }
+        if (resultingTrades !== undefined) {
+            trades = this.parseTrades (resultingTrades, market);
         }
         const price = this.safeFloat2 (order, 'price', 'rate');
         let remaining = this.safeFloat (order, 'amount');
@@ -872,9 +880,11 @@ module.exports = class poloniex extends Exchange {
                         lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
                     }
                 }
-                remaining = Math.max (amount - filled, 0);
-                if (filled >= amount) {
-                    status = 'closed';
+                if (amount !== undefined) {
+                    remaining = Math.max (amount - filled, 0);
+                    if (filled >= amount) {
+                        status = 'closed';
+                    }
                 }
             }
         }
@@ -910,6 +920,7 @@ module.exports = class poloniex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,
@@ -964,8 +975,8 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
         }
         await this.loadMarkets ();
         const method = 'privatePost' + this.capitalize (side);

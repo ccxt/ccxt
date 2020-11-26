@@ -230,6 +230,8 @@ class kraken(Exchange):
             'commonCurrencies': {
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
+                'REPV2': 'REP',
+                'REP': 'REPV1',
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
@@ -1071,6 +1073,7 @@ class kraken(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

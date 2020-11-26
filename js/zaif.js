@@ -356,6 +356,7 @@ module.exports = class zaif extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,

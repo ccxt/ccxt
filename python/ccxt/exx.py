@@ -313,6 +313,7 @@ class exx(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': order['type'],
             'price': price,
             'cost': cost,

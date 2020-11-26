@@ -439,6 +439,7 @@ class braziliex(Exchange):
         id = self.safe_string(order, 'order_number')
         fee = self.safe_value(order, 'fee')  # propagated from createOrder
         status = 'closed' if (filledPercentage == 1.0) else 'open'
+        side = self.safe_string(order, 'type')
         return {
             'id': id,
             'clientOrderId': None,
@@ -448,7 +449,8 @@ class braziliex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': None,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

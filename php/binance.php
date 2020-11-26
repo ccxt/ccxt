@@ -337,6 +337,7 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ),
                 ),
                 'fapiData' => array(
@@ -1466,7 +1467,7 @@ class binance extends Exchange {
         //         "executedQty" => "0.0",
         //         "cummulativeQuoteQty" => "0.0",
         //         "$status" => "NEW",
-        //         "timeInForce" => "GTC",
+        //         "$timeInForce" => "GTC",
         //         "$type" => "LIMIT",
         //         "$side" => "BUY",
         //         "stopPrice" => "0.0",
@@ -1487,7 +1488,7 @@ class binance extends Exchange {
         //         "executedQty" => "1.0",
         //         "cumQuote" => "10.0",
         //         "$status" => "NEW",
-        //         "timeInForce" => "GTC",
+        //         "$timeInForce" => "GTC",
         //         "$type" => "LIMIT",
         //         "$side" => "BUY",
         //         "stopPrice" => "0.0",
@@ -1573,6 +1574,7 @@ class binance extends Exchange {
             }
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1582,6 +1584,7 @@ class binance extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1704,7 +1707,7 @@ class binance extends Exchange {
             }
             $stopPriceIsRequired = true;
         } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            $quantityIsRequired = true;
+            // $quantityIsRequired = true;
             $callbackRate = $this->safe_float($params, 'callbackRate');
             if ($callbackRate === null) {
                 throw new InvalidOrder($this->id . ' createOrder $method requires a $callbackRate extra param for a ' . $type . ' order');

@@ -152,42 +152,6 @@ class bittrex extends Exchange {
                 'funding' => array(
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => array(
-                        'BTC' => 0.0005,
-                        'LTC' => 0.01,
-                        'DOGE' => 2,
-                        'VTC' => 0.02,
-                        'PPC' => 0.02,
-                        'FTC' => 0.2,
-                        'RDD' => 2,
-                        'NXT' => 2,
-                        'DASH' => 0.05,
-                        'POT' => 0.002,
-                        'BLK' => 0.02,
-                        'EMC2' => 0.2,
-                        'XMY' => 0.2,
-                        'GLD' => 0.0002,
-                        'SLR' => 0.2,
-                        'GRS' => 0.2,
-                    ),
-                    'deposit' => array(
-                        'BTC' => 0,
-                        'LTC' => 0,
-                        'DOGE' => 0,
-                        'VTC' => 0,
-                        'PPC' => 0,
-                        'FTC' => 0,
-                        'RDD' => 0,
-                        'NXT' => 0,
-                        'DASH' => 0,
-                        'POT' => 0,
-                        'BLK' => 0,
-                        'EMC2' => 0,
-                        'XMY' => 0,
-                        'GLD' => 0,
-                        'SLR' => 0,
-                        'GRS' => 0,
-                    ),
                 ),
             ),
             'exceptions' => array(
@@ -230,7 +194,6 @@ class bittrex extends Exchange {
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
-                'symbolSeparator' => '-',
                 // With certain currencies, like
                 // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
                 // an additional tag / memo / payment id is usually required by exchanges.
@@ -474,18 +437,8 @@ class bittrex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'updatedAt'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $percentage = $this->safe_float($ticker, 'percentChange');
         $last = $this->safe_float($ticker, 'lastTradeRate');
         return array(
@@ -1024,11 +977,14 @@ class bittrex extends Exchange {
         );
     }
 
-    public function parse_symbol($id) {
-        list($quoteId, $baseId) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GOOD_TIL_CANCELLED' => 'GTC',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED' => 'POST_ONLY_GOOD_TIL_CANCELLED',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function parse_order($order, $market = null) {
@@ -1040,7 +996,7 @@ class bittrex extends Exchange {
         //         $type => 'LIMIT',
         //         $quantity => '0.50000000',
         //         $limit => '0.17846699',
-        //         timeInForce => 'GOOD_TIL_CANCELLED',
+        //         $timeInForce => 'GOOD_TIL_CANCELLED',
         //         $fillQuantity => '0.50000000',
         //         $commission => '0.00022286',
         //         $proceeds => '0.08914915',
@@ -1095,6 +1051,7 @@ class bittrex extends Exchange {
         if (($status === 'closed') && ($remaining !== null) && ($remaining > 0)) {
             $status = 'canceled';
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         return array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -1103,6 +1060,7 @@ class bittrex extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $direction,
             'price' => $limit,
             'cost' => $proceeds,

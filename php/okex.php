@@ -331,7 +331,7 @@ class okex extends Exchange {
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
-                    'Server is busy, please try again' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "Server is busy, please try again." )
+                    'Server is busy, please try again.' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "Server is busy, please try again." )
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array( "message" => "An unexpected error occurred" )
                     'System error' => '\\ccxt\\ExchangeError', // array("error_message":"System error","message":"System error")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
@@ -2169,6 +2169,7 @@ class okex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'average' => $average,

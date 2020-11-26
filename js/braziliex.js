@@ -449,6 +449,7 @@ module.exports = class braziliex extends Exchange {
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
+        const side = this.safeString (order, 'type');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -458,7 +459,8 @@ module.exports = class braziliex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': undefined,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

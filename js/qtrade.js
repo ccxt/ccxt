@@ -914,6 +914,7 @@ module.exports = class qtrade extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'average': average,

@@ -1323,6 +1323,7 @@ module.exports = class bitpanda extends Exchange {
                 cost = average * filled;
             }
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1332,6 +1333,7 @@ module.exports = class bitpanda extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1370,6 +1372,16 @@ module.exports = class bitpanda extends Exchange {
             result['fee'] = undefined;
         }
         return result;
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GOOD_TILL_CANCELLED': 'GTC',
+            'GOOD_TILL_TIME': 'GTT',
+            'IMMEDIATE_OR_CANCELLED': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

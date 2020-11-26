@@ -305,6 +305,7 @@ module.exports = class bit2c extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,

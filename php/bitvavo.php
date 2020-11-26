@@ -1130,7 +1130,7 @@ class bitvavo extends Exchange {
         //         "selfTradePrevention":"decrementAndCancel",
         //         "visible":false,
         //         "disableMarketProtection":false
-        //         "timeInForce" => "GTC",
+        //         "$timeInForce" => "GTC",
         //         "postOnly" => true,
         //     }
         //
@@ -1184,6 +1184,7 @@ class bitvavo extends Exchange {
                 $lastTradeTimestamp = $lastTrade['timestamp'];
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1193,6 +1194,7 @@ class bitvavo extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

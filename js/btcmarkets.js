@@ -491,10 +491,7 @@ module.exports = class btcmarkets extends Exchange {
         const last = this.safeFloat (ticker, 'lastPrice');
         const baseVolume = this.safeFloat (ticker, 'volume24h');
         const quoteVolume = this.safeFloat (ticker, 'volumeQte24h');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const change = this.safeFloat (ticker, 'price24h');
         const percentage = this.safeFloat (ticker, 'pricePct24h');
         return {
@@ -866,6 +863,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -875,6 +873,7 @@ module.exports = class btcmarkets extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'cost': cost,

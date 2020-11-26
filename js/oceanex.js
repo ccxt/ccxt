@@ -572,6 +572,7 @@ module.exports = class oceanex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': this.safeValue (order, 'ord_type'),
+            'timeInForce': undefined,
             'side': this.safeValue (order, 'side'),
             'price': this.safeFloat (order, 'price'),
             'average': this.safeFloat (order, 'avg_price'),

@@ -344,6 +344,7 @@ module.exports = class ice3x extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
             'side': this.safeStrin (order, 'type'),
             'price': price,
             'cost': undefined,

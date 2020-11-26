@@ -207,6 +207,8 @@ module.exports = class kraken extends Exchange {
             'commonCurrencies': {
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
+                'REPV2': 'REP',
+                'REP': 'REPV1',
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
@@ -1129,6 +1131,7 @@ module.exports = class kraken extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'cost': cost,

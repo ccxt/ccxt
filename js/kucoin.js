@@ -1014,11 +1014,13 @@ module.exports = class kucoin extends Exchange {
             }
         }
         const clientOrderId = this.safeString (order, 'clientOid');
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'amount': amount,
             'price': price,

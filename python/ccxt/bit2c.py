@@ -298,6 +298,7 @@ class bit2c(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,

@@ -293,6 +293,7 @@ class btcbox(Exchange):
             'filled': filled,
             'side': side,
             'type': None,
+            'timeInForce': None,
             'status': status,
             'symbol': symbol,
             'price': price,

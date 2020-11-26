@@ -35,6 +35,7 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
+            'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': False,
@@ -74,13 +75,13 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
+                'api': 'https://api.{hostname}',
+                'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -758,6 +759,7 @@ class bibox(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'amount': amount,
@@ -928,7 +930,7 @@ class bibox(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + self.version + '/' + path
         cmds = self.json([params])
         if api == 'public':
             if method != 'GET':

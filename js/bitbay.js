@@ -361,6 +361,7 @@ module.exports = class bitbay extends Exchange {
             'status': undefined,
             'symbol': symbol,
             'type': this.safeString (order, 'mode'),
+            'timeInForce': undefined,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
             'amount': amount,

@@ -89,32 +89,44 @@ class bybit(Exchange):
                         'tickers',
                         'trading-records',
                         'symbols',
+                        'liq-records',
+                        'mark-price-kline',
+                        'open-interest',
+                        'big-deal',
+                        'account-ratio',
                         'time',
                         'announcement',
                     ],
                 },
                 'private': {
                     'get': [
+                        'order/list',
                         'order',
+                        'stop-order/list',
                         'stop-order',
                         'position/list',
                         'wallet/balance',
                         'execution/list',
                         'trade/closed-pnl/list',
+                        'account/lcp',
+                        'exchange-order/list',
                     ],
                     'post': [
                         'order/create',
                         'order/cancel',
                         'order/cancelAll',
+                        'order/replace',
+                        'stop-order/create',
+                        'stop-order/cancel',
                         'stop-order/cancelAll',
+                        'stop-order/replace',
                     ],
                 },
                 'openapi': {
                     'get': [
-                        'order/list',
-                        'stop-order/list',
+                        'order/list',  # deprecated
+                        'stop-order/list',  # deprecated
                         'wallet/risk-limit/list',
-                        'wallet/risk-limit',
                         'funding/prev-funding-rate',
                         'funding/prev-funding',
                         'funding/predicted-funding',
@@ -123,11 +135,12 @@ class bybit(Exchange):
                         'wallet/withdraw/list',
                     ],
                     'post': [
-                        'order/replace',
-                        'stop-order/create',
-                        'stop-order/cancel',
-                        'stop-order/replace',
+                        'order/replace',  # deprecated
+                        'stop-order/create',  # deprecated
+                        'stop-order/cancel',  # deprecated
+                        'stop-order/replace',  # deprecated
                         'position/trading-stop',
+                        'wallet/risk-limit',
                     ],
                 },
                 'publicLinear': {
@@ -136,6 +149,7 @@ class bybit(Exchange):
                         'recent-trading-records',
                         'funding/prev-funding-rate',
                         'mark-price-kline',
+                        'risk-limit',
                     ],
                 },
                 'privateLinear': {
@@ -147,7 +161,6 @@ class bybit(Exchange):
                         'position/list',
                         'trade/execution/list',
                         'trade/closed-pnl/list',
-                        'risk-limit',
                         'funding/prev-funding',
                         'funding/predicted-funding',
                     ],
@@ -162,6 +175,7 @@ class bybit(Exchange):
                         'stop-order/replace',
                         'position/switch-isolated',
                         'position/set-auto-add-margin',
+                        'tpsl/switch-mode',
                         'position/set-leverage',
                         'position/trading-stop',
                         'position/add-margin',
@@ -174,7 +188,7 @@ class bybit(Exchange):
                 },
                 'user': {
                     'get': [
-                        'leverage',
+                        'leverage',  # deprecated
                     ],
                     'post': [
                         'leverage/save',
@@ -359,13 +373,38 @@ class bybit(Exchange):
         #         time_now: '1583930495.454196'
         #     }
         #
+        # sandbox/testnet
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"OK",
+        #         "ext_code":"",
+        #         "ext_info":"",
+        #         "result":[
+        #             {
+        #                 "symbol":"BTCUSD",
+        #                 "symbol_alias":"BTCUSD",
+        #                 "status":"Trading",
+        #                 "base_currency":"BTC",
+        #                 "quote_currency":"USD",
+        #                 "price_scale":2,
+        #                 "taker_fee":"0.00075",
+        #                 "maker_fee":"-0.00025",
+        #                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
+        #                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
+        #                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
+        #             }
+        #         ],
+        #         "time_now":"1605916574.118500"
+        #     }
+        #
         markets = self.safe_value(response, 'result', [])
         options = self.safe_value(self.options, 'fetchMarkets', {})
         linearQuoteCurrencies = self.safe_value(options, 'linear', {'USDT': True})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = self.safe_string(market, 'name')
+            id = self.safe_string_2(market, 'name', 'symbol')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
@@ -382,12 +421,16 @@ class bybit(Exchange):
                 'amount': self.safe_float(lotSizeFilter, 'qty_step'),
                 'price': self.safe_float(priceFilter, 'tick_size'),
             }
+            status = self.safe_string(market, 'status')
+            active = None
+            if status is not None:
+                active = (status == 'Trading')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': None,
+                'active': active,
                 'precision': precision,
                 'taker': self.safe_float(market, 'taker_fee'),
                 'maker': self.safe_float(market, 'maker_fee'),
@@ -503,11 +546,7 @@ class bybit(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'last_price')
         open = self.safe_float(ticker, 'prev_price_24h')
         percentage = self.safe_float(ticker, 'price_24h_pcnt')
@@ -940,6 +979,15 @@ class bybit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+            'PostOnly': 'PO',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1032,10 +1080,9 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
         symbol = None
         base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
@@ -1076,6 +1123,7 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(order, 'order_link_id')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         return {
             'info': order,
             'id': id,
@@ -1085,6 +1133,7 @@ class bybit(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

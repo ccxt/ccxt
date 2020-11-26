@@ -1006,6 +1006,7 @@ module.exports = class ftx extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1718,7 +1719,7 @@ module.exports = class ftx extends Exchange {
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + method + request;
             headers = {};
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'DELETE')) {
                 body = this.json (query);
                 auth += body;
                 headers['Content-Type'] = 'application/json';

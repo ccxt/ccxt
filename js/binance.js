@@ -330,6 +330,7 @@ module.exports = class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ],
                 },
                 'fapiData': {
@@ -1566,6 +1567,7 @@ module.exports = class binance extends Exchange {
             }
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'info': order,
             'id': id,
@@ -1575,6 +1577,7 @@ module.exports = class binance extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1697,7 +1700,7 @@ module.exports = class binance extends Exchange {
             }
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            // quantityIsRequired = true;
             const callbackRate = this.safeFloat (params, 'callbackRate');
             if (callbackRate === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order');

@@ -543,6 +543,7 @@ class itbit extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

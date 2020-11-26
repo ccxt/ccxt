@@ -763,6 +763,7 @@ class bw extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

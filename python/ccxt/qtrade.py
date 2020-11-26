@@ -886,6 +886,7 @@ class qtrade(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'average': average,

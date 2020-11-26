@@ -852,6 +852,7 @@ module.exports = class idex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'amount': amount,
@@ -898,12 +899,36 @@ module.exports = class idex extends Exchange {
         const market = this.market (symbol);
         const nonce = this.uuidv1 ();
         let typeEnum = undefined;
+        const stopLossTypeEnums = {
+            'stopLoss': 3,
+            'stopLossLimit': 4,
+            'takeProfit': 5,
+            'takeProfitLimit': 6,
+        };
+        let stopPriceString = undefined;
+        if ((type === 'stopLossLimit') || (type === 'takeProfitLimit') || ('stopPrice' in params)) {
+            if (!('stopPrice' in params)) {
+                throw new BadRequest (this.id + ' stopPrice is a required parameter for ' + type + 'orders');
+            }
+            stopPriceString = this.priceToPrecision (symbol, params['stopPrice']);
+        }
+        const limitTypeEnums = {
+            'limit': 1,
+            'limitMaker': 2,
+        };
         let priceString = undefined;
-        if (type === 'limit') {
-            typeEnum = 1;
+        const typeLower = type.toLowerCase ();
+        const limitOrder = typeLower.indexOf ('limit') > -1;
+        if (type in limitTypeEnums) {
+            typeEnum = limitTypeEnums[type];
+            priceString = this.priceToPrecision (symbol, price);
+        } else if (type in stopLossTypeEnums) {
+            typeEnum = stopLossTypeEnums[type];
             priceString = this.priceToPrecision (symbol, price);
         } else if (type === 'market') {
             typeEnum = 0;
+        } else {
+            throw new BadRequest (this.id + ' ' + type + ' is not a valid order type');
         }
         let amountEnum = 0; // base quantity
         if ('quoteOrderQuantity' in params) {
@@ -960,8 +985,12 @@ module.exports = class idex extends Exchange {
             this.stringToBinary (this.encode (amountString)),
             this.numberToBE (amountEnum, 1),
         ];
-        if (type === 'limit') {
+        if (limitOrder) {
             const encodedPrice = this.stringToBinary (this.encode (priceString));
+            byteArray.push (encodedPrice);
+        }
+        if (type in stopLossTypeEnums) {
+            const encodedPrice = this.stringToBinary (this.encode (stopPriceString || priceString));
             byteArray.push (encodedPrice);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -989,8 +1018,11 @@ module.exports = class idex extends Exchange {
             },
             'signature': signature,
         };
-        if (type === 'limit') {
+        if (limitOrder) {
             request['parameters']['price'] = priceString;
+        }
+        if (type in stopLossTypeEnums) {
+            request['parameters']['stopPrice'] = stopPriceString || priceString;
         }
         if (amountEnum === 0) {
             request['parameters']['quantity'] = amountString;

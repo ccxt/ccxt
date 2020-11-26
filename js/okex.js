@@ -325,7 +325,7 @@ module.exports = class okex extends Exchange {
                     '1': ExchangeError, // { "code": 1, "message": "System error" }
                     // undocumented
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
-                    'Server is busy, please try again': ExchangeNotAvailable, // { "message": "Server is busy, please try again." }
+                    'Server is busy, please try again.': ExchangeNotAvailable, // { "message": "Server is busy, please try again." }
                     'An unexpected error occurred': ExchangeError, // { "message": "An unexpected error occurred" }
                     'System error': ExchangeError, // {"error_message":"System error","message":"System error"}
                     '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
@@ -2163,6 +2163,7 @@ module.exports = class okex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
             'average': average,
