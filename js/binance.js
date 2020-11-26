@@ -718,6 +718,10 @@ module.exports = class binance extends Exchange {
                 future = false;
                 delivery = true;
                 marketType = 'delivery';
+            } else if ('maintMarginPercent' in market) {
+                delivery = ('deliveryDate' in market);
+                future = !delivery;
+                marketType = delivery ? 'delivery' : 'future';
             }
             const spot = !(future || delivery);
             const id = this.safeString (market, 'symbol');
