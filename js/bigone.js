@@ -723,6 +723,7 @@ module.exports = class bigone extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -755,12 +756,12 @@ module.exports = class bigone extends Exchange {
             const isStopLimit = (uppercaseType === 'STOP_LIMIT');
             const isStopMarket = (uppercaseType === 'STOP_MARKET');
             if (isStopLimit || isStopMarket) {
-                const stopPrice = this.safeFloat (params, 'stop_price');
+                const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
                 if (stopPrice === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                params = this.omit (params, 'stop_price');
+                params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
             }
             if (isStopLimit) {
                 request['price'] = this.priceToPrecision (symbol, price);
