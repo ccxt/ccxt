@@ -230,6 +230,7 @@ class huobipro(Exchange):
                     'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid': OrderNotFound,  # https://github.com/ccxt/ccxt/issues/5750
                     'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
+                    'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
@@ -505,7 +506,7 @@ class huobipro(Exchange):
         #
         if 'tick' in response:
             if not response['tick']:
-                raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
+                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
             result = self.parse_order_book(tick, timestamp)

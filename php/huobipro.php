@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NetworkError;
 
@@ -219,6 +220,7 @@ class huobipro extends Exchange {
                     'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
                     'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
                     'base-symbol-trade-disabled' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null)
+                    'base-symbol-error' => '\\ccxt\\BadSymbol', // array("status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null)
                     'system-maintenance' => '\\ccxt\\OnMaintenance', // array("status" => "error", "err-code" => "system-maintenance", "err-msg" => "System is in maintenance!", "data" => null)
                     // err-msg
                     'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
@@ -512,7 +514,7 @@ class huobipro extends Exchange {
         //
         if (is_array($response) && array_key_exists('tick', $response)) {
             if (!$response['tick']) {
-                throw new ExchangeError($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
+                throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
