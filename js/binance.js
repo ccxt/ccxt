@@ -709,10 +709,15 @@ module.exports = class binance extends Exchange {
             let marketType = 'spot';
             let future = false;
             let delivery = false;
-            if ('maintMarginPercent' in market) {
-                delivery = ('deliveryDate' in market);
-                future = !delivery;
-                marketType = delivery ? 'delivery' : 'future';
+            const contractType = this.safeString (market, 'contractType');
+            if (contractType === 'PERPETUAL') {
+                future = true;
+                delivery = false;
+                marketType = 'future';
+            } else if ((contractType === 'CURRENT_QUARTER') || (contractType === 'NEXT_QUARTER')) {
+                future = false;
+                delivery = true;
+                marketType = 'delivery';
             }
             const spot = !(future || delivery);
             const id = this.safeString (market, 'symbol');
