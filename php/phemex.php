@@ -1640,6 +1640,7 @@ class phemex extends Exchange {
             }
         }
         $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
+        $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1652,6 +1653,7 @@ class phemex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1720,6 +1722,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $stopPrice = $this->safe_float($order, 'stopPx');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1732,6 +1735,7 @@ class phemex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1809,6 +1813,11 @@ class phemex extends Exchange {
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);
         }
+        $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $method = $market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         $response = $this->$method (array_merge($request, $params));
         //

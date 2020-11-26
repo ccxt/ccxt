@@ -1581,6 +1581,7 @@ class phemex(Exchange):
             if (amount is not None) and (remaining is not None):
                 filled = min(0, amount - remaining)
         timeInForce = self.parse_time_in_force(self.safeStirng(order, 'timeInForce'))
+        stopPrice = self.from_ep(self.safe_float(order, 'stopPxEp', market))
         return {
             'info': order,
             'id': id,
@@ -1593,6 +1594,7 @@ class phemex(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1658,6 +1660,7 @@ class phemex(Exchange):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.safe_float(order, 'stopPx')
         return {
             'info': order,
             'id': id,
@@ -1670,6 +1673,7 @@ class phemex(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1738,6 +1742,10 @@ class phemex(Exchange):
             request['orderQty'] = self.to_ev(amount, market)
         if type == 'Limit':
             request['priceEp'] = self.to_ep(price, market)
+        stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
+        if stopPrice is not None:
+            request['stopPxEp'] = self.to_ep(stopPrice, market)
+        params = self.omit(params, ['stopPx', 'stopPrice'])
         method = 'privatePostSpotOrders' if market['spot'] else 'privatePostOrders'
         response = await getattr(self, method)(self.extend(request, params))
         #

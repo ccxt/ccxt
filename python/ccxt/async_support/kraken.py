@@ -1063,6 +1063,7 @@ class kraken(Exchange):
         trades = None
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
+        stopPrice = self.safe_float(order, 'stopprice')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1076,6 +1077,7 @@ class kraken(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
