@@ -172,6 +172,7 @@ module.exports = class foblgate extends Exchange {
         let side = this.safeString (trade, 'type');
         side = (side === 'ask') ? 'sell' : 'buy';
         const id = this.safeString2 (trade, 'id', 'id');
+        const order = this.safeString2 (trade, 'id', 'id');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -202,7 +203,7 @@ module.exports = class foblgate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
