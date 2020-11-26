@@ -693,6 +693,7 @@ class bigone(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -724,11 +725,11 @@ class bigone(Exchange):
             isStopLimit = (uppercaseType == 'STOP_LIMIT')
             isStopMarket = (uppercaseType == 'STOP_MARKET')
             if isStopLimit or isStopMarket:
-                stopPrice = self.safe_float(params, 'stop_price')
+                stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
                 if stopPrice is None:
                     raise ArgumentsRequired(self.id + ' createOrder requires a stop_price parameter')
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                params = self.omit(params, 'stop_price')
+                params = self.omit(params, ['stop_price', 'stopPrice'])
             if isStopLimit:
                 request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
