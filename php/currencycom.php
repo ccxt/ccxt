@@ -545,7 +545,7 @@ class currencycom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '/');
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'lastPrice');
         $open = $this->safe_float($ticker, 'openPrice');
         $average = null;
