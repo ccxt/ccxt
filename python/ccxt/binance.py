@@ -721,7 +721,16 @@ class binance(Exchange):
             marketType = 'spot'
             future = False
             delivery = False
-            if 'maintMarginPercent' in market:
+            contractType = self.safe_string(market, 'contractType')
+            if contractType == 'PERPETUAL':
+                future = True
+                delivery = False
+                marketType = 'future'
+            elif (contractType == 'CURRENT_QUARTER') or (contractType == 'NEXT_QUARTER'):
+                future = False
+                delivery = True
+                marketType = 'delivery'
+            elif 'maintMarginPercent' in market:
                 delivery = ('deliveryDate' in market)
                 future = not delivery
                 marketType = 'delivery' if delivery else 'future'
