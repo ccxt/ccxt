@@ -963,7 +963,7 @@ class bitmax extends Exchange {
         //         "seqNum" =>       2623469,
         //         "$side" =>         "Buy",
         //         "$status" =>       "Filled",
-        //         "stopPrice" =>    "",
+        //         "$stopPrice" =>    "",
         //         "execInst" =>     "NULL_VAL"
         //     }
         //
@@ -985,7 +985,7 @@ class bitmax extends Exchange {
         //         "seqNum" => 24105338,
         //         "$side" => "Buy",
         //         "$status" => "Canceled",
-        //         "stopPrice" => "",
+        //         "$stopPrice" => "",
         //         "$symbol" => "BTC-PERP"
         //     ),
         //
@@ -1031,6 +1031,7 @@ class bitmax extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1043,6 +1044,7 @@ class bitmax extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
