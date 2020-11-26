@@ -337,6 +337,7 @@ class binance extends Exchange {
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ),
                 ),
                 'fapiData' => array(
@@ -1706,7 +1707,7 @@ class binance extends Exchange {
             }
             $stopPriceIsRequired = true;
         } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            $quantityIsRequired = true;
+            // $quantityIsRequired = true;
             $callbackRate = $this->safe_float($params, 'callbackRate');
             if ($callbackRate === null) {
                 throw new InvalidOrder($this->id . ' createOrder $method requires a $callbackRate extra param for a ' . $type . ' order');
