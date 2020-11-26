@@ -508,7 +508,7 @@ module.exports = class huobipro extends Exchange {
         //
         if ('tick' in response) {
             if (!response['tick']) {
-                throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
+                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
