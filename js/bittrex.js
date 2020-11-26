@@ -145,42 +145,6 @@ module.exports = class bittrex extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.05,
-                        'POT': 0.002,
-                        'BLK': 0.02,
-                        'EMC2': 0.2,
-                        'XMY': 0.2,
-                        'GLD': 0.0002,
-                        'SLR': 0.2,
-                        'GRS': 0.2,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'VTC': 0,
-                        'PPC': 0,
-                        'FTC': 0,
-                        'RDD': 0,
-                        'NXT': 0,
-                        'DASH': 0,
-                        'POT': 0,
-                        'BLK': 0,
-                        'EMC2': 0,
-                        'XMY': 0,
-                        'GLD': 0,
-                        'SLR': 0,
-                        'GRS': 0,
-                    },
                 },
             },
             'exceptions': {
@@ -223,7 +187,6 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
-                'symbolSeparator': '-',
                 // With certain currencies, like
                 // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
                 // an additional tag / memo / payment id is usually required by exchanges.
@@ -467,18 +430,8 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'updatedAt'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const percentage = this.safeFloat (ticker, 'percentChange');
         const last = this.safeFloat (ticker, 'lastTradeRate');
         return {
@@ -1017,11 +970,14 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    parseSymbol (id) {
-        const [ quoteId, baseId ] = id.split (this.options['symbolSeparator']);
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return base + '/' + quote;
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GOOD_TIL_CANCELLED': 'GTC',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseOrder (order, market = undefined) {
@@ -1088,6 +1044,7 @@ module.exports = class bittrex extends Exchange {
         if ((status === 'closed') && (remaining !== undefined) && (remaining > 0)) {
             status = 'canceled';
         }
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -1096,6 +1053,7 @@ module.exports = class bittrex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
             'cost': proceeds,

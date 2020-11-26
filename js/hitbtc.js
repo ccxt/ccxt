@@ -874,6 +874,7 @@ module.exports = class hitbtc extends Exchange {
                 };
             }
         }
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
@@ -883,6 +884,7 @@ module.exports = class hitbtc extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'average': average,

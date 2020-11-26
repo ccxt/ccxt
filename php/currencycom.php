@@ -809,7 +809,7 @@ class currencycom extends Exchange {
         //         "origQty" => "0.01",
         //         "executedQty" => "0.01",
         //         "$status" => "FILLED",
-        //         "timeInForce" => "FOK",
+        //         "$timeInForce" => "FOK",
         //         "$type" => "MARKET",
         //         "$side" => "BUY",
         //         "$fills" => array(
@@ -889,6 +889,7 @@ class currencycom extends Exchange {
                 $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -897,6 +898,7 @@ class currencycom extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

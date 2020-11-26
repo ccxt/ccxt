@@ -1018,6 +1018,15 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'good_til_cancelled' => 'GTC',
+            'fill_or_kill' => 'FOK',
+            'immediate_or_cancel' => 'IOC',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // createOrder
@@ -1088,6 +1097,7 @@ class deribit extends Exchange {
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1097,6 +1107,7 @@ class deribit extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $market['symbol'],
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1611,6 +1622,86 @@ class deribit extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->privateGetPosition (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 404,
+        //         "$result" => {
+        //             "average_price" => 0,
+        //             "delta" => 0,
+        //             "direction" => "buy",
+        //             "estimated_liquidation_price" => 0,
+        //             "floating_profit_loss" => 0,
+        //             "index_price" => 3555.86,
+        //             "initial_margin" => 0,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "leverage" => 100,
+        //             "kind" => "future",
+        //             "maintenance_margin" => 0,
+        //             "mark_price" => 3556.62,
+        //             "open_orders_margin" => 0.000165889,
+        //             "realized_profit_loss" => 0,
+        //             "settlement_price" => 3555.44,
+        //             "size" => 0,
+        //             "size_currency" => 0,
+        //             "total_profit_loss" => 0
+        //         }
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        $result = $this->safe_value($response, 'result');
+        return $result;
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $code = $this->code_from_options('fetchPositions');
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 2236,
+        //         "$result" => array(
+        //             {
+        //                 "average_price" => 7440.18,
+        //                 "delta" => 0.006687487,
+        //                 "direction" => "buy",
+        //                 "estimated_liquidation_price" => 1.74,
+        //                 "floating_profit_loss" => 0,
+        //                 "index_price" => 7466.79,
+        //                 "initial_margin" => 0.000197283,
+        //                 "instrument_name" => "BTC-PERPETUAL",
+        //                 "kind" => "future",
+        //                 "leverage" => 34,
+        //                 "maintenance_margin" => 0.000143783,
+        //                 "mark_price" => 7476.65,
+        //                 "open_orders_margin" => 0.000197288,
+        //                 "realized_funding" => -1e-8,
+        //                 "realized_profit_loss" => -9e-9,
+        //                 "settlement_price" => 7476.65,
+        //                 "size" => 50,
+        //                 "size_currency" => 0.006687487,
+        //                 "total_profit_loss" => 0.000032781
+        //             }
+        //         )
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        $result = $this->safe_value($response, 'result', array());
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

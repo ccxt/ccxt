@@ -167,42 +167,6 @@ class bittrex(Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.05,
-                        'POT': 0.002,
-                        'BLK': 0.02,
-                        'EMC2': 0.2,
-                        'XMY': 0.2,
-                        'GLD': 0.0002,
-                        'SLR': 0.2,
-                        'GRS': 0.2,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'VTC': 0,
-                        'PPC': 0,
-                        'FTC': 0,
-                        'RDD': 0,
-                        'NXT': 0,
-                        'DASH': 0,
-                        'POT': 0,
-                        'BLK': 0,
-                        'EMC2': 0,
-                        'XMY': 0,
-                        'GLD': 0,
-                        'SLR': 0,
-                        'GRS': 0,
-                    },
                 },
             },
             'exceptions': {
@@ -245,7 +209,6 @@ class bittrex(Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-                'symbolSeparator': '-',
                 # With certain currencies, like
                 # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
                 # an additional tag / memo / payment id is usually required by exchanges.
@@ -477,15 +440,8 @@ class bittrex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'updatedAt'))
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         percentage = self.safe_float(ticker, 'percentChange')
         last = self.safe_float(ticker, 'lastTradeRate')
         return {
@@ -986,11 +942,14 @@ class bittrex(Exchange):
             },
         }
 
-    def parse_symbol(self, id):
-        quoteId, baseId = id.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_TIL_CANCELLED': 'GTC',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order(self, order, market=None):
         #
@@ -1049,6 +1008,7 @@ class bittrex(Exchange):
         status = self.safe_string_lower(order, 'status')
         if (status == 'closed') and (remaining is not None) and (remaining > 0):
             status = 'canceled'
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -1057,6 +1017,7 @@ class bittrex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
             'cost': proceeds,

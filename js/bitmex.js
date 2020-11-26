@@ -1208,6 +1208,16 @@ module.exports = class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'Day': 'Day',
+            'GoodTillCancel': 'GTC',
+            'ImmediateOrCancel': 'IOC',
+            'FillOrKill': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
     parseOrder (order, market = undefined) {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
@@ -1236,6 +1246,7 @@ module.exports = class bitmex extends Exchange {
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'clOrdID');
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         return {
             'info': order,
             'id': id,
@@ -1245,6 +1256,7 @@ module.exports = class bitmex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,

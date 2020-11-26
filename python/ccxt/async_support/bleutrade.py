@@ -624,6 +624,7 @@ class bleutrade(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

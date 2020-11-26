@@ -303,6 +303,7 @@ class btctradeua(Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'price'),
             'amount': self.safe_float(order, 'amnt_trade'),

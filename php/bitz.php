@@ -781,6 +781,7 @@ class bitz extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'cost' => $cost,

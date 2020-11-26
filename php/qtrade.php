@@ -917,6 +917,7 @@ class qtrade extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'average' => $average,

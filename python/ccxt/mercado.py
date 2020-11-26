@@ -341,6 +341,7 @@ class mercado(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': 'limit',
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,

@@ -1269,6 +1269,7 @@ class wavesexchange extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1566,14 +1567,38 @@ class wavesexchange extends Exchange {
             }
         }
         $this->load_markets();
-        $withdrawAddressRequest = array(
-            'address' => $address,
-            'currency' => $code,
-        );
+        $hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        $set = array();
+        for ($i = 0; $i < count($hexChars); $i++) {
+            $key = $hexChars[$i];
+            $set[$key] = true;
+        }
+        $isErc20 = true;
+        $noPrefix = $this->remove0x_prefix($address);
+        $lower = $noPrefix->lower ();
+        for ($i = 0; $i < count($lower); $i++) {
+            $character = $lower[$i];
+            if (!(is_array($set) && array_key_exists($character, $set))) {
+                $isErc20 = false;
+                break;
+            }
+        }
         $this->get_access_token();
         $proxyAddress = null;
-        if ($code !== 'WAVES') {
+        if ($code === 'WAVES' && !$isErc20) {
+            $proxyAddress = $address;
+        } else {
+            $withdrawAddressRequest = array(
+                'address' => $address,
+                'currency' => $code,
+            );
             $withdrawAddress = $this->privateGetWithdrawAddressesCurrencyAddress ($withdrawAddressRequest);
+            $currency = $this->safe_value($withdrawAddress, 'currency');
+            $allowedAmount = $this->safe_value($currency, 'allowed_amount');
+            $minimum = $this->safe_float($allowedAmount, 'min');
+            if ($amount <= $minimum) {
+                throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);
+            }
             // {
             //   "$type" => "withdrawal_addresses",
             //   "$currency" => {
@@ -1597,8 +1622,6 @@ class wavesexchange extends Exchange {
             // }
             $proxyAddresses = $this->safe_value($withdrawAddress, 'proxy_addresses', array());
             $proxyAddress = $this->safe_string($proxyAddresses, 0);
-        } else {
-            $proxyAddress = $address;
         }
         $fee = $this->safe_integer($this->options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
         $feeAssetId = 'WAVES';

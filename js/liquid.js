@@ -863,6 +863,7 @@ module.exports = class liquid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': undefined,
             'status': status,
             'symbol': symbol,
             'side': side,

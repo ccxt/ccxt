@@ -777,15 +777,16 @@ class poloniex(Exchange):
         #         'side': side,
         #         'price': price,
         #         'amount': amount,
+        #         # ---------------------------------------------------------
+        #         # 'resultingTrades' in editOrder
+        #         'resultingTrades': {
+        #             'BTC_MANA': [],
+        #          }
         #     }
         #
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'date'))
-        trades = None
-        resultingTrades = self.safe_value(order, 'resultingTrades')
-        if resultingTrades is not None:
-            trades = self.parse_trades(resultingTrades, market)
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
         if marketId is not None:
@@ -798,6 +799,12 @@ class poloniex(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
+        trades = None
+        resultingTrades = self.safe_value(order, 'resultingTrades')
+        if not isinstance(resultingTrades, list):
+            resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
+        if resultingTrades is not None:
+            trades = self.parse_trades(resultingTrades, market)
         price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount')
@@ -827,9 +834,10 @@ class poloniex(Exchange):
                         filled = self.sum(filled, tradeAmount)
                         cost = self.sum(cost, tradePrice * tradeAmount)
                         lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                remaining = max(amount - filled, 0)
-                if filled >= amount:
-                    status = 'closed'
+                if amount is not None:
+                    remaining = max(amount - filled, 0)
+                    if filled >= amount:
+                        status = 'closed'
         if (filled is not None) and (cost is not None) and (filled > 0):
             average = cost / filled
         type = self.safe_string(order, 'type')
@@ -858,6 +866,7 @@ class poloniex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
             'cost': cost,
@@ -905,8 +914,8 @@ class poloniex(Exchange):
             return self.parse_orders(response, market, since, limit, extension)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+        if type == 'market':
+            raise ExchangeError(self.id + ' createOrder() does not accept market orders')
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)

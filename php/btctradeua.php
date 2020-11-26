@@ -337,6 +337,7 @@ class btctradeua extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_float($order, 'price'),
             'amount' => $this->safe_float($order, 'amnt_trade'),
