@@ -1087,6 +1087,8 @@ class bybit(Exchange):
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
         price = self.safe_float(order, 'price')
+        if price == 0.0:
+            price = None
         average = self.safe_float(order, 'average_price')
         amount = self.safe_float(order, 'qty')
         cost = self.safe_float(order, 'cum_exec_value')
