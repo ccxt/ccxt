@@ -718,7 +718,7 @@ class eterbase extends Exchange {
         //         "remainingQty" => "1.23456",
         //         "$remainingCost" => "1.23456",
         //         "limitPrice" => "1.23456",
-        //         "stopPrice" => "1.23456",
+        //         "$stopPrice" => "1.23456",
         //         "postOnly" => false,
         //         "$timeInForce" => "GTC",
         //         "state" => 1,
@@ -809,6 +809,7 @@ class eterbase extends Exchange {
             }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -821,6 +822,7 @@ class eterbase extends Exchange {
             'side' => $side,
             'timeInForce' => $timeInForce,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
