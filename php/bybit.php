@@ -1116,6 +1116,9 @@ class bybit extends Exchange {
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
         $price = $this->safe_float($order, 'price');
+        if ($price === 0.0) {
+            $price = null;
+        }
         $average = $this->safe_float($order, 'average_price');
         $amount = $this->safe_float($order, 'qty');
         $cost = $this->safe_float($order, 'cum_exec_value');
@@ -1164,6 +1167,7 @@ class bybit extends Exchange {
             $clientOrderId = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
+        $stopPrice = $this->safe_float($order, 'stop_px');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1176,6 +1180,7 @@ class bybit extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1327,7 +1332,7 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
         }
-        $stopPx = $this->safe_value($params, 'stop_px');
+        $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value($params, 'base_price');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
@@ -1344,7 +1349,7 @@ class bybit extends Exchange {
                 $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
                 $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
                 $request['base_price'] = floatval($this->price_to_precision($symbol, $basePrice));
-                $params = $this->omit($params, array( 'stop_px', 'base_price' ));
+                $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price' ));
             }
         } else if ($basePrice !== null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');

@@ -216,6 +216,8 @@ class kraken extends Exchange {
             'commonCurrencies' => array(
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'REPV2' => 'REP',
+                'REP' => 'REPV1',
             ),
             'options' => array(
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
@@ -1128,6 +1130,7 @@ class kraken extends Exchange {
         if ($rawTrades !== null) {
             $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
         }
+        $stopPrice = $this->safe_float($order, 'stopprice');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1141,6 +1144,7 @@ class kraken extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

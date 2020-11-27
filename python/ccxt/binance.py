@@ -350,6 +350,7 @@ class binance(Exchange):
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ],
                 },
                 'fapiData': {
@@ -720,7 +721,16 @@ class binance(Exchange):
             marketType = 'spot'
             future = False
             delivery = False
-            if 'maintMarginPercent' in market:
+            contractType = self.safe_string(market, 'contractType')
+            if contractType == 'PERPETUAL':
+                future = True
+                delivery = False
+                marketType = 'future'
+            elif (contractType == 'CURRENT_QUARTER') or (contractType == 'NEXT_QUARTER'):
+                future = False
+                delivery = True
+                marketType = 'delivery'
+            elif 'maintMarginPercent' in market:
                 delivery = ('deliveryDate' in market)
                 future = not delivery
                 marketType = 'delivery' if delivery else 'future'
@@ -1631,7 +1641,7 @@ class binance(Exchange):
                 quantityIsRequired = True
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
-            quantityIsRequired = True
+            # quantityIsRequired = True
             callbackRate = self.safe_float(params, 'callbackRate')
             if callbackRate is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order')

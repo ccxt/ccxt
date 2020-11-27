@@ -327,7 +327,7 @@ class phemex extends Exchange {
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
         //         "contractUnderlyingAssets":"USD",
-        //         "$settleCurrency":"BTC",
+        //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
         //         "lotSize":1,
@@ -348,7 +348,7 @@ class phemex extends Exchange {
         //         "underlyingSymbol":".BTC",
         //         "baseCurrency":"BTC",
         //         "settlementCurrency":"BTC",
-        //         "valueScale":8,
+        //         "$valueScale":8,
         //         "defaultLeverage":0,
         //         "maxLeverage":100,
         //         "initMarginEr":"1000000",
@@ -374,8 +374,8 @@ class phemex extends Exchange {
         $inverse = false;
         $spot = false;
         $swap = true;
-        $settleCurrency = $this->safe_string($market, 'settleCurrency');
-        if ($settleCurrency !== $quoteId) {
+        $settlementCurrencyId = $this->safe_string($market, 'settlementCurrency');
+        if ($settlementCurrencyId !== $quoteId) {
             $inverse = true;
         }
         $linear = !$inverse;
@@ -385,6 +385,7 @@ class phemex extends Exchange {
         );
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
+        $valueScale = $this->safe_integer($market, 'valueScale');
         $minPriceEp = $this->safe_float($market, 'minPriceEp');
         $maxPriceEp = $this->safe_float($market, 'maxPriceEp');
         $makerFeeRateEr = $this->safe_float($market, 'makerFeeRateEr');
@@ -427,7 +428,7 @@ class phemex extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'priceScale' => $priceScale,
-            'valueScale' => 0,
+            'valueScale' => $valueScale,
             'ratioScale' => $ratioScale,
             'precision' => $precision,
             'limits' => $limits,
@@ -733,9 +734,13 @@ class phemex extends Exchange {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' parseBidAsk requires a $market argument');
         }
+        $amount = $this->safe_float($bidask, $amountKey);
+        if ($market['spot']) {
+            $amount = $this->from_ev($amount, $market);
+        }
         return array(
             $this->from_ep($this->safe_float($bidask, $priceKey), $market),
-            $this->from_ev($this->safe_float($bidask, $amountKey), $market),
+            $amount,
         );
     }
 
@@ -835,7 +840,11 @@ class phemex extends Exchange {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
-        return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        if ($market['spot']) {
+            return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        } else {
+            return $this->from_en($ev, $market['valueScale'], 1 / pow(10, $market['valueScale']));
+        }
     }
 
     public function from_er($er, $market = null) {
@@ -957,7 +966,10 @@ class phemex extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_float($ticker, 'lastEp'), $market);
         $quoteVolume = $this->from_ep($this->safe_float($ticker, 'turnoverEv'), $market);
-        $baseVolume = $this->from_ev($this->safe_float_2($ticker, 'volumeEv', 'volume'), $market);
+        $baseVolume = $this->safe_float($ticker, 'volume');
+        if ($baseVolume === null) {
+            $baseVolume = $this->from_ev($this->safe_float($ticker, 'volumeEv'));
+        }
         $vwap = null;
         if (($market !== null) && ($market['spot'])) {
             $vwap = $this->vwap($baseVolume, $quoteVolume);
@@ -1204,10 +1216,20 @@ class phemex extends Exchange {
                 } else {
                     $feeRate = $this->from_er($feeRateEr, $market);
                 }
+                $feeCurrencyCode = null;
+                if ($market['spot']) {
+                    $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
+                } else {
+                    $info = $this->safe_value($market, 'info');
+                    if ($info !== null) {
+                        $settlementCurrencyId = $this->safe_string($info, 'settlementCurrency');
+                        $feeCurrencyCode = $this->safe_currency_code($settlementCurrencyId);
+                    }
+                }
                 $fee = array(
                     'cost' => $feeCost,
                     'rate' => $feeRate,
-                    'currency' => null,
+                    'currency' => $feeCurrencyCode,
                 );
             }
         }
@@ -1617,7 +1639,8 @@ class phemex extends Exchange {
                 $filled = min (0, $amount - $remaining);
             }
         }
-        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
+        $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
         return array(
             'info' => $order,
             'id' => $id,
@@ -1630,6 +1653,7 @@ class phemex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1698,6 +1722,7 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $stopPrice = $this->safe_float($order, 'stopPx');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1710,6 +1735,7 @@ class phemex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1787,6 +1813,11 @@ class phemex extends Exchange {
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);
         }
+        $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $method = $market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         $response = $this->$method (array_merge($request, $params));
         //
@@ -2119,24 +2150,24 @@ class phemex extends Exchange {
         //             "total" => 79,
         //             "$rows" => array(
         //                 array(
-        //                     "transactTimeNs" => 1578026629824704800,
+        //                     "transactTimeNs" => 1606054879331565300,
         //                     "$symbol" => "BTCUSD",
         //                     "currency" => "BTC",
-        //                     "action" => "Replace",
-        //                     "side" => "Sell",
+        //                     "action" => "New",
+        //                     "side" => "Buy",
         //                     "tradeType" => "Trade",
-        //                     "execQty" => 700,
-        //                     "execPriceEp" => 71500000,
-        //                     "orderQty" => 700,
-        //                     "priceEp" => 71500000,
-        //                     "execValueEv" => 9790209,
-        //                     "feeRateEr" => -25000,
-        //                     "execFeeEv" => -2447,
-        //                     "ordType" => "Limit",
-        //                     "execID" => "b01671a1-5ddc-5def-b80a-5311522fd4bf",
-        //                     "orderID" => "b63bc982-be3a-45e0-8974-43d6375fb626",
-        //                     "clOrdID" => "uuid-1577463487504",
-        //                     "execStatus" => "MakerFill"
+        //                     "execQty" => 5,
+        //                     "execPriceEp" => 182990000,
+        //                     "orderQty" => 5,
+        //                     "priceEp" => 183870000,
+        //                     "execValueEv" => 27323,
+        //                     "feeRateEr" => 75000,
+        //                     "execFeeEv" => 21,
+        //                     "ordType" => "Market",
+        //                     "execID" => "5eee56a4-04a9-5677-8eb0-c2fe22ae3645",
+        //                     "orderID" => "ee0acb82-f712-4543-a11d-d23efca73197",
+        //                     "clOrdID" => "",
+        //                     "execStatus" => "TakerFill"
         //                 ),
         //             )
         //         }

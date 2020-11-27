@@ -996,6 +996,7 @@ class bitmax(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'info': order,
             'id': id,
@@ -1008,6 +1009,7 @@ class bitmax(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

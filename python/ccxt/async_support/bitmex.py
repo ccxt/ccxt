@@ -1180,6 +1180,7 @@ class bitmex(Exchange):
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'clOrdID')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.safe_float(order, 'stopPx')
         return {
             'info': order,
             'id': id,
@@ -1192,6 +1193,7 @@ class bitmex(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1258,7 +1260,9 @@ class bitmex(Exchange):
         }
         if price is not None:
             if orderType == 'Stop':
-                request['stopPx'] = price
+                stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
+                request['stopPx'] = stopPrice
+                params = self.omit(params, ['stopPx', 'stopPrice'])
             else:
                 request['price'] = price
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')

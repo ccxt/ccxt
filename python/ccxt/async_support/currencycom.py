@@ -527,7 +527,7 @@ class currencycom(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '/')
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'lastPrice')
         open = self.safe_float(ticker, 'openPrice')
         average = None

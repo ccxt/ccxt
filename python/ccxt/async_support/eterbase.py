@@ -775,6 +775,7 @@ class eterbase(Exchange):
             if filled:
                 average = cost / filled
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'info': order,
             'id': id,
@@ -787,6 +788,7 @@ class eterbase(Exchange):
             'side': side,
             'timeInForce': timeInForce,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

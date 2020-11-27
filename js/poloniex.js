@@ -148,8 +148,9 @@ module.exports = class poloniex extends Exchange {
                 'GPUC': 'GPU',
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
-                'PLX': 'ParallaxCoin',
                 'KEY': 'KEYCoin',
+                'PLX': 'ParallaxCoin',
+                'REPV2': 'REP',
                 'STR': 'XLM',
                 'SOC': 'SOCC',
                 'XAP': 'API Coin',
@@ -190,6 +191,7 @@ module.exports = class poloniex extends Exchange {
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
                     'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
                     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
+                    'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}

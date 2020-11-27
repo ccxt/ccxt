@@ -1015,6 +1015,7 @@ module.exports = class kucoin extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1024,6 +1025,7 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

@@ -1028,6 +1028,7 @@ module.exports = class bitmax extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'info': order,
             'id': id,
@@ -1040,6 +1041,7 @@ module.exports = class bitmax extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

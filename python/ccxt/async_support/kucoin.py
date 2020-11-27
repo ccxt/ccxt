@@ -981,6 +981,7 @@ class kucoin(Exchange):
                         price = cost / filled
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -990,6 +991,7 @@ class kucoin(Exchange):
             'side': side,
             'amount': amount,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

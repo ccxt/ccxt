@@ -1098,6 +1098,7 @@ class deribit extends Exchange {
             $trades = $this->parse_trades($trades, $market);
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
+        $stopPrice = null;
         return array(
             'info' => $order,
             'id' => $id,
@@ -1110,6 +1111,7 @@ class deribit extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1201,6 +1203,7 @@ class deribit extends Exchange {
             } else {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
             }
+            $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
         }
         $method = 'privateGet' . $this->capitalize($side);
         $response = $this->$method (array_merge($request, $params));

@@ -370,8 +370,8 @@ module.exports = class phemex extends Exchange {
         let inverse = false;
         const spot = false;
         const swap = true;
-        const settleCurrency = this.safeString (market, 'settleCurrency');
-        if (settleCurrency !== quoteId) {
+        const settlementCurrencyId = this.safeString (market, 'settlementCurrency');
+        if (settlementCurrencyId !== quoteId) {
             inverse = true;
         }
         const linear = !inverse;
@@ -381,6 +381,7 @@ module.exports = class phemex extends Exchange {
         };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
+        const valueScale = this.safeInteger (market, 'valueScale');
         const minPriceEp = this.safeFloat (market, 'minPriceEp');
         const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
@@ -423,7 +424,7 @@ module.exports = class phemex extends Exchange {
             'taker': taker,
             'maker': maker,
             'priceScale': priceScale,
-            'valueScale': 0,
+            'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': precision,
             'limits': limits,
@@ -729,9 +730,13 @@ module.exports = class phemex extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
         }
+        let amount = this.safeFloat (bidask, amountKey);
+        if (market['spot']) {
+            amount = this.fromEv (amount, market);
+        }
         return [
             this.fromEp (this.safeFloat (bidask, priceKey), market),
-            this.fromEv (this.safeFloat (bidask, amountKey), market),
+            amount,
         ];
     }
 
@@ -831,7 +836,11 @@ module.exports = class phemex extends Exchange {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
+        if (market['spot']) {
+            return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
+        } else {
+            return this.fromEn (ev, market['valueScale'], 1 / Math.pow (10, market['valueScale']));
+        }
     }
 
     fromEr (er, market = undefined) {
@@ -953,7 +962,10 @@ module.exports = class phemex extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
         const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
-        const baseVolume = this.fromEv (this.safeFloat2 (ticker, 'volumeEv', 'volume'), market);
+        let baseVolume = this.safeFloat (ticker, 'volume');
+        if (baseVolume === undefined) {
+            baseVolume = this.fromEv (this.safeFloat (ticker, 'volumeEv'));
+        }
         let vwap = undefined;
         if ((market !== undefined) && (market['spot'])) {
             vwap = this.vwap (baseVolume, quoteVolume);
@@ -1200,10 +1212,20 @@ module.exports = class phemex extends Exchange {
                 } else {
                     feeRate = this.fromEr (feeRateEr, market);
                 }
+                let feeCurrencyCode = undefined;
+                if (market['spot']) {
+                    feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
+                } else {
+                    const info = this.safeValue (market, 'info');
+                    if (info !== undefined) {
+                        const settlementCurrencyId = this.safeString (info, 'settlementCurrency');
+                        feeCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
+                    }
+                }
                 fee = {
                     'cost': feeCost,
                     'rate': feeRate,
-                    'currency': undefined,
+                    'currency': feeCurrencyCode,
                 };
             }
         }
@@ -1613,7 +1635,8 @@ module.exports = class phemex extends Exchange {
                 filled = Math.min (0, amount - remaining);
             }
         }
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const timeInForce = this.parseTimeInForce (this.safeStirng (order, 'timeInForce'));
+        const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
         return {
             'info': order,
             'id': id,
@@ -1626,6 +1649,7 @@ module.exports = class phemex extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1694,6 +1718,7 @@ module.exports = class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPrice = this.safeFloat (order, 'stopPx');
         return {
             'info': order,
             'id': id,
@@ -1706,6 +1731,7 @@ module.exports = class phemex extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1783,6 +1809,11 @@ module.exports = class phemex extends Exchange {
         if (type === 'Limit') {
             request['priceEp'] = this.toEp (price, market);
         }
+        const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         const response = await this[method] (this.extend (request, params));
         //
@@ -2115,24 +2146,24 @@ module.exports = class phemex extends Exchange {
         //             "total": 79,
         //             "rows": [
         //                 {
-        //                     "transactTimeNs": 1578026629824704800,
+        //                     "transactTimeNs": 1606054879331565300,
         //                     "symbol": "BTCUSD",
         //                     "currency": "BTC",
-        //                     "action": "Replace",
-        //                     "side": "Sell",
+        //                     "action": "New",
+        //                     "side": "Buy",
         //                     "tradeType": "Trade",
-        //                     "execQty": 700,
-        //                     "execPriceEp": 71500000,
-        //                     "orderQty": 700,
-        //                     "priceEp": 71500000,
-        //                     "execValueEv": 9790209,
-        //                     "feeRateEr": -25000,
-        //                     "execFeeEv": -2447,
-        //                     "ordType": "Limit",
-        //                     "execID": "b01671a1-5ddc-5def-b80a-5311522fd4bf",
-        //                     "orderID": "b63bc982-be3a-45e0-8974-43d6375fb626",
-        //                     "clOrdID": "uuid-1577463487504",
-        //                     "execStatus": "MakerFill"
+        //                     "execQty": 5,
+        //                     "execPriceEp": 182990000,
+        //                     "orderQty": 5,
+        //                     "priceEp": 183870000,
+        //                     "execValueEv": 27323,
+        //                     "feeRateEr": 75000,
+        //                     "execFeeEv": 21,
+        //                     "ordType": "Market",
+        //                     "execID": "5eee56a4-04a9-5677-8eb0-c2fe22ae3645",
+        //                     "orderID": "ee0acb82-f712-4543-a11d-d23efca73197",
+        //                     "clOrdID": "",
+        //                     "execStatus": "TakerFill"
         //                 },
         //             ]
         //         }
