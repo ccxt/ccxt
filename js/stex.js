@@ -182,6 +182,8 @@ module.exports = class stex extends Exchange {
             },
             'commonCurrencies': {
                 'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
                 'BHD': 'Bithold',
             },
             'options': {
