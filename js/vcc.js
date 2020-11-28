@@ -843,6 +843,34 @@ module.exports = class vcc extends Exchange {
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
+        // ceiling_market order
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"213fc0d433f38307f736cae1cbda4cc310469b7a",
+        //         "data":{
+        //             "coin":"btc",
+        //             "currency":"usdt",
+        //             "trade_type":"buy",
+        //             "type":"ceiling_market",
+        //             "ceiling":"30",
+        //             "user_id":253063,
+        //             "email":"igor.kroitor@gmail.com",
+        //             "side":"buy",
+        //             "quantity":"0.00172800",
+        //             "status":"pending",
+        //             "fee":0,
+        //             "created_at":1606571333035,
+        //             "updated_at":1606571333035,
+        //             "instrument_symbol":"BTCUSDT",
+        //             "remaining":"0.00172800",
+        //             "fee_rate":"0.002",
+        //             "id":88214435
+        //         }
+        //     }
+        //
+        // limit order
+        //
         //     {
         //         "message":null,
         //         "dataVersion":"d9b1159d2bcefa2388be156e32ddc7cc324400ee",
@@ -889,6 +917,48 @@ module.exports = class vcc extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // ceiling_market
+        //
+        //     {
+        //         "coin":"btc",
+        //         "currency":"usdt",
+        //         "trade_type":"buy",
+        //         "type":"ceiling_market",
+        //         "ceiling":"30",
+        //         "user_id":253063,
+        //         "email":"igor.kroitor@gmail.com",
+        //         "side":"buy",
+        //         "quantity":"0.00172800",
+        //         "status":"pending",
+        //         "fee":0,
+        //         "created_at":1606571333035,
+        //         "updated_at":1606571333035,
+        //         "instrument_symbol":"BTCUSDT",
+        //         "remaining":"0.00172800",
+        //         "fee_rate":"0.002",
+        //         "id":88214435
+        //     }
+        //
+        // limit order
+        //
+        //     {
+        //         "id":41230,
+        //         "trade_type":"sell",
+        //         "type":"limit",
+        //         "quantity":"1",
+        //         "price":"14.99",
+        //         "currency":"usdt",
+        //         "coin":"neo",
+        //         "status":"pending",
+        //         "is_stop": "1",
+        //         "stop_price": "13",
+        //         "stop_condition": "ge",
+        //         "fee":0,
+        //         "created_at":1560244052168,
+        //         "updated_at":1560244052168
+        //     }
+        //
         const created = this.safeValue (order, 'created_at');
         const updated = this.safeValue (order, 'updated_at');
         const base = this.safeString (order, 'coin');
@@ -897,18 +967,30 @@ module.exports = class vcc extends Exchange {
         market = this.safeMarket (marketId, market, '/');
         const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'executed_quantity');
+        let filled = this.safeFloat (order, 'executed_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let cost = this.safeFloat (order, 'ceiling');
         const id = this.safeString (order, 'id');
+        let average = undefined;
         let price = this.safeFloat (order, 'price');
         // in case of market order
         if (!price) {
             price = this.safeFloat (order, 'executed_price');
+            average = price;
         }
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
+        let remaining = this.safeFloat (order, 'remaining');
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        if (filled !== undefined) {
+            if ((amount !== undefined) && (remaining === undefined)) {
+                remaining = Math.max (0, amount - filled);
+            }
+            if ((price !== undefined) && (cost === undefined)) {
+                cost = filled * price;
+            }
+            if ((average === undefined) && (cost !== undefined) && (filled > 0)) {
+                average = cost / filled;
             }
         }
         const type = this.safeString (order, 'type');
@@ -916,22 +998,26 @@ module.exports = class vcc extends Exchange {
         const fee = {
             'currency': this.safeCurrencyCode (quote),
             'cost': this.safeFloat (order, 'fee'),
-            'rate': undefined,
+            'rate': this.safeFloat (order, 'fee_rate'),
         };
+        let lastTradeTimestamp = undefined;
+        if (updated !== created) {
+            lastTradeTimestamp = updated;
+        }
         return {
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
             'datetime': this.iso8601 (created),
-            'lastTradeTimestamp': updated,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'average': undefined,
+            'average': average,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
