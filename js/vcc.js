@@ -704,22 +704,8 @@ module.exports = class vcc extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['code'].toLowerCase ();
-            request['type'] = 'withdraw';
-            request['limit'] = limit > 1000 ? 1000 : limit;
-        }
-        if (since !== undefined) {
-            request['start'] = since;
-        }
-        const response = await this.privateGetTransactions (this.extend (request, params));
-        const dataResponse = this.safeValue (response, 'data');
-        const data = this.safeValue (dataResponse, 'data');
-        return this.parseTransactions (data, currency, since, limit);
+        const request = { 'type': 'withdraw' };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     parseTransaction (transaction, currency = undefined) {
