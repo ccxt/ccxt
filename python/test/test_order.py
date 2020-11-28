@@ -42,8 +42,10 @@ def test_order(exchange, order, symbol, now):
     assert 'side' in order
     assert(order['side'] == 'buy') or (order['side'] == 'sell')
     assert 'price' in order
-    assert isinstance(order['price'], numbers.Real)
-    assert order['price'] > 0
+    assert(order['price'] is None) or (isinstance(order['price'], numbers.Real))
+    if order['price'] is not None:
+        assert order['price'] > 0
+
     assert 'amount' in order
     assert isinstance(order['amount'], numbers.Real)
     assert order['amount'] >= 0
