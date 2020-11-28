@@ -1063,6 +1063,7 @@ class bittrex extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $direction,
             'price' => $limit,
+            'stopPrice' => null,
             'cost' => $proceeds,
             'average' => $average,
             'amount' => $quantity,
