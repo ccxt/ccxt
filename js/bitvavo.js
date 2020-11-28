@@ -1195,6 +1195,7 @@ module.exports = class bitvavo extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
