@@ -889,6 +889,8 @@ module.exports = class phemex extends Exchange {
             }
             since = parseInt (since / 1000);
             request['from'] = since;
+            // time ranges ending in the future are not accepted
+            // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else if (limit !== undefined) {
             limit = Math.min (limit, 2000);
