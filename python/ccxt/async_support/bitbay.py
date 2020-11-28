@@ -370,6 +370,7 @@ class bitbay(Exchange):
             'timeInForce': None,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_float(order, 'rate'),
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'filled': filled,
