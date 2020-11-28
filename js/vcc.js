@@ -539,13 +539,14 @@ module.exports = class vcc extends Exchange {
         //
         //     {
         //         "trade_type":"sell",
-        //         "fee":"0.0284700000",
-        //         "created_at":1557625985566,
+        //         "fee":"0.0610578086",
+        //         "id":1483372,
+        //         "created_at":1606581578368,
         //         "currency":"usdt",
-        //         "coin":"neo",
-        //         "price":"9.4900000000",
-        //         "quantity":"1.0000000000",
-        //         "amount":"9.4900000000",
+        //         "coin":"btc",
+        //         "price":"17667.1900000000",
+        //         "quantity":"0.0017280000",
+        //         "amount":"30.5289043200",
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'trade_timestamp', 'created_at');
@@ -566,13 +567,13 @@ module.exports = class vcc extends Exchange {
             }
         }
         const side = this.safeString2 (trade, 'type', 'trade_type');
-        const id = this.safeString (trade, 'trade_id');
+        const id = this.safeString2 (trade, 'trade_id', 'id');
         const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['base'],
+                'currency': market['quote'],
             };
         }
         return {
@@ -1126,31 +1127,33 @@ module.exports = class vcc extends Exchange {
         const response = await this.privateGetOrdersTrades (this.extend (request, params));
         //
         //     {
-        //         "dataVersion":"7ee12aeac98264ea7f4a731bf38741e0b38aea93",
+        //         "message":null,
+        //         "dataVersion":"eb890af684cf84e20044e9a9771b96302e7b8dec",
         //         "data":{
         //             "current_page":1,
         //             "data":[
         //                 {
         //                     "trade_type":"sell",
-        //                     "fee":"0.0284700000",
-        //                     "created_at":1557625985566,
+        //                     "fee":"0.0610578086",
+        //                     "id":1483372,
+        //                     "created_at":1606581578368,
         //                     "currency":"usdt",
-        //                     "coin":"neo",
-        //                     "price":"9.4900000000",
-        //                     "quantity":"1.0000000000",
-        //                     "amount":"9.4900000000",
+        //                     "coin":"btc",
+        //                     "price":"17667.1900000000",
+        //                     "quantity":"0.0017280000",
+        //                     "amount":"30.5289043200",
         //                 },
         //             ],
-        //             "first_page_url":"https:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
+        //             "first_page_url":"http:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
         //             "from":1,
         //             "last_page":1,
-        //             "last_page_url":"https:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
+        //             "last_page_url":"http:\/\/api.vcc.exchange\/v3\/orders\/trades?page=1",
         //             "next_page_url":null,
-        //             "path":"https:\/\/api.vcc.exchange\/v3\/orders\/trades",
-        //             "per_page":"10",
+        //             "path":"http:\/\/api.vcc.exchange\/v3\/orders\/trades",
+        //             "per_page":10,
         //             "prev_page_url":null,
-        //             "to":1,
-        //             "total":1,
+        //             "to":2,
+        //             "total":2,
         //         },
         //     }
         //
