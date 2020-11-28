@@ -709,13 +709,51 @@ module.exports = class vcc extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchTransactions, fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "id":85391,
+        //         "user_id":253063,
+        //         "transaction_id":"0x885719cee5910ca509a223d208797510e80eb27a2f1d51a71bb4ccb82d538131",
+        //         "internal_transaction_id":null,
+        //         "temp_transaction_id":"2367",
+        //         "currency":"usdt",
+        //         "amount":"30.0000000000",
+        //         "btc_amount":"0.0000000000",
+        //         "usdt_amount":"0.0000000000",
+        //         "fee":"0.0000000000",
+        //         "tx_cost":"0.0000000000",
+        //         "confirmation":0,
+        //         "deposit_code":null,
+        //         "status":"success",
+        //         "bank_name":null,
+        //         "foreign_bank_account":null,
+        //         "foreign_bank_account_holder":null,
+        //         "blockchain_address":"0xd54b84AD27E4c4a8C9E0b2b53701DeFc728f6E44",
+        //         "destination_tag":null,
+        //         "error_detail":null,
+        //         "refunded":"0.0000000000",
+        //         "transaction_date":"2020-11-28",
+        //         "transaction_timestamp":"1606563143.959",
+        //         "created_at":1606563143959,
+        //         "updated_at":1606563143959,
+        //         "transaction_email_timestamp":0,
+        //         "network":null,
+        //         "collect_tx_id":null,
+        //         "collect_id":null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
-        const timestamp = this.safeValue (transaction, 'created_at');
-        const updated = this.safeValue (transaction, 'updated_at');
+        const timestamp = this.safeInteger (transaction, 'created_at');
+        const updated = this.safeInteger (transaction, 'updated_at');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
+        if (amount !== undefined) {
+            amount = Math.abs (amount);
+        }
         const address = this.safeString (transaction, 'blockchain_address');
         const txid = this.safeString (transaction, 'transaction_id');
         const tag = this.safeString (transaction, 'destination_tag');
@@ -735,9 +773,13 @@ module.exports = class vcc extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
-            'amount': Math.abs (amount),
+            'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
