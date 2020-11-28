@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -110,6 +110,7 @@ module.exports = class vcc extends Exchange {
             'exceptions': {
                 'exact': {},
                 'broad': {
+                    'Insufficient balance': InsufficientFunds, // {"message":"Insufficient balance."}
                     'Unauthenticated': AuthenticationError, // {"message":"Unauthenticated."} // wrong api key
                     'signature is invalid': AuthenticationError, // {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
                     'Timeout': RequestTimeout, // {"code":504,"message":"Gateway Timeout","description":""}
@@ -1031,6 +1032,7 @@ module.exports = class vcc extends Exchange {
             return;
         }
         //
+        //     {"message":"Insufficient balance."}
         //     {"message":"Unauthenticated."} // wrong api key
         //     {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
         //     {"code":504,"message":"Gateway Timeout","description":""}
