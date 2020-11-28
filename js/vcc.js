@@ -123,6 +123,7 @@ module.exports = class vcc extends Exchange {
                     // {"message":"The given data was invalid.","errors":{"type":["The selected type is invalid."]}}
                     // {"message":"The given data was invalid.","errors":{"trade_type":["The selected trade type is invalid."]}}
                     'type is invalid': InvalidOrder,
+                    'Data not found': OrderNotFound, // {"message":"Data not found"}
                 },
             },
         });
@@ -961,10 +962,10 @@ module.exports = class vcc extends Exchange {
         //
         const created = this.safeValue (order, 'created_at');
         const updated = this.safeValue (order, 'updated_at');
-        const base = this.safeString (order, 'coin');
-        const quote = this.safeString (order, 'currency');
-        const marketId = base + '/' + quote;
-        market = this.safeMarket (marketId, market, '/');
+        const baseId = this.safeStringUpper (order, 'coin');
+        const quoteId = this.safeStringUpper (order, 'currency');
+        const marketId = baseId + '_' + quoteId;
+        market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'executed_quantity');
@@ -996,7 +997,7 @@ module.exports = class vcc extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
-            'currency': this.safeCurrencyCode (quote),
+            'currency': market['quote'],
             'cost': this.safeFloat (order, 'fee'),
             'rate': this.safeFloat (order, 'fee_rate'),
         };
@@ -1032,11 +1033,35 @@ module.exports = class vcc extends Exchange {
             'order_id': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        const order = this.safeValue (response, 'data');
-        if (!order) {
-            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        }
-        return this.parseOrder (order);
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"57448aa1fb8f227254e8e2e925b3ade8e1e5bbef",
+        //         "data":{
+        //             "id":88265741,
+        //             "user_id":253063,
+        //             "email":"igor.kroitor@gmail.com",
+        //             "updated_at":1606581578141,
+        //             "created_at":1606581578141,
+        //             "coin":"btc",
+        //             "currency":"usdt",
+        //             "type":"market",
+        //             "trade_type":"sell",
+        //             "executed_price":"17667.1900000000",
+        //             "price":null,
+        //             "executed_quantity":"0.0017280000",
+        //             "quantity":"0.0017280000",
+        //             "fee":"0.0610578086",
+        //             "status":"executed",
+        //             "is_stop":0,
+        //             "stop_condition":null,
+        //             "stop_price":null,
+        //             "ceiling":null
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
