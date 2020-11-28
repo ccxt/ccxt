@@ -327,6 +327,7 @@ class acx(Exchange):
             'timeInForce': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'amount': self.safe_float(order, 'volume'),
             'filled': self.safe_float(order, 'executed_volume'),
             'remaining': self.safe_float(order, 'remaining_volume'),
