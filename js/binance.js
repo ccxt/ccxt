@@ -2303,6 +2303,7 @@ module.exports = class binance extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        const updated = this.safeInteger (transaction, 'successTime');
         return {
             'info': transaction,
             'id': id,
@@ -2310,12 +2311,16 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': updated,
             'fee': fee,
         };
     }
