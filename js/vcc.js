@@ -812,35 +812,34 @@ module.exports = class vcc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ceiling = this.safeValue (params, 'ceiling');
         const request = {
             'coin': market['baseId'],
             'currency': market['quoteId'],
             'trade_type': side,
             'type': type,
         };
-        if (type === 'ceiling_market' && !ceiling) {
-            throw new InvalidOrder ('Ceiling is required for ceiling_market order');
-        }
-        if (ceiling) {
-            request['ceiling'] = this.costToPrecision (symbol, ceiling);
+        if (type === 'ceiling_market') {
+            const ceiling = this.safeValue (params, 'ceiling');
+            if (ceiling !== undefined) {
+                request['ceiling'] = this.costToPrecision (symbol, ceiling);
+            } else if (price !== undefined) {
+                request['ceiling'] = this.costToPrecision (symbol, amount * price);
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument or a ceiling parameter for ' + type + ' orders');
+            }
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const is_stop = this.safeValue (params, 'is_stop');
-        const stop_price = this.safeValue (params, 'stop_price');
-        const stop_condition = this.safeValue (params, 'stop_condition');
-        if (is_stop) {
+        const stopPrice = this.safeValue2 (params, 'stop_price', 'stopPrice');
+        if (stopPrice !== undefined) {
             request['is_stop'] = 1;
-            if (!stop_price || !stop_condition) {
-                throw new InvalidOrder ('Stop price and stop condition is required for stop order');
-            }
-            request['stop_price'] = stop_price;
-            request['stop_condition'] = stop_condition;
+            request['stop_condition'] = (side === 'buy') ? 'le' : 'ge'; // ge = greater than or equal, le = less than or equal
+            request['stop_price'] = this.priceToPrecision (symbol, price);
         }
+        params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
