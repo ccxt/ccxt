@@ -17,6 +17,7 @@ module.exports = class vcc extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': false,
@@ -905,6 +906,44 @@ module.exports = class vcc extends Exchange {
         };
         const response = await this.privatePutOrdersOrderIdCancel (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const type = this.safeString (params, 'type');
+        const method = (type === undefined) ? 'privatePutOrdersCancelAll' : 'privatePutOrdersCancelByType';
+        const request = {};
+        if (type !== undefined) {
+            request['type'] = type;
+        }
+        await this.loadMarkets ();
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",
+        //         "data":{
+        //             "data":[
+        //                 {
+        //                     "id":410,
+        //                     "trade_type":"sell",
+        //                     "currency":"usdt",
+        //                     "coin":"neo",
+        //                     "type":"limit",
+        //                     "quantity":"1.0000000000",
+        //                     "price":"14.9900000000",
+        //                     "executed_quantity":"0.0000000000",
+        //                     "executed_price":"0.0000000000",
+        //                     "fee":"0.0000000000",
+        //                     "status":"canceled",
+        //                     "created_at":1560244052168,
+        //                     "updated_at":1560244052168,
+        //                 },
+        //             ],
+        //         },
+        //     }
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data);
     }
 
     parseOrderStatus (status) {
