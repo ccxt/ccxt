@@ -348,6 +348,7 @@ module.exports = class acx extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': this.safeFloat (order, 'price'),
+            'stopPrice': undefined,
             'amount': this.safeFloat (order, 'volume'),
             'filled': this.safeFloat (order, 'executed_volume'),
             'remaining': this.safeFloat (order, 'remaining_volume'),
