@@ -306,6 +306,7 @@ class btctradeua(Exchange):
             'timeInForce': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'amount': self.safe_float(order, 'amnt_trade'),
             'filled': 0,
             'remaining': self.safe_float(order, 'amnt_trade'),

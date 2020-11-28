@@ -340,6 +340,7 @@ class btctradeua extends Exchange {
             'timeInForce' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'amount' => $this->safe_float($order, 'amnt_trade'),
             'filled' => 0,
             'remaining' => $this->safe_float($order, 'amnt_trade'),

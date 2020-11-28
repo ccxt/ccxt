@@ -48,7 +48,7 @@ class liquid extends Exchange {
                     'https://developers.liquid.com',
                 ),
                 'fees' => 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral' => 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral' => 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             ),
             'api' => array(
                 'public' => array(
