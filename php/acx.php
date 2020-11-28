@@ -350,6 +350,7 @@ class acx extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'amount' => $this->safe_float($order, 'volume'),
             'filled' => $this->safe_float($order, 'executed_volume'),
             'remaining' => $this->safe_float($order, 'remaining_volume'),
