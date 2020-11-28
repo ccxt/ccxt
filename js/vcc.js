@@ -110,6 +110,7 @@ module.exports = class vcc extends Exchange {
             'exceptions': {
                 'exact': {},
                 'broad': {
+                    'limit may not be greater than': BadRequest, // {"message":"The given data was invalid.","errors":{"limit":["The limit may not be greater than 1000."]}}
                     'Insufficient balance': InsufficientFunds, // {"message":"Insufficient balance."}
                     'Unauthenticated': AuthenticationError, // {"message":"Unauthenticated."} // wrong api key
                     'signature is invalid': AuthenticationError, // {"message":"The given data was invalid.","errors":{"signature":["HMAC signature is invalid"]}}
@@ -635,7 +636,7 @@ module.exports = class vcc extends Exchange {
             request['currency'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (1000, limit);
         }
         if (since !== undefined) {
             request['start'] = since;
