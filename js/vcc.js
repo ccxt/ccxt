@@ -36,7 +36,7 @@ module.exports = class vcc extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
@@ -620,6 +620,82 @@ module.exports = class vcc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'type': type, // 'deposit', 'withdraw'
+            // 'start': parseInt (since / 1000),
+            // 'end': this.seconds (),
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        const response = await this.privateGetTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"1fdfb0ec85b666871d62fe59d098d01839b05e97",
+        //         "data":{
+        //             "current_page":1,
+        //             "data":[
+        //                 {
+        //                     "id":85391,
+        //                     "user_id":253063,
+        //                     "transaction_id":"0x885719cee5910ca509a223d208797510e80eb27a2f1d51a71bb4ccb82d538131",
+        //                     "internal_transaction_id":null,
+        //                     "temp_transaction_id":"2367",
+        //                     "currency":"usdt",
+        //                     "amount":"30.0000000000",
+        //                     "btc_amount":"0.0000000000",
+        //                     "usdt_amount":"0.0000000000",
+        //                     "fee":"0.0000000000",
+        //                     "tx_cost":"0.0000000000",
+        //                     "confirmation":0,
+        //                     "deposit_code":null,
+        //                     "status":"success",
+        //                     "bank_name":null,
+        //                     "foreign_bank_account":null,
+        //                     "foreign_bank_account_holder":null,
+        //                     "blockchain_address":"0xd54b84AD27E4c4a8C9E0b2b53701DeFc728f6E44",
+        //                     "destination_tag":null,
+        //                     "error_detail":null,
+        //                     "refunded":"0.0000000000",
+        //                     "transaction_date":"2020-11-28",
+        //                     "transaction_timestamp":"1606563143.959",
+        //                     "created_at":1606563143959,
+        //                     "updated_at":1606563143959,
+        //                     "transaction_email_timestamp":0,
+        //                     "network":null,
+        //                     "collect_tx_id":null,
+        //                     "collect_id":null
+        //                 }
+        //             ],
+        //             "first_page_url":"http:\/\/api.vcc.exchange\/v3\/transactions?page=1",
+        //             "from":1,
+        //             "last_page":1,
+        //             "last_page_url":"http:\/\/api.vcc.exchange\/v3\/transactions?page=1",
+        //             "next_page_url":null,
+        //             "path":"http:\/\/api.vcc.exchange\/v3\/transactions",
+        //             "per_page":10,
+        //             "prev_page_url":null,
+        //             "to":1,
+        //             "total":1
+        //         }
+        //     }
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
