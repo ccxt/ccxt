@@ -1056,6 +1056,7 @@ module.exports = class bittrex extends Exchange {
             'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
+            'stopPrice': undefined,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
