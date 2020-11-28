@@ -220,7 +220,7 @@ class bittrex extends Exchange {
                 // 'createOrderMethod' => 'create_order_v1',
             ),
             'commonCurrencies' => array(
-                'BITS' => 'SWIFT',
+                'REPV2' => 'REP',
             ),
         ));
     }

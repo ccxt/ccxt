@@ -1116,6 +1116,9 @@ class bybit extends Exchange {
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
         $price = $this->safe_float($order, 'price');
+        if ($price === 0.0) {
+            $price = null;
+        }
         $average = $this->safe_float($order, 'average_price');
         $amount = $this->safe_float($order, 'qty');
         $cost = $this->safe_float($order, 'cum_exec_value');

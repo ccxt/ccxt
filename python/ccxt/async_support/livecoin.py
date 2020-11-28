@@ -119,6 +119,7 @@ class livecoin(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BIT': 'First Bitcoin',
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
                 'CBC': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)

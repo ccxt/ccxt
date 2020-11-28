@@ -91,6 +91,7 @@ class yobit extends Exchange {
                 'ATM' => 'Autumncoin',
                 'BCC' => 'BCH',
                 'BCS' => 'BitcoinStake',
+                'BITS' => 'Bitstar',
                 'BLN' => 'Bulleon',
                 'BOT' => 'BOTcoin',
                 'BON' => 'BONES',

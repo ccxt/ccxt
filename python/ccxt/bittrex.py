@@ -235,7 +235,7 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
-                'BITS': 'SWIFT',
+                'REPV2': 'REP',
             },
         })
 
