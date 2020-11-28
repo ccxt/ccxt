@@ -718,30 +718,19 @@ class binance(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            marketType = 'spot'
-            future = False
-            delivery = False
-            contractType = self.safe_string(market, 'contractType')
-            if contractType == 'PERPETUAL':
-                future = True
-                delivery = False
-                marketType = 'future'
-            elif (contractType == 'CURRENT_QUARTER') or (contractType == 'NEXT_QUARTER'):
-                future = False
-                delivery = True
-                marketType = 'delivery'
-            elif 'maintMarginPercent' in market:
-                delivery = ('deliveryDate' in market)
-                future = not delivery
-                marketType = 'delivery' if delivery else 'future'
-            spot = not (future or delivery)
+            spot = (type == 'spot')
+            future = (type == 'future')
+            delivery = (type == 'delivery')
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id if delivery else (base + '/' + quote)
+            parts = id.split('_')
+            lastPart = self.safe_string(parts, 1)
+            idSymbol = (delivery) and (lastPart != 'PERP')
+            symbol = id if idSymbol else (base + '/' + quote)
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
@@ -762,7 +751,7 @@ class binance(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': marketType,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
