@@ -1104,24 +1104,6 @@ module.exports = class vcc extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            'limit': !limit || limit > 1000 ? 1000 : limit,
-            'start_date': since,
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['coin'] = this.safeStringLower (market, 'base');
-            request['currency'] = this.safeStringLower (market, 'quote');
-        }
-        const response = await this.privateGetOrdersOpen (this.extend (request, params));
-        const responseData = this.safeValue (response, 'data');
-        const data = this.safeValue (responseData, 'data');
-        return this.parseOrders (data, market, since, limit);
-    }
-
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -1193,22 +1175,12 @@ module.exports = class vcc extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersWithmethod ('privateGetOrdersOpen', symbol, since, limit, params);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        const request = {
-            'limit': !limit || limit > 1000 ? 1000 : limit,
-            'start_date': since,
-        };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['coin'] = this.safeStringLower (market, 'base');
-            request['currency'] = this.safeStringLower (market, 'quote');
-        }
-        const response = await this.privateGetOrders (this.extend (request, params));
-        const responseData = this.safeValue (response, 'data');
-        const data = this.safeValue (responseData, 'data');
-        return this.parseOrders (data, market, since, limit);
+        return await this.fetchOrdersWithmethod ('privateGetOrders', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
