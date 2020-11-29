@@ -328,6 +328,7 @@ module.exports = class exx extends Exchange {
             'timeInForce': undefined,
             'side': order['type'],
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
