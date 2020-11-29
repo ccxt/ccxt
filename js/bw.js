@@ -763,6 +763,7 @@ module.exports = class bw extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,
