@@ -1176,11 +1176,11 @@ module.exports = class vcc extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersWithmethod ('privateGetOrdersOpen', symbol, since, limit, params);
+        return await this.fetchOrdersWithMethod ('privateGetOrdersOpen', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersWithmethod ('privateGetOrders', symbol, since, limit, params);
+        return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
