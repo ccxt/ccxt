@@ -1741,7 +1741,7 @@ class phemex(Exchange):
             else:
                 request['baseQtyEv'] = self.to_ev(amount, market)
         elif market['swap']:
-            request['orderQty'] = self.to_ev(amount, market)
+            request['orderQty'] = int(amount)
         if type == 'Limit':
             request['priceEp'] = self.to_ep(price, market)
         stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')

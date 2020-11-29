@@ -1810,7 +1810,7 @@ class phemex extends Exchange {
                 $request['baseQtyEv'] = $this->to_ev($amount, $market);
             }
         } else if ($market['swap']) {
-            $request['orderQty'] = $this->to_ev($amount, $market);
+            $request['orderQty'] = intval($amount);
         }
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);
