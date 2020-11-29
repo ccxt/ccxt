@@ -1122,6 +1122,77 @@ module.exports = class vcc extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page': 1,
+            // 'limit': limit, // max 1000
+            // 'start_date': since,
+            // 'end_date': this.milliseconds (),
+            // 'currency': market['quoteId'],
+            // 'coin': market['baseId'],
+            // 'trade_type': 'buy', // or 'sell'
+            // 'hide_canceled': 0, // 1 to exclude canceled orders
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['coin'] = market['baseId'];
+            request['currency'] = market['quoteId'];
+        }
+        if (since !== undefined) {
+            request['start_date'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (1000, limit); // max 1000
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "message":null,
+        //         "dataVersion":"89aa11497f23fdd34cf9de9c55acfad863c78780",
+        //         "data":{
+        //             "current_page":1,
+        //             "data":[
+        //                 {
+        //                     "id":88489678,
+        //                     "email":"igor.kroitor@gmail.com",
+        //                     "updated_at":1606628593567,
+        //                     "created_at":1606628593567,
+        //                     "coin":"btc",
+        //                     "currency":"usdt",
+        //                     "type":"limit",
+        //                     "trade_type":"buy",
+        //                     "executed_price":"0.0000000000",
+        //                     "price":"10000.0000000000",
+        //                     "executed_quantity":"0.0000000000",
+        //                     "quantity":"0.0010000000",
+        //                     "fee":"0.0000000000",
+        //                     "status":"pending",
+        //                     "is_stop":0,
+        //                     "stop_condition":null,
+        //                     "stop_price":null,
+        //                     "ceiling":null,
+        //                 },
+        //             ],
+        //             "first_page_url":"http:\/\/api.vcc.exchange\/v3\/orders\/open?page=1",
+        //             "from":1,
+        //             "last_page":1,
+        //             "last_page_url":"http:\/\/api.vcc.exchange\/v3\/orders\/open?page=1",
+        //             "next_page_url":null,
+        //             "path":"http:\/\/api.vcc.exchange\/v3\/orders\/open",
+        //             "per_page":10,
+        //             "prev_page_url":null,
+        //             "to":1,
+        //             "total":1,
+        //         },
+        //     }
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -1161,7 +1232,7 @@ module.exports = class vcc extends Exchange {
             request['start_date'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 1000
+            request['limit'] = Math.min (1000, limit); // max 1000
         }
         const response = await this.privateGetOrdersTrades (this.extend (request, params));
         //
