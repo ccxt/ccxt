@@ -54,7 +54,7 @@ module.exports = class vcc extends Exchange {
                 '1w': '604800000',
             },
             'urls': {
-                'logo': 'https://vcc.exchange/images/home-page/branding/logo-header.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg',
                 'api': {
                     'public': 'https://api.vcc.exchange',
                     'private': 'https://api.vcc.exchange',
