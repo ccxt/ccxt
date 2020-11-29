@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, NotSupported } = require ('./base/errors');
-const { TICK_SIZE, ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TICK_SIZE, ROUND, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -1806,7 +1806,7 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amount, market);
             }
         } else if (market['swap']) {
-            request['orderQty'] = this.toEv (amount, market);
+            request['orderQty'] = parseInt (amount);
         }
         if (type === 'Limit') {
             request['priceEp'] = this.toEp (price, market);
