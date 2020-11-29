@@ -969,6 +969,7 @@ class ftx(Exchange):
             cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         clientOrderId = self.safe_string(order, 'clientId')
+        stopPrice = self.safe_float(order, 'triggerPrice')
         return {
             'info': order,
             'id': id,
@@ -981,6 +982,7 @@ class ftx(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
