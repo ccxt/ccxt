@@ -845,6 +845,7 @@ class digifinex(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

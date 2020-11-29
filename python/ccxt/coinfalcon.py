@@ -311,6 +311,7 @@ class coinfalcon(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
