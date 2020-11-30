@@ -1107,6 +1107,7 @@ module.exports = class huobipro extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,
