@@ -543,6 +543,7 @@ module.exports = class rightbtc extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'filled': filled,
