@@ -579,6 +579,7 @@ class oceanex extends Exchange {
             'timeInForce' => null,
             'side' => $this->safe_value($order, 'side'),
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'average' => $this->safe_float($order, 'avg_price'),
             'amount' => $this->safe_float($order, 'volume'),
             'remaining' => $this->safe_float($order, 'remaining_volume'),

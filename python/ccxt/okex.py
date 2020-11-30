@@ -2086,6 +2086,7 @@ class okex(Exchange):
         clientOrderId = self.safe_string(order, 'client_oid')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
+        stopPrice = self.safe_float(order, 'trigger_price')
         return {
             'info': order,
             'id': id,
@@ -2098,6 +2099,7 @@ class okex(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
