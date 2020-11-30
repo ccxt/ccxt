@@ -868,6 +868,7 @@ module.exports = class liquid extends Exchange {
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,
