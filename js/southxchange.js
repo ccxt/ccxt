@@ -266,6 +266,7 @@ module.exports = class southxchange extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'filled': filled,
