@@ -819,6 +819,7 @@ module.exports = class ripio extends Exchange {
         }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
+        const stopPrice = this.safeFloat (order, 'stop_price');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -831,6 +832,7 @@ module.exports = class ripio extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
