@@ -875,6 +875,7 @@ class novadax extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

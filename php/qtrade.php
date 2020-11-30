@@ -920,6 +920,7 @@ class qtrade extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,
