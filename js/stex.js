@@ -915,6 +915,7 @@ module.exports = class stex extends Exchange {
                 'order': id,
             });
         }
+        const stopPrice = this.safeFloat (order, 'trigger_price');
         const result = {
             'info': order,
             'id': id,
@@ -927,6 +928,7 @@ module.exports = class stex extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
