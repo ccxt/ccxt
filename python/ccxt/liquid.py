@@ -826,6 +826,7 @@ class liquid(Exchange):
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,

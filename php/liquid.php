@@ -873,6 +873,7 @@ class liquid extends Exchange {
             'symbol' => $symbol,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,
