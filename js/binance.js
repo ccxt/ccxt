@@ -747,6 +747,7 @@ module.exports = class binance extends ccxt.binance {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (message, 'c');
+        const stopPrice = this.safeFloat (message, 'P');
         const parsed = {
             'info': message,
             'symbol': symbol,
@@ -758,6 +759,7 @@ module.exports = class binance extends ccxt.binance {
             'type': type,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
