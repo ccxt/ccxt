@@ -1815,6 +1815,7 @@ class hbtc(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,

@@ -842,6 +842,7 @@ class hitbtc(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'amount': amount,
             'cost': cost,

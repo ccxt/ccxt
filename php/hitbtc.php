@@ -892,6 +892,7 @@ class hitbtc extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'cost' => $cost,

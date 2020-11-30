@@ -705,6 +705,7 @@ class hollaex extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
