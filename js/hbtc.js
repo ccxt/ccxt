@@ -1918,6 +1918,7 @@ module.exports = class hbtc extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,
