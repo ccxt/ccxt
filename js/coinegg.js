@@ -369,6 +369,7 @@ module.exports = class coinegg extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

@@ -308,6 +308,7 @@ module.exports = class bit2c extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,

@@ -2,12 +2,12 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.38.35'
+__version__ = '1.38.62'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
-import concurrent
+import concurrent.futures
 import socket
 import certifi
 import aiohttp
@@ -134,16 +134,20 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except concurrent.futures._base.TimeoutError as e:
-            raise RequestTimeout(method + ' ' + url)
+        except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
-        except aiohttp.client_exceptions.ClientConnectionError as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+        except aiohttp.ClientConnectionError as e:
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            raise ExchangeError(method + ' ' + url)
+        except aiohttp.ClientError as e:  # base exception class
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)

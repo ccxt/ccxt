@@ -650,7 +650,7 @@ class binance extends Exchange {
         //             array(
         //                 "$symbol" => "BTCUSD_200925",
         //                 "pair" => "BTCUSD",
-        //                 "$contractType" => "CURRENT_QUARTER",
+        //                 "contractType" => "CURRENT_QUARTER",
         //                 "deliveryDate" => 1601020800000,
         //                 "onboardDate" => 1590739200000,
         //                 "contractStatus" => "TRADING",
@@ -678,7 +678,7 @@ class binance extends Exchange {
         //             {
         //                 "$symbol" => "BTCUSD_PERP",
         //                 "pair" => "BTCUSD",
-        //                 "$contractType" => "PERPETUAL",
+        //                 "contractType" => "PERPETUAL",
         //                 "deliveryDate" => 4133404800000,
         //                 "onboardDate" => 1596006000000,
         //                 "contractStatus" => "TRADING",
@@ -713,31 +713,19 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $marketType = 'spot';
-            $future = false;
-            $delivery = false;
-            $contractType = $this->safe_string($market, 'contractType');
-            if ($contractType === 'PERPETUAL') {
-                $future = true;
-                $delivery = false;
-                $marketType = 'future';
-            } else if (($contractType === 'CURRENT_QUARTER') || ($contractType === 'NEXT_QUARTER')) {
-                $future = false;
-                $delivery = true;
-                $marketType = 'delivery';
-            } else if (is_array($market) && array_key_exists('maintMarginPercent', $market)) {
-                $delivery = (is_array($market) && array_key_exists('deliveryDate', $market));
-                $future = !$delivery;
-                $marketType = $delivery ? 'delivery' : 'future';
-            }
-            $spot = !($future || $delivery);
+            $spot = ($type === 'spot');
+            $future = ($type === 'future');
+            $delivery = ($type === 'delivery');
             $id = $this->safe_string($market, 'symbol');
             $lowercaseId = $this->safe_string_lower($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseAsset');
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $delivery ? $id : ($base . '/' . $quote);
+            $parts = explode('_', $id);
+            $lastPart = $this->safe_string($parts, 1);
+            $idSymbol = ($delivery) && ($lastPart !== 'PERP');
+            $symbol = $idSymbol ? $id : ($base . '/' . $quote);
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $precision = array(
@@ -758,7 +746,7 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'type' => $marketType,
+                'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
                 'future' => $future,
@@ -1716,7 +1704,7 @@ class binance extends Exchange {
             }
             $stopPriceIsRequired = true;
         } else if ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            // $quantityIsRequired = true;
+            $quantityIsRequired = true;
             $callbackRate = $this->safe_float($params, 'callbackRate');
             if ($callbackRate === null) {
                 throw new InvalidOrder($this->id . ' createOrder $method requires a $callbackRate extra param for a ' . $type . ' order');
@@ -2322,6 +2310,7 @@ class binance extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
+        $updated = $this->safe_integer($transaction, 'successTime');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -2329,12 +2318,16 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
+            'updated' => $updated,
             'fee' => $fee,
         );
     }

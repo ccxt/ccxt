@@ -718,30 +718,19 @@ class binance(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            marketType = 'spot'
-            future = False
-            delivery = False
-            contractType = self.safe_string(market, 'contractType')
-            if contractType == 'PERPETUAL':
-                future = True
-                delivery = False
-                marketType = 'future'
-            elif (contractType == 'CURRENT_QUARTER') or (contractType == 'NEXT_QUARTER'):
-                future = False
-                delivery = True
-                marketType = 'delivery'
-            elif 'maintMarginPercent' in market:
-                delivery = ('deliveryDate' in market)
-                future = not delivery
-                marketType = 'delivery' if delivery else 'future'
-            spot = not (future or delivery)
+            spot = (type == 'spot')
+            future = (type == 'future')
+            delivery = (type == 'delivery')
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id if delivery else (base + '/' + quote)
+            parts = id.split('_')
+            lastPart = self.safe_string(parts, 1)
+            idSymbol = (delivery) and (lastPart != 'PERP')
+            symbol = id if idSymbol else (base + '/' + quote)
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
@@ -762,7 +751,7 @@ class binance(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': marketType,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
@@ -1641,7 +1630,7 @@ class binance(Exchange):
                 quantityIsRequired = True
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
-            # quantityIsRequired = True
+            quantityIsRequired = True
             callbackRate = self.safe_float(params, 'callbackRate')
             if callbackRate is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order')
@@ -2191,6 +2180,7 @@ class binance(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        updated = self.safe_integer(transaction, 'successTime')
         return {
             'info': transaction,
             'id': id,
@@ -2198,12 +2188,16 @@ class binance(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': None,
+            'updated': updated,
             'fee': fee,
         }
 

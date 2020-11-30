@@ -811,6 +811,7 @@ class btcmarkets(Exchange):
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'triggerPrice')
         return {
             'info': order,
             'id': id,
@@ -823,6 +824,7 @@ class btcmarkets(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

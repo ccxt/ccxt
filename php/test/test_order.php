@@ -32,8 +32,10 @@ function test_order($exchange, $order, $symbol, $now) {
     assert (is_array($order) && array_key_exists('side', $order));
     assert (($order['side'] === 'buy') || ($order['side'] === 'sell'));
     assert (is_array($order) && array_key_exists('price', $order));
-    assert ((is_float($order['price']) || is_int($order['price'])));
-    assert ($order['price'] > 0);
+    assert (($order['price'] === null) || ((is_float($order['price']) || is_int($order['price']))));
+    if ($order['price'] !== null) {
+        assert ($order['price'] > 0);
+    }
     assert (is_array($order) && array_key_exists('amount', $order));
     assert ((is_float($order['amount']) || is_int($order['amount'])));
     assert ($order['amount'] >= 0);

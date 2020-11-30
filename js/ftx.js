@@ -997,6 +997,7 @@ module.exports = class ftx extends Exchange {
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
         return {
             'info': order,
             'id': id,
@@ -1009,6 +1010,7 @@ module.exports = class ftx extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

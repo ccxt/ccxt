@@ -136,6 +136,7 @@ class crex24 extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCH',
+                'BIT' => 'BitMoney',
                 'BULL' => 'BuySell',
                 'CREDIT' => 'TerraCredit',
                 'GHOST' => 'GHOSTPRISM',

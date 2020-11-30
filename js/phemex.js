@@ -889,7 +889,9 @@ module.exports = class phemex extends Exchange {
             }
             since = parseInt (since / 1000);
             request['from'] = since;
-            request['to'] = this.sum (since, duration * limit);
+            // time ranges ending in the future are not accepted
+            // https://github.com/ccxt/ccxt/issues/8050
+            request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else if (limit !== undefined) {
             limit = Math.min (limit, 2000);
             request['from'] = now - duration * this.sum (limit, 1);
@@ -1804,7 +1806,7 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amount, market);
             }
         } else if (market['swap']) {
-            request['orderQty'] = this.toEv (amount, market);
+            request['orderQty'] = parseInt (amount);
         }
         if (type === 'Limit') {
             request['priceEp'] = this.toEp (price, market);

@@ -1104,49 +1104,54 @@ class wavesexchange(Exchange):
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
     def parse_order(self, order, market=None):
-        # createOrder
-        # {
-        #   version: 3,
-        #   id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        #   sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #   senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #   matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #   assetPair: {
-        #     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #     priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
-        #   },
-        #   orderType: 'buy',
-        #   amount: 10000,
-        #   price: 400000000,
-        #   timestamp: 1599848586891,
-        #   expiration: 1602267786891,
-        #   matcherFee: 3008,
-        #   matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #   signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        #   proofs: [
-        #     '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        #   ]
-        # }
-        # fetchClosedOrders
-        # {
-        #   id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
-        #   type: 'buy',
-        #   orderType: 'limit',
-        #   amount: 30000000000,
-        #   filled: 0,
-        #   price: 1000000,
-        #   fee: 300000,
-        #   filledFee: 0,
-        #   feeAsset: 'WAVES',
-        #   timestamp: 1594303779322,
-        #   status: 'Cancelled',
-        #   assetPair: {
-        #     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #     priceAsset: 'WAVES'
-        #   },
-        #   avgWeighedPrice: 0,
-        #   version: 3
-        # }
+        #
+        #     createOrder
+        #
+        #     {
+        #         version: 3,
+        #         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        #         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        #         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        #         assetPair: {
+        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        #         },
+        #         orderType: 'buy',
+        #         amount: 10000,
+        #         price: 400000000,
+        #         timestamp: 1599848586891,
+        #         expiration: 1602267786891,
+        #         matcherFee: 3008,
+        #         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         proofs: [
+        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        #         ]
+        #     }
+        #
+        #     fetchClosedOrders
+        #
+        #     {
+        #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        #         type: 'buy',
+        #         orderType: 'limit',
+        #         amount: 30000000000,
+        #         filled: 0,
+        #         price: 1000000,
+        #         fee: 300000,
+        #         filledFee: 0,
+        #         feeAsset: 'WAVES',
+        #         timestamp: 1594303779322,
+        #         status: 'Cancelled',
+        #         assetPair: {
+        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             priceAsset: 'WAVES'
+        #         },
+        #         avgWeighedPrice: 0,
+        #         version: 3
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_2(order, 'type', 'orderType')
         type = 'limit'
@@ -1200,6 +1205,7 @@ class wavesexchange(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

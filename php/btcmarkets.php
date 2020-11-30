@@ -867,6 +867,7 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'triggerPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -879,6 +880,7 @@ class btcmarkets extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

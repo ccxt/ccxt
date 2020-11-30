@@ -1835,7 +1835,7 @@ class hbtc extends Exchange {
         //         "$timeInForce":"GTC",
         //         "$type":"MARKET",
         //         "$side":"SELL",
-        //         "stopPrice":"0.0",
+        //         "$stopPrice":"0.0",
         //         "icebergQty":"0.0",
         //         "time":"1588214701974",
         //         "updateTime":"0",
@@ -1910,6 +1910,7 @@ class hbtc extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         $result = array(
             'info' => $order,
             'id' => $id,
@@ -1922,6 +1923,7 @@ class hbtc extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,

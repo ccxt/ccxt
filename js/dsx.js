@@ -842,6 +842,7 @@ module.exports = class dsx extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'remaining': remaining,

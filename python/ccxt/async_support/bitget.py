@@ -1895,6 +1895,7 @@ class bitget(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,

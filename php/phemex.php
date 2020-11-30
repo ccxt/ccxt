@@ -893,7 +893,9 @@ class phemex extends Exchange {
             }
             $since = intval($since / 1000);
             $request['from'] = $since;
-            $request['to'] = $this->sum($since, $duration * $limit);
+            // time ranges ending in the future are not accepted
+            // https://github.com/ccxt/ccxt/issues/8050
+            $request['to'] = min ($now, $this->sum($since, $duration * $limit));
         } else if ($limit !== null) {
             $limit = min ($limit, 2000);
             $request['from'] = $now - $duration * $this->sum($limit, 1);
@@ -1808,7 +1810,7 @@ class phemex extends Exchange {
                 $request['baseQtyEv'] = $this->to_ev($amount, $market);
             }
         } else if ($market['swap']) {
-            $request['orderQty'] = $this->to_ev($amount, $market);
+            $request['orderQty'] = intval($amount);
         }
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);

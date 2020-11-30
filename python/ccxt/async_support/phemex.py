@@ -868,7 +868,9 @@ class phemex(Exchange):
                 limit = 2000  # max 2000
             since = int(since / 1000)
             request['from'] = since
-            request['to'] = self.sum(since, duration * limit)
+            # time ranges ending in the future are not accepted
+            # https://github.com/ccxt/ccxt/issues/8050
+            request['to'] = min(now, self.sum(since, duration * limit))
         elif limit is not None:
             limit = min(limit, 2000)
             request['from'] = now - duration * self.sum(limit, 1)
@@ -1739,7 +1741,7 @@ class phemex(Exchange):
             else:
                 request['baseQtyEv'] = self.to_ev(amount, market)
         elif market['swap']:
-            request['orderQty'] = self.to_ev(amount, market)
+            request['orderQty'] = int(amount)
         if type == 'Limit':
             request['priceEp'] = self.to_ep(price, market)
         stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')

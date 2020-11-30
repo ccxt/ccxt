@@ -883,6 +883,7 @@ class probit(Exchange):
             'side': side,
             'status': status,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

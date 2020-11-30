@@ -482,6 +482,7 @@ module.exports = class coinfloor extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': undefined,
             'filled': undefined,
             'remaining': amount,

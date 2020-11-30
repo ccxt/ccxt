@@ -556,6 +556,7 @@ class tidex(Exchange):
             'timeInForce': None,
             'side': self.safe_string(order, 'type'),
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'remaining': remaining,

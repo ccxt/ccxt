@@ -233,6 +233,7 @@ class luno(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,

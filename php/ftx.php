@@ -999,6 +999,7 @@ class ftx extends Exchange {
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         $clientOrderId = $this->safe_string($order, 'clientId');
+        $stopPrice = $this->safe_float($order, 'triggerPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1011,6 +1012,7 @@ class ftx extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

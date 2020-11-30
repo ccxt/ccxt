@@ -98,6 +98,7 @@ module.exports = class livecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BIT': 'First Bitcoin',
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
                 'CBC': 'CryptoBossCoin', // conflict with CBC (CashBet Coin)
@@ -628,6 +629,7 @@ module.exports = class livecoin extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'filled': filled,

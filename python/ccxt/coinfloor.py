@@ -450,6 +450,7 @@ class coinfloor(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': None,
             'filled': None,
             'remaining': amount,

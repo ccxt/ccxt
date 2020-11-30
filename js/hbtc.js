@@ -1906,6 +1906,7 @@ module.exports = class hbtc extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         const result = {
             'info': order,
             'id': id,
@@ -1918,6 +1919,7 @@ module.exports = class hbtc extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

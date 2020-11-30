@@ -140,6 +140,7 @@ class crex24(Exchange):
             },
             'commonCurrencies': {
                 'BCC': 'BCH',
+                'BIT': 'BitMoney',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'GHOST': 'GHOSTPRISM',

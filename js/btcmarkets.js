@@ -864,6 +864,7 @@ module.exports = class btcmarkets extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
         return {
             'info': order,
             'id': id,
@@ -876,6 +877,7 @@ module.exports = class btcmarkets extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

@@ -850,6 +850,7 @@ class bitfinex(Exchange):
             'timeInForce': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'average': self.safe_float(order, 'avg_execution_price'),
             'amount': self.safe_float(order, 'original_amount'),
             'remaining': self.safe_float(order, 'remaining_amount'),

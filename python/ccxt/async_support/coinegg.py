@@ -358,6 +358,7 @@ class coinegg(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,

@@ -889,6 +889,7 @@ class qtrade(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'amount': amount,
             'remaining': remaining,

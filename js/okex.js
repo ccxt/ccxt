@@ -2154,6 +2154,7 @@ module.exports = class okex extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
+        const stopPrice = this.safeFloat (order, 'trigger_price');
         return {
             'info': order,
             'id': id,
@@ -2166,6 +2167,7 @@ module.exports = class okex extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

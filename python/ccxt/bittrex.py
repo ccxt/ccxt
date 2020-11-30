@@ -1020,6 +1020,7 @@ class bittrex(Exchange):
             'timeInForce': timeInForce,
             'side': direction,
             'price': limit,
+            'stopPrice': None,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
