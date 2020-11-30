@@ -917,6 +917,7 @@ module.exports = class qtrade extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'amount': amount,
             'remaining': remaining,
