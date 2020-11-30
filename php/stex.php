@@ -919,6 +919,7 @@ class stex extends Exchange {
                 'order' => $id,
             ));
         }
+        $stopPrice = $this->safe_float($order, 'trigger_price');
         $result = array(
             'info' => $order,
             'id' => $id,
@@ -931,6 +932,7 @@ class stex extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
