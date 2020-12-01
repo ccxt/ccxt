@@ -1049,6 +1049,7 @@ class vcc extends Exchange {
         if ($updated !== $created) {
             $lastTradeTimestamp = $updated;
         }
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'id' => $id,
             'clientOrderId' => $id,
@@ -1058,8 +1059,10 @@ class vcc extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'average' => $average,
             'amount' => $amount,
             'cost' => $cost,

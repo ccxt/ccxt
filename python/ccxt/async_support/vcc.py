@@ -1002,6 +1002,7 @@ class vcc(Exchange):
         lastTradeTimestamp = None
         if updated != created:
             lastTradeTimestamp = updated
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'id': id,
             'clientOrderId': id,
@@ -1011,8 +1012,10 @@ class vcc(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'amount': amount,
             'cost': cost,
