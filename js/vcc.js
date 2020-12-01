@@ -1045,6 +1045,7 @@ module.exports = class vcc extends Exchange {
         if (updated !== created) {
             lastTradeTimestamp = updated;
         }
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'id': id,
             'clientOrderId': id,
@@ -1054,8 +1055,10 @@ module.exports = class vcc extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'amount': amount,
             'cost': cost,
