@@ -554,6 +554,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'type': type,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': undefined,
             'amount': amount,
             'remaining': remaining,
