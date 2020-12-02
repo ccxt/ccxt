@@ -27,6 +27,7 @@ class digifinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -40,6 +41,7 @@ class digifinex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -1285,7 +1287,7 @@ class digifinex extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'addressTag');
-        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $currencyId = $this->safe_string_upper($depositAddress, 'currency');
         $code = $this->safeCurrencCode ($currencyId);
         return array(
             'info' => $depositAddress,
@@ -1322,6 +1324,128 @@ class digifinex extends Exchange {
             throw new InvalidAddress($this->id . ' fetchDepositAddress did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
         }
         return $address;
+    }
+
+    public function fetch_transactions_by_type($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'from' => 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            // 'size' => 100, // default 100, max 500
+            // 'direct' => 'prev', // "prev" ascending, "next" descending
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = min (500, $limit);
+        }
+        $method = ($type === 'deposit') ? 'privateGetDepositHistory' : 'privateGetWithdrawHistory';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 200,
+        //         "$data" => array(
+        //             array(
+        //                 "id" => 1171,
+        //                 "$currency" => "xrp",
+        //                 "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //                 "chain" => "",
+        //                 "amount" => 7.457467,
+        //                 "address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //                 "memo" => "100040",
+        //                 "fee" => 0,
+        //                 "state" => "safe",
+        //                 "created_date" => "2020-04-20 11:23:00",
+        //                 "finished_date" => "2020-04-20 13:23:00"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => $type ));
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '0' => 'pending', // Email Sent
+            '1' => 'canceled', // Cancelled (different from 1 = ok in deposits)
+            '2' => 'pending', // Awaiting Approval
+            '3' => 'failed', // Rejected
+            '4' => 'pending', // Processing
+            '5' => 'failed', // Failure
+            '6' => 'ok', // Completed
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "$id" => 1171,
+        //         "$currency" => "xrp",
+        //         "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //         "chain" => "",
+        //         "$amount" => 7.457467,
+        //         "$address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "memo" => "100040",
+        //         "$fee" => 0,
+        //         "state" => "safe",
+        //         "created_date" => "2020-04-20 11:23:00",
+        //         "finished_date" => "2020-04-20 13:23:00"
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'memo'); // set but unused
+        if ($tag !== null) {
+            if (strlen($tag) < 1) {
+                $tag = null;
+            }
+        }
+        $txid = $this->safe_string($transaction, 'hash');
+        $currencyId = $this->safe_string_upper($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_date'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'finished_date'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
+            'type' => null,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => $fee,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
