@@ -514,6 +514,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             'type': type,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': None,
             'amount': amount,
             'remaining': remaining,

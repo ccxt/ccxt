@@ -532,6 +532,7 @@ class idex(Exchange, ccxt.idex):
             'type': orderType,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

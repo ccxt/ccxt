@@ -558,6 +558,7 @@ class bitfinex extends \ccxt\bitfinex {
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => null,
             'amount' => $amount,
             'remaining' => $remaining,
