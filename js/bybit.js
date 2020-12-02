@@ -1330,6 +1330,11 @@ module.exports = class bybit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
         }
+        const clientOrderId = this.safeString2 (params, 'order_link_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['order_link_id'] = clientOrderId;
+            params = this.omit (params, [ 'order_link_id', 'clientOrderId' ]);
+        }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
