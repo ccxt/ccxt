@@ -67,7 +67,7 @@ module.exports = class digifinex extends Exchange {
                         'kline',
                         'margin/currencies',
                         'margin/symbols',
-                        'markets', // undocumented
+                        'markets',
                         'order_book',
                         'ping',
                         'spot/symbols',
@@ -75,6 +75,7 @@ module.exports = class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
+                        'currencies',
                     ],
                 },
                 'private': {
@@ -168,7 +169,6 @@ module.exports = class digifinex extends Exchange {
                     '20040': [ RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day' ],
                     '20041': [ PermissionDenied, 'Beyond the daily withdrawal limit' ],
                     '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
-
                 },
                 'broad': {
                 },
