@@ -20,6 +20,7 @@ module.exports = class digifinex extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -190,6 +191,95 @@ module.exports = class digifinex extends Exchange {
                 'TEL': 'TEL666',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":5,
+        //                 "currency":"USDT",
+        //                 "withdraw_status":0,
+        //                 "chain":"OMNI"
+        //             },
+        //             {
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":3,
+        //                 "currency":"USDT",
+        //                 "withdraw_status":1,
+        //                 "chain":"ERC20"
+        //             },
+        //             {
+        //                 "deposit_status":0,
+        //                 "min_deposit_amount":0,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":0,
+        //                 "min_withdraw_fee":0,
+        //                 "currency":"DGF13",
+        //                 "withdraw_status":0,
+        //                 "chain":""
+        //             },
+        //         ],
+        //         "code":200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const depositStatus = this.safeValue (currency, 'deposit_status', 1);
+            const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
+            const active = depositStatus && withdrawStatus;
+            const fee = this.safeFloat (currency, 'withdraw_fee_rate');
+            if (code in result) {
+                if (Array.isArray (result[code]['info'])) {
+                    result[code]['info'].push (currency);
+                } else {
+                    result[code]['info'] = [ result[code]['info'], currency ];
+                }
+            } else {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': active,
+                    'fee': fee,
+                    'precision': 8, // todo fix hardcoded value
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeFloat (currency, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -1213,7 +1303,7 @@ module.exports = class digifinex extends Exchange {
             return; // fall back to default error handler
         }
         const code = this.safeString (response, 'code');
-        if (code === '0') {
+        if ((code === '0') || (code === '200')) {
             return; // no error
         }
         const feedback = this.id + ' ' + responseBody;
