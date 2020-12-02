@@ -22,6 +22,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -35,6 +36,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1319,7 +1321,7 @@ module.exports = class digifinex extends Exchange {
         return address;
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {
@@ -1335,7 +1337,8 @@ module.exports = class digifinex extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (500, limit);
         }
-        const response = await this.privateGetDepositHistory (this.extend (request, params));
+        const method = (type === 'deposit') ? 'privateGetDepositHistory' : 'privateGetWithdrawHistory';
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1357,48 +1360,15 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (data, currency, since, limit, { 'type': type });
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = undefined;
-        const request = {
-            // 'currency': currency['id'],
-            // 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
-            // 'size': 100, // default 100, max 500
-            // 'direct': 'prev', // "prev" ascending, "next" descending
-        };
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (limit !== undefined) {
-            request['size'] = Math.min (500, limit);
-        }
-        const response = await this.privateGetWithdrawHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": 200,
-        //         "data": [
-        //             {
-        //                 "id": 1171,
-        //                 "currency": "xrp",
-        //                 "hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
-        //                 "chain": "",
-        //                 "amount": 7.457467,
-        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
-        //                 "memo": "100040",
-        //                 "fee": 0,
-        //                 "state": "safe",
-        //                 "created_date": "2020-04-20 11:23:00",
-        //                 "finished_date": "2020-04-20 13:23:00"
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
