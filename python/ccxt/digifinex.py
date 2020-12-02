@@ -38,6 +38,7 @@ class digifinex(Exchange):
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -51,6 +52,7 @@ class digifinex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -1229,7 +1231,7 @@ class digifinex(Exchange):
         #
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'addressTag')
-        currencyId = self.safe_string(depositAddress, 'currency')
+        currencyId = self.safe_string_upper(depositAddress, 'currency')
         code = self.safeCurrencCode(currencyId)
         return {
             'info': depositAddress,
@@ -1264,6 +1266,118 @@ class digifinex(Exchange):
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
         return address
+
+    def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            # 'currency': currency['id'],
+            # 'from': 'fromId',  # When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            # 'size': 100,  # default 100, max 500
+            # 'direct': 'prev',  # "prev" ascending, "next" descending
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['size'] = min(500, limit)
+        method = 'privateGetDepositHistory' if (type == 'deposit') else 'privateGetWithdrawHistory'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "data": [
+        #             {
+        #                 "id": 1171,
+        #                 "currency": "xrp",
+        #                 "hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        #                 "chain": "",
+        #                 "amount": 7.457467,
+        #                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        #                 "memo": "100040",
+        #                 "fee": 0,
+        #                 "state": "safe",
+        #                 "created_date": "2020-04-20 11:23:00",
+        #                 "finished_date": "2020-04-20 13:23:00"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, {'type': type})
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_type('deposit', code, since, limit, params)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '0': 'pending',  # Email Sent
+            '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+            '2': 'pending',  # Awaiting Approval
+            '3': 'failed',  # Rejected
+            '4': 'pending',  # Processing
+            '5': 'failed',  # Failure
+            '6': 'ok',  # Completed
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits, fetchWithdrawals
+        #
+        #     {
+        #         "id": 1171,
+        #         "currency": "xrp",
+        #         "hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        #         "chain": "",
+        #         "amount": 7.457467,
+        #         "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        #         "memo": "100040",
+        #         "fee": 0,
+        #         "state": "safe",
+        #         "created_date": "2020-04-20 11:23:00",
+        #         "finished_date": "2020-04-20 13:23:00"
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'memo')  # set but unused
+        if tag is not None:
+            if len(tag) < 1:
+                tag = None
+        txid = self.safe_string(transaction, 'hash')
+        currencyId = self.safe_string_upper(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_date'))
+        updated = self.parse8601(self.safe_string(transaction, 'finished_date'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        amount = self.safe_float(transaction, 'amount')
+        feeCost = self.safe_float(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
+            'type': None,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api if (api == 'v2') else self.version
