@@ -1282,6 +1282,10 @@ class bybit(Exchange):
                 request['price'] = float(self.price_to_precision(symbol, price))
             else:
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+        clientOrderId = self.safe_string_2(params, 'order_link_id', 'clientOrderId')
+        if clientOrderId is not None:
+            request['order_link_id'] = clientOrderId
+            params = self.omit(params, ['order_link_id', 'clientOrderId'])
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value(params, 'base_price')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
