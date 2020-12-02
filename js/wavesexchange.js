@@ -1575,7 +1575,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         let isErc20 = true;
         const noPrefix = this.remove0xPrefix (address);
-        const lower = noPrefix.lower ();
+        const lower = noPrefix.toLowerCase ();
         for (let i = 0; i < lower.length; i++) {
             const character = lower[i];
             if (!(character in set)) {
