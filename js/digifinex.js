@@ -1269,8 +1269,7 @@ module.exports = class digifinex extends Exchange {
         return result;
     }
 
-
-    parseDepositAddress (depositAddress, currency = unefined) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
         //         "addressTag":"",
