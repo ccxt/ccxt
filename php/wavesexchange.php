@@ -1581,7 +1581,7 @@ class wavesexchange extends Exchange {
         }
         $isErc20 = true;
         $noPrefix = $this->remove0x_prefix($address);
-        $lower = $noPrefix->lower ();
+        $lower = strtolower($noPrefix);
         for ($i = 0; $i < count($lower); $i++) {
             $character = $lower[$i];
             if (!(is_array($set) && array_key_exists($character, $set))) {
