@@ -37,6 +37,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1386,6 +1387,13 @@ module.exports = class digifinex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // withdraw
+        //
+        //     {
+        //         "code": 200,
+        //         "withdraw_id": 700
+        //     }
+        //
         // fetchDeposits, fetchWithdrawals
         //
         //     {
@@ -1402,7 +1410,7 @@ module.exports = class digifinex extends Exchange {
         //         "finished_date": "2020-04-20 13:23:00"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'withdraw_id');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'memo'); // set but unused
         if (tag !== undefined) {
@@ -1441,6 +1449,29 @@ module.exports = class digifinex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
+            'address': address,
+            'amount': parseFloat (amount),
+            'currency': currency['id'],
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostWithdrawNew (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "withdraw_id": 700
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
