@@ -42,6 +42,7 @@ class digifinex extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -1391,6 +1392,13 @@ class digifinex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
+        // withdraw
+        //
+        //     {
+        //         "$code" => 200,
+        //         "withdraw_id" => 700
+        //     }
+        //
         // fetchDeposits, fetchWithdrawals
         //
         //     {
@@ -1407,7 +1415,7 @@ class digifinex extends Exchange {
         //         "finished_date" => "2020-04-20 13:23:00"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'id', 'withdraw_id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'memo'); // set but unused
         if ($tag !== null) {
@@ -1446,6 +1454,29 @@ class digifinex extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            // 'chain' => 'ERC20', 'OMNI', 'TRC20', // required for USDT
+            'address' => $address,
+            'amount' => floatval($amount),
+            'currency' => $currency['id'],
+        );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
+        $response = $this->privatePostWithdrawNew (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 200,
+        //         "withdraw_id" => 700
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

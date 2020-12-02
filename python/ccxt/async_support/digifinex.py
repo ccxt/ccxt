@@ -53,6 +53,7 @@ class digifinex(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -1326,6 +1327,13 @@ class digifinex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # withdraw
+        #
+        #     {
+        #         "code": 200,
+        #         "withdraw_id": 700
+        #     }
+        #
         # fetchDeposits, fetchWithdrawals
         #
         #     {
@@ -1342,7 +1350,7 @@ class digifinex(Exchange):
         #         "finished_date": "2020-04-20 13:23:00"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'id', 'withdraw_id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'memo')  # set but unused
         if tag is not None:
@@ -1378,6 +1386,27 @@ class digifinex(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            # 'chain': 'ERC20', 'OMNI', 'TRC20',  # required for USDT
+            'address': address,
+            'amount': float(amount),
+            'currency': currency['id'],
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = await self.privatePostWithdrawNew(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "withdraw_id": 700
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api if (api == 'v2') else self.version
