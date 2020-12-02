@@ -1332,6 +1332,11 @@ class bybit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
         }
+        $clientOrderId = $this->safe_string_2($params, 'order_link_id', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['order_link_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'order_link_id', 'clientOrderId' ));
+        }
         $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value($params, 'base_price');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
