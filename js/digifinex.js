@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,6 +147,28 @@ module.exports = class digifinex extends Exchange {
                     '20019': [ BadRequest, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ],
                     '20020': [ DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ],
                     '50000': [ ExchangeError, 'Exception error' ],
+                    '20021': [ BadRequest, 'Invalid currency' ],
+                    '20022': [ BadRequest, 'The ending timestamp must be larger than the starting timestamp' ],
+                    '20023': [ BadRequest, 'Invalid transfer type' ],
+                    '20024': [ BadRequest, 'Invalid amount' ],
+                    '20025': [ BadRequest, 'This currency is not transferable at the moment' ],
+                    '20026': [ InsufficientFunds, 'Transfer amount exceed your balance' ],
+                    '20027': [ PermissionDenied, 'Abnormal account status' ],
+                    '20028': [ PermissionDenied, 'Blacklist for transfer' ],
+                    '20029': [ PermissionDenied, 'Transfer amount exceed your daily limit' ],
+                    '20030': [ BadRequest, 'You have no position on this trading pair' ],
+                    '20032': [ PermissionDenied, 'Withdrawal limited' ],
+                    '20033': [ BadRequest, 'Wrong Withdrawal ID' ],
+                    '20034': [ PermissionDenied, 'Withdrawal service of this crypto has been closed' ],
+                    '20035': [ PermissionDenied, 'Withdrawal limit' ],
+                    '20036': [ ExchangeError, 'Withdrawal cancellation failed' ],
+                    '20037': [ InvalidAddress, 'The withdrawal address, Tag or chain type is not included in the withdrawal management list' ],
+                    '20038': [ InvalidAddress, 'The withdrawal address is not on the white list' ],
+                    '20039': [ ExchangeError, "Can't be canceled in current status" ],
+                    '20040': [ RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day' ],
+                    '20041': [ PermissionDenied, 'Beyond the daily withdrawal limit' ],
+                    '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
+
                 },
                 'broad': {
                 },
