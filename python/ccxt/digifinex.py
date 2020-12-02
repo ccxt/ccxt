@@ -36,6 +36,7 @@ class digifinex(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -91,7 +92,7 @@ class digifinex(Exchange):
                         'trades',
                         'trades/symbols',
                         'ticker',
-                        'currencies',
+                        'currencies',  # todo add fetchCurrencies
                     ],
                 },
                 'private': {
@@ -99,6 +100,7 @@ class digifinex(Exchange):
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
+                        '{market}​/order​/detail',  # todo add fetchOrder
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -115,16 +117,22 @@ class digifinex(Exchange):
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
+                        'deposit/address',  # todo add fetchDepositAddress
+                        'deposit/history',  # todo add fetchDeposits
+                        'withdraw/history',  # todo add fetchWithdrawals
                     ],
                     'post': [
                         '{market}/order/cancel',
                         '{market}/order/new',
+                        '{market}​/order​/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
+                        'withdraw/new',  # todo add withdraw()
+                        'withdraw/cancel',
                     ],
                 },
             },
@@ -199,6 +207,91 @@ class digifinex(Exchange):
                 'TEL': 'TEL666',
             },
         })
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "deposit_status":1,
+        #                 "min_deposit_amount":10,
+        #                 "withdraw_fee_rate":0,
+        #                 "min_withdraw_amount":10,
+        #                 "min_withdraw_fee":5,
+        #                 "currency":"USDT",
+        #                 "withdraw_status":0,
+        #                 "chain":"OMNI"
+        #             },
+        #             {
+        #                 "deposit_status":1,
+        #                 "min_deposit_amount":10,
+        #                 "withdraw_fee_rate":0,
+        #                 "min_withdraw_amount":10,
+        #                 "min_withdraw_fee":3,
+        #                 "currency":"USDT",
+        #                 "withdraw_status":1,
+        #                 "chain":"ERC20"
+        #             },
+        #             {
+        #                 "deposit_status":0,
+        #                 "min_deposit_amount":0,
+        #                 "withdraw_fee_rate":0,
+        #                 "min_withdraw_amount":0,
+        #                 "min_withdraw_fee":0,
+        #                 "currency":"DGF13",
+        #                 "withdraw_status":0,
+        #                 "chain":""
+        #             },
+        #         ],
+        #         "code":200
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        for i in range(0, len(data)):
+            currency = data[i]
+            id = self.safe_string(currency, 'currency')
+            code = self.safe_currency_code(id)
+            depositStatus = self.safe_value(currency, 'deposit_status', 1)
+            withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
+            active = depositStatus and withdrawStatus
+            fee = self.safe_float(currency, 'withdraw_fee_rate')
+            if code in result:
+                if isinstance(result[code]['info'], list):
+                    result[code]['info'].append(currency)
+                else:
+                    result[code]['info'] = [result[code]['info'], currency]
+            else:
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': None,
+                    'name': None,
+                    'active': active,
+                    'fee': fee,
+                    'precision': 8,  # todo fix hardcoded value
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_float(currency, 'min_withdraw_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+        return result
 
     def fetch_markets(self, params={}):
         options = self.safe_value(self.options, 'fetchMarkets', {})
@@ -1153,7 +1246,7 @@ class digifinex(Exchange):
         if not response:
             return  # fall back to default error handler
         code = self.safe_string(response, 'code')
-        if code == '0':
+        if (code == '0') or (code == '200'):
             return  # no error
         feedback = self.id + ' ' + responseBody
         if code is None:
