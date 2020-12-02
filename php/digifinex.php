@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadResponse;
+use \ccxt\InvalidAddress;
 use \ccxt\OrderNotFound;
 
 class digifinex extends Exchange {
@@ -25,6 +26,7 @@ class digifinex extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -58,7 +60,7 @@ class digifinex extends Exchange {
                     'https://docs.digifinex.com',
                 ),
                 'fees' => 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral' => 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
+                'referral' => 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             ),
             'api' => array(
                 'v2' => array(
@@ -1262,6 +1264,66 @@ class digifinex extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
+    public function parse_deposit_addresses($addresses) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $code = $address['currency'];
+            $result[$code] = $address;
+        }
+        return $result;
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "addressTag":"",
+        //         "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "$currency":"USDT",
+        //         "chain":"ERC20"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'addressTag');
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safeCurrencCode ($currencyId);
+        return array(
+            'info' => $depositAddress,
+            'code' => $code,
+            'address' => $address,
+            'tag' => $tag,
+        );
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "$data":array(
+        //             {
+        //                 "addressTag":"",
+        //                 "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "$currency":"USDT",
+        //                 "chain":"ERC20"
+        //             }
+        //         ),
+        //         "$code":200
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $addresses = $this->parse_deposit_addresses($data);
+        $address = $this->safe_value($addresses, $code);
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' fetchDepositAddress did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
+        }
+        return $address;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = ($api === 'v2') ? $api : $this->version;
         $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
@@ -1295,11 +1357,6 @@ class digifinex extends Exchange {
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function date_utc8($timestampMS) {
-        $timedelta = $this->safe_value($this->options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
-        return $this->ymd($timestampMS . $timedelta);
     }
 
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {

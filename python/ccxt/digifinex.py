@@ -37,6 +37,7 @@ class digifinex(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -70,7 +71,7 @@ class digifinex(Exchange):
                     'https://docs.digifinex.com',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
                 'v2': {
@@ -1209,6 +1210,61 @@ class digifinex(Exchange):
         items = self.safe_value(data, 'finance', [])
         return self.parse_ledger(items, currency, since, limit)
 
+    def parse_deposit_addresses(self, addresses):
+        result = {}
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            code = address['currency']
+            result[code] = address
+        return result
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         "addressTag":"",
+        #         "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        #         "currency":"USDT",
+        #         "chain":"ERC20"
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'addressTag')
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safeCurrencCode(currencyId)
+        return {
+            'info': depositAddress,
+            'code': code,
+            'address': address,
+            'tag': tag,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "data":[
+        #             {
+        #                 "addressTag":"",
+        #                 "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        #                 "currency":"USDT",
+        #                 "chain":"ERC20"
+        #             }
+        #         ],
+        #         "code":200
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        addresses = self.parse_deposit_addresses(data)
+        address = self.safe_value(addresses, code)
+        if address is None:
+            raise InvalidAddress(self.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
+        return address
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api if (api == 'v2') else self.version
         url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
@@ -1237,10 +1293,6 @@ class digifinex(Exchange):
             if urlencoded:
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def date_utc8(self, timestampMS):
-        timedelta = self.safe_value(self.options, 'timedelta', 8 * 60 * 60 * 1000)  # eight hours
-        return self.ymd(timestampMS + timedelta)
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if not response:
