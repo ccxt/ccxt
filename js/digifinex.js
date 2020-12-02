@@ -21,6 +21,7 @@ module.exports = class digifinex extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -54,7 +55,7 @@ module.exports = class digifinex extends Exchange {
                     'https://docs.digifinex.com',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
                 'v2': {
@@ -1258,6 +1259,67 @@ module.exports = class digifinex extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
+    parseDepositAddresses (addresses) {
+        const result = {};
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
+        }
+        return result;
+    }
+
+
+    parseDepositAddress (depositAddress, currency = unefined) {
+        //
+        //     {
+        //         "addressTag":"",
+        //         "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "currency":"USDT",
+        //         "chain":"ERC20"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'addressTag');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const code = this.safeCurrencCode (currencyId);
+        return {
+            'info': depositAddress,
+            'code': code,
+            'address': address,
+            'tag': tag,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "addressTag":"",
+        //                 "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "currency":"USDT",
+        //                 "chain":"ERC20"
+        //             }
+        //         ],
+        //         "code":200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const addresses = this.parseDepositAddresses (data);
+        const address = this.safeValue (addresses, code);
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
+        }
+        return address;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = (api === 'v2') ? api : this.version;
         let url = this.urls['api'] + '/' + version + '/' + this.implodeParams (path, params);
@@ -1291,11 +1353,6 @@ module.exports = class digifinex extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    dateUTC8 (timestampMS) {
-        const timedelta = this.safeValue (this.options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
-        return this.ymd (timestampMS + timedelta);
     }
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
