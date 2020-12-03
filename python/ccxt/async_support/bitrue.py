@@ -270,13 +270,7 @@ class bitrue(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        isBuyMaker = self.safe_value(trade, 'isBuyerMaker')
-        isBestMatch = self.safe_value(trade, 'isBestMatch')
-        side = None
-        if not isBuyMaker and isBestMatch:
-            side = 'buy'
-        elif isBuyMaker and isBestMatch:
-            side = 'sell'
+        side = 'buy' if self.safe_value(trade, 'isBuyer') else 'sell'
         takerOrMaker = 'maker' if self.safe_value(trade, 'isMaker') else 'taker'
         symbol = None
         if market is not None:
