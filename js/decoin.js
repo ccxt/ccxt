@@ -16,8 +16,6 @@ const {
     AuthenticationError,
 } = require ('./base/errors');
 const {
-    TRUNCATE,
-    DECIMAL_PLACES,
     TICK_SIZE,
 } = require ('./base/functions/number');
 
@@ -140,10 +138,6 @@ module.exports = class decoin extends Exchange {
                 '20001': InsufficientFunds, // {'error':{'code':20001,'message':'Insufficient funds','description':'Check that the funds are sufficient, given commissions'}}
             },
         });
-    }
-
-    feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchMarkets (params = {}) {
@@ -280,16 +274,54 @@ module.exports = class decoin extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
+        const res = await this.publicGetMarketExchangeInfo (params);
         const response = await this.privateGetTradeActualFeeRates (params);
-        for (let i = 0; i < response.length; i++) {
-            if (response[i]['Level'] === 1) {
-                return {
-                    'info': response[i],
-                    'maker': this.safeFloat (response[i], 'MakerFee'),
-                    'taker': this.safeFloat (response[i], 'TakerFee'),
-                };
+        //
+        //     {
+        //         "tradeFee": [
+        //             {
+        //                 "symbol": "ADABNB",
+        //                 "maker": 0.9000,
+        //                 "taker": 1.0000
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < res['Symbols'].length; i++) {
+            for (let j = 0; j < response.length; j++) {
+                if (response[j]['Level'] === 1) {
+                    response[j]['symbol'] = res['Symbols'][i]['Symbol'];
+                    const fee = this.parseTradingFee (response[j]);
+                    const symbol = fee['symbol'];
+                    result[symbol] = fee;
+                }
             }
         }
+        return result;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "symbol": "ADABNB",
+        //         "maker": 0.9000,
+        //         "taker": 1.0000
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            const market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeFloat (fee, 'MakerFee'),
+            'taker': this.safeFloat (fee, 'TakerFee'),
+        };
     }
 
     async fetchBalance (params = {}) {
@@ -297,16 +329,26 @@ module.exports = class decoin extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'wallet');
         const method = 'privateGet' + this.capitalize (type) + 'GetWallets';
-        const request = this.extend ({
-            'Currency': params,
-        });
-        // const query = params;
-        const response = await this[method] (request);
+        let code = '';
+        const hasKeys = Object.keys (params);
+        if (hasKeys.length === 0) {
+            params = this.extend ({
+                'Currency': 'All',
+            });
+        }
+        const res = await this.publicGetMarketGetCurrencies ();
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'Name');
-            const code = this.safeCurrencyCode (currencyId);
+            for (let j = 0; j < res.length; j++) {
+                if (res[j]['Name'] === currencyId) {
+                    code = this.safeCurrencyCode (res[j]['Symbol']);
+                    break;
+                }
+            }
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'Available');
             account['total'] = this.safeFloat (balance, 'Balance');
@@ -345,9 +387,28 @@ module.exports = class decoin extends Exchange {
             'pairName': market['id'],
             'tick': this.timeframes[timeframe],
         };
+        const to = this.milliseconds ();
+        if (request['tick'] === undefined) {
+            throw new ArgumentsRequired ('fetchOHLCV requires a valid timeframe argument');
+        }
+        if (since === undefined) {
+            let time = 0;
+            if (request['tick'].indexOf ('min') > -1) {
+                time = request['tick'].replace ('min', '') * 60 * 1000;
+            } else if (request['tick'].indexOf ('h') > -1) {
+                time = request['tick'].replace ('h', '') * 60 * 60 * 1000;
+            } else if (request['tick'].indexOf ('d') > -1) {
+                time = request['tick'].replace ('d', '') * 60 * 1440 * 1000;
+            } else if (request['tick'].indexOf ('w') > -1) {
+                time = request['tick'].replace ('w', '') * 60 * 10080 * 1000;
+            } else {
+                time = request['tick'].replace ('M', '') * 60 * 43800 * 1000;
+            }
+            since = to - time;
+        }
         if (since !== undefined) {
             request['from'] = since;
-            request['to'] = this.milliseconds ();
+            request['to'] = to;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -408,9 +469,9 @@ module.exports = class decoin extends Exchange {
         if (market !== undefined) {
             symbol = ticker['Name'];
         }
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
-        const open = this.safeFloat (ticker, 'open');
+        const baseVolume = this.safeFloat (ticker, 'Volume');
+        const quoteVolume = this.safeFloat (ticker, 'QuoteVolume');
+        const open = this.safeFloat (ticker, 'PrevDayPrice');
         const last = this.safeFloat (ticker, 'LastPrice');
         let change = undefined;
         let percentage = undefined;
@@ -666,7 +727,7 @@ module.exports = class decoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'address': address,
             'tag': undefined,
-            'type': type,
+            'type': (type !== undefined) ? type : 'deposit',
             'amount': amount,
             'currency': code,
             'status': status,
@@ -715,9 +776,25 @@ module.exports = class decoin extends Exchange {
         // private
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (type === undefined || side === undefined || amount === undefined) {
+            throw new ArgumentsRequired ('Some arguments are missing.');
+        }
+        if (this.safeString (params, 'type')) {
+            type = this.safeString (params, 'type');
+        }
+        params = this.omit (params, 'type');
+        if (type === 'market') {
+            type = 'MarketOrder';
+        } else if (type === 'limit') {
+            type = 'LimitOrder';
+        } else if (type === 'stopLimit') {
+            type = 'StopOrder';
+        } else if (type === 'coco') {
+            type = 'CocoOrder';
+        }
         amount = parseFloat (amount);
         const request = {
-            'OrderType': side,
+            'OrderType': this.capitalize (side),
             'PairName': market['id'],
             'Quantity': amount.toString (),
             'Type': type,
@@ -729,11 +806,24 @@ module.exports = class decoin extends Exchange {
             request['Rate'] = price;
         } else if (type === 'StopOrder') {
             request['Rate'] = price;
-            request['Stop'] = this.safeFloat (params, 'Stop');
+            if (!this.safeFloat (params, 'stopPrice')) {
+                throw new ArgumentsRequired (this.id + ' Stop limit order requires stopPrice argument');
+            }
+            request['Stop'] = this.safeFloat (params, 'stopPrice');
         } else if (type === 'CocoOrder') {
             request['Rate'] = price;
-            request['Stop'] = this.safeFloat (params, 'Stop');
-            request['Limit'] = this.safeFloat (params, 'Limit');
+            if (!this.safeFloat (params, 'stopPrice')) {
+                throw new ArgumentsRequired (this.id + ' CocoOrder requires stopPrice argument');
+            }
+            if (!this.safeFloat (params, 'limitPrice')) {
+                throw new ArgumentsRequired (this.id + ' CocoOrder requires limitPrice argument');
+            }
+            request['Stop'] = this.safeFloat (params, 'stopPrice');
+            request['Limit'] = this.safeFloat (params, 'limitPrice');
+        }
+        const keys = Object.keys (params);
+        for (let i = 0; i < keys.length; i++) {
+            params = this.omit (params, keys[i]);
         }
         const response = await this.privatePostOrderCreateOrder (
             this.extend (request, params)
@@ -900,11 +990,10 @@ module.exports = class decoin extends Exchange {
         if ('Message' in response && !response['Status']) {
             throw new ExchangeError (response['Message']);
         }
-        const numOrders = response.length;
-        if (numOrders > 0) {
+        if (response.length > 0) {
             return this.parseOrders (response, market);
         }
-        throw new OrderNotFound (this.id + ' orders not found');
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -925,6 +1014,9 @@ module.exports = class decoin extends Exchange {
         const response = await this.privateGetTradeGetWalletHistory (
             this.extend (request, params)
         );
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'payout';
+        }
         if (currency !== undefined) {
             return this.parseTransactions (response, currency['name'], since, limit);
         } else {
@@ -992,14 +1084,28 @@ module.exports = class decoin extends Exchange {
         const response = await this.privateGetWalletGetWallets (
             this.extend (request, params)
         );
-        const address = this.safeString (response[0], 'Address');
-        this.checkAddress (address);
-        const tag = this.safeString (response[0], 'paymentId');
+        let address = undefined;
+        let tag = undefined;
+        if (response.length > 0) {
+            address = this.safeString (response[0], 'Address');
+            this.checkAddress (address);
+            tag = this.safeString (response[0], 'Tag');
+            let arr = [];
+            if (!tag) {
+                if (address.indexOf (',') > -1) {
+                    arr = address.split (',');
+                    address = arr[0];
+                    tag = arr[1];
+                } else {
+                    tag = '';
+                }
+            }
+        }
         return {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'info': response[0],
+            'info': (response[0]) ? response[0] : [],
         };
     }
 
@@ -1044,7 +1150,9 @@ module.exports = class decoin extends Exchange {
         const response = await this.privateGetWalletFundingLimits (
             this.extend (request, params)
         );
-        response['Result']['Currency'] = currency['name'];
+        const key = Object.keys (response['Result']);
+        const index = key[0];
+        response['Result'][index]['CurrencyId'] = currency['name'];
         return response['Result'];
     }
 
