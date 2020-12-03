@@ -7,9 +7,9 @@ include $root . '/ccxt.php';
 date_default_timezone_set ('UTC');
 
 $exchange = new \ccxt\coinbase(array(
-    'apiKey' => 'YOUR_API_KEY',  // required for fetch_orders, fetch_my_trades
-    'secret' => 'YOUR_SECRET',  // required for fetch_orders, fetch_my_trades
-    'verbose' => true, // uncomment for debugging
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    // 'verbose' => true, // uncomment for debugging
     // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     'enableRateLimit' => true, // rate-limiting is required by the Manual
 ));
@@ -36,7 +36,7 @@ do {
     }
     echo $exchange->iso8601($exchange->milliseconds()) . "\n";
     $result = $exchange->deep_extend($result, $balance);
-} while ($loop); // fetch up to 1000 results
+} while ($loop);
 
 echo "======================================================================\n";
 var_dump($result);
