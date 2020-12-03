@@ -279,14 +279,7 @@ module.exports = class bitrue extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const isBuyMaker = this.safeValue (trade, 'isBuyerMaker');
-        const isBestMatch = this.safeValue (trade, 'isBestMatch');
-        let side = undefined;
-        if (!isBuyMaker && isBestMatch) {
-            side = 'buy';
-        } else if (isBuyMaker && isBestMatch) {
-            side = 'sell';
-        }
+        const side = this.safeValue (trade, 'isBuyer') ? 'buy' : 'sell';
         const takerOrMaker = this.safeValue (trade, 'isMaker') ? 'maker' : 'taker';
         let symbol = undefined;
         if (market !== undefined) {
