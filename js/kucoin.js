@@ -371,23 +371,23 @@ module.exports = class kucoin extends Exchange {
         const response = await this.publicGetCurrencies (params);
         //
         //     {
-        //       "currency": "OMG",
-        //       "name": "OMG",
-        //       "fullName": "OmiseGO",
-        //       "precision": 8,
-        //       "confirms": 12,
-        //       "withdrawalMinSize": "4",
-        //       "withdrawalMinFee": "1.25",
-        //       "isWithdrawEnabled": false,
-        //       "isDepositEnabled": false,
-        //       "isMarginEnabled": false,
-        //       "isDebitEnabled": false
+        //         "currency": "OMG",
+        //         "name": "OMG",
+        //         "fullName": "OmiseGO",
+        //         "precision": 8,
+        //         "confirms": 12,
+        //         "withdrawalMinSize": "4",
+        //         "withdrawalMinFee": "1.25",
+        //         "isWithdrawEnabled": false,
+        //         "isDepositEnabled": false,
+        //         "isMarginEnabled": false,
+        //         "isDebitEnabled": false
         //     }
         //
-        const responseData = response['data'];
+        const data = this.safeValue (response, 'data', []);
         const result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
