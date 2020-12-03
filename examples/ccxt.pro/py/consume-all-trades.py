@@ -10,7 +10,7 @@ async def consume_all_trades(exchange, symbol):
             print('----------------------------------------------------------------------')
             print(exchange.iso8601(exchange.milliseconds()), 'received', len(trades), 'new', symbol, 'trades:')
             for trade in trades:
-                print(exchange.id, symbol, trade['datetime'], trade['amount'], trade['price'])
+                print(exchange.id, symbol, trade['id'], trade['datetime'], trade['amount'], trade['price'])
             exchange.trades[symbol].clear()
         except Exception as e:
             print(type(e).__name__, str(e))
