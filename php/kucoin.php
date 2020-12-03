@@ -375,23 +375,23 @@ class kucoin extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
-        //       "currency" => "OMG",
-        //       "$name" => "OMG",
-        //       "fullName" => "OmiseGO",
-        //       "$precision" => 8,
-        //       "confirms" => 12,
-        //       "withdrawalMinSize" => "4",
-        //       "withdrawalMinFee" => "1.25",
-        //       "$isWithdrawEnabled" => false,
-        //       "$isDepositEnabled" => false,
-        //       "isMarginEnabled" => false,
-        //       "isDebitEnabled" => false
+        //         "currency" => "OMG",
+        //         "$name" => "OMG",
+        //         "fullName" => "OmiseGO",
+        //         "$precision" => 8,
+        //         "confirms" => 12,
+        //         "withdrawalMinSize" => "4",
+        //         "withdrawalMinFee" => "1.25",
+        //         "$isWithdrawEnabled" => false,
+        //         "$isDepositEnabled" => false,
+        //         "isMarginEnabled" => false,
+        //         "isDebitEnabled" => false
         //     }
         //
-        $responseData = $response['data'];
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
-        for ($i = 0; $i < count($responseData); $i++) {
-            $entry = $responseData[$i];
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
             $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
