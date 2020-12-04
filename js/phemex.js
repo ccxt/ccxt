@@ -1637,7 +1637,7 @@ module.exports = class phemex extends Exchange {
                 filled = Math.min (0, amount - remaining);
             }
         }
-        const timeInForce = this.parseTimeInForce (this.safeStirng (order, 'timeInForce'));
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
         return {
             'info': order,
