@@ -1134,6 +1134,7 @@ class bitvavo(Exchange):
                 lastTrade = self.safe_value(trades, numTrades - 1)
                 lastTradeTimestamp = lastTrade['timestamp']
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
             'id': id,
@@ -1144,6 +1145,7 @@ class bitvavo(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
