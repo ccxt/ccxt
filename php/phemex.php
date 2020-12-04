@@ -1641,7 +1641,7 @@ class phemex extends Exchange {
                 $filled = min (0, $amount - $remaining);
             }
         }
-        $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
         return array(
             'info' => $order,
