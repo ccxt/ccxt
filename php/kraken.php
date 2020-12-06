@@ -13,6 +13,7 @@ use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\CancelPending;
+use \ccxt\RateLimitExceeded;
 use \ccxt\ExchangeNotAvailable;
 use \ccxt\InvalidNonce;
 
@@ -1725,6 +1726,9 @@ class kraken extends Exchange {
         }
         if (mb_strpos($body, 'Invalid arguments:volume') !== false) {
             throw new InvalidOrder($this->id . ' ' . $body);
+        }
+        if (mb_strpos($body, 'Rate limit exceeded') !== false) {
+            throw new RateLimitExceeded($this->id . ' ' . $body);
         }
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {

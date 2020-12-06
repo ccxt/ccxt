@@ -24,6 +24,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
@@ -1602,6 +1603,8 @@ class kraken(Exchange):
             raise CancelPending(self.id + ' ' + body)
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
+        if body.find('Rate limit exceeded') >= 0:
+            raise RateLimitExceeded(self.id + ' ' + body)
         if body[0] == '{':
             if not isinstance(response, basestring):
                 if 'error' in response:
