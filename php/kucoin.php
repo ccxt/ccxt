@@ -970,7 +970,7 @@ class kucoin extends Exchange {
         //         "stopTriggered" => false,  // stop $order is triggered
         //         "$stopPrice" => "0",      // stop $price
         //         "$timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //         "postOnly" => false,     // postOnly
+        //         "$postOnly" => false,     // $postOnly
         //         "hidden" => false,       // hidden $order
         //         "iceberg" => false,      // iceberg $order
         //         "visibleSize" => "0",    // display quantity for iceberg $order
@@ -1020,12 +1020,14 @@ class kucoin extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_float($order, 'stopPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,

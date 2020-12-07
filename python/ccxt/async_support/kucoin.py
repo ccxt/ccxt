@@ -982,12 +982,14 @@ class kucoin(Exchange):
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_float(order, 'stopPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'amount': amount,
             'price': price,
