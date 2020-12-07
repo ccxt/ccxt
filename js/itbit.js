@@ -529,6 +529,8 @@ module.exports = class itbit extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
+        const postOnlyString = this.safeString (order, 'postOnly');
+        const postOnly = (postOnlyString === 'True');
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -540,6 +542,7 @@ module.exports = class itbit extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
