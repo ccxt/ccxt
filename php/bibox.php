@@ -1004,7 +1004,7 @@ class bibox extends Exchange {
             }
         } else if ($api === 'v2private') {
             $this->check_required_credentials();
-            $url = $this->urls['api'] . '/v2/' . $path;
+            $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname )) . '/v2/' . $path;
             $json_params = $this->json($params);
             $body = array(
                 'body' => $json_params,

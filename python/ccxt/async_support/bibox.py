@@ -941,7 +941,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v2private':
             self.check_required_credentials()
-            url = self.urls['api'] + '/v2/' + path
+            url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/v2/' + path
             json_params = self.json(params)
             body = {
                 'body': json_params,
