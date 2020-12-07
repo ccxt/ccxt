@@ -1643,6 +1643,7 @@ class phemex extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1653,6 +1654,7 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1725,6 +1727,7 @@ class phemex extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_float($order, 'stopPx');
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1735,6 +1738,7 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
