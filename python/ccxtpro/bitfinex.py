@@ -148,7 +148,9 @@ class bitfinex(Exchange, ccxt.bitfinex):
         seq = self.safe_string(trade, 2)
         parts = seq.split('-')
         marketId = self.safe_string(parts, 1)
-        symbol = self.safe_symbol(marketId)
+        if marketId is not None:
+            marketId = marketId.replace('t', '')
+        symbol = self.safe_symbol(marketId, market)
         takerOrMaker = None
         orderId = None
         return {
