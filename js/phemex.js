@@ -1639,6 +1639,7 @@ module.exports = class phemex extends Exchange {
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
+        const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
             'id': id,
@@ -1649,6 +1650,7 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1721,6 +1723,7 @@ module.exports = class phemex extends Exchange {
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.safeFloat (order, 'stopPx');
+        const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
             'id': id,
@@ -1731,6 +1734,7 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
