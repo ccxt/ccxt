@@ -157,8 +157,11 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         }
         const seq = this.safeString (trade, 2);
         const parts = seq.split ('-');
-        const marketId = this.safeString (parts, 1);
-        const symbol = this.safeSymbol (marketId);
+        let marketId = this.safeString (parts, 1);
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('t', '');
+        }
+        const symbol = this.safeSymbol (marketId, market);
         const takerOrMaker = undefined;
         const orderId = undefined;
         return {
