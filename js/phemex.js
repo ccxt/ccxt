@@ -864,13 +864,19 @@ module.exports = class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
+        let baseVolume = undefined;
+        if ((market !== undefined) && market['spot']) {
+            baseVolume = this.fromEv (this.safeFloat (ohlcv, 7), market);
+        } else {
+            baseVolume = this.safeInteger (ohlcv, 7);
+        }
         return [
             this.safeTimestamp (ohlcv, 0),
             this.fromEp (this.safeFloat (ohlcv, 3), market),
             this.fromEp (this.safeFloat (ohlcv, 4), market),
             this.fromEp (this.safeFloat (ohlcv, 5), market),
             this.fromEp (this.safeFloat (ohlcv, 6), market),
-            this.fromEv (this.safeFloat (ohlcv, 7), market),
+            baseVolume,
         ];
     }
 
