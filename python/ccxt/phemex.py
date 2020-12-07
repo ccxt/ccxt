@@ -1584,6 +1584,7 @@ class phemex(Exchange):
                 filled = min(0, amount - remaining)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.from_ep(self.safe_float(order, 'stopPxEp', market))
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1594,6 +1595,7 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1663,6 +1665,7 @@ class phemex(Exchange):
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_float(order, 'stopPx')
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1673,6 +1676,7 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
