@@ -845,13 +845,18 @@ class phemex(Exchange):
         #         48759063370,  # quote volume
         #     ]
         #
+        baseVolume = None
+        if (market is not None) and market['spot']:
+            baseVolume = self.from_ev(self.safe_float(ohlcv, 7), market)
+        else:
+            baseVolume = self.safe_integer(ohlcv, 7)
         return [
             self.safe_timestamp(ohlcv, 0),
             self.from_ep(self.safe_float(ohlcv, 3), market),
             self.from_ep(self.safe_float(ohlcv, 4), market),
             self.from_ep(self.safe_float(ohlcv, 5), market),
             self.from_ep(self.safe_float(ohlcv, 6), market),
-            self.from_ev(self.safe_float(ohlcv, 7), market),
+            baseVolume,
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

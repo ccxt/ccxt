@@ -868,13 +868,19 @@ class phemex extends Exchange {
         //         48759063370, // quote volume
         //     )
         //
+        $baseVolume = null;
+        if (($market !== null) && $market['spot']) {
+            $baseVolume = $this->from_ev($this->safe_float($ohlcv, 7), $market);
+        } else {
+            $baseVolume = $this->safe_integer($ohlcv, 7);
+        }
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->from_ep($this->safe_float($ohlcv, 3), $market),
             $this->from_ep($this->safe_float($ohlcv, 4), $market),
             $this->from_ep($this->safe_float($ohlcv, 5), $market),
             $this->from_ep($this->safe_float($ohlcv, 6), $market),
-            $this->from_ev($this->safe_float($ohlcv, 7), $market),
+            $baseVolume,
         );
     }
 
