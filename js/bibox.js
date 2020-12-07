@@ -999,7 +999,7 @@ module.exports = class bibox extends Exchange {
             }
         } else if (api === 'v2private') {
             this.checkRequiredCredentials ();
-            url = this.urls['api'] + '/v2/' + path;
+            url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/v2/' + path;
             const json_params = this.json (params);
             body = {
                 'body': json_params,
