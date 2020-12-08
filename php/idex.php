@@ -575,6 +575,7 @@ class idex extends \ccxt\idex {
             'type' => $orderType,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

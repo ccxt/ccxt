@@ -407,7 +407,11 @@ module.exports = class phemex extends ccxt.phemex {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
+        if (market['spot']) {
+            return this.fromEn (ev, market['valueScale'], market['precision']['amount']);
+        } else {
+            return this.fromEn (ev, market['valueScale'], 1 / Math.pow (10, market['valueScale']));
+        }
     }
 
     handleMessage (client, message) {

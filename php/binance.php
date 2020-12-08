@@ -750,6 +750,7 @@ class binance extends \ccxt\binance {
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
         $clientOrderId = $this->safe_string($message, 'c');
+        $stopPrice = $this->safe_float($message, 'P');
         $parsed = array(
             'info' => $message,
             'symbol' => $symbol,
@@ -761,6 +762,7 @@ class binance extends \ccxt\binance {
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

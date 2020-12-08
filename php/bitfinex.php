@@ -162,7 +162,10 @@ class bitfinex extends \ccxt\bitfinex {
         $seq = $this->safe_string($trade, 2);
         $parts = explode('-', $seq);
         $marketId = $this->safe_string($parts, 1);
-        $symbol = $this->safe_symbol($marketId);
+        if ($marketId !== null) {
+            $marketId = str_replace('t', '', $marketId);
+        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $takerOrMaker = null;
         $orderId = null;
         return array(
@@ -558,6 +561,7 @@ class bitfinex extends \ccxt\bitfinex {
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => null,
             'amount' => $amount,
             'remaining' => $remaining,

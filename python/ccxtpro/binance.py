@@ -691,6 +691,7 @@ class binance(Exchange, ccxt.binance):
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(message, 'c')
+        stopPrice = self.safe_float(message, 'P')
         parsed = {
             'info': message,
             'symbol': symbol,
@@ -702,6 +703,7 @@ class binance(Exchange, ccxt.binance):
             'type': type,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

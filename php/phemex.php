@@ -409,7 +409,11 @@ class phemex extends \ccxt\phemex {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
-        return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        if ($market['spot']) {
+            return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        } else {
+            return $this->from_en($ev, $market['valueScale'], 1 / pow(10, $market['valueScale']));
+        }
     }
 
     public function handle_message($client, $message) {

@@ -2,5 +2,6 @@
     "bitfinex": {"skip": false},
     "dsx": {"skip": true},
     "idex": {"skip": true},
+    "ripio": {"skip": true},
     "upbit": {"skip": true}
 }
