@@ -948,6 +948,7 @@ module.exports = class kraken extends Exchange {
             'type': side,
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
+            'trading_agreement': 'agree', // https://support.kraken.com/hc/en-us/articles/360000920026--Trading-agreement-required-error-for-German-residents
         };
         const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
         const query = this.omit (params, [ 'userref', 'clientOrderId' ]);
@@ -957,9 +958,15 @@ module.exports = class kraken extends Exchange {
         const priceIsDefined = (price !== undefined);
         const marketOrder = (type === 'market');
         const limitOrder = (type === 'limit');
+        const stopLossLimitOrder = (type === 'stop_loss_limit');
         const shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
         if (shouldIncludePrice) {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (stopLossLimitOrder) {
+            request['ordertype'] = 'stop-loss-limit';
+            request['price'] = this.priceToPrecision (symbol, params.stopPrice);
+            request['price2'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostAddOrder (this.extend (request, query));
         let id = this.safeValue (response['result'], 'txid');
@@ -1068,6 +1075,11 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         const cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
+        let stop_price = this.safeFloat (description, 'stopprice');
+        if (type.toUpperCase () === 'STOP-LOSS-LIMIT') {
+            price = this.safeFloat (description, 'price2');
+            stop_price = this.safeFloat (description, 'price');
+        }
         if ((price === undefined) || (price === 0)) {
             price = this.safeFloat (description, 'price2');
         }
@@ -1117,6 +1129,7 @@ module.exports = class kraken extends Exchange {
             'average': average,
             'remaining': remaining,
             'fee': fee,
+            'stop_price': stop_price,
             'trades': trades,
         };
     }

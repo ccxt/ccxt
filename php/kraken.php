@@ -957,6 +957,7 @@ class kraken extends Exchange {
             'type' => $side,
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
+            'trading_agreement' => 'agree', // https://support.kraken.com/hc/en-us/articles/360000920026--Trading-agreement-required-error-for-German-residents
         );
         $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
         $query = $this->omit ($params, array( 'userref', 'clientOrderId' ));
@@ -966,9 +967,15 @@ class kraken extends Exchange {
         $priceIsDefined = ($price !== null);
         $marketOrder = ($type === 'market');
         $limitOrder = ($type === 'limit');
+        $stopLossLimitOrder = ($type === 'stop_loss_limit');
         $shouldIncludePrice = $limitOrder || (!$marketOrder && $priceIsDefined);
         if ($shouldIncludePrice) {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($stopLossLimitOrder) {
+            $request['ordertype'] = 'stop-loss-limit';
+            $request['price'] = $this->price_to_precision($symbol, $params->stopPrice);
+            $request['price2'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostAddOrder (array_merge($request, $query));
         $id = $this->safe_value($response['result'], 'txid');
@@ -1077,6 +1084,11 @@ class kraken extends Exchange {
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price');
+        $stop_price = $this->safe_float($description, 'stopprice');
+        if (strtoupper($type) === 'STOP-LOSS-LIMIT') {
+            $price = $this->safe_float($description, 'price2');
+            $stop_price = $this->safe_float($description, 'price');
+        }
         if (($price === null) || ($price === 0)) {
             $price = $this->safe_float($description, 'price2');
         }
@@ -1126,6 +1138,7 @@ class kraken extends Exchange {
             'average' => $average,
             'remaining' => $remaining,
             'fee' => $fee,
+            'stop_price' => $stop_price,
             'trades' => $trades,
         );
     }
