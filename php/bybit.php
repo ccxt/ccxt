@@ -1168,6 +1168,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_float($order, 'stop_px');
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1178,6 +1179,7 @@ class bybit extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
