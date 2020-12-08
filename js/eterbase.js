@@ -807,6 +807,7 @@ module.exports = class eterbase extends Exchange {
         }
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeFloat (order, 'stopPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -816,8 +817,9 @@ module.exports = class eterbase extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
-            'side': side,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
