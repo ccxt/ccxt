@@ -970,6 +970,7 @@ class ftx(Exchange):
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_float(order, 'triggerPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
             'id': id,
@@ -980,6 +981,7 @@ class ftx(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
