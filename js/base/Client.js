@@ -209,8 +209,10 @@ module.exports = class Client {
         if (this.verbose) {
             this.print (new Date (), 'onError', error.message)
         }
-        // convert ws errors to ccxt errors if necessary
-        // this.error = new NetworkError (error.message)
+        if (!(error instanceof ccxt.BaseError)) {
+            // in case of ErrorEvent from node_modules/ws/lib/event-target.js
+            error = new ccxt.NetworkError (error.message)
+        }
         this.error = error
         this.reset (this.error)
         this.onErrorCallback (this, this.error)
