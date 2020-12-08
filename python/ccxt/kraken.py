@@ -910,6 +910,7 @@ class kraken(Exchange):
             'type': side,
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
+            'trading_agreement': 'agree',  # https://support.kraken.com/hc/en-us/articles/360000920026--Trading-agreement-required-error-for-German-residents
         }
         clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
         query = self.omit(params, ['userref', 'clientOrderId'])
@@ -918,9 +919,14 @@ class kraken(Exchange):
         priceIsDefined = (price is not None)
         marketOrder = (type == 'market')
         limitOrder = (type == 'limit')
+        stopLossLimitOrder = (type == 'stop_loss_limit')
         shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
         if shouldIncludePrice:
             request['price'] = self.price_to_precision(symbol, price)
+        if stopLossLimitOrder:
+            request['ordertype'] = 'stop-loss-limit'
+            request['price'] = self.price_to_precision(symbol, params.stopPrice)
+            request['price2'] = self.price_to_precision(symbol, price)
         response = self.privatePostAddOrder(self.extend(request, query))
         id = self.safe_value(response['result'], 'txid')
         if id is not None:
@@ -1017,6 +1023,10 @@ class kraken(Exchange):
         fee = None
         cost = self.safe_float(order, 'cost')
         price = self.safe_float(description, 'price')
+        stop_price = self.safe_float(description, 'stopprice')
+        if type.upper() == 'STOP-LOSS-LIMIT':
+            price = self.safe_float(description, 'price2')
+            stop_price = self.safe_float(description, 'price')
         if (price is None) or (price == 0):
             price = self.safe_float(description, 'price2')
         if (price is None) or (price == 0):
@@ -1060,6 +1070,7 @@ class kraken(Exchange):
             'average': average,
             'remaining': remaining,
             'fee': fee,
+            'stop_price': stop_price,
             'trades': trades,
         }
 
