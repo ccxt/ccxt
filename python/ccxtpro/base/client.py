@@ -156,7 +156,7 @@ class Client(object):
         if self.verbose:
             self.print(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
-            self.reset(NetworkError('connection closed by remote server, closing code ' + str(code)))
+            self.reset(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
         if not self.closed():
             ensure_future(self.close(code))
