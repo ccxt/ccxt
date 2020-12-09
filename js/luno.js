@@ -38,7 +38,11 @@ module.exports = class luno extends Exchange {
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.luno.com/api',
+                'api': {
+                    'public': 'https://api.luno.com/api',
+                    'private': 'https://api.luno.com/api',
+                    'exchange': 'https://api.luno.com/api/exchange',
+                },
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -47,6 +51,11 @@ module.exports = class luno extends Exchange {
                 ],
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'markets',
+                    ],
+                },
                 'public': {
                     'get': [
                         'orderbook',
@@ -178,6 +187,14 @@ module.exports = class luno extends Exchange {
         return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            // todo add other statuses
+            'PENDING': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -197,16 +214,11 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
-        const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        status = (status === 'open') ? status : status;
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const price = this.safeFloat (order, 'limit_price');
         const amount = this.safeFloat (order, 'limit_volume');
         const quoteFee = this.safeFloat (order, 'fee_counter');
@@ -241,8 +253,10 @@ module.exports = class luno extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -330,7 +344,7 @@ module.exports = class luno extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -624,16 +638,17 @@ module.exports = class luno extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let auth = this.encode (this.apiKey + ':' + this.secret);
-            auth = this.stringToBase64 (auth);
-            headers = { 'Authorization': 'Basic ' + this.decode (auth) };
+            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
+            headers = {
+                'Authorization': 'Basic ' + this.decode (auth),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

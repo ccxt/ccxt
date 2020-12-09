@@ -7,6 +7,8 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\BadRequest;
+use \ccxt\NotSupported;
 
 class idex2 extends Exchange {
 
@@ -18,6 +20,7 @@ class idex2 extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v2',
             'certified' => false,
+            'pro' => true,
             'requiresWeb3' => true,
             'has' => array(
                 'cancelOrder' => true,
@@ -54,7 +57,7 @@ class idex2 extends Exchange {
                     'public' => 'https://api-sandbox.idex.io',
                     'private' => 'https://api-sandbox.idex.io',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api' => array(
                     'public' => 'https://api-sandbox.idex.io',
                     'private' => 'https://api-sandbox.idex.io',
@@ -99,7 +102,10 @@ class idex2 extends Exchange {
                     ),
                 ),
             ),
-            'options' => array(),
+            'options' => array(
+                'defaultTimeInForce' => 'gtc',
+                'defaultSelfTradePrevention' => 'cn',
+            ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
                 'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
@@ -255,20 +261,7 @@ class idex2 extends Exchange {
         //   sequence => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $baseVolume = $this->safe_float($ticker, 'baseVolume');
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $timestamp = $this->safe_integer($ticker, 'time');
@@ -492,9 +485,27 @@ class idex2 extends Exchange {
         // }
         $response = $this->publicGetOrderbook (array_merge($request, $params));
         $nonce = $this->safe_integer($response, 'sequence');
-        $book = $this->parse_order_book($response, null, 'bids', 'asks', 0, 1);
-        $book['nonce'] = $nonce;
-        return $book;
+        return array(
+            'timestamp' => null,
+            'datetime' => null,
+            'nonce' => $nonce,
+            'bids' => $this->parse_side($response, 'bids'),
+            'asks' => $this->parse_side($response, 'asks'),
+        );
+    }
+
+    public function parse_side($book, $side) {
+        $bookSide = $this->safe_value($book, $side, array());
+        $result = array();
+        for ($i = 0; $i < count($bookSide); $i++) {
+            $order = $bookSide[$i];
+            $price = $this->safe_float($order, 0);
+            $amount = $this->safe_float($order, 1);
+            $orderCount = $this->safe_integer($order, 2);
+            $result[] = array( $price, $amount, $orderCount );
+        }
+        $descending = $side === 'bids';
+        return $this->sort_by($result, 0, $descending);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -721,7 +732,11 @@ class idex2 extends Exchange {
     }
 
     public function parse_order_status($status) {
+        // https://docs.idex.io/#order-states-amp-lifecycle
         $statuses = array(
+            'active' => 'open',
+            'partiallyFilled' => 'open',
+            'rejected' => 'canceled',
             'filled' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -763,21 +778,8 @@ class idex2 extends Exchange {
         $fills = $this->safe_value($order, 'fills');
         $id = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'market');
-        $symbol = null;
         $side = $this->safe_string($order, 'side');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $trades = $this->parse_trades($fills, $market);
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_float($order, 'originalQuantity');
@@ -866,14 +868,51 @@ class idex2 extends Exchange {
         } else if ($type === 'market') {
             $typeEnum = 0;
         }
+        $amountEnum = 0; // base quantity
+        if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
+            if ($type !== 'market') {
+                throw new NotSupported($this->id . ' quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
+            }
+            $amountEnum = 1;
+            $amount = $this->safe_float($params, 'quoteOrderQuantity');
+        }
         $sideEnum = ($side === 'buy') ? 0 : 1;
         $walletBytes = $this->remove0x_prefix($this->walletAddress);
         $orderVersion = 1;
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $timeInForceEnum = 0;  // Good-til-canceled
-        $timeInForce = 'gtc';
-        $selfTradePrevention = 'cn';
-        $selfTradePreventionEnum = 2;  // Cancel newest
+        // https://docs.idex.io/#time-in-force
+        $timeInForceEnums = array(
+            'gtc' => 0,
+            'ioc' => 2,
+            'fok' => 3,
+        );
+        $defaultTimeInForce = $this->safe_string($this->options, 'defaultTimeInForce', 'gtc');
+        $timeInForce = $this->safe_string($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForceEnum = null;
+        if (is_array($timeInForceEnums) && array_key_exists($timeInForce, $timeInForceEnums)) {
+            $timeInForceEnum = $timeInForceEnums[$timeInForce];
+        } else {
+            $allOptions = is_array($timeInForceEnums) ? array_keys($timeInForceEnums) : array();
+            $asString = implode(', ', $allOptions);
+            throw new BadRequest($this->id . ' ' . $timeInForce . ' is not a valid $timeInForce, please choose one of ' . $asString);
+        }
+        // https://docs.idex.io/#self-trade-prevention
+        $selfTradePreventionEnums = array(
+            'dc' => 0,
+            'co' => 1,
+            'cn' => 2,
+            'cb' => 3,
+        );
+        $defaultSelfTradePrevention = $this->safe_string($this->options, 'defaultSelfTradePrevention', 'cn');
+        $selfTradePrevention = $this->safe_string($params, 'selfTradePrevention', $defaultSelfTradePrevention);
+        $selfTradePreventionEnum = null;
+        if (is_array($selfTradePreventionEnums) && array_key_exists($selfTradePrevention, $selfTradePreventionEnums)) {
+            $selfTradePreventionEnum = $selfTradePreventionEnums[$selfTradePrevention];
+        } else {
+            $allOptions = is_array($selfTradePreventionEnums) ? array_keys($selfTradePreventionEnums) : array();
+            $asString = implode(', ', $allOptions);
+            throw new BadRequest($this->id . ' ' . $selfTradePrevention . ' is not a valid $selfTradePrevention, please choose one of ' . $asString);
+        }
         $byteArray = [
             $this->number_to_be($orderVersion, 1),
             $this->base16_to_binary($nonce),
@@ -882,6 +921,7 @@ class idex2 extends Exchange {
             $this->number_to_be($typeEnum, 1),
             $this->number_to_be($sideEnum, 1),
             $this->encode($amountString),
+            $this->number_to_be($amountEnum, 1),
         ];
         if ($type === 'limit') {
             $encodedPrice = $this->encode($priceString);
@@ -902,7 +942,6 @@ class idex2 extends Exchange {
                 'market' => $market['id'],
                 'side' => $side,
                 'type' => $type,
-                'quantity' => $amountString,
                 'wallet' => $this->walletAddress,
                 'timeInForce' => $timeInForce,
                 'selfTradePrevention' => $selfTradePrevention,
@@ -911,6 +950,11 @@ class idex2 extends Exchange {
         );
         if ($type === 'limit') {
             $request['parameters']['price'] = $priceString;
+        }
+        if ($amountEnum === 0) {
+            $request['parameters']['quantity'] = $amountString;
+        } else {
+            $request['parameters']['quoteOrderQuantity'] = $amountString;
         }
         // {
         //   $market => 'DIL-ETH',
@@ -942,7 +986,8 @@ class idex2 extends Exchange {
         //   ),
         //   avgExecutionPrice => '0.09905990'
         // }
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        // we don't use extend here because it is a signed endpoint
+        $response = $this->privatePostOrders ($request);
         return $this->parse_order($response, $market);
     }
 
@@ -966,7 +1011,7 @@ class idex2 extends Exchange {
         $request = array(
             'parameters' => array(
                 'nonce' => $nonce,
-                'wallet' => $this->walletAddress,
+                'wallet' => $address,
                 'asset' => $currency['id'],
                 'quantity' => $amountString,
             ),
@@ -982,7 +1027,7 @@ class idex2 extends Exchange {
         //   txStatus => 'pending',
         //   txId => null
         // }
-        $response = $this->privatePostWithdrawals (array_merge($request, $params));
+        $response = $this->privatePostWithdrawals ($request);
         $id = $this->safe_string($response, 'withdrawalId');
         return array(
             'info' => $response,

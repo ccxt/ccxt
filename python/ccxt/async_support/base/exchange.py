@@ -2,12 +2,12 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.34.30'
+__version__ = '1.39.1'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
-import concurrent
+import concurrent.futures
 import socket
 import certifi
 import aiohttp
@@ -134,20 +134,23 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except concurrent.futures._base.TimeoutError as e:
-            raise RequestTimeout(method + ' ' + url)
+        except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
-        except aiohttp.client_exceptions.ClientConnectionError as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+        except aiohttp.ClientConnectionError as e:
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            raise ExchangeError(method + ' ' + url)
+        except aiohttp.ClientError as e:  # base exception class
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-        self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-        self.handle_rest_response(http_response, json_response, url, method)
+        self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
@@ -244,12 +247,19 @@ class Exchange(BaseExchange):
         orderbook = await self.perform_order_book_request(market, limit, params)
         return self.parse_order_book(orderbook, market, limit, params)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported('fetch_ohlcv() not implemented yet')
         await self.load_markets()
         trades = await self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcv(trades, timeframe, since, limit)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        ohlcvs = await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+        return [ohlcv[0:-1] for ohlcv in ohlcvs]
 
     async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)

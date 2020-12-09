@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.34.30'
+__version__ = '1.39.1'
 
 # -----------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
-from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
+from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
 # import socket
 from ssl import SSLError
 # import sys
@@ -393,8 +393,8 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not cls.web3:
-            cls.web3 = Web3(HTTPProvider())
+        if self.requiresWeb3 and Web3 and not Exchange.web3:
+            Exchange.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -531,10 +531,13 @@ class Exchange(object):
         if self.proxy:
             headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
-        return headers
+        return self.set_headers(headers)
 
     def print(self, *args):
         print(*args)
+
+    def set_headers(self, headers):
+        return headers
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -585,55 +588,52 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout as e:
-            raise RequestTimeout(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
         except TooManyRedirects as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except SSLError as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except HTTPError as e:
+            details = ' '.join([self.id, method, url])
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-            raise ExchangeError(method + ' ' + url)
+            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            raise ExchangeError(details) from e
+
+        except requestsConnectionError as e:
+            error_string = str(e)
+            details = ' '.join([self.id, method, url])
+            if 'Read timed out' in error_string:
+                raise RequestTimeout(details) from e
+            else:
+                raise NetworkError(details) from e
 
         except RequestException as e:  # base exception class
             error_string = str(e)
-            if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url + ' ' + error_string)
+            details = ' '.join([self.id, method, url])
+            if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
+                raise NetworkError(details) from e
             else:
-                raise ExchangeError(method + ' ' + url + ' ' + error_string)
+                raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-        self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        if self.is_text_response(headers):
+        elif self.is_text_response(headers):
             return http_response
-        return response.content
+        else:
+            return response.content
 
-    def handle_rest_errors(self, http_status_code, http_status_text, body, url, method):
-        error = None
+    def handle_http_status_code(self, http_status_code, http_status_text, url, method, body):
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
-            error = self.httpExceptions[string_code]
-            if error == ExchangeNotAvailable:
-                if re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE):
-                    error = DDoSProtection
-        if error:
-            raise error(' '.join([method, url, string_code, http_status_text, body]))
-
-    def handle_rest_response(self, response, json_response, url, method):
-        if self.is_json_encoded_object(response) and json_response is None:
-            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
-            if ddos_protection:
-                raise DDoSProtection(' '.join([method, url, response]))
-            if exchange_not_available:
-                message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise ExchangeNotAvailable(' '.join([method, url, response, message]))
-            raise ExchangeError(' '.join([method, url, response]))
+            Exception = self.httpExceptions[string_code]
+            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
@@ -643,6 +643,7 @@ class Exchange(object):
             pass
 
     def is_text_response(self, headers):
+        # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
 
@@ -1073,19 +1074,20 @@ class Exchange(object):
             h = hashlib.new(algorithm, request)
             binary = h.digest()
         if digest == 'base64':
-            return Exchange.encode(Exchange.binary_to_base64(binary))
+            return Exchange.binary_to_base64(binary)
         elif digest == 'hex':
-            return Exchange.binary_to_base16(binary).lower()
+            return Exchange.binary_to_base16(binary)
         return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
         h = hmac.new(secret, request, algorithm)
+        binary = h.digest()
         if digest == 'hex':
-            return h.hexdigest()
+            return Exchange.binary_to_base16(binary)
         elif digest == 'base64':
-            return Exchange.encode(Exchange.binary_to_base64(h.digest()))
-        return h.digest()
+            return Exchange.binary_to_base64(binary)
+        return binary
 
     @staticmethod
     def binary_concat(*args):
@@ -1118,6 +1120,10 @@ class Exchange(object):
         # will return string in the future
         binary = Exchange.encode(s) if isinstance(s, str) else s
         return Exchange.encode(Exchange.binary_to_base64(binary))
+
+    @staticmethod
+    def base64_to_string(s):
+        return base64.b64decode(s).decode('utf-8')
 
     @staticmethod
     def jwt(request, secret, alg='HS256'):
@@ -1554,12 +1560,16 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported('fetch_ohlcv() not supported yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcv(trades, timeframe, since, limit)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        ohlcvs = self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+        return [ohlcv[0:-1] for ohlcv in ohlcvs]
 
     def fetch_status(self, params={}):
         if self.has['fetchTime']:
@@ -1604,10 +1614,10 @@ class Exchange(object):
             result[v].append(ohlcvs[i][5])
         return result
 
-    def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
+    def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []
-        (high, low, close, volume) = (2, 3, 4, 5)
+        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
         num_trades = len(trades)
         oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
         for i in range(0, oldest):
@@ -1616,7 +1626,8 @@ class Exchange(object):
                 continue
             opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
             j = len(ohlcvs)
-            if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms:
+            candle = j - 1
+            if (j == 0) or opening_time >= ohlcvs[candle][timestamp] + ms:
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     opening_time,
@@ -1625,13 +1636,15 @@ class Exchange(object):
                     trade['price'],
                     trade['price'],
                     trade['amount'],
+                    1,  # count
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                ohlcvs[j - 1][high] = max(ohlcvs[j - 1][high], trade['price'])
-                ohlcvs[j - 1][low] = min(ohlcvs[j - 1][low], trade['price'])
-                ohlcvs[j - 1][close] = trade['price']
-                ohlcvs[j - 1][volume] += trade['amount']
+                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade['price'])
+                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade['price'])
+                ohlcvs[candle][close] = trade['price']
+                ohlcvs[candle][volume] += trade['amount']
+                ohlcvs[candle][count] += 1
         return ohlcvs
 
     @staticmethod
@@ -1691,23 +1704,58 @@ class Exchange(object):
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        array = self.to_array(orders)
-        array = [self.extend(self.parse_order(order, market), params) for order in array]
+        array = []
+        if isinstance(orders, list):
+            array = [self.extend(self.parse_order(order, market), params) for order in orders]
+        else:
+            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def safe_market(self, marketId, market=None, delimiter=None):
+        if marketId is not None:
+            if self.markets_by_id is not None and marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            elif delimiter is not None:
+                baseId, quoteId = marketId.split(delimiter)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+                return {
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                }
+        if market is not None:
+            return market
+        return {
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+            'baseId': None,
+            'quoteId': None,
+        }
+
+    def safe_symbol(self, marketId, market=None, delimiter=None):
+        market = self.safe_market(marketId, market, delimiter)
+        return market['symbol']
+
+    def safe_currency(self, currency_id, currency=None):
+        if currency_id is None and currency is not None:
+            return currency
+        if (self.currencies_by_id is not None) and (currency_id in self.currencies_by_id):
+            return self.currencies_by_id[currency_id]
+        return {
+            'id': currency_id,
+            'code': self.common_currency_code(currency_id.upper()) if currency_id is not None else currency_id
+        }
+
     def safe_currency_code(self, currency_id, currency=None):
-        code = None
-        if currency_id is not None:
-            currency_id = str(currency_id)
-            if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
-                code = self.currencies_by_id[currency_id]['code']
-            else:
-                code = self.common_currency_code(currency_id.upper())
-        if code is None and currency is not None:
-            code = currency['code']
-        return code
+        currency = self.safe_currency(currency_id, currency)
+        return currency['code']
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
@@ -1981,7 +2029,7 @@ class Exchange(object):
 
     @staticmethod
     def binary_to_base16(s):
-        return Exchange.decode(base64.b16encode(s))
+        return Exchange.decode(base64.b16encode(s)).lower()
 
     # python supports arbitrarily big integers
     @staticmethod

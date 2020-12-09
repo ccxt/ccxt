@@ -254,6 +254,9 @@ class btcmarkets extends Exchange {
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
+        if ($fee) {
+            $amount -= $fee;
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $txid,
@@ -491,10 +494,7 @@ class btcmarkets extends Exchange {
         $last = $this->safe_float($ticker, 'lastPrice');
         $baseVolume = $this->safe_float($ticker, 'volume24h');
         $quoteVolume = $this->safe_float($ticker, 'volumeQte24h');
-        $vwap = null;
-        if (($baseVolume !== null) && ($quoteVolume !== null)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = $this->safe_float($ticker, 'price24h');
         $percentage = $this->safe_float($ticker, 'pricePct24h');
         return array(
@@ -820,8 +820,8 @@ class btcmarkets extends Exchange {
         //         "openAmount" => "1.034",
         //         "$status" => "Accepted",
         //         "$clientOrderId" => "1234-5678",
-        //         "timeInForce" => "IOC",
-        //         "postOnly" => false,
+        //         "$timeInForce" => "IOC",
+        //         "$postOnly" => false,
         //         "selfTrade" => "P",
         //         "triggerAmount" => "105",
         //         "targetAmount" => "1000"
@@ -866,6 +866,9 @@ class btcmarkets extends Exchange {
         }
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -875,8 +878,11 @@ class btcmarkets extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1001,7 +1007,7 @@ class btcmarkets extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $secret = base64_decode($this->encode($this->secret)); // or stringToBase64
+            $secret = base64_decode($this->encode($this->secret));
             $auth = $method . $request . $nonce;
             if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
@@ -1018,7 +1024,7 @@ class btcmarkets extends Exchange {
                 'Content-Type' => 'application/json',
                 'BM-AUTH-APIKEY' => $this->apiKey,
                 'BM-AUTH-TIMESTAMP' => $nonce,
-                'BM-AUTH-SIGNATURE' => $this->decode($signature),
+                'BM-AUTH-SIGNATURE' => $signature,
             );
         } else if ($api === 'public') {
             if ($query) {

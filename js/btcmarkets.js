@@ -250,7 +250,10 @@ module.exports = class btcmarkets extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
+        if (fee) {
+            amount -= fee;
+        }
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
@@ -488,10 +491,7 @@ module.exports = class btcmarkets extends Exchange {
         const last = this.safeFloat (ticker, 'lastPrice');
         const baseVolume = this.safeFloat (ticker, 'volume24h');
         const quoteVolume = this.safeFloat (ticker, 'volumeQte24h');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         const change = this.safeFloat (ticker, 'price24h');
         const percentage = this.safeFloat (ticker, 'pricePct24h');
         return {
@@ -863,6 +863,9 @@ module.exports = class btcmarkets extends Exchange {
         }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -872,8 +875,11 @@ module.exports = class btcmarkets extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -998,7 +1004,7 @@ module.exports = class btcmarkets extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.encode (this.secret)); // or stringToBase64
+            const secret = this.base64ToBinary (this.encode (this.secret));
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
@@ -1015,7 +1021,7 @@ module.exports = class btcmarkets extends Exchange {
                 'Content-Type': 'application/json',
                 'BM-AUTH-APIKEY': this.apiKey,
                 'BM-AUTH-TIMESTAMP': nonce,
-                'BM-AUTH-SIGNATURE': this.decode (signature),
+                'BM-AUTH-SIGNATURE': signature,
             };
         } else if (api === 'public') {
             if (Object.keys (query).length) {

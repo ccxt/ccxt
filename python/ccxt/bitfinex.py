@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -329,10 +330,12 @@ class bitfinex(Exchange):
                 'POY': 'POLY',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'RBT': 'RBTC',
                 'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
+                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
@@ -357,6 +360,7 @@ class bitfinex(Exchange):
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError,  # fetchTradingFees(summary) endpoint can give self vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
+                    'Unknown symbol': BadSymbol,
                 },
                 'broad': {
                     'Invalid X-BFX-SIGNATURE': AuthenticationError,
@@ -381,9 +385,11 @@ class bitfinex(Exchange):
                     # 'BCH': 'bcash',  # undocumented
                     'BCI': 'bci',
                     'BFT': 'bft',
+                    'BSV': 'bsv',
                     'BTC': 'bitcoin',
                     'BTG': 'bgold',
                     'CFI': 'cfi',
+                    'COMP': 'comp',
                     'DAI': 'dai',
                     'DADI': 'dad',
                     'DASH': 'dash',
@@ -402,6 +408,7 @@ class bitfinex(Exchange):
                     # https://github.com/ccxt/ccxt/issues/5833
                     'LEO': 'let',  # ETH chain
                     # 'LEO': 'les',  # EOS chain
+                    'LINK': 'link',
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -427,6 +434,7 @@ class bitfinex(Exchange):
                     'STORJ': 'stj',
                     'TNB': 'tnb',
                     'TRX': 'trx',
+                    'TUSD': 'tsd',
                     'USD': 'wire',
                     'USDC': 'udc',  # https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
@@ -839,8 +847,10 @@ class bitfinex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'average': self.safe_float(order, 'avg_execution_price'),
             'amount': self.safe_float(order, 'original_amount'),
             'remaining': self.safe_float(order, 'remaining_amount'),
@@ -1104,6 +1114,26 @@ class bitfinex(Exchange):
             'id': id,
         }
 
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privatePostPositions(params)
+        #
+        #     [
+        #         {
+        #             "id":943715,
+        #             "symbol":"btcusd",
+        #             "status":"ACTIVE",
+        #             "base":"246.94",
+        #             "amount":"1.0",
+        #             "timestamp":"1444141857.0",
+        #             "swap":"0.0",
+        #             "pl":"-2.22042"
+        #         }
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def nonce(self):
         return self.milliseconds()
 
@@ -1128,7 +1158,7 @@ class bitfinex(Exchange):
                 'request': request,
             }, query)
             body = self.json(query)
-            payload = self.string_to_base64(self.encode(body))
+            payload = self.string_to_base64(body)
             secret = self.encode(self.secret)
             signature = self.hmac(payload, secret, hashlib.sha384)
             headers = {

@@ -529,6 +529,8 @@ module.exports = class itbit extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
+        const postOnlyString = this.safeString (order, 'postOnly');
+        const postOnly = (postOnlyString === 'True');
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -539,8 +541,11 @@ module.exports = class itbit extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -629,7 +634,7 @@ module.exports = class itbit extends Exchange {
             const binhash = this.binaryConcat (binaryUrl, hash);
             const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'Authorization': this.apiKey + ':' + this.decode (signature),
+                'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,

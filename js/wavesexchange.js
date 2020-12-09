@@ -52,7 +52,7 @@ module.exports = class wavesexchange extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
-                    'node': 'https://nodes.wavesnodes.com',
+                    'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
@@ -740,8 +740,8 @@ module.exports = class wavesexchange extends Exchange {
         const items = this.safeValue (supportedCurrencies, 'items', []);
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
-            const code = this.safeString (entry, 'id');
-            currencies[code] = true;
+            const currencyCode = this.safeString (entry, 'id');
+            currencies[currencyCode] = true;
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
@@ -1165,49 +1165,54 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // createOrder
-        // {
-        //   version: 3,
-        //   id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        //   sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //   senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //   matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //   assetPair: {
-        //     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //     priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
-        //   },
-        //   orderType: 'buy',
-        //   amount: 10000,
-        //   price: 400000000,
-        //   timestamp: 1599848586891,
-        //   expiration: 1602267786891,
-        //   matcherFee: 3008,
-        //   matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //   signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        //   proofs: [
-        //     '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        //   ]
-        // }
-        // fetchClosedOrders
-        // {
-        //   id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
-        //   type: 'buy',
-        //   orderType: 'limit',
-        //   amount: 30000000000,
-        //   filled: 0,
-        //   price: 1000000,
-        //   fee: 300000,
-        //   filledFee: 0,
-        //   feeAsset: 'WAVES',
-        //   timestamp: 1594303779322,
-        //   status: 'Cancelled',
-        //   assetPair: {
-        //     amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //     priceAsset: 'WAVES'
-        //   },
-        //   avgWeighedPrice: 0,
-        //   version: 3
-        // }
+        //
+        //     createOrder
+        //
+        //     {
+        //         version: 3,
+        //         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        //         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        //         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        //         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        //         assetPair: {
+        //             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        //         },
+        //         orderType: 'buy',
+        //         amount: 10000,
+        //         price: 400000000,
+        //         timestamp: 1599848586891,
+        //         expiration: 1602267786891,
+        //         matcherFee: 3008,
+        //         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         proofs: [
+        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        //         ]
+        //     }
+        //
+        //     fetchClosedOrders
+        //
+        //     {
+        //         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        //         type: 'buy',
+        //         orderType: 'limit',
+        //         amount: 30000000000,
+        //         filled: 0,
+        //         price: 1000000,
+        //         fee: 300000,
+        //         filledFee: 0,
+        //         feeAsset: 'WAVES',
+        //         timestamp: 1594303779322,
+        //         status: 'Cancelled',
+        //         assetPair: {
+        //             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             priceAsset: 'WAVES'
+        //         },
+        //         avgWeighedPrice: 0,
+        //         version: 3
+        //     }
+        //
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeString2 (order, 'type', 'orderType');
         let type = 'limit';
@@ -1263,8 +1268,10 @@ module.exports = class wavesexchange extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1551,8 +1558,8 @@ module.exports = class wavesexchange extends Exchange {
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
                 const entry = items[i];
-                const code = this.safeString (entry, 'id');
-                currencies[code] = true;
+                const currencyCode = this.safeString (entry, 'id');
+                currencies[currencyCode] = true;
             }
             if (!(code in currencies)) {
                 const codes = Object.keys (currencies);
@@ -1560,14 +1567,38 @@ module.exports = class wavesexchange extends Exchange {
             }
         }
         await this.loadMarkets ();
-        const withdrawAddressRequest = {
-            'address': address,
-            'currency': code,
-        };
+        const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        const set = {};
+        for (let i = 0; i < hexChars.length; i++) {
+            const key = hexChars[i];
+            set[key] = true;
+        }
+        let isErc20 = true;
+        const noPrefix = this.remove0xPrefix (address);
+        const lower = noPrefix.toLowerCase ();
+        for (let i = 0; i < lower.length; i++) {
+            const character = lower[i];
+            if (!(character in set)) {
+                isErc20 = false;
+                break;
+            }
+        }
         await this.getAccessToken ();
         let proxyAddress = undefined;
-        if (code !== 'WAVES') {
+        if (code === 'WAVES' && !isErc20) {
+            proxyAddress = address;
+        } else {
+            const withdrawAddressRequest = {
+                'address': address,
+                'currency': code,
+            };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            const currency = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            const minimum = this.safeFloat (allowedAmount, 'min');
+            if (amount <= minimum) {
+                throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
+            }
             // {
             //   "type": "withdrawal_addresses",
             //   "currency": {
@@ -1591,8 +1622,6 @@ module.exports = class wavesexchange extends Exchange {
             // }
             const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
             proxyAddress = this.safeString (proxyAddresses, 0);
-        } else {
-            proxyAddress = address;
         }
         const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
         const feeAssetId = 'WAVES';

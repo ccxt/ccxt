@@ -509,7 +509,7 @@ class itbit extends Exchange {
         //         "funds" => null,
         //         "metadata" => array(),
         //         "clientOrderIdentifier" => null,
-        //         "postOnly" => "False"
+        //         "$postOnly" => "False"
         //     }
         //
         $side = $this->safe_string($order, 'side');
@@ -533,6 +533,8 @@ class itbit extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
+        $postOnlyString = $this->safe_string($order, 'postOnly');
+        $postOnly = ($postOnlyString === 'True');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -543,8 +545,11 @@ class itbit extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,
@@ -633,7 +638,7 @@ class itbit extends Exchange {
             $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac($binhash, $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
-                'Authorization' => $this->apiKey . ':' . $this->decode($signature),
+                'Authorization' => $this->apiKey . ':' . $signature,
                 'Content-Type' => 'application/json',
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Nonce' => $nonce,

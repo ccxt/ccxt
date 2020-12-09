@@ -268,12 +268,8 @@ class coinex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $symbol = $marketId;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
             $ticker = $this->parse_ticker(array(
                 'date' => $timestamp,
                 'ticker' => $tickers[$marketId],
@@ -309,11 +305,7 @@ class coinex extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $cost = $this->safe_float($trade, 'deal_money');
         if (!$cost) {
             $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
@@ -387,6 +379,9 @@ class coinex extends Exchange {
             'market' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetMarketKline (array_merge($request, $params));
         //
         //     {
@@ -484,7 +479,7 @@ class coinex extends Exchange {
         $average = $this->safe_float($order, 'avg_price');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_market($marketId, $market);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($market !== null) {
@@ -506,8 +501,10 @@ class coinex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,
@@ -808,47 +805,44 @@ class coinex extends Exchange {
         //     {
         //         "$code" => 0,
         //         "$data" => array(
-        //             array(
-        //                 "actual_amount" => "1.00000000",
-        //                 "amount" => "1.00000000",
-        //                 "coin_address" => "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
-        //                 "coin_type" => "BCH",
-        //                 "coin_withdraw_id" => 206,
-        //                 "confirmations" => 0,
-        //                 "create_time" => 1524228297,
-        //                 "status" => "audit",
-        //                 "tx_fee" => "0",
-        //                 "tx_id" => ""
+        //             "has_next" => true,
+        //             "curr_page" => 1,
+        //             "count" => 10,
+        //             "$data" => array(
+        //                 array(
+        //                     "coin_withdraw_id" => 203,
+        //                     "create_time" => 1513933541,
+        //                     "actual_amount" => "0.00100000",
+        //                     "actual_amount_display" => "***",
+        //                     "amount" => "0.00100000",
+        //                     "amount_display" => "******",
+        //                     "coin_address" => "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "app_coin_address_display" => "**********",
+        //                     "coin_address_display" => "****************",
+        //                     "add_explorer" => "https://explorer.viawallet.com/btc/address/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "coin_type" => "BTC",
+        //                     "confirmations" => 6,
+        //                     "explorer" => "https://explorer.viawallet.com/btc/tx/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                     "fee" => "0",
+        //                     "remark" => "",
+        //                     "smart_contract_name" => "BTC",
+        //                     "status" => "finish",
+        //                     "status_display" => "finish",
+        //                     "transfer_method" => "onchain",
+        //                     "tx_fee" => "0",
+        //                     "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
+        //                 ), /* many more $data points */
         //             ),
-        //             array(
-        //                 "actual_amount" => "0.10000000",
-        //                 "amount" => "0.10000000",
-        //                 "coin_address" => "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
-        //                 "coin_type" => "BCH",
-        //                 "coin_withdraw_id" => 203,
-        //                 "confirmations" => 11,
-        //                 "create_time" => 1515806440,
-        //                 "status" => "finish",
-        //                 "tx_fee" => "0",
-        //                 "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        //             ),
-        //             {
-        //                 "actual_amount" => "0.00100000",
-        //                 "amount" => "0.00100000",
-        //                 "coin_address" => "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        //                 "coin_type" => "BCH",
-        //                 "coin_withdraw_id" => 27,
-        //                 "confirmations" => 0,
-        //                 "create_time" => 1513933541,
-        //                 "status" => "cancel",
-        //                 "tx_fee" => "0",
-        //                 "tx_id" => ""
-        //             }
+        //             "total" => ***,
+        //             "total_page":***
         //         ),
-        //         "message" => "Ok"
+        //         "message" => "Success"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_value($response, 'data');
+        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+            $data = $this->safe_value($data, 'data', array());
+        }
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
@@ -892,7 +886,10 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_value($response, 'data');
+        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+            $data = $this->safe_value($data, 'data', array());
+        }
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 

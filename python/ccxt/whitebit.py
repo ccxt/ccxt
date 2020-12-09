@@ -381,18 +381,10 @@ class whitebit(Exchange):
         result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = None
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            market = self.safe_market(marketId)
             ticker = self.parse_ticker(data[marketId], market)
-            result[symbol] = self.extend(ticker, {'symbol': symbol})
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -550,9 +542,17 @@ class whitebit(Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['start'] = int(since / 1000)
+            maxLimit = 1440
+            if limit is None:
+                limit = maxLimit
+            limit = min(limit, maxLimit)
+            start = int(since / 1000)
+            duration = self.parse_timeframe(timeframe)
+            end = self.sum(start, duration * limit)
+            request['start'] = start
+            request['end'] = end
         if limit is not None:
-            request['limit'] = limit  # default == max == 500
+            request['limit'] = limit  # max 1440
         response = self.publicV1GetKline(self.extend(request, params))
         #
         #     {

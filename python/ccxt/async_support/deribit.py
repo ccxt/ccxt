@@ -657,11 +657,7 @@ class deribit(Exchange):
         #
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
         marketId = self.safe_string(ticker, 'instrument_name')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
         return {
@@ -858,13 +854,8 @@ class deribit(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'trade_id')
-        symbol = None
         marketId = self.safe_string(trade, 'instrument_name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         price = self.safe_float(trade, 'price')
@@ -1010,6 +1001,14 @@ class deribit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1058,17 +1057,7 @@ class deribit(Exchange):
                 cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
-        symbol = None
-        base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
+        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         fee = None
@@ -1076,13 +1065,16 @@ class deribit(Exchange):
             feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': market['base'],
             }
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         if trades is not None:
             trades = self.parse_trades(trades, market)
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
+        stopPrice = None
+        postOnly = self.safe_value(order, 'post_only')
         return {
             'info': order,
             'id': id,
@@ -1090,10 +1082,13 @@ class deribit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1179,6 +1174,7 @@ class deribit(Exchange):
                 raise ArgumentsRequired(self.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order')
             else:
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, ['stop_price', 'stopPrice'])
         method = 'privateGet' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -1574,6 +1570,84 @@ class deribit(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.privateGetPosition(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 404,
+        #         "result": {
+        #             "average_price": 0,
+        #             "delta": 0,
+        #             "direction": "buy",
+        #             "estimated_liquidation_price": 0,
+        #             "floating_profit_loss": 0,
+        #             "index_price": 3555.86,
+        #             "initial_margin": 0,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "leverage": 100,
+        #             "kind": "future",
+        #             "maintenance_margin": 0,
+        #             "mark_price": 3556.62,
+        #             "open_orders_margin": 0.000165889,
+        #             "realized_profit_loss": 0,
+        #             "settlement_price": 3555.44,
+        #             "size": 0,
+        #             "size_currency": 0,
+        #             "total_profit_loss": 0
+        #         }
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        result = self.safe_value(response, 'result')
+        return result
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        code = self.code_from_options('fetchPositions')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 2236,
+        #         "result": [
+        #             {
+        #                 "average_price": 7440.18,
+        #                 "delta": 0.006687487,
+        #                 "direction": "buy",
+        #                 "estimated_liquidation_price": 1.74,
+        #                 "floating_profit_loss": 0,
+        #                 "index_price": 7466.79,
+        #                 "initial_margin": 0.000197283,
+        #                 "instrument_name": "BTC-PERPETUAL",
+        #                 "kind": "future",
+        #                 "leverage": 34,
+        #                 "maintenance_margin": 0.000143783,
+        #                 "mark_price": 7476.65,
+        #                 "open_orders_margin": 0.000197288,
+        #                 "realized_funding": -1e-8,
+        #                 "realized_profit_loss": -9e-9,
+        #                 "settlement_price": 7476.65,
+        #                 "size": 50,
+        #                 "size_currency": 0.006687487,
+        #                 "total_profit_loss": 0.000032781
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        result = self.safe_value(response, 'result', [])
+        return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

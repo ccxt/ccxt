@@ -14,6 +14,7 @@ module.exports = class bibox extends Exchange {
             'name': 'Bibox',
             'countries': [ 'CN', 'US', 'KR' ],
             'version': 'v1',
+            'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
@@ -53,13 +54,13 @@ module.exports = class bibox extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
+                'api': 'https://api.{hostname}',
+                'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -118,9 +119,12 @@ module.exports = class bibox extends Exchange {
                 '4003': DDoSProtection, // server busy please try again later
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
+                'BPT': 'BlockPool Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
+                'TERN': 'Ternio-ERC20',
             },
         });
     }
@@ -795,8 +799,10 @@ module.exports = class bibox extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -983,7 +989,7 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/' + this.version + '/' + path;
         const cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method !== 'GET') {
@@ -993,7 +999,7 @@ module.exports = class bibox extends Exchange {
             }
         } else if (api === 'v2private') {
             this.checkRequiredCredentials ();
-            url = this.urls['api'] + '/v2/' + path;
+            url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname }) + '/v2/' + path;
             const json_params = this.json (params);
             body = {
                 'body': json_params,

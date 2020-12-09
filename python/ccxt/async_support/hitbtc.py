@@ -162,19 +162,19 @@ class hitbtc(Exchange):
                 'defaultTimeInForce': 'FOK',
             },
             'commonCurrencies': {
+                'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
-                'CAT': 'BitClave',
+                'BOX': 'BOX Token',
                 'CPT': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
-                'DRK': 'DASH',
-                'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
+                'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
-                'UNC': 'Unigame',
-                'USD': 'USDT',
-                'XBT': 'BTC',
                 'PNT': 'Penta',
+                'TV': 'Tokenville',
+                'USD': 'USDT',
+                'XPNT': 'PNT',
             },
             'exceptions': {
                 '504': RequestTimeout,  # {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -218,6 +218,9 @@ class hitbtc(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            # bequant fix
+            if id.find('_') >= 0:
+                symbol = id
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
             precision = {
@@ -469,13 +472,9 @@ class hitbtc(Exchange):
         for i in range(0, len(response)):
             ticker = response[i]
             marketId = self.safe_string(ticker, 'symbol')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                    result[symbol] = self.parse_ticker(ticker, market)
-                else:
-                    result[marketId] = self.parse_ticker(ticker)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -490,7 +489,6 @@ class hitbtc(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        #
         # createMarketOrder
         #
         #  {      fee: "0.0004644",
@@ -499,20 +497,29 @@ class hitbtc(Exchange):
         #     quantity: "1",
         #    timestamp: "2018-10-25T16:41:44.780Z"}
         #
-        # fetchTrades ...
+        # fetchTrades
         #
-        # fetchMyTrades ...
+        # {id: 974786185,
+        #   price: '0.032462',
+        #   quantity: '0.3673',
+        #   side: 'buy',
+        #   timestamp: '2020-10-16T12:57:39.846Z'}
         #
+        # fetchMyTrades
+        #
+        # {id: 277210397,
+        #   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        #   orderId: 28102855393,
+        #   symbol: 'ETHBTC',
+        #   side: 'sell',
+        #   quantity: '0.002',
+        #   price: '0.073365',
+        #   fee: '0.000000147',
+        #   timestamp: '2018-04-28T18:39:55.345Z'}
         timestamp = self.parse8601(trade['timestamp'])
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
@@ -706,8 +713,6 @@ class hitbtc(Exchange):
         order = self.parse_order(response)
         if order['status'] == 'rejected':
             raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
-        id = order['id']
-        self.orders[id] = order
         return order
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
@@ -729,9 +734,7 @@ class hitbtc(Exchange):
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePatchOrderClientOrderId(self.extend(request, params))
-        order = self.parse_order(response)
-        self.orders[order['id']] = order
-        return order
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -779,16 +782,8 @@ class hitbtc(Exchange):
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = marketId
-        if symbol is None:
-            if market is not None:
-                symbol = market['id']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -798,9 +793,6 @@ class hitbtc(Exchange):
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
         price = self.safe_float(order, 'price')
-        if price is None:
-            if id in self.orders:
-                price = self.orders[id]['price']
         remaining = None
         cost = None
         if amount is not None:
@@ -837,6 +829,7 @@ class hitbtc(Exchange):
                     'cost': feeCost,
                     'currency': market['quote'],
                 }
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'id': id,
             'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
@@ -846,8 +839,10 @@ class hitbtc(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'amount': amount,
             'cost': cost,

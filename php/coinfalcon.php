@@ -119,14 +119,8 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'name');
-            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->milliseconds();
         $last = floatval($ticker['last_price']);
         return array(
@@ -305,16 +299,8 @@ class coinfalcon extends Exchange {
         //         "created_at":"2018-01-12T21:14:06.747828Z"
         //     }
         //
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
@@ -323,10 +309,10 @@ class coinfalcon extends Exchange {
         $cost = null;
         if ($amount !== null) {
             if ($filled !== null) {
-                $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
+                $remaining = max (0, $amount - $filled);
             }
             if ($price !== null) {
-                $cost = floatval($this->price_to_precision($symbol, $filled * $price));
+                $cost = $filled * $price;
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -336,6 +322,7 @@ class coinfalcon extends Exchange {
             $type = $type[0];
         }
         $side = $this->safe_string($order, 'order_type');
+        $postOnly = $this->safe_value($order, 'post_only');
         return array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -344,8 +331,11 @@ class coinfalcon extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -409,10 +399,11 @@ class coinfalcon extends Exchange {
         if ($since !== null) {
             $request['since_time'] = $this->iso8601($since);
         }
-        // TODO => test status=all if it works for closed orders too
+        // TODO => test status=all if it works for closed $orders too
         $response = $this->privateGetUserOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        $orders = $this->filter_by_array($data, 'status', array( 'pending', 'open', 'partially_filled' ), false);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function nonce() {

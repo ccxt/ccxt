@@ -59,7 +59,7 @@ const keys = require (localKeysFile)
 log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)')
 
 const checkAgainst = strict ?
-    (a, b) => ((a == b.toLowerCase ()) || (a == b.toUpperCase ())) :
+    (a, b) => (a ||'').toUpperCase ().includes ((b || '').toUpperCase ()) :
     (a, b) => (a || '').toLowerCase ().includes ((b || '').toLowerCase ())
 
 ;(async function test () {

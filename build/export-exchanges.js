@@ -228,7 +228,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
             , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
 
         for (const path of allExchangesPaths) {
             logExportExchanges (path, allExchangesRegex, allExchangesReplacement)

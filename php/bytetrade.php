@@ -64,11 +64,11 @@ class bytetrade extends Exchange {
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg',
                 'api' => array(
-                    'market' => 'https://api-v2.bytetrade.com',
-                    'public' => 'https://api-v2.bytetrade.com',
+                    'market' => 'https://api-v2.byte-trade.com',
+                    'public' => 'https://api-v2.byte-trade.com',
                 ),
                 'www' => 'https://www.byte-trade.com',
-                'doc' => 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
+                'doc' => 'https://docs.byte-trade.com/#description',
             ),
             'api' => array(
                 'market' => array(
@@ -109,8 +109,10 @@ class bytetrade extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                '1' => 'ByteTrade',
                 '44' => 'ByteHub',
                 '48' => 'Blocktonic',
+                '133' => 'TerraCredit',
             ),
             'exceptions' => array(
                 'vertify error' => '\\ccxt\\AuthenticationError', // typo on the exchange side, 'vertify'
@@ -202,10 +204,7 @@ class bytetrade extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
-                'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => null,
-                ),
+                'precision' => $amountPrecision,
                 'fee' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
@@ -236,8 +235,8 @@ class bytetrade extends Exchange {
             $quote = $this->safe_string($market, 'quoteName');
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $normalBase = explode('@', $base)[0];
-            $normalQuote = explode('@', $quote)[0];
+            $normalBase = explode('@' . $baseId, $base)[0];
+            $normalQuote = explode('@' . $quoteId, $quote)[0];
             if ($quoteId === '126') {
                 $normalQuote = 'ZAR'; // The $id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
             }
@@ -584,8 +583,10 @@ class bytetrade extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -621,11 +622,11 @@ class bytetrade extends Exchange {
         $baseId = $market['baseId'];
         $baseCurrency = $this->currency($market['base']);
         $amountTruncated = $this->amount_to_precision($symbol, $amount);
-        $amountChain = $this->to_wei($amountTruncated, $baseCurrency['precision']['amount']);
+        $amountChain = $this->to_wei($amountTruncated, $baseCurrency['precision']);
         $quoteId = $market['quoteId'];
         $quoteCurrency = $this->currency($market['quote']);
         $priceRounded = $this->price_to_precision($symbol, $price);
-        $priceChain = $this->to_wei($priceRounded, $quoteCurrency['precision']['amount']);
+        $priceChain = $this->to_wei($priceRounded, $quoteCurrency['precision']);
         $now = $this->milliseconds();
         $expiration = $this->milliseconds();
         $datetime = $this->iso8601($now);
@@ -635,6 +636,8 @@ class bytetrade extends Exchange {
         $defaultDappId = 'Sagittarius';
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
+        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', 8);
+        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', 1);
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = $this->integer_pow('2', '64');
         $allByteStringArray = array(
@@ -659,7 +662,10 @@ class bytetrade extends Exchange {
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(0, 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($chainFeeRate), 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($totalFeeRate), 2),
             $this->number_to_le(intval($quoteId), 4),
             $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
@@ -689,7 +695,10 @@ class bytetrade extends Exchange {
             $this->number_to_le(0, 2),
             $this->number_to_le((int) floor($now / 1000), 4),
             $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(0, 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($chainFeeRate), 2),
+            $this->number_to_le(1, 1),
+            $this->number_to_le(intval($totalFeeRate), 2),
             $this->number_to_le(intval($quoteId), 4),
             $this->number_to_le(intval($baseId), 4),
             $this->number_to_le(0, 1),
@@ -727,6 +736,8 @@ class bytetrade extends Exchange {
             'use_btt_as_fee' => false,
             'money_id' => intval($quoteId),
             'stock_id' => intval($baseId),
+            'custom_no_btt_fee_rate' => intval($totalFeeRate),
+            'custom_btt_fee_rate' => intval($chainFeeRate),
         );
         $fatty = array(
             'timestamp' => $datetime,
@@ -958,7 +969,7 @@ class bytetrade extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $amountTruncate = $this->decimal_to_precision($amount, TRUNCATE, $currency['info']['basePrecision'] - $currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
-        $amountChain = $this->to_wei($amountTruncate, $currency['precision']['amount']);
+        $amountChain = $this->to_wei($amountTruncate, $currency['precision']);
         $assetType = intval($currency['id']);
         $now = $this->milliseconds();
         $expiration = $now;

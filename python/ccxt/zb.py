@@ -83,6 +83,8 @@ class zb(Exchange):
                 '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError,  # 'The request time has expired',
                 '3008': OrderNotFound,  # 'Transaction records not found',
+                '3009': InvalidOrder,  # 'The price exceeds the limit',
+                '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
                 '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
                 '4002': DDoSProtection,  # 'Request too often',
             },
@@ -509,13 +511,8 @@ class zb(Exchange):
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
-        symbol = None
         marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
-            # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
@@ -538,8 +535,10 @@ class zb(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,

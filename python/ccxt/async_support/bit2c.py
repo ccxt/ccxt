@@ -298,8 +298,10 @@ class bit2c(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': None,
             'remaining': None,
@@ -408,7 +410,7 @@ class bit2c(Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.decode(signature),
+                'sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

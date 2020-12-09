@@ -509,13 +509,8 @@ class buda(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        symbol = None
-        if market is None:
-            marketId = order['market_id']
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'market_id')
+        symbol = self.safe_symbol(marketId, market)
         type = self.safe_string(order, 'price_type')
         side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
@@ -541,8 +536,10 @@ class buda(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -707,7 +704,7 @@ class buda(Exchange):
             nonce = str(self.nonce())
             components = [method, '/api/' + self.version + '/' + request]
             if body:
-                base64Body = self.string_to_base64(self.encode(body))
+                base64Body = self.string_to_base64(body)
                 components.append(self.decode(base64Body))
             components.append(nonce)
             message = ' '.join(components)

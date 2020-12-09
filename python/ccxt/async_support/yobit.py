@@ -40,7 +40,6 @@ class yobit(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchDepositAddress': True,
                 'fetchDeposits': False,
                 'fetchMarkets': True,
@@ -49,7 +48,6 @@ class yobit(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': 'emulated',
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -108,6 +106,7 @@ class yobit(Exchange):
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
+                'BITS': 'Bitstar',
                 'BLN': 'Bulleon',
                 'BOT': 'BOTcoin',
                 'BON': 'BONES',
@@ -119,6 +118,7 @@ class yobit(Exchange):
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
+                'CREDIT': 'Creditbit',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DFT': 'DraftCoin',
@@ -159,7 +159,7 @@ class yobit(Exchange):
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
-                'PUTIN': 'PUT',
+                'PUTIN': 'PutinCoin',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
@@ -168,8 +168,11 @@ class yobit(Exchange):
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'TTC': 'TittieCoin',
+                'UNI': 'Universe',
+                'UST': 'Uservice',
                 'VOL': 'VolumeCoin',
                 'XIN': 'XINCoin',
+                'XRA': 'Ratecoin',
             },
             'options': {
                 # 'fetchTickersMaxLength': 2048,
@@ -342,10 +345,7 @@ class yobit(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(id)
             result[symbol] = self.parse_order_book(response[id])
         return result
 
@@ -411,11 +411,8 @@ class yobit(Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             ticker = tickers[id]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -433,15 +430,10 @@ class yobit(Exchange):
         price = self.safe_float_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, 'order_id')
-        if 'pair' in trade:
-            marketId = self.safe_string(trade, 'pair')
-            market = self.safe_value(self.markets_by_id, marketId, market)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
-        takerOrMaker = None
         fee = None
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
@@ -453,11 +445,8 @@ class yobit(Exchange):
             }
         isYourOrder = self.safe_value(trade, 'is_your_order')
         if isYourOrder is not None:
-            takerOrMaker = 'taker'
-            if isYourOrder:
-                takerOrMaker = 'maker'
             if fee is None:
-                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+                fee = self.calculate_fee(symbol, type, side, amount, price, 'taker')
         cost = None
         if amount is not None:
             if price is not None:
@@ -470,7 +459,7 @@ class yobit(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -519,7 +508,7 @@ class yobit(Exchange):
             filled = self.safe_float(response['return'], 'received', 0.0)
             remaining = self.safe_float(response['return'], 'remains', amount)
         timestamp = self.milliseconds()
-        order = {
+        return {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -540,18 +529,13 @@ class yobit(Exchange):
             'average': None,
             'trades': None,
         }
-        self.orders[id] = order
-        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
             'order_id': int(id),
         }
-        response = await self.privatePostCancelOrder(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return response
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -566,26 +550,16 @@ class yobit(Exchange):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'timestamp_created')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         remaining = self.safe_float(order, 'amount')
-        amount = None
+        amount = self.safe_float(order, 'start_amount')
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
-        if 'start_amount' in order:
-            amount = self.safe_float(order, 'start_amount')
-        else:
-            if id in self.orders:
-                amount = self.orders[id]['amount']
         if amount is not None:
             if remaining is not None:
-                filled = amount - remaining
+                filled = max(0, amount - remaining)
                 cost = price * filled
         fee = None
         type = 'limit'
@@ -599,8 +573,10 @@ class yobit(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'remaining': remaining,
@@ -612,18 +588,6 @@ class yobit(Exchange):
         }
         return result
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
-
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
@@ -631,48 +595,12 @@ class yobit(Exchange):
         }
         response = await self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
-        newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
-        oldOrder = self.orders[id] if (id in self.orders) else {}
-        self.orders[id] = self.extend(oldOrder, newOrder)
-        return self.orders[id]
+        orders = self.safe_value(response, 'return', {})
+        return self.parse_order(self.extend({'id': id}, orders[id]))
 
-    def update_cached_orders(self, openOrders, symbol):
-        # update local cache with open orders
-        # self will add unseen orders and overwrite existing ones
-        for j in range(0, len(openOrders)):
-            id = openOrders[j]['id']
-            self.orders[id] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        for k in range(0, len(cachedOrderIds)):
-            # match each cached order to an order in the open orders array
-            # possible reasons why a cached order may be missing in the open orders array:
-            # - order was closed or canceled -> update cache
-            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            cachedOrderId = cachedOrderIds[k]
-            cachedOrder = self.orders[cachedOrderId]
-            if not (cachedOrderId in openOrdersIndexedById):
-                # cached order is not in open orders array
-                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != cachedOrder['symbol']:
-                    continue
-                # cached order is absent from the list of open orders -> mark the cached order as closed
-                if cachedOrder['status'] == 'open':
-                    cachedOrder = self.extend(cachedOrder, {
-                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
-                        'cost': None,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    })
-                    if cachedOrder['cost'] is None:
-                        if cachedOrder['filled'] is not None:
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
-                    self.orders[cachedOrderId] = cachedOrder
-        return self.to_array(self.orders)
-
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None
@@ -680,21 +608,8 @@ class yobit(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
-        # can only return 'open' orders(i.e. no way to fetch 'closed' orders)
-        openOrders = []
-        if 'return' in response:
-            openOrders = self.parse_orders(response['return'], market)
-        allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_by_symbol(allOrders, symbol)
-        return self.filter_by_since_limit(result, since, limit)
-
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'open')
-
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        orders = self.safe_value(response, 'return', [])
+        return self.parse_orders(orders, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

@@ -181,10 +181,10 @@ class kuna(acx):
         response = await self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limits=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        trades = await self.fetch_trades(symbol, since, limits, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limits)
+        trades = await self.fetch_trades(symbol, since, limit, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
         for i in range(0, len(ohlcvc)):
             ohlcv = ohlcvc[i]

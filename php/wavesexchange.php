@@ -58,7 +58,7 @@ class wavesexchange extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api' => array(
                     'matcher' => 'http://matcher.waves.exchange',
-                    'node' => 'https://nodes.wavesnodes.com',
+                    'node' => 'https://nodes.waves.exchange',
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
                     'forward' => 'https://waves.exchange/api/v1/forward/matcher',
@@ -746,8 +746,8 @@ class wavesexchange extends Exchange {
         $items = $this->safe_value($supportedCurrencies, 'items', array());
         for ($i = 0; $i < count($items); $i++) {
             $entry = $items[$i];
-            $code = $this->safe_string($entry, 'id');
-            $currencies[$code] = true;
+            $currencyCode = $this->safe_string($entry, 'id');
+            $currencies[$currencyCode] = true;
         }
         if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
             $codes = is_array($currencies) ? array_keys($currencies) : array();
@@ -1171,49 +1171,54 @@ class wavesexchange extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        // createOrder
-        // {
-        //   version => 3,
-        //   $id => 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        //   sender => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //   senderPublicKey => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //   matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //   $assetPair => array(
-        //     amountAsset => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //     priceAsset => 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
-        //   ),
-        //   orderType => 'buy',
-        //   $amount => 10000,
-        //   $price => 400000000,
-        //   $timestamp => 1599848586891,
-        //   expiration => 1602267786891,
-        //   matcherFee => 3008,
-        //   matcherFeeAssetId => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //   signature => '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        //   proofs => array(
-        //     '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        //   )
-        // }
-        // fetchClosedOrders
-        // {
-        //   $id => '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
-        //   $type => 'buy',
-        //   orderType => 'limit',
-        //   $amount => 30000000000,
-        //   $filled => 0,
-        //   $price => 1000000,
-        //   $fee => 300000,
-        //   filledFee => 0,
-        //   feeAsset => 'WAVES',
-        //   $timestamp => 1594303779322,
-        //   $status => 'Cancelled',
-        //   $assetPair => array(
-        //     amountAsset => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //     priceAsset => 'WAVES'
-        //   ),
-        //   avgWeighedPrice => 0,
-        //   version => 3
-        // }
+        //
+        //     createOrder
+        //
+        //     {
+        //         version => 3,
+        //         $id => 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        //         sender => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        //         senderPublicKey => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        //         matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        //         $assetPair => array(
+        //             amountAsset => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             priceAsset => 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        //         ),
+        //         orderType => 'buy',
+        //         $amount => 10000,
+        //         $price => 400000000,
+        //         $timestamp => 1599848586891,
+        //         expiration => 1602267786891,
+        //         matcherFee => 3008,
+        //         matcherFeeAssetId => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //         signature => '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         proofs => array(
+        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        //         )
+        //     }
+        //
+        //     fetchClosedOrders
+        //
+        //     {
+        //         $id => '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        //         $type => 'buy',
+        //         orderType => 'limit',
+        //         $amount => 30000000000,
+        //         $filled => 0,
+        //         $price => 1000000,
+        //         $fee => 300000,
+        //         filledFee => 0,
+        //         feeAsset => 'WAVES',
+        //         $timestamp => 1594303779322,
+        //         $status => 'Cancelled',
+        //         $assetPair => array(
+        //             amountAsset => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             priceAsset => 'WAVES'
+        //         ),
+        //         avgWeighedPrice => 0,
+        //         version => 3
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_2($order, 'type', 'orderType');
         $type = 'limit';
@@ -1269,8 +1274,10 @@ class wavesexchange extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1557,8 +1564,8 @@ class wavesexchange extends Exchange {
             $items = $this->safe_value($supportedCurrencies, 'items', array());
             for ($i = 0; $i < count($items); $i++) {
                 $entry = $items[$i];
-                $code = $this->safe_string($entry, 'id');
-                $currencies[$code] = true;
+                $currencyCode = $this->safe_string($entry, 'id');
+                $currencies[$currencyCode] = true;
             }
             if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
                 $codes = is_array($currencies) ? array_keys($currencies) : array();
@@ -1566,14 +1573,38 @@ class wavesexchange extends Exchange {
             }
         }
         $this->load_markets();
-        $withdrawAddressRequest = array(
-            'address' => $address,
-            'currency' => $code,
-        );
+        $hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        $set = array();
+        for ($i = 0; $i < count($hexChars); $i++) {
+            $key = $hexChars[$i];
+            $set[$key] = true;
+        }
+        $isErc20 = true;
+        $noPrefix = $this->remove0x_prefix($address);
+        $lower = strtolower($noPrefix);
+        for ($i = 0; $i < count($lower); $i++) {
+            $character = $lower[$i];
+            if (!(is_array($set) && array_key_exists($character, $set))) {
+                $isErc20 = false;
+                break;
+            }
+        }
         $this->get_access_token();
         $proxyAddress = null;
-        if ($code !== 'WAVES') {
+        if ($code === 'WAVES' && !$isErc20) {
+            $proxyAddress = $address;
+        } else {
+            $withdrawAddressRequest = array(
+                'address' => $address,
+                'currency' => $code,
+            );
             $withdrawAddress = $this->privateGetWithdrawAddressesCurrencyAddress ($withdrawAddressRequest);
+            $currency = $this->safe_value($withdrawAddress, 'currency');
+            $allowedAmount = $this->safe_value($currency, 'allowed_amount');
+            $minimum = $this->safe_float($allowedAmount, 'min');
+            if ($amount <= $minimum) {
+                throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);
+            }
             // {
             //   "$type" => "withdrawal_addresses",
             //   "$currency" => {
@@ -1597,8 +1628,6 @@ class wavesexchange extends Exchange {
             // }
             $proxyAddresses = $this->safe_value($withdrawAddress, 'proxy_addresses', array());
             $proxyAddress = $this->safe_string($proxyAddresses, 0);
-        } else {
-            $proxyAddress = $address;
         }
         $fee = $this->safe_integer($this->options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
         $feeAssetId = 'WAVES';

@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
@@ -25,6 +26,7 @@ class idex2(Exchange):
             'rateLimit': 1500,
             'version': 'v2',
             'certified': False,
+            'pro': True,
             'requiresWeb3': True,
             'has': {
                 'cancelOrder': True,
@@ -61,7 +63,7 @@ class idex2(Exchange):
                     'public': 'https://api-sandbox.idex.io',
                     'private': 'https://api-sandbox.idex.io',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
                     'public': 'https://api-sandbox.idex.io',
                     'private': 'https://api-sandbox.idex.io',
@@ -106,7 +108,10 @@ class idex2(Exchange):
                     ],
                 },
             },
-            'options': {},
+            'options': {
+                'defaultTimeInForce': 'gtc',
+                'defaultSelfTradePrevention': 'cn',
+            },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
@@ -255,17 +260,7 @@ class idex2(Exchange):
         #   sequence: 3902
         # }
         marketId = self.safe_string(ticker, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         baseVolume = self.safe_float(ticker, 'baseVolume')
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
@@ -474,9 +469,25 @@ class idex2(Exchange):
         # }
         response = self.publicGetOrderbook(self.extend(request, params))
         nonce = self.safe_integer(response, 'sequence')
-        book = self.parse_order_book(response, None, 'bids', 'asks', 0, 1)
-        book['nonce'] = nonce
-        return book
+        return {
+            'timestamp': None,
+            'datetime': None,
+            'nonce': nonce,
+            'bids': self.parse_side(response, 'bids'),
+            'asks': self.parse_side(response, 'asks'),
+        }
+
+    def parse_side(self, book, side):
+        bookSide = self.safe_value(book, side, [])
+        result = []
+        for i in range(0, len(bookSide)):
+            order = bookSide[i]
+            price = self.safe_float(order, 0)
+            amount = self.safe_float(order, 1)
+            orderCount = self.safe_integer(order, 2)
+            result.append([price, amount, orderCount])
+        descending = side == 'bids'
+        return self.sort_by(result, 0, descending)
 
     def fetch_currencies(self, params={}):
         # [
@@ -686,7 +697,11 @@ class idex2(Exchange):
             return self.parse_order(response, market)
 
     def parse_order_status(self, status):
+        # https://docs.idex.io/#order-states-amp-lifecycle
         statuses = {
+            'active': 'open',
+            'partiallyFilled': 'open',
+            'rejected': 'canceled',
             'filled': 'closed',
         }
         return self.safe_string(statuses, status, status)
@@ -727,18 +742,8 @@ class idex2(Exchange):
         fills = self.safe_value(order, 'fills')
         id = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'market')
-        symbol = None
         side = self.safe_string(order, 'side')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         trades = self.parse_trades(fills, market)
         type = self.safe_string(order, 'type')
         amount = self.safe_float(order, 'originalQuantity')
@@ -821,14 +826,47 @@ class idex2(Exchange):
             priceString = self.price_to_precision(symbol, price)
         elif type == 'market':
             typeEnum = 0
+        amountEnum = 0  # base quantity
+        if 'quoteOrderQuantity' in params:
+            if type != 'market':
+                raise NotSupported(self.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders')
+            amountEnum = 1
+            amount = self.safe_float(params, 'quoteOrderQuantity')
         sideEnum = 0 if (side == 'buy') else 1
         walletBytes = self.remove0x_prefix(self.walletAddress)
         orderVersion = 1
         amountString = self.amount_to_precision(symbol, amount)
-        timeInForceEnum = 0  # Good-til-canceled
-        timeInForce = 'gtc'
-        selfTradePrevention = 'cn'
-        selfTradePreventionEnum = 2  # Cancel newest
+        # https://docs.idex.io/#time-in-force
+        timeInForceEnums = {
+            'gtc': 0,
+            'ioc': 2,
+            'fok': 3,
+        }
+        defaultTimeInForce = self.safe_string(self.options, 'defaultTimeInForce', 'gtc')
+        timeInForce = self.safe_string(params, 'timeInForce', defaultTimeInForce)
+        timeInForceEnum = None
+        if timeInForce in timeInForceEnums:
+            timeInForceEnum = timeInForceEnums[timeInForce]
+        else:
+            allOptions = list(timeInForceEnums.keys())
+            asString = ', '.join(allOptions)
+            raise BadRequest(self.id + ' ' + timeInForce + ' is not a valid timeInForce, please choose one of ' + asString)
+        # https://docs.idex.io/#self-trade-prevention
+        selfTradePreventionEnums = {
+            'dc': 0,
+            'co': 1,
+            'cn': 2,
+            'cb': 3,
+        }
+        defaultSelfTradePrevention = self.safe_string(self.options, 'defaultSelfTradePrevention', 'cn')
+        selfTradePrevention = self.safe_string(params, 'selfTradePrevention', defaultSelfTradePrevention)
+        selfTradePreventionEnum = None
+        if selfTradePrevention in selfTradePreventionEnums:
+            selfTradePreventionEnum = selfTradePreventionEnums[selfTradePrevention]
+        else:
+            allOptions = list(selfTradePreventionEnums.keys())
+            asString = ', '.join(allOptions)
+            raise BadRequest(self.id + ' ' + selfTradePrevention + ' is not a valid selfTradePrevention, please choose one of ' + asString)
         byteArray = [
             self.number_to_be(orderVersion, 1),
             self.base16_to_binary(nonce),
@@ -837,6 +875,7 @@ class idex2(Exchange):
             self.number_to_be(typeEnum, 1),
             self.number_to_be(sideEnum, 1),
             self.encode(amountString),
+            self.number_to_be(amountEnum, 1),
         ]
         if type == 'limit':
             encodedPrice = self.encode(priceString)
@@ -856,7 +895,6 @@ class idex2(Exchange):
                 'market': market['id'],
                 'side': side,
                 'type': type,
-                'quantity': amountString,
                 'wallet': self.walletAddress,
                 'timeInForce': timeInForce,
                 'selfTradePrevention': selfTradePrevention,
@@ -865,6 +903,10 @@ class idex2(Exchange):
         }
         if type == 'limit':
             request['parameters']['price'] = priceString
+        if amountEnum == 0:
+            request['parameters']['quantity'] = amountString
+        else:
+            request['parameters']['quoteOrderQuantity'] = amountString
         # {
         #   market: 'DIL-ETH',
         #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
@@ -895,7 +937,8 @@ class idex2(Exchange):
         #   ],
         #   avgExecutionPrice: '0.09905990'
         # }
-        response = self.privatePostOrders(self.extend(request, params))
+        # we don't use self.extend here because it is a signed endpoint
+        response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -918,7 +961,7 @@ class idex2(Exchange):
         request = {
             'parameters': {
                 'nonce': nonce,
-                'wallet': self.walletAddress,
+                'wallet': address,
                 'asset': currency['id'],
                 'quantity': amountString,
             },
@@ -934,7 +977,7 @@ class idex2(Exchange):
         #   txStatus: 'pending',
         #   txId: null
         # }
-        response = self.privatePostWithdrawals(self.extend(request, params))
+        response = self.privatePostWithdrawals(request)
         id = self.safe_string(response, 'withdrawalId')
         return {
             'info': response,

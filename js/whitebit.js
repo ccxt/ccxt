@@ -380,19 +380,10 @@ module.exports = class whitebit extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let market = undefined;
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+            const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (data[marketId], market);
-            result[symbol] = this.extend (ticker, { 'symbol': symbol });
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -564,10 +555,19 @@ module.exports = class whitebit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            const maxLimit = 1440;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min (limit, maxLimit);
+            const start = parseInt (since / 1000);
+            const duration = this.parseTimeframe (timeframe);
+            const end = this.sum (start, duration * limit);
+            request['start'] = start;
+            request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit; // max 1440
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
         //

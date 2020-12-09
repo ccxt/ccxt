@@ -213,6 +213,6 @@ class bl3p(Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.decode(signature),
+                'Rest-Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

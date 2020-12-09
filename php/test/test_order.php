@@ -12,6 +12,8 @@ function test_order($exchange, $order, $symbol, $now) {
     assert ($order);
     assert (is_array($order) && array_key_exists('id', $order));
     assert (gettype($order['id']) === 'string');
+    assert (is_array($order) && array_key_exists('clientOrderId', $order));
+    assert (($order['clientOrderId'] === null) || (gettype($order['clientOrderId']) === 'string'));
     assert (is_array($order) && array_key_exists('timestamp', $order));
     assert ((is_float($order['timestamp']) || is_int($order['timestamp'])));
     assert ($order['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
@@ -24,12 +26,16 @@ function test_order($exchange, $order, $symbol, $now) {
     assert (is_array($order) && array_key_exists('symbol', $order));
     assert ($order['symbol'] === $symbol);
     assert (is_array($order) && array_key_exists('type', $order));
-    assert (gettype($order['type']) === 'string');
+    assert (($order['type'] === null) || (gettype($order['type']) === 'string'));
+    assert (is_array($order) && array_key_exists('timeInForce', $order));
+    assert (($order['timeInForce'] === null) || (gettype($order['timeInForce']) === 'string'));
     assert (is_array($order) && array_key_exists('side', $order));
     assert (($order['side'] === 'buy') || ($order['side'] === 'sell'));
     assert (is_array($order) && array_key_exists('price', $order));
-    assert ((is_float($order['price']) || is_int($order['price'])));
-    assert ($order['price'] > 0);
+    assert (($order['price'] === null) || ((is_float($order['price']) || is_int($order['price']))));
+    if ($order['price'] !== null) {
+        assert ($order['price'] > 0);
+    }
     assert (is_array($order) && array_key_exists('amount', $order));
     assert ((is_float($order['amount']) || is_int($order['amount'])));
     assert ($order['amount'] >= 0);

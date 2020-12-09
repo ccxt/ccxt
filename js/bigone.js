@@ -144,6 +144,7 @@ module.exports = class bigone extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
         });
@@ -254,24 +255,9 @@ module.exports = class bigone extends Exchange {
         //         "daily_change":"-0.000182"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'asset_pair_name');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        const timestamp = this.milliseconds ();
+        const marketId = this.safeString (ticker, 'asset_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const timestamp = undefined;
         const close = this.safeFloat (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
@@ -461,20 +447,7 @@ module.exports = class bigone extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const marketId = this.safeString (trade, 'asset_pair_name');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -713,23 +686,8 @@ module.exports = class bigone extends Exchange {
         //    }
         //
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'asset_pair_name');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'asset_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
@@ -762,8 +720,10 @@ module.exports = class bigone extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -796,12 +756,12 @@ module.exports = class bigone extends Exchange {
             const isStopLimit = (uppercaseType === 'STOP_LIMIT');
             const isStopMarket = (uppercaseType === 'STOP_MARKET');
             if (isStopLimit || isStopMarket) {
-                const stopPrice = this.safeFloat (params, 'stop_price');
+                const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
                 if (stopPrice === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                params = this.omit (params, 'stop_price');
+                params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
             }
             if (isStopLimit) {
                 request['price'] = this.priceToPrecision (symbol, price);

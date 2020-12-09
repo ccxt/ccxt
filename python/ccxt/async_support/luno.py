@@ -40,7 +40,11 @@ class luno(Exchange):
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.luno.com/api',
+                'api': {
+                    'public': 'https://api.luno.com/api',
+                    'private': 'https://api.luno.com/api',
+                    'exchange': 'https://api.luno.com/api/exchange',
+                },
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -49,6 +53,11 @@ class luno(Exchange):
                 ],
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'markets',
+                    ],
+                },
                 'public': {
                     'get': [
                         'orderbook',
@@ -170,6 +179,13 @@ class luno(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
+    def parse_order_status(self, status):
+        statuses = {
+            # todo add other statuses
+            'PENDING': 'open',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         #
         #     {
@@ -189,14 +205,11 @@ class luno(Exchange):
         #     }
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
-        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        status = status if (status == 'open') else status
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float(order, 'limit_price')
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
@@ -226,8 +239,10 @@ class luno(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -305,7 +320,7 @@ class luno(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -564,15 +579,16 @@ class luno(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            auth = self.encode(self.apiKey + ':' + self.secret)
-            auth = self.string_to_base64(auth)
-            headers = {'Authorization': 'Basic ' + self.decode(auth)}
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
+            headers = {
+                'Authorization': 'Basic ' + self.decode(auth),
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

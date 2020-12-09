@@ -117,14 +117,8 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'name');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
         const last = parseFloat (ticker['last_price']);
         return {
@@ -303,16 +297,8 @@ module.exports = class coinfalcon extends Exchange {
         //         "created_at":"2018-01-12T21:14:06.747828Z"
         //     }
         //
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
@@ -321,10 +307,10 @@ module.exports = class coinfalcon extends Exchange {
         let cost = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
-                remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+                remaining = Math.max (0, amount - filled);
             }
             if (price !== undefined) {
-                cost = parseFloat (this.priceToPrecision (symbol, filled * price));
+                cost = filled * price;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -334,6 +320,7 @@ module.exports = class coinfalcon extends Exchange {
             type = type[0];
         }
         const side = this.safeString (order, 'order_type');
+        const postOnly = this.safeValue (order, 'post_only');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -342,8 +329,11 @@ module.exports = class coinfalcon extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -410,7 +400,8 @@ module.exports = class coinfalcon extends Exchange {
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {

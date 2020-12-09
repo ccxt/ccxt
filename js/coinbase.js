@@ -141,6 +141,9 @@ module.exports = class coinbase extends Exchange {
                 'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
                 'internal_server_error': ExchangeError, // 500 Internal server error
             },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
+            },
             'options': {
                 'fetchCurrencies': {
                     'expires': 5000,

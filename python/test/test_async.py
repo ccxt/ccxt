@@ -340,6 +340,8 @@ async def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
     await test_ticker(exchange, symbol)
+    await test_tickers(exchange, symbol)
+    await test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = await exchange.fetchGlobal()
@@ -347,14 +349,16 @@ async def test_symbol(exchange, symbol, code):
     else:
         await test_order_book(exchange, symbol)
         await test_trades(exchange, symbol)
-        if exchange.apiKey:
-            await test_orders(exchange, symbol)
-            await test_open_orders(exchange, symbol)
-            await test_closed_orders(exchange, symbol)
-            await test_transactions(exchange, code)
-
-    await test_tickers(exchange, symbol)
-    await test_ohlcvs(exchange, symbol)
+        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+            return
+        if exchange.has['signIn']:
+            await exchange.sign_in()
+        await test_orders(exchange, symbol)
+        await test_open_orders(exchange, symbol)
+        await test_closed_orders(exchange, symbol)
+        await test_transactions(exchange, code)
+        await exchange.fetch_balance()
+        dump(green(exchange.id), 'fetched balance')
 
 # ------------------------------------------------------------------------------
 
@@ -436,17 +440,11 @@ async def test_exchange(exchange, symbol=None):
     # ..........................................................................
     # private API
 
-    if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-        return
-
     # move to testnet/sandbox if possible before accessing the balance if possible
     # if 'test' in exchange.urls:
     #     exchange.urls['api'] = exchange.urls['test']
 
-    await exchange.fetch_balance()
-    dump(green(exchange.id), 'fetched balance')
-
-    await asyncio.sleep(exchange.rateLimit / 1000)
+    # await asyncio.sleep(exchange.rateLimit / 1000)
 
     # time.sleep(delay)
 

@@ -26,28 +26,30 @@ class bitfinex2 extends bitfinex {
             'has' => array(
                 'CORS' => false,
                 'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'cancelOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
-                'fetchDepositAddress' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrder' => true,
                 'fetchClosedOrders' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => false,
-                'fetchOpenOrder' => true,
-                'fetchClosedOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => false,
+                'fetchTransactions' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -100,12 +102,14 @@ class bitfinex2 extends bitfinex {
                         'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -329,11 +333,21 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->v1GetSymbolsDetails ($params);
+        // todo drop v1 in favor of v2 configs
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:$futures,pub:info:pair
+        $v2response = $this->publicGetConfPubListPairFutures ($params);
+        $v1response = $this->v1GetSymbolsDetails ($params);
+        $futuresMarketIds = $this->safe_value($v2response, 0, array());
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        for ($i = 0; $i < count($v1response); $i++) {
+            $market = $v1response[$i];
             $id = $this->safe_string_upper($market, 'pair');
+            $spot = true;
+            if ($this->in_array($id, $futuresMarketIds)) {
+                $spot = false;
+            }
+            $futures = !$spot;
+            $type = $spot ? 'spot' : 'futures';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -379,9 +393,159 @@ class bitfinex2 extends bitfinex {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
+                'type' => $type,
                 'swap' => false,
-                'spot' => false,
-                'futures' => false,
+                'spot' => $spot,
+                'futures' => $futures,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $labels = array(
+            'pub:list:currency',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745
+        );
+        $config = implode(',', $labels);
+        $request = array(
+            'config' => $config,
+        );
+        $response = $this->publicGetConfConfig (array_merge($request, $params));
+        //
+        //     [
+        //
+        //         a list of symbols
+        //         ["AAA","ABS","ADA"],
+        //
+        //         // sym
+        //         // maps symbols to their API symbols, BAB > BCH
+        //         array(
+        //             array( 'BAB', 'BCH' ),
+        //             array( 'CNHT', 'CNHt' ),
+        //             array( 'DSH', 'DASH' ),
+        //             array( 'IOT', 'IOTA' ),
+        //             array( 'LES', 'LEO-EOS' ),
+        //             array( 'LET', 'LEO-ERC20' ),
+        //             array( 'STJ', 'STORJ' ),
+        //             array( 'TSD', 'TUSD' ),
+        //             array( 'UDC', 'USDC' ),
+        //             array( 'USK', 'USDK' ),
+        //             array( 'UST', 'USDt' ),
+        //             array( 'USTF0', 'USDt0' ),
+        //             array( 'XCH', 'XCHF' ),
+        //             array( 'YYW', 'YOYOW' ),
+        //             // ...
+        //         ),
+        //         // $label
+        //         // verbose friendly names, BNT > Bancor
+        //         array(
+        //             array( 'BAB', 'Bitcoin Cash' ),
+        //             array( 'BCH', 'Bitcoin Cash' ),
+        //             array( 'LEO', 'Unus Sed LEO' ),
+        //             array( 'LES', 'Unus Sed LEO (EOS)' ),
+        //             array( 'LET', 'Unus Sed LEO (ERC20)' ),
+        //             // ...
+        //         ),
+        //         // unit
+        //         // maps symbols to unit of measure where applicable
+        //         array(
+        //             array( 'IOT', 'Mi|MegaIOTA' ),
+        //         ),
+        //         // undl
+        //         // maps derivatives symbols to their underlying currency
+        //         array(
+        //             array( 'USTF0', 'UST' ),
+        //             array( 'BTCF0', 'BTC' ),
+        //             array( 'ETHF0', 'ETH' ),
+        //         ),
+        //         // $pool
+        //         // maps symbols to underlying network/protocol they operate on
+        //         array(
+        //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( 'EDO', 'ETH' ),
+        //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( 'MTO', 'EOS' ),
+        //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( 'VLD', 'ETH' ),
+        //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( 'GNO', 'ETH' ),
+        //             // ...
+        //         ),
+        //         // explorer
+        //         // maps symbols to their recognised block explorer URLs
+        //         array(
+        //             array(
+        //                 'AIO',
+        //                 array(
+        //                     "https://mainnet.aion.network",
+        //                     "https://mainnet.aion.network/#/account/VAL",
+        //                     "https://mainnet.aion.network/#/transaction/VAL"
+        //                 )
+        //             ),
+        //             // ...
+        //         ),
+        //         // $fee
+        //         // maps currencies to their withdrawal $fees
+        //         [
+        //             ["AAA",[0,0]],
+        //             ["ABS",[0,131.3]],
+        //             ["ADA",[0,0.3]],
+        //         ],
+        //     ]
+        //
+        $indexed = array(
+            'sym' => $this->index_by($this->safe_value($response, 1, array()), 0),
+            'label' => $this->index_by($this->safe_value($response, 2, array()), 0),
+            'unit' => $this->index_by($this->safe_value($response, 3, array()), 0),
+            'undl' => $this->index_by($this->safe_value($response, 4, array()), 0),
+            'pool' => $this->index_by($this->safe_value($response, 5, array()), 0),
+            'explorer' => $this->index_by($this->safe_value($response, 6, array()), 0),
+            'fees' => $this->index_by($this->safe_value($response, 7, array()), 0),
+        );
+        $ids = $this->safe_value($response, 0, array());
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->safe_currency_code($id);
+            $label = $this->safe_value($indexed['label'], $id, array());
+            $name = $this->safe_string($label, 1);
+            $pool = $this->safe_value($indexed['pool'], $id, array());
+            $type = $this->safe_string($pool, 1);
+            $feeValues = $this->safe_value($indexed['fees'], $id, array());
+            $fees = $this->safe_value($feeValues, 1, array());
+            $fee = $this->safe_float($fees, 1);
+            $precision = 8; // default $precision, todo => fix "magic constants"
+            $id = 'f' . $id;
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'info' => array( $id, $label, $pool, $feeValues ),
+                'type' => $type,
+                'name' => $name,
+                'active' => true,
+                'fee' => $fee,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => 1 / pow(10, $precision),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => 1 / pow(10, $precision),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $fee,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -764,8 +928,10 @@ class bitfinex2 extends bitfinex {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1037,6 +1203,16 @@ class bitfinex2 extends bitfinex {
         );
     }
 
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'SUCCESS' => 'ok',
+            'ERROR' => 'failed',
+            'FAILURE' => 'failed',
+            'CANCELED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
         //
         // withdraw
@@ -1062,49 +1238,155 @@ class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     )
         //
-        // todo add support for all movements, deposits and withdrawals
+        // fetchTransactions
         //
-        $data = $this->safe_value($transaction, 4, array());
-        $timestamp = $this->safe_integer($transaction, 0);
+        //     array(
+        //         13293039, // ID
+        //         'ETH', // CURRENCY
+        //         'ETHEREUM', // CURRENCY_NAME
+        //         null,
+        //         null,
+        //         1574175052000, // MTS_STARTED
+        //         1574181326000, // MTS_UPDATED
+        //         null,
+        //         null,
+        //         'CANCELED', // STATUS
+        //         null,
+        //         null,
+        //         -0.24, // AMOUNT, negative for withdrawals
+        //         -0.00135, // FEES
+        //         null,
+        //         null,
+        //         'DESTINATION_ADDRESS',
+        //         null,
+        //         null,
+        //         null,
+        //         'TRANSACTION_ID',
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //     )
+        //
+        $transactionLength = is_array($transaction) ? count($transaction) : 0;
+        $timestamp = null;
+        $updated = null;
         $code = null;
-        if ($currency !== null) {
-            $code = $currency['code'];
+        $amount = null;
+        $id = null;
+        $status = null;
+        $tag = null;
+        $type = null;
+        $feeCost = null;
+        $txid = null;
+        $addressTo = null;
+        if ($transactionLength < 9) {
+            $data = $this->safe_value($transaction, 4, array());
+            $timestamp = $this->safe_integer($transaction, 0);
+            if ($currency !== null) {
+                $code = $currency['code'];
+            }
+            $feeCost = $this->safe_float($data, 8);
+            if ($feeCost !== null) {
+                $feeCost = -$feeCost;
+            }
+            $amount = $this->safe_float($data, 5);
+            $id = $this->safe_value($data, 0);
+            $status = 'ok';
+            if ($id === 0) {
+                $id = null;
+                $status = 'failed';
+            }
+            $tag = $this->safe_string($data, 3);
+            $type = 'withdrawal';
+        } else {
+            $id = $this->safe_string($transaction, 0);
+            $timestamp = $this->safe_integer($transaction, 5);
+            $updated = $this->safe_integer($transaction, 6);
+            $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
+            $amount = $this->safe_float($transaction, 12);
+            if ($amount !== null) {
+                if ($amount < 0) {
+                    $type = 'withdrawal';
+                } else {
+                    $type = 'deposit';
+                }
+            }
+            $feeCost = $this->safe_float($transaction, 13);
+            if ($feeCost !== null) {
+                $feeCost = -$feeCost;
+            }
+            $addressTo = $this->safe_string($transaction, 16);
+            $txid = $this->safe_string($transaction, 20);
         }
-        $feeCost = $this->safe_float($data, 8);
-        if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
-        }
-        $amount = $this->safe_float($data, 5);
-        $id = $this->safe_value($data, 0);
-        $status = 'ok';
-        if ($id === 0) {
-            $id = null;
-            $status = 'failed';
-        }
-        $tag = $this->safe_string($data, 3);
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => null,
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => null, // this is actually the $tag for XRP transfers (the address is missing)
-            'addressTo' => null,
+            'address' => $addressTo, // this is actually the $tag for XRP transfers (the address is missing)
+            'addressTo' => $addressTo,
             'tagFrom' => null,
             'tag' => $tag, // refix it properly for the $tag from description
             'tagTo' => $tag,
-            'type' => 'withdrawal',
+            'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
+            'updated' => $updated,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
                 'rate' => null,
             ),
         );
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        $method = 'privatePostAuthRMovementsHist';
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+            $method = 'privatePostAuthRMovementsCurrencyHist';
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 1000
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             13293039, // ID
+        //             'ETH', // CURRENCY
+        //             'ETHEREUM', // CURRENCY_NAME
+        //             null,
+        //             null,
+        //             1574175052000, // MTS_STARTED
+        //             1574181326000, // MTS_UPDATED
+        //             null,
+        //             null,
+        //             'CANCELED', // STATUS
+        //             null,
+        //             null,
+        //             -0.24, // AMOUNT, negative for withdrawals
+        //             -0.00135, // FEES
+        //             null,
+        //             null,
+        //             'DESTINATION_ADDRESS',
+        //             null,
+        //             null,
+        //             null,
+        //             'TRANSACTION_ID',
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         )
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1153,6 +1435,47 @@ class bitfinex2 extends bitfinex {
         return array_merge($transaction, array(
             'address' => $address,
         ));
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostPositions ($params);
+        //
+        //     array(
+        //         array(
+        //             "tBTCUSD", // SYMBOL
+        //             "ACTIVE", // STATUS
+        //             0.0195, // AMOUNT
+        //             8565.0267019, // BASE_PRICE
+        //             0, // MARGIN_FUNDING
+        //             0, // MARGIN_FUNDING_TYPE
+        //             -0.33455568705000516, // PL
+        //             -0.0003117550117425625, // PL_PERC
+        //             7045.876419249083, // PRICE_LIQ
+        //             3.0673001895895604, // LEVERAGE
+        //             null, // _PLACEHOLDER
+        //             142355652, // POSITION_ID
+        //             1574002216000, // MTS_CREATE
+        //             1574002216000, // MTS_UPDATE
+        //             null, // _PLACEHOLDER
+        //             0, // TYPE
+        //             null, // _PLACEHOLDER
+        //             0, // COLLATERAL
+        //             0, // COLLATERAL_MIN
+        //             // META
+        //             {
+        //                 "reason":"TRADE",
+        //                 "order_id":34271018124,
+        //                 "liq_stage":null,
+        //                 "trade_price":"8565.0267019",
+        //                 "trade_amount":"0.0195",
+        //                 "order_id_oppo":34277498022
+        //             }
+        //         )
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
     }
 
     public function nonce() {

@@ -54,6 +54,17 @@ module.exports = class coinspot extends Exchange {
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/balances/{cointype}',
+                        'ro/my/deposits',
+                        'ro/my/withdrawals',
+                        'ro/my/transactions',
+                        'ro/my/transactions/{cointype}',
+                        'ro/my/transactions/open',
+                        'ro/my/transactions/{cointype}/open',
+                        'ro/my/sendreceive',
+                        'ro/my/affiliatepayments',
+                        'ro/my/referralpayments',
                     ],
                 },
             },
@@ -133,8 +144,55 @@ module.exports = class coinspot extends Exchange {
             'cointype': market['id'],
         };
         const response = await this.privatePostOrdersHistory (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "orders":[
+        //             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        //         ],
+        //     }
+        //
         const trades = this.safeValue (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "amount":0.00102091,
+        //         "rate":21549.09999991,
+        //         "total":21.99969168,
+        //         "coin":"BTC",
+        //         "solddate":1604890646143,
+        //         "market":"BTC/AUD"
+        //     }
+        //
+        const price = this.safeFloat (trade, 'rate');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'total');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const timestamp = this.safeInteger (trade, 'solddate');
+        const marketId = this.safeString (trade, 'market');
+        const symbol = this.safeSymbol (marketId, market, '/');
+        return {
+            'info': trade,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

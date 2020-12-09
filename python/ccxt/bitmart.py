@@ -452,7 +452,7 @@ class bitmart(Exchange):
             #
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
-                'amount': self.safe_float(market, 'quote_increment'),
+                'amount': self.safe_float(market, 'base_min_size'),
                 'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 10)),
             }
             minBuyCost = self.safe_float(market, 'min_buy_amount')
@@ -685,26 +685,14 @@ class bitmart(Exchange):
         #
         timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float_2(ticker, 'close_24h', 'last_price')
         percentage = self.safe_float(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
         baseVolume = self.safe_float_2(ticker, 'base_volume_24h', 'base_coin_volume')
         quoteVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
-        vwap = None
-        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         open = self.safe_float_2(ticker, 'open_24h', 'open')
         average = None
         if (last is not None) and (open is not None):
@@ -1019,19 +1007,7 @@ class bitmart(Exchange):
             cost = amount * price
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         feeCost = self.safe_float(trade, 'fees')
         fee = None
         if feeCost is not None:
@@ -1533,18 +1509,8 @@ class bitmart(Exchange):
         id = self.safe_string(order, 'order_id', id)
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         timestamp = self.safe_integer(order, 'create_time', timestamp)
-        symbol = None
         marketId = self.safe_string_2(order, 'symbol', 'contract_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         status = None
         if market is not None:
             status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
@@ -1590,8 +1556,10 @@ class bitmart(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

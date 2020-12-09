@@ -17,6 +17,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
@@ -192,6 +193,12 @@ class binance(Exchange):
                         'mining/payment/list',
                         'mining/statistics/user/status',
                         'mining/statistics/user/list',
+                        # liquid swap endpoints
+                        'bswap/pools',
+                        'bswap/liquidity',
+                        'bswap/liquidityOps',
+                        'bswap/quote',
+                        'bswap/swap',
                     ],
                     'post': [
                         'asset/dust',
@@ -222,6 +229,10 @@ class binance(Exchange):
                         'lending/customizedFixed/purchase',
                         'lending/daily/purchase',
                         'lending/daily/redeem',
+                        # liquid swap endpoints
+                        'bswap/liquidityAdd',
+                        'bswap/liquidityRemove',
+                        'bswap/swap',
                     ],
                     'put': [
                         'userDataStream',
@@ -339,6 +350,7 @@ class binance(Exchange):
                         'ticker/bookTicker',
                         'allForceOrders',
                         'openInterest',
+                        'indexInfo',
                     ],
                 },
                 'fapiData': {
@@ -454,8 +466,7 @@ class binance(Exchange):
             },
             # exchange-specific options
             'options': {
-                'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
-                'fetchTickersMethod': 'publicGetTicker24hr',
+                # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -473,11 +484,13 @@ class binance(Exchange):
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'API key does not exist': AuthenticationError,
-                'Order would trigger immediately.': InvalidOrder,
+                'Order would trigger immediately.': OrderImmediatelyFillable,
+                'Order would immediately match and take.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Order would immediately match and take."}
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
                 "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                 'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
+                'Too many requests.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1001': ExchangeNotAvailable,  # 'Internal error; unable to process your request. Please try again.'
                 '-1002': AuthenticationError,  # 'You are not authorized to execute self request.'
@@ -705,21 +718,19 @@ class binance(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            marketType = 'spot'
-            future = False
-            delivery = False
-            if 'maintMarginPercent' in market:
-                delivery = ('marginAsset' in market)
-                future = not delivery
-                marketType = 'delivery' if delivery else 'future'
-            spot = not (future or delivery)
+            spot = (type == 'spot')
+            future = (type == 'future')
+            delivery = (type == 'delivery')
             id = self.safe_string(market, 'symbol')
             lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id if delivery else (base + '/' + quote)
+            parts = id.split('_')
+            lastPart = self.safe_string(parts, 1)
+            idSymbol = (delivery) and (lastPart != 'PERP')
+            symbol = id if idSymbol else (base + '/' + quote)
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
@@ -740,7 +751,7 @@ class binance(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': marketType,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
@@ -1021,13 +1032,34 @@ class binance(Exchange):
         return orderbook
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         symbol: 'ETHBTC',
+        #         priceChange: '0.00068700',
+        #         priceChangePercent: '2.075',
+        #         weightedAvgPrice: '0.03342681',
+        #         prevClosePrice: '0.03310300',
+        #         lastPrice: '0.03378900',
+        #         lastQty: '0.07700000',
+        #         bidPrice: '0.03378900',
+        #         bidQty: '7.16800000',
+        #         askPrice: '0.03379000',
+        #         askQty: '24.00000000',
+        #         openPrice: '0.03310200',
+        #         highPrice: '0.03388900',
+        #         lowPrice: '0.03306900',
+        #         volume: '205478.41000000',
+        #         quoteVolume: '6868.48826294',
+        #         openTime: 1601469986932,
+        #         closeTime: 1601556386932,
+        #         firstId: 196098772,
+        #         lastId: 196186315,
+        #         count: 87544
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'closeTime')
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
@@ -1075,6 +1107,9 @@ class binance(Exchange):
         elif market['delivery']:
             method = 'dapiPublicGetTicker24hr'
         response = await getattr(self, method)(self.extend(request, params))
+        if isinstance(response, list):
+            firstTicker = self.safe_value(response, 0, {})
+            return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
     def parse_tickers(self, rawTickers, symbols=None):
@@ -1088,18 +1123,30 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        method = 'publicGetTickerBookTicker'
+        method = None
         if type == 'future':
             method = 'fapiPublicGetTickerBookTicker'
         elif type == 'delivery':
             method = 'dapiPublicGetTickerBookTicker'
+        else:
+            method = 'publicGetTickerBookTicker'
         response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        method = self.options['fetchTickersMethod']
-        response = await getattr(self, method)(params)
+        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        defaultMethod = None
+        if type == 'future':
+            defaultMethod = 'fapiPublicGetTicker24hr'
+        elif type == 'delivery':
+            defaultMethod = 'dapiPublicGetTicker24hr'
+        else:
+            defaultMethod = 'publicGetTicker24hr'
+        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
+        response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -1247,12 +1294,8 @@ class binance(Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
@@ -1285,11 +1328,13 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
-        defaultMethod = 'publicGetTrades'
+        defaultMethod = None
         if type == 'future':
-            defaultMethod = 'fapiPublicGetTrades'
+            defaultMethod = 'fapiPublicGetAggTrades'
         elif type == 'delivery':
-            defaultMethod = 'dapiPublicGetTrades'
+            defaultMethod = 'dapiPublicGetAggTrades'
+        else:
+            defaultMethod = 'publicGetAggTrades'
         method = self.safe_string(self.options, 'fetchTradesMethod', defaultMethod)
         if method == 'publicGetAggTrades':
             if since is not None:
@@ -1403,12 +1448,8 @@ class binance(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = None
         if 'time' in order:
             timestamp = self.safe_integer(order, 'time')
@@ -1467,6 +1508,7 @@ class binance(Exchange):
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        timeInForce = self.safe_string(order, 'timeInForce')
         return {
             'info': order,
             'id': id,
@@ -1476,6 +1518,7 @@ class binance(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1790,6 +1833,56 @@ class binance(Exchange):
         else:
             return response
 
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.fetch_balance(params)
+        info = self.safe_value(response, 'info', {})
+        #
+        # futures, delivery
+        #
+        #     {
+        #         "feeTier":0,
+        #         "canTrade":true,
+        #         "canDeposit":true,
+        #         "canWithdraw":true,
+        #         "updateTime":0,
+        #         "assets":[
+        #             {
+        #                 "asset":"ETH",
+        #                 "walletBalance":"0.09886711",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "marginBalance":"0.09886711",
+        #                 "maintMargin":"0.00000000",
+        #                 "initialMargin":"0.00000000",
+        #                 "positionInitialMargin":"0.00000000",
+        #                 "openOrderInitialMargin":"0.00000000",
+        #                 "maxWithdrawAmount":"0.09886711",
+        #                 "crossWalletBalance":"0.09886711",
+        #                 "crossUnPnl":"0.00000000",
+        #                 "availableBalance":"0.09886711"
+        #             }
+        #         ],
+        #         "positions":[
+        #             {
+        #                 "symbol":"BTCUSD_201225",
+        #                 "initialMargin":"0",
+        #                 "maintMargin":"0",
+        #                 "unrealizedProfit":"0.00000000",
+        #                 "positionInitialMargin":"0",
+        #                 "openOrderInitialMargin":"0",
+        #                 "leverage":"20",
+        #                 "isolated":false,
+        #                 "positionSide":"BOTH",
+        #                 "entryPrice":"0.00000000",
+        #                 "maxQty":"250",  # "maxNotional" on futures
+        #             },
+        #         ]
+        #     }
+        #
+        positions = self.safe_value_2(info, 'positions', 'userAssets', [])
+        # todo unify parsePosition/parsePositions
+        return positions
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
@@ -2087,6 +2180,7 @@ class binance(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        updated = self.safe_integer(transaction, 'successTime')
         return {
             'info': transaction,
             'id': id,
@@ -2094,12 +2188,16 @@ class binance(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': None,
+            'updated': updated,
             'fee': fee,
         }
 
@@ -2118,7 +2216,7 @@ class binance(Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'address': self.check_address(address),
+            'address': address,
             'tag': tag,
             'info': response,
         }
@@ -2190,10 +2288,7 @@ class binance(Exchange):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         return {
             'info': fee,
             'symbol': symbol,
@@ -2346,7 +2441,8 @@ class binance(Exchange):
         error = self.safe_string(response, 'code')
         if error is not None:
             # https://github.com/ccxt/ccxt/issues/6501
-            if error == '200':
+            # https://github.com/ccxt/ccxt/issues/7742
+            if (error == '200') or (error == '0'):
                 return
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance

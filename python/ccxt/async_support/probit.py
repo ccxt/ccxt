@@ -155,6 +155,8 @@ class probit(Exchange):
             'commonCurrencies': {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'CBC': 'CryptoBharatCoin',
+                'UNI': 'UNICORN Token',
             },
         })
 
@@ -465,18 +467,8 @@ class probit(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-        symbol = None
         marketId = self.safe_string(ticker, 'market_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         close = self.safe_float(ticker, 'last')
         change = self.safe_float(ticker, 'change')
         percentage = None
@@ -618,23 +610,13 @@ class probit(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        symbol = None
         id = self.safe_string(trade, 'id')
+        marketId = None
         if id is not None:
             parts = id.split(':')
             marketId = self.safe_string(parts, 0)
-            if marketId is None:
-                marketId = self.safe_string(trade, 'market_id')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'market_id', marketId)
+        symbol = self.safe_symbol(marketId, market, '-')
         side = self.safe_string(trade, 'side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
@@ -863,18 +845,8 @@ class probit(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        symbol = None
         marketId = self.safe_string(order, 'market_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'time'))
         price = self.safe_float(order, 'limit_price')
         filled = self.safe_float(order, 'filled_quantity')
@@ -897,6 +869,7 @@ class probit(Exchange):
         clientOrderId = self.safe_string(order, 'client_order_id')
         if clientOrderId == '':
             clientOrderId = None
+        timeInForce = self.safe_string_upper(order, 'time_in_force')
         return {
             'id': id,
             'info': order,
@@ -906,9 +879,11 @@ class probit(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'status': status,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1147,7 +1122,7 @@ class probit(Exchange):
             self.check_required_credentials()
             url += self.implode_params(path, params)
             auth = self.apiKey + ':' + self.secret
-            auth64 = self.string_to_base64(self.encode(auth))
+            auth64 = self.string_to_base64(auth)
             headers = {
                 'Authorization': 'Basic ' + self.decode(auth64),
                 'Content-Type': 'application/json',

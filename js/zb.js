@@ -72,6 +72,8 @@ module.exports = class zb extends Exchange {
                 '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError, // 'The request time has expired',
                 '3008': OrderNotFound, // 'Transaction records not found',
+                '3009': InvalidOrder, // 'The price exceeds the limit',
+                '3011': InvalidOrder, // 'The entrusted price is abnormal, please modify it and place order again',
                 '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                 '4002': DDoSProtection, // 'Request too often',
             },
@@ -538,15 +540,8 @@ module.exports = class zb extends Exchange {
         if (createDateField in order) {
             timestamp = order[createDateField];
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'currency');
-        if (marketId in this.markets_by_id) {
-            // get symbol from currency
-            market = this.marketsById[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'trade_amount');
         const amount = this.safeFloat (order, 'total_amount');
@@ -572,8 +567,10 @@ module.exports = class zb extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,

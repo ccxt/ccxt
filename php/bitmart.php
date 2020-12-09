@@ -438,7 +438,7 @@ class bitmart extends Exchange {
             //
             $pricePrecision = $this->safe_integer($market, 'price_max_precision');
             $precision = array(
-                'amount' => $this->safe_float($market, 'quote_increment'),
+                'amount' => $this->safe_float($market, 'base_min_size'),
                 'price' => floatval($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 10)),
             );
             $minBuyCost = $this->safe_float($market, 'min_buy_amount');
@@ -677,20 +677,7 @@ class bitmart extends Exchange {
         //
         $timestamp = $this->safe_timestamp($ticker, 'timestamp', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float_2($ticker, 'close_24h', 'last_price');
         $percentage = $this->safe_float($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
@@ -698,10 +685,7 @@ class bitmart extends Exchange {
         }
         $baseVolume = $this->safe_float_2($ticker, 'base_volume_24h', 'base_coin_volume');
         $quoteVolume = $this->safe_float_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $open = $this->safe_float_2($ticker, 'open_24h', 'open');
         $average = null;
         if (($last !== null) && ($open !== null)) {
@@ -1034,23 +1018,7 @@ class bitmart extends Exchange {
         }
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCost = $this->safe_float($trade, 'fees');
         $fee = null;
         if ($feeCost !== null) {
@@ -1577,21 +1545,8 @@ class bitmart extends Exchange {
         $id = $this->safe_string($order, 'order_id', $id);
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $timestamp = $this->safe_integer($order, 'create_time', $timestamp);
-        $symbol = null;
         $marketId = $this->safe_string_2($order, 'symbol', 'contract_id');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $status = null;
         if ($market !== null) {
             $status = $this->parse_order_status_by_type($market['type'], $this->safe_string($order, 'status'));
@@ -1649,8 +1604,10 @@ class bitmart extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
