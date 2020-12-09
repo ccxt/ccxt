@@ -167,8 +167,8 @@ module.exports = class luno extends Exchange {
             account['used'] = this.sum (reserved, unconfirmed);
             account['total'] = this.sum (balance, unconfirmed);
             if (code in result) {
-                account['used'] += result[code]['used']
-                account['total] += result[code]['total']
+                account['used'] += result[code]['used'];
+                account['total'] += result[code]['total'];
             }
             result[code] = account;
         }
