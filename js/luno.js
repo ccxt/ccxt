@@ -166,6 +166,10 @@ module.exports = class luno extends Exchange {
             const account = this.account ();
             account['used'] = this.sum (reserved, unconfirmed);
             account['total'] = this.sum (balance, unconfirmed);
+            if (code in result) {
+                account['used'] += result[code]['used']
+                account['total] += result[code]['total']
+            }
             result[code] = account;
         }
         return this.parseBalance (result);
