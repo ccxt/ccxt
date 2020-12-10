@@ -1114,6 +1114,9 @@ module.exports = class bybit extends Exchange {
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
         let price = this.safeFloat (order, 'price');
+        if (price === 0.0) {
+            price = undefined;
+        }
         let average = this.safeFloat (order, 'average_price');
         const amount = this.safeFloat (order, 'qty');
         let cost = this.safeFloat (order, 'cum_exec_value');
@@ -1163,6 +1166,7 @@ module.exports = class bybit extends Exchange {
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeFloat (order, 'stop_px');
+        const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
             'id': id,
@@ -1173,6 +1177,7 @@ module.exports = class bybit extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1326,6 +1331,11 @@ module.exports = class bybit extends Exchange {
             } else {
                 throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
+        }
+        const clientOrderId = this.safeString2 (params, 'order_link_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['order_link_id'] = clientOrderId;
+            params = this.omit (params, [ 'order_link_id', 'clientOrderId' ]);
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');

@@ -41,7 +41,11 @@ class luno extends Exchange {
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api' => 'https://api.luno.com/api',
+                'api' => array(
+                    'public' => 'https://api.luno.com/api',
+                    'private' => 'https://api.luno.com/api',
+                    'exchange' => 'https://api.luno.com/api/exchange',
+                ),
                 'www' => 'https://www.luno.com',
                 'doc' => array(
                     'https://www.luno.com/en/api',
@@ -50,6 +54,11 @@ class luno extends Exchange {
                 ),
             ),
             'api' => array(
+                'exchange' => array(
+                    'get' => array(
+                        'markets',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'orderbook',
@@ -250,6 +259,7 @@ class luno extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,
@@ -631,7 +641,7 @@ class luno extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
             $url .= '?' . $this->urlencode($query);

@@ -235,7 +235,7 @@ class bittrex(Exchange):
                 # 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
-                'BITS': 'SWIFT',
+                'REPV2': 'REP',
             },
         })
 
@@ -947,7 +947,7 @@ class bittrex(Exchange):
             'GOOD_TIL_CANCELLED': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
-            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'PO',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
@@ -1009,6 +1009,7 @@ class bittrex(Exchange):
         if (status == 'closed') and (remaining is not None) and (remaining > 0):
             status = 'canceled'
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        postOnly = (timeInForce == 'PO')
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -1018,8 +1019,10 @@ class bittrex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': direction,
             'price': limit,
+            'stopPrice': None,
             'cost': proceeds,
             'average': average,
             'amount': quantity,

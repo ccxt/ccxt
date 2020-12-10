@@ -200,6 +200,7 @@ module.exports = class coincheck extends Exchange {
             'status': status,
             'symbol': symbol,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'fee': undefined,
             'info': order,

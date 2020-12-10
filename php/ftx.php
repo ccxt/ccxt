@@ -873,7 +873,7 @@ class ftx extends Exchange {
         //         "$type" => "limit",
         //         "reduceOnly" => false,
         //         "ioc" => false,
-        //         "postOnly" => false,
+        //         "$postOnly" => false,
         //         "clientId" => null,
         //     }
         //
@@ -888,7 +888,7 @@ class ftx extends Exchange {
         //         "$id" => 3109208514,
         //         "ioc" => True,
         //         "$market" => "BNBBULL/USD",
-        //         "postOnly" => False,
+        //         "$postOnly" => False,
         //         "$price" => None,
         //         "reduceOnly" => False,
         //         "remainingSize" => 0.0,
@@ -952,7 +952,7 @@ class ftx extends Exchange {
         //         "ioc":false,
         //         "liquidation":false,
         //         "$market":"XRP/USDT",
-        //         "postOnly":false,
+        //         "$postOnly":false,
         //         "$price":0.5,
         //         "reduceOnly":false,
         //         "remainingSize":0.0,
@@ -999,6 +999,8 @@ class ftx extends Exchange {
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         $clientOrderId = $this->safe_string($order, 'clientId');
+        $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1009,8 +1011,10 @@ class ftx extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

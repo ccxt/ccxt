@@ -150,6 +150,7 @@ module.exports = class hitbtc extends Exchange {
                 'defaultTimeInForce': 'FOK',
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
@@ -887,6 +888,7 @@ module.exports = class hitbtc extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'amount': amount,
             'cost': cost,

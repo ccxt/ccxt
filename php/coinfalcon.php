@@ -322,6 +322,7 @@ class coinfalcon extends Exchange {
             $type = $type[0];
         }
         $side = $this->safe_string($order, 'order_type');
+        $postOnly = $this->safe_value($order, 'post_only');
         return array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -331,8 +332,10 @@ class coinfalcon extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

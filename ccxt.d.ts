@@ -532,6 +532,7 @@ declare module 'ccxt' {
     export class upbit extends Exchange {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
+    export class vcc extends Exchange {}
     export class wavesexchange extends Exchange {}
     export class whitebit extends Exchange {}
     export class xbtce extends Exchange {}

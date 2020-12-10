@@ -351,6 +351,7 @@ module.exports = class bitbay extends Exchange {
                 filled = Math.max (0, amount - remaining);
             }
         }
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -362,8 +363,10 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': this.safeString (order, 'mode'),
             'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': filled,

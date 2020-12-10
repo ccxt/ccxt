@@ -213,7 +213,7 @@ module.exports = class bittrex extends Exchange {
                 // 'createOrderMethod': 'create_order_v1',
             },
             'commonCurrencies': {
-                'BITS': 'SWIFT',
+                'REPV2': 'REP',
             },
         });
     }
@@ -975,7 +975,7 @@ module.exports = class bittrex extends Exchange {
             'GOOD_TIL_CANCELLED': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
-            'POST_ONLY_GOOD_TIL_CANCELLED': 'POST_ONLY_GOOD_TIL_CANCELLED',
+            'POST_ONLY_GOOD_TIL_CANCELLED': 'PO',
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
@@ -1045,6 +1045,7 @@ module.exports = class bittrex extends Exchange {
             status = 'canceled';
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const postOnly = (timeInForce === 'PO');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -1054,8 +1055,10 @@ module.exports = class bittrex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': direction,
             'price': limit,
+            'stopPrice': undefined,
             'cost': proceeds,
             'average': average,
             'amount': quantity,

@@ -718,8 +718,8 @@ class eterbase extends Exchange {
         //         "remainingQty" => "1.23456",
         //         "$remainingCost" => "1.23456",
         //         "limitPrice" => "1.23456",
-        //         "stopPrice" => "1.23456",
-        //         "postOnly" => false,
+        //         "$stopPrice" => "1.23456",
+        //         "$postOnly" => false,
         //         "$timeInForce" => "GTC",
         //         "state" => 1,
         //         "closeReason" => "FILLED",
@@ -738,7 +738,7 @@ class eterbase extends Exchange {
         //         "$type":1,
         //         "$side":1,
         //         "$cost":"25",
-        //         "postOnly":false,
+        //         "$postOnly":false,
         //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589510846735
@@ -754,7 +754,7 @@ class eterbase extends Exchange {
         //         "$side":1,
         //         "qty":"1000",
         //         "limitPrice":"100",
-        //         "postOnly":false,
+        //         "$postOnly":false,
         //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589403938682,
@@ -809,6 +809,8 @@ class eterbase extends Exchange {
             }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -818,9 +820,11 @@ class eterbase extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
-            'side' => $side,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
+            'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

@@ -1803,6 +1803,7 @@ class hbtc(Exchange):
             average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
         result = {
             'info': order,
             'id': id,
@@ -1815,6 +1816,7 @@ class hbtc(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

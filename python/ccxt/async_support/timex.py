@@ -1139,6 +1139,7 @@ class timex(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,

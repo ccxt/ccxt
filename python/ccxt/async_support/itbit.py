@@ -490,6 +490,8 @@ class itbit(Exchange):
                 cost = filled * average
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
+        postOnlyString = self.safe_string(order, 'postOnly')
+        postOnly = (postOnlyString == 'True')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -501,8 +503,10 @@ class itbit(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

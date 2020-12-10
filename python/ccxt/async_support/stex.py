@@ -191,6 +191,8 @@ class stex(Exchange):
             },
             'commonCurrencies': {
                 'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
                 'BHD': 'Bithold',
             },
             'options': {
@@ -887,6 +889,7 @@ class stex(Exchange):
                 'symbol': symbol,
                 'order': id,
             })
+        stopPrice = self.safe_float(order, 'trigger_price')
         result = {
             'info': order,
             'id': id,
@@ -899,6 +902,7 @@ class stex(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,

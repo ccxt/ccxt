@@ -316,6 +316,7 @@ class exx(Exchange):
             'timeInForce': None,
             'side': order['type'],
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,

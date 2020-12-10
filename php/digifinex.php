@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadResponse;
+use \ccxt\InvalidAddress;
 use \ccxt\OrderNotFound;
 
 class digifinex extends Exchange {
@@ -24,6 +25,9 @@ class digifinex extends Exchange {
                 'cancelOrders' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -37,6 +41,8 @@ class digifinex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -57,7 +63,7 @@ class digifinex extends Exchange {
                     'https://docs.digifinex.com',
                 ),
                 'fees' => 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral' => 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
+                'referral' => 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             ),
             'api' => array(
                 'v2' => array(
@@ -71,7 +77,7 @@ class digifinex extends Exchange {
                         'kline',
                         'margin/currencies',
                         'margin/symbols',
-                        'markets', // undocumented
+                        'markets',
                         'order_book',
                         'ping',
                         'spot/symbols',
@@ -79,6 +85,7 @@ class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
+                        'currencies', // todo add fetchCurrencies
                     ),
                 ),
                 'private' => array(
@@ -86,6 +93,7 @@ class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
+                        '{market}​/order​/detail', // todo add fetchOrder
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -102,16 +110,22 @@ class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
+                        'deposit/address', // todo add fetchDepositAddress
+                        'deposit/history', // todo add fetchDeposits
+                        'withdraw/history', // todo add fetchWithdrawals
                     ),
                     'post' => array(
                         '{market}/order/cancel',
                         '{market}/order/new',
+                        '{market}​/order​/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
+                        'withdraw/new', // todo add withdraw()
+                        'withdraw/cancel',
                     ),
                 ),
             ),
@@ -151,6 +165,27 @@ class digifinex extends Exchange {
                     '20019' => array( '\\ccxt\\BadRequest', 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ),
                     '20020' => array( '\\ccxt\\DDoSProtection', "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ),
                     '50000' => array( '\\ccxt\\ExchangeError', 'Exception error' ),
+                    '20021' => array( '\\ccxt\\BadRequest', 'Invalid currency' ),
+                    '20022' => array( '\\ccxt\\BadRequest', 'The ending timestamp must be larger than the starting timestamp' ),
+                    '20023' => array( '\\ccxt\\BadRequest', 'Invalid transfer type' ),
+                    '20024' => array( '\\ccxt\\BadRequest', 'Invalid amount' ),
+                    '20025' => array( '\\ccxt\\BadRequest', 'This currency is not transferable at the moment' ),
+                    '20026' => array( '\\ccxt\\InsufficientFunds', 'Transfer amount exceed your balance' ),
+                    '20027' => array( '\\ccxt\\PermissionDenied', 'Abnormal account status' ),
+                    '20028' => array( '\\ccxt\\PermissionDenied', 'Blacklist for transfer' ),
+                    '20029' => array( '\\ccxt\\PermissionDenied', 'Transfer amount exceed your daily limit' ),
+                    '20030' => array( '\\ccxt\\BadRequest', 'You have no position on this trading pair' ),
+                    '20032' => array( '\\ccxt\\PermissionDenied', 'Withdrawal limited' ),
+                    '20033' => array( '\\ccxt\\BadRequest', 'Wrong Withdrawal ID' ),
+                    '20034' => array( '\\ccxt\\PermissionDenied', 'Withdrawal service of this crypto has been closed' ),
+                    '20035' => array( '\\ccxt\\PermissionDenied', 'Withdrawal limit' ),
+                    '20036' => array( '\\ccxt\\ExchangeError', 'Withdrawal cancellation failed' ),
+                    '20037' => array( '\\ccxt\\InvalidAddress', 'The withdrawal address, Tag or chain type is not included in the withdrawal management list' ),
+                    '20038' => array( '\\ccxt\\InvalidAddress', 'The withdrawal address is not on the white list' ),
+                    '20039' => array( '\\ccxt\\ExchangeError', "Can't be canceled in current status" ),
+                    '20040' => array( '\\ccxt\\RateLimitExceeded', 'Withdraw too frequently; limitation => 3 times a minute, 100 times a day' ),
+                    '20041' => array( '\\ccxt\\PermissionDenied', 'Beyond the daily withdrawal limit' ),
+                    '20042' => array( '\\ccxt\\BadSymbol', 'Current trading pair does not support API trading' ),
                 ),
                 'broad' => array(
                 ),
@@ -165,6 +200,95 @@ class digifinex extends Exchange {
                 'TEL' => 'TEL666',
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        //
+        //     {
+        //         "$data":array(
+        //             array(
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":5,
+        //                 "$currency":"USDT",
+        //                 "withdraw_status":0,
+        //                 "chain":"OMNI"
+        //             ),
+        //             array(
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":3,
+        //                 "$currency":"USDT",
+        //                 "withdraw_status":1,
+        //                 "chain":"ERC20"
+        //             ),
+        //             array(
+        //                 "deposit_status":0,
+        //                 "min_deposit_amount":0,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":0,
+        //                 "min_withdraw_fee":0,
+        //                 "$currency":"DGF13",
+        //                 "withdraw_status":0,
+        //                 "chain":""
+        //             ),
+        //         ),
+        //         "$code":200
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $currency = $data[$i];
+            $id = $this->safe_string($currency, 'currency');
+            $code = $this->safe_currency_code($id);
+            $depositStatus = $this->safe_value($currency, 'deposit_status', 1);
+            $withdrawStatus = $this->safe_value($currency, 'withdraw_status', 1);
+            $active = $depositStatus && $withdrawStatus;
+            $fee = $this->safe_float($currency, 'withdraw_fee_rate');
+            if (is_array($result) && array_key_exists($code, $result)) {
+                if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
+                    $result[$code]['info'][] = $currency;
+                } else {
+                    $result[$code]['info'] = [ $result[$code]['info'], $currency ];
+                }
+            } else {
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $currency,
+                    'type' => null,
+                    'name' => null,
+                    'active' => $active,
+                    'fee' => $fee,
+                    'precision' => 8, // todo fix hardcoded value
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_float($currency, 'min_withdraw_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -877,6 +1001,7 @@ class digifinex extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1142,6 +1267,218 @@ class digifinex extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
+    public function parse_deposit_addresses($addresses) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $code = $address['currency'];
+            $result[$code] = $address;
+        }
+        return $result;
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "addressTag":"",
+        //         "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "$currency":"USDT",
+        //         "chain":"ERC20"
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'addressTag');
+        $currencyId = $this->safe_string_upper($depositAddress, 'currency');
+        $code = $this->safeCurrencCode ($currencyId);
+        return array(
+            'info' => $depositAddress,
+            'code' => $code,
+            'address' => $address,
+            'tag' => $tag,
+        );
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "$data":array(
+        //             {
+        //                 "addressTag":"",
+        //                 "$address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "$currency":"USDT",
+        //                 "chain":"ERC20"
+        //             }
+        //         ),
+        //         "$code":200
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $addresses = $this->parse_deposit_addresses($data);
+        $address = $this->safe_value($addresses, $code);
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' fetchDepositAddress did not return an $address for ' . $code . ' - create the deposit $address in the user settings on the exchange website first.');
+        }
+        return $address;
+    }
+
+    public function fetch_transactions_by_type($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'from' => 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            // 'size' => 100, // default 100, max 500
+            // 'direct' => 'prev', // "prev" ascending, "next" descending
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = min (500, $limit);
+        }
+        $method = ($type === 'deposit') ? 'privateGetDepositHistory' : 'privateGetWithdrawHistory';
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 200,
+        //         "$data" => array(
+        //             array(
+        //                 "id" => 1171,
+        //                 "$currency" => "xrp",
+        //                 "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //                 "chain" => "",
+        //                 "amount" => 7.457467,
+        //                 "address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //                 "memo" => "100040",
+        //                 "fee" => 0,
+        //                 "state" => "safe",
+        //                 "created_date" => "2020-04-20 11:23:00",
+        //                 "finished_date" => "2020-04-20 13:23:00"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => $type ));
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '0' => 'pending', // Email Sent
+            '1' => 'canceled', // Cancelled (different from 1 = ok in deposits)
+            '2' => 'pending', // Awaiting Approval
+            '3' => 'failed', // Rejected
+            '4' => 'pending', // Processing
+            '5' => 'failed', // Failure
+            '6' => 'ok', // Completed
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "$code" => 200,
+        //         "withdraw_id" => 700
+        //     }
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "$id" => 1171,
+        //         "$currency" => "xrp",
+        //         "hash" => "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //         "chain" => "",
+        //         "$amount" => 7.457467,
+        //         "$address" => "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "memo" => "100040",
+        //         "$fee" => 0,
+        //         "state" => "safe",
+        //         "created_date" => "2020-04-20 11:23:00",
+        //         "finished_date" => "2020-04-20 13:23:00"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'withdraw_id');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'memo'); // set but unused
+        if ($tag !== null) {
+            if (strlen($tag) < 1) {
+                $tag = null;
+            }
+        }
+        $txid = $this->safe_string($transaction, 'hash');
+        $currencyId = $this->safe_string_upper($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_date'));
+        $updated = $this->parse8601($this->safe_string($transaction, 'finished_date'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
+            'type' => null,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => $fee,
+        );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            // 'chain' => 'ERC20', 'OMNI', 'TRC20', // required for USDT
+            'address' => $address,
+            'amount' => floatval($amount),
+            'currency' => $currency['id'],
+        );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
+        $response = $this->privatePostWithdrawNew (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 200,
+        //         "withdraw_id" => 700
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = ($api === 'v2') ? $api : $this->version;
         $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
@@ -1177,17 +1514,12 @@ class digifinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function date_utc8($timestampMS) {
-        $timedelta = $this->safe_value($this->options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
-        return $this->ymd($timestampMS . $timedelta);
-    }
-
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fall back to default error handler
         }
         $code = $this->safe_string($response, 'code');
-        if ($code === '0') {
+        if (($code === '0') || ($code === '200')) {
             return; // no error
         }
         $feedback = $this->id . ' ' . $responseBody;

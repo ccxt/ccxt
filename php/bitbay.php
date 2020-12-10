@@ -334,7 +334,7 @@ class bitbay extends Exchange {
         //         rate => '280',
         //         startAmount => '0.04',
         //         time => '1568372806924',
-        //         postOnly => false,
+        //         $postOnly => false,
         //         hidden => false,
         //         mode => 'limit',
         //         receivedAmount => '0.0',
@@ -353,6 +353,7 @@ class bitbay extends Exchange {
                 $filled = max (0, $amount - $remaining);
             }
         }
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -364,8 +365,10 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'mode'),
             'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_float($order, 'rate'),
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => $filled,

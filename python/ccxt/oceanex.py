@@ -543,6 +543,7 @@ class oceanex(Exchange):
             'timeInForce': None,
             'side': self.safe_value(order, 'side'),
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'average': self.safe_float(order, 'avg_price'),
             'amount': self.safe_float(order, 'volume'),
             'remaining': self.safe_float(order, 'remaining_volume'),

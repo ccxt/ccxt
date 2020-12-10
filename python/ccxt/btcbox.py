@@ -297,6 +297,7 @@ class btcbox(Exchange):
             'status': status,
             'symbol': symbol,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'trades': trades,
             'fee': None,

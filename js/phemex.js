@@ -864,13 +864,19 @@ module.exports = class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
+        let baseVolume = undefined;
+        if ((market !== undefined) && market['spot']) {
+            baseVolume = this.fromEv (this.safeFloat (ohlcv, 7), market);
+        } else {
+            baseVolume = this.safeInteger (ohlcv, 7);
+        }
         return [
             this.safeTimestamp (ohlcv, 0),
             this.fromEp (this.safeFloat (ohlcv, 3), market),
             this.fromEp (this.safeFloat (ohlcv, 4), market),
             this.fromEp (this.safeFloat (ohlcv, 5), market),
             this.fromEp (this.safeFloat (ohlcv, 6), market),
-            this.fromEv (this.safeFloat (ohlcv, 7), market),
+            baseVolume,
         ];
     }
 
@@ -889,7 +895,9 @@ module.exports = class phemex extends Exchange {
             }
             since = parseInt (since / 1000);
             request['from'] = since;
-            request['to'] = this.sum (since, duration * limit);
+            // time ranges ending in the future are not accepted
+            // https://github.com/ccxt/ccxt/issues/8050
+            request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else if (limit !== undefined) {
             limit = Math.min (limit, 2000);
             request['from'] = now - duration * this.sum (limit, 1);
@@ -1635,7 +1643,9 @@ module.exports = class phemex extends Exchange {
                 filled = Math.min (0, amount - remaining);
             }
         }
-        const timeInForce = this.parseTimeInForce (this.safeStirng (order, 'timeInForce'));
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
+        const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
             'id': id,
@@ -1646,8 +1656,10 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1716,6 +1728,8 @@ module.exports = class phemex extends Exchange {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPrice = this.safeFloat (order, 'stopPx');
+        const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
             'id': id,
@@ -1726,8 +1740,10 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1800,11 +1816,16 @@ module.exports = class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amount, market);
             }
         } else if (market['swap']) {
-            request['orderQty'] = this.toEv (amount, market);
+            request['orderQty'] = parseInt (amount);
         }
         if (type === 'Limit') {
             request['priceEp'] = this.toEp (price, market);
         }
+        const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPxEp'] = this.toEp (stopPrice, market);
+        }
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         const response = await this[method] (this.extend (request, params));
         //

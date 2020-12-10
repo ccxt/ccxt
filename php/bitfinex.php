@@ -892,6 +892,7 @@ class bitfinex extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'average' => $this->safe_float($order, 'avg_execution_price'),
             'amount' => $this->safe_float($order, 'original_amount'),
             'remaining' => $this->safe_float($order, 'remaining_amount'),

@@ -423,6 +423,7 @@ class bitso(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'remaining': remaining,

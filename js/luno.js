@@ -38,7 +38,11 @@ module.exports = class luno extends Exchange {
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.luno.com/api',
+                'api': {
+                    'public': 'https://api.luno.com/api',
+                    'private': 'https://api.luno.com/api',
+                    'exchange': 'https://api.luno.com/api/exchange',
+                },
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -47,6 +51,11 @@ module.exports = class luno extends Exchange {
                 ],
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'markets',
+                    ],
+                },
                 'public': {
                     'get': [
                         'orderbook',
@@ -247,6 +256,7 @@ module.exports = class luno extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -628,7 +638,7 @@ module.exports = class luno extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);

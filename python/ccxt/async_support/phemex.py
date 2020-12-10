@@ -845,13 +845,18 @@ class phemex(Exchange):
         #         48759063370,  # quote volume
         #     ]
         #
+        baseVolume = None
+        if (market is not None) and market['spot']:
+            baseVolume = self.from_ev(self.safe_float(ohlcv, 7), market)
+        else:
+            baseVolume = self.safe_integer(ohlcv, 7)
         return [
             self.safe_timestamp(ohlcv, 0),
             self.from_ep(self.safe_float(ohlcv, 3), market),
             self.from_ep(self.safe_float(ohlcv, 4), market),
             self.from_ep(self.safe_float(ohlcv, 5), market),
             self.from_ep(self.safe_float(ohlcv, 6), market),
-            self.from_ev(self.safe_float(ohlcv, 7), market),
+            baseVolume,
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -868,7 +873,9 @@ class phemex(Exchange):
                 limit = 2000  # max 2000
             since = int(since / 1000)
             request['from'] = since
-            request['to'] = self.sum(since, duration * limit)
+            # time ranges ending in the future are not accepted
+            # https://github.com/ccxt/ccxt/issues/8050
+            request['to'] = min(now, self.sum(since, duration * limit))
         elif limit is not None:
             limit = min(limit, 2000)
             request['from'] = now - duration * self.sum(limit, 1)
@@ -1580,7 +1587,9 @@ class phemex(Exchange):
         if filled is None:
             if (amount is not None) and (remaining is not None):
                 filled = min(0, amount - remaining)
-        timeInForce = self.parse_time_in_force(self.safeStirng(order, 'timeInForce'))
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.from_ep(self.safe_float(order, 'stopPxEp', market))
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1591,8 +1600,10 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1658,6 +1669,8 @@ class phemex(Exchange):
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.safe_float(order, 'stopPx')
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1668,8 +1681,10 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1735,9 +1750,13 @@ class phemex(Exchange):
             else:
                 request['baseQtyEv'] = self.to_ev(amount, market)
         elif market['swap']:
-            request['orderQty'] = self.to_ev(amount, market)
+            request['orderQty'] = int(amount)
         if type == 'Limit':
             request['priceEp'] = self.to_ep(price, market)
+        stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
+        if stopPrice is not None:
+            request['stopPxEp'] = self.to_ep(stopPrice, market)
+        params = self.omit(params, ['stopPx', 'stopPrice'])
         method = 'privatePostSpotOrders' if market['spot'] else 'privatePostOrders'
         response = await getattr(self, method)(self.extend(request, params))
         #

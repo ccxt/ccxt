@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,6 +20,9 @@ module.exports = class digifinex extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -33,6 +36,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -53,7 +58,7 @@ module.exports = class digifinex extends Exchange {
                     'https://docs.digifinex.com',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328422-Fee-Structure-on-DigiFinex',
-                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg/3798****5114',
+                'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
                 'v2': {
@@ -67,7 +72,7 @@ module.exports = class digifinex extends Exchange {
                         'kline',
                         'margin/currencies',
                         'margin/symbols',
-                        'markets', // undocumented
+                        'markets',
                         'order_book',
                         'ping',
                         'spot/symbols',
@@ -75,6 +80,7 @@ module.exports = class digifinex extends Exchange {
                         'trades',
                         'trades/symbols',
                         'ticker',
+                        'currencies', // todo add fetchCurrencies
                     ],
                 },
                 'private': {
@@ -82,6 +88,7 @@ module.exports = class digifinex extends Exchange {
                         '{market}/financelog',
                         '{market}/mytrades',
                         '{market}/order',
+                        '{market}​/order​/detail', // todo add fetchOrder
                         '{market}/order/current',
                         '{market}/order/history',
                         'margin/assets',
@@ -98,16 +105,22 @@ module.exports = class digifinex extends Exchange {
                         'spot/order',
                         'spot/order/current',
                         'spot/order/history',
+                        'deposit/address', // todo add fetchDepositAddress
+                        'deposit/history', // todo add fetchDeposits
+                        'withdraw/history', // todo add fetchWithdrawals
                     ],
                     'post': [
                         '{market}/order/cancel',
                         '{market}/order/new',
+                        '{market}​/order​/batch_new',
                         'margin/order/cancel',
                         'margin/order/new',
                         'margin/position/close',
                         'spot/order/cancel',
                         'spot/order/new',
                         'transfer',
+                        'withdraw/new', // todo add withdraw()
+                        'withdraw/cancel',
                     ],
                 },
             },
@@ -147,6 +160,27 @@ module.exports = class digifinex extends Exchange {
                     '20019': [ BadRequest, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ],
                     '20020': [ DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ],
                     '50000': [ ExchangeError, 'Exception error' ],
+                    '20021': [ BadRequest, 'Invalid currency' ],
+                    '20022': [ BadRequest, 'The ending timestamp must be larger than the starting timestamp' ],
+                    '20023': [ BadRequest, 'Invalid transfer type' ],
+                    '20024': [ BadRequest, 'Invalid amount' ],
+                    '20025': [ BadRequest, 'This currency is not transferable at the moment' ],
+                    '20026': [ InsufficientFunds, 'Transfer amount exceed your balance' ],
+                    '20027': [ PermissionDenied, 'Abnormal account status' ],
+                    '20028': [ PermissionDenied, 'Blacklist for transfer' ],
+                    '20029': [ PermissionDenied, 'Transfer amount exceed your daily limit' ],
+                    '20030': [ BadRequest, 'You have no position on this trading pair' ],
+                    '20032': [ PermissionDenied, 'Withdrawal limited' ],
+                    '20033': [ BadRequest, 'Wrong Withdrawal ID' ],
+                    '20034': [ PermissionDenied, 'Withdrawal service of this crypto has been closed' ],
+                    '20035': [ PermissionDenied, 'Withdrawal limit' ],
+                    '20036': [ ExchangeError, 'Withdrawal cancellation failed' ],
+                    '20037': [ InvalidAddress, 'The withdrawal address, Tag or chain type is not included in the withdrawal management list' ],
+                    '20038': [ InvalidAddress, 'The withdrawal address is not on the white list' ],
+                    '20039': [ ExchangeError, "Can't be canceled in current status" ],
+                    '20040': [ RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day' ],
+                    '20041': [ PermissionDenied, 'Beyond the daily withdrawal limit' ],
+                    '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
                 },
                 'broad': {
                 },
@@ -161,6 +195,95 @@ module.exports = class digifinex extends Exchange {
                 'TEL': 'TEL666',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":5,
+        //                 "currency":"USDT",
+        //                 "withdraw_status":0,
+        //                 "chain":"OMNI"
+        //             },
+        //             {
+        //                 "deposit_status":1,
+        //                 "min_deposit_amount":10,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":10,
+        //                 "min_withdraw_fee":3,
+        //                 "currency":"USDT",
+        //                 "withdraw_status":1,
+        //                 "chain":"ERC20"
+        //             },
+        //             {
+        //                 "deposit_status":0,
+        //                 "min_deposit_amount":0,
+        //                 "withdraw_fee_rate":0,
+        //                 "min_withdraw_amount":0,
+        //                 "min_withdraw_fee":0,
+        //                 "currency":"DGF13",
+        //                 "withdraw_status":0,
+        //                 "chain":""
+        //             },
+        //         ],
+        //         "code":200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const depositStatus = this.safeValue (currency, 'deposit_status', 1);
+            const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
+            const active = depositStatus && withdrawStatus;
+            const fee = this.safeFloat (currency, 'withdraw_fee_rate');
+            if (code in result) {
+                if (Array.isArray (result[code]['info'])) {
+                    result[code]['info'].push (currency);
+                } else {
+                    result[code]['info'] = [ result[code]['info'], currency ];
+                }
+            } else {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'info': currency,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': active,
+                    'fee': fee,
+                    'precision': 8, // todo fix hardcoded value
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeFloat (currency, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -873,6 +996,7 @@ module.exports = class digifinex extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1138,6 +1262,218 @@ module.exports = class digifinex extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
+    parseDepositAddresses (addresses) {
+        const result = {};
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            const code = address['currency'];
+            result[code] = address;
+        }
+        return result;
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "addressTag":"",
+        //         "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //         "currency":"USDT",
+        //         "chain":"ERC20"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'addressTag');
+        const currencyId = this.safeStringUpper (depositAddress, 'currency');
+        const code = this.safeCurrencCode (currencyId);
+        return {
+            'info': depositAddress,
+            'code': code,
+            'address': address,
+            'tag': tag,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "addressTag":"",
+        //                 "address":"0xf1104d9f8624f89775a3e9d480fc0e75a8ef4373",
+        //                 "currency":"USDT",
+        //                 "chain":"ERC20"
+        //             }
+        //         ],
+        //         "code":200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const addresses = this.parseDepositAddresses (data);
+        const address = this.safeValue (addresses, code);
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
+        }
+        return address;
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            // 'currency': currency['id'],
+            // 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
+            // 'size': 100, // default 100, max 500
+            // 'direct': 'prev', // "prev" ascending, "next" descending
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = Math.min (500, limit);
+        }
+        const method = (type === 'deposit') ? 'privateGetDepositHistory' : 'privateGetWithdrawHistory';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "data": [
+        //             {
+        //                 "id": 1171,
+        //                 "currency": "xrp",
+        //                 "hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //                 "chain": "",
+        //                 "amount": 7.457467,
+        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //                 "memo": "100040",
+        //                 "fee": 0,
+        //                 "state": "safe",
+        //                 "created_date": "2020-04-20 11:23:00",
+        //                 "finished_date": "2020-04-20 13:23:00"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, { 'type': type });
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // Email Sent
+            '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+            '2': 'pending', // Awaiting Approval
+            '3': 'failed', // Rejected
+            '4': 'pending', // Processing
+            '5': 'failed', // Failure
+            '6': 'ok', // Completed
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code": 200,
+        //         "withdraw_id": 700
+        //     }
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "id": 1171,
+        //         "currency": "xrp",
+        //         "hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
+        //         "chain": "",
+        //         "amount": 7.457467,
+        //         "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
+        //         "memo": "100040",
+        //         "fee": 0,
+        //         "state": "safe",
+        //         "created_date": "2020-04-20 11:23:00",
+        //         "finished_date": "2020-04-20 13:23:00"
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'id', 'withdraw_id');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'memo'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        const txid = this.safeString (transaction, 'hash');
+        const currencyId = this.safeStringUpper (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_date'));
+        const updated = this.parse8601 (this.safeString (transaction, 'finished_date'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const amount = this.safeFloat (transaction, 'amount');
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
+            'address': address,
+            'amount': parseFloat (amount),
+            'currency': currency['id'],
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostWithdrawNew (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "withdraw_id": 700
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = (api === 'v2') ? api : this.version;
         let url = this.urls['api'] + '/' + version + '/' + this.implodeParams (path, params);
@@ -1173,17 +1509,12 @@ module.exports = class digifinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    dateUTC8 (timestampMS) {
-        const timedelta = this.safeValue (this.options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
-        return this.ymd (timestampMS + timedelta);
-    }
-
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fall back to default error handler
         }
         const code = this.safeString (response, 'code');
-        if (code === '0') {
+        if ((code === '0') || (code === '200')) {
             return; // no error
         }
         const feedback = this.id + ' ' + responseBody;

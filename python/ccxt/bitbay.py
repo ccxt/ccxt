@@ -357,6 +357,7 @@ class bitbay(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = max(0, amount - remaining)
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -368,8 +369,10 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': self.safe_string(order, 'mode'),
             'timeInForce': None,
+            'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_float(order, 'rate'),
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'filled': filled,

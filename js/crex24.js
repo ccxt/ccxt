@@ -127,6 +127,7 @@ module.exports = class crex24 extends Exchange {
             },
             'commonCurrencies': {
                 'BCC': 'BCH',
+                'BIT': 'BitMoney',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'GHOST': 'GHOSTPRISM',
@@ -704,6 +705,7 @@ module.exports = class crex24 extends Exchange {
             }
         }
         const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'info': order,
             'id': id,
@@ -716,6 +718,7 @@ module.exports = class crex24 extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -765,6 +768,7 @@ module.exports = class crex24 extends Exchange {
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
+            params = this.omit (params, 'stopPrice');
         }
         const response = await this.tradingPostPlaceOrder (this.extend (request, params));
         //

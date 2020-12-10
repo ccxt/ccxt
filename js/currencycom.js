@@ -541,7 +541,7 @@ module.exports = class currencycom extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '/');
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'lastPrice');
         const open = this.safeFloat (ticker, 'openPrice');
         let average = undefined;
@@ -897,6 +897,7 @@ module.exports = class currencycom extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

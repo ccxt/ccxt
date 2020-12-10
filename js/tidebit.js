@@ -411,6 +411,7 @@ module.exports = class tidebit extends Exchange {
                 cost = price * filled;
             }
         }
+        const average = this.safeFloat (order, 'avg_price');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -423,6 +424,7 @@ module.exports = class tidebit extends Exchange {
             'timeInForce': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -430,7 +432,7 @@ module.exports = class tidebit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-            'average': undefined,
+            'average': average,
         };
     }
 

@@ -26,8 +26,10 @@ function testOrder (exchange, order, symbol, now) {
     assert ('side' in order);
     assert ((order['side'] === 'buy') || (order['side'] === 'sell'));
     assert ('price' in order);
-    assert (typeof order['price'] === 'number');
-    assert (order['price'] > 0);
+    assert ((order['price'] === undefined) || (typeof order['price'] === 'number'));
+    if (order['price'] !== undefined) {
+        assert (order['price'] > 0);
+    }
     assert ('amount' in order);
     assert (typeof order['amount'] === 'number');
     assert (order['amount'] >= 0);

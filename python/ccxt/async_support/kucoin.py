@@ -379,23 +379,23 @@ class kucoin(Exchange):
         response = await self.publicGetCurrencies(params)
         #
         #     {
-        #       "currency": "OMG",
-        #       "name": "OMG",
-        #       "fullName": "OmiseGO",
-        #       "precision": 8,
-        #       "confirms": 12,
-        #       "withdrawalMinSize": "4",
-        #       "withdrawalMinFee": "1.25",
-        #       "isWithdrawEnabled": False,
-        #       "isDepositEnabled": False,
-        #       "isMarginEnabled": False,
-        #       "isDebitEnabled": False
+        #         "currency": "OMG",
+        #         "name": "OMG",
+        #         "fullName": "OmiseGO",
+        #         "precision": 8,
+        #         "confirms": 12,
+        #         "withdrawalMinSize": "4",
+        #         "withdrawalMinFee": "1.25",
+        #         "isWithdrawEnabled": False,
+        #         "isDepositEnabled": False,
+        #         "isMarginEnabled": False,
+        #         "isDebitEnabled": False
         #     }
         #
-        responseData = response['data']
+        data = self.safe_value(response, 'data', [])
         result = {}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
+        for i in range(0, len(data)):
+            entry = data[i]
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
@@ -981,15 +981,19 @@ class kucoin(Exchange):
                         price = cost / filled
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'amount': amount,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

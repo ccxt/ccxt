@@ -1272,6 +1272,8 @@ class bitpanda(Exchange):
             if (average is not None) and (filled is not None):
                 cost = average * filled
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
+        stopPrice = self.safe_float(order, 'trigger_price')
+        postOnly = self.safe_value(order, 'is_post_only')
         result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1282,8 +1284,10 @@ class bitpanda(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

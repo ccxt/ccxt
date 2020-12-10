@@ -1966,6 +1966,7 @@ class bitget extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,

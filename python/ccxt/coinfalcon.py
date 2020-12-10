@@ -300,6 +300,7 @@ class coinfalcon(Exchange):
             type = type.split('_')
             type = type[0]
         side = self.safe_string(order, 'order_type')
+        postOnly = self.safe_value(order, 'post_only')
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -309,8 +310,10 @@ class coinfalcon(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,

@@ -509,7 +509,7 @@ class itbit extends Exchange {
         //         "funds" => null,
         //         "metadata" => array(),
         //         "clientOrderIdentifier" => null,
-        //         "postOnly" => "False"
+        //         "$postOnly" => "False"
         //     }
         //
         $side = $this->safe_string($order, 'side');
@@ -533,6 +533,8 @@ class itbit extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
+        $postOnlyString = $this->safe_string($order, 'postOnly');
+        $postOnly = ($postOnlyString === 'True');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -544,8 +546,10 @@ class itbit extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

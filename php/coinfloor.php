@@ -486,6 +486,7 @@ class coinfloor extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => null,
             'filled' => null,
             'remaining' => $amount,

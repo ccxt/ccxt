@@ -151,8 +151,9 @@ class poloniex extends Exchange {
                 'GPUC' => 'GPU',
                 'HOT' => 'Hotcoin',
                 'ITC' => 'Information Coin',
-                'PLX' => 'ParallaxCoin',
                 'KEY' => 'KEYCoin',
+                'PLX' => 'ParallaxCoin',
+                'REPV2' => 'REP',
                 'STR' => 'XLM',
                 'SOC' => 'SOCC',
                 'XAP' => 'API Coin',
@@ -193,6 +194,7 @@ class poloniex extends Exchange {
                     'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
                     'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array("error":"Rate must be greater than zero.")
                     'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
+                    'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
@@ -926,6 +928,7 @@ class poloniex extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

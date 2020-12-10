@@ -868,13 +868,19 @@ class phemex extends Exchange {
         //         48759063370, // quote volume
         //     )
         //
+        $baseVolume = null;
+        if (($market !== null) && $market['spot']) {
+            $baseVolume = $this->from_ev($this->safe_float($ohlcv, 7), $market);
+        } else {
+            $baseVolume = $this->safe_integer($ohlcv, 7);
+        }
         return array(
             $this->safe_timestamp($ohlcv, 0),
             $this->from_ep($this->safe_float($ohlcv, 3), $market),
             $this->from_ep($this->safe_float($ohlcv, 4), $market),
             $this->from_ep($this->safe_float($ohlcv, 5), $market),
             $this->from_ep($this->safe_float($ohlcv, 6), $market),
-            $this->from_ev($this->safe_float($ohlcv, 7), $market),
+            $baseVolume,
         );
     }
 
@@ -893,7 +899,9 @@ class phemex extends Exchange {
             }
             $since = intval($since / 1000);
             $request['from'] = $since;
-            $request['to'] = $this->sum($since, $duration * $limit);
+            // time ranges ending in the future are not accepted
+            // https://github.com/ccxt/ccxt/issues/8050
+            $request['to'] = min ($now, $this->sum($since, $duration * $limit));
         } else if ($limit !== null) {
             $limit = min ($limit, 2000);
             $request['from'] = $now - $duration * $this->sum($limit, 1);
@@ -1639,7 +1647,9 @@ class phemex extends Exchange {
                 $filled = min (0, $amount - $remaining);
             }
         }
-        $timeInForce = $this->parse_time_in_force($this->safeStirng ($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $stopPrice = $this->from_ep($this->safe_float($order, 'stopPxEp', $market));
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1650,8 +1660,10 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1720,6 +1732,8 @@ class phemex extends Exchange {
             $lastTradeTimestamp = null;
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        $stopPrice = $this->safe_float($order, 'stopPx');
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1730,8 +1744,10 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -1804,11 +1820,16 @@ class phemex extends Exchange {
                 $request['baseQtyEv'] = $this->to_ev($amount, $market);
             }
         } else if ($market['swap']) {
-            $request['orderQty'] = $this->to_ev($amount, $market);
+            $request['orderQty'] = intval($amount);
         }
         if ($type === 'Limit') {
             $request['priceEp'] = $this->to_ep($price, $market);
         }
+        $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+        if ($stopPrice !== null) {
+            $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
+        }
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $method = $market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
         $response = $this->$method (array_merge($request, $params));
         //

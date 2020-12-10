@@ -488,6 +488,7 @@ class coinone(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,

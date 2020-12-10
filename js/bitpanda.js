@@ -1324,6 +1324,8 @@ module.exports = class bitpanda extends Exchange {
             }
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeFloat (order, 'trigger_price');
+        const postOnly = this.safeValue (order, 'is_post_only');
         const result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1334,8 +1336,10 @@ module.exports = class bitpanda extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

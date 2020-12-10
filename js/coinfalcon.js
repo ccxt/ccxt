@@ -320,6 +320,7 @@ module.exports = class coinfalcon extends Exchange {
             type = type[0];
         }
         const side = this.safeString (order, 'order_type');
+        const postOnly = this.safeValue (order, 'post_only');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -329,8 +330,10 @@ module.exports = class coinfalcon extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,

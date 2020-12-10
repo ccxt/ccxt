@@ -827,31 +827,19 @@ module.exports = class binance extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            let marketType = 'spot';
-            let future = false;
-            let delivery = false;
-            const contractType = this.safeString (market, 'contractType');
-            if (contractType === 'PERPETUAL') {
-                future = true;
-                delivery = false;
-                marketType = 'future';
-            } else if ((contractType === 'CURRENT_QUARTER') || (contractType === 'NEXT_QUARTER')) {
-                future = false;
-                delivery = true;
-                marketType = 'delivery';
-            } else if ('maintMarginPercent' in market) {
-                delivery = ('deliveryDate' in market);
-                future = !delivery;
-                marketType = delivery ? 'delivery' : 'future';
-            }
-            const spot = !(future || delivery);
+            const spot = (type === 'spot');
+            const future = (type === 'future');
+            const delivery = (type === 'delivery');
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = delivery ? id : (base + '/' + quote);
+            const parts = id.split ('_');
+            const lastPart = this.safeString (parts, 1);
+            const idSymbol = (delivery) && (lastPart !== 'PERP');
+            const symbol = idSymbol ? id : (base + '/' + quote);
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
@@ -872,7 +860,7 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': marketType,
+                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
@@ -1830,7 +1818,7 @@ module.exports = class binance extends Exchange {
             }
             stopPriceIsRequired = true;
         } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            // quantityIsRequired = true;
+            quantityIsRequired = true;
             const callbackRate = this.safeFloat (params, 'callbackRate');
             if (callbackRate === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order');
@@ -2436,6 +2424,7 @@ module.exports = class binance extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        const updated = this.safeInteger (transaction, 'successTime');
         return {
             'info': transaction,
             'id': id,
@@ -2443,12 +2432,16 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': updated,
             'fee': fee,
         };
     }

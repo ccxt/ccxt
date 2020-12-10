@@ -140,6 +140,7 @@ class crex24(Exchange):
             },
             'commonCurrencies': {
                 'BCC': 'BCH',
+                'BIT': 'BitMoney',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'GHOST': 'GHOSTPRISM',
@@ -679,6 +680,7 @@ class crex24(Exchange):
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'info': order,
             'id': id,
@@ -691,6 +693,7 @@ class crex24(Exchange):
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -735,6 +738,7 @@ class crex24(Exchange):
                 raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, 'stopPrice')
         response = await self.tradingPostPlaceOrder(self.extend(request, params))
         #
         #     {

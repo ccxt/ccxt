@@ -24,6 +24,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
@@ -1063,6 +1064,7 @@ class kraken(Exchange):
         trades = None
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
+        stopPrice = self.safe_float(order, 'stopprice')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1076,6 +1078,7 @@ class kraken(Exchange):
             'timeInForce': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1600,6 +1603,8 @@ class kraken(Exchange):
             raise CancelPending(self.id + ' ' + body)
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
+        if body.find('Rate limit exceeded') >= 0:
+            raise RateLimitExceeded(self.id + ' ' + body)
         if body[0] == '{':
             if not isinstance(response, basestring):
                 if 'error' in response:

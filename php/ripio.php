@@ -821,6 +821,7 @@ class ripio extends Exchange {
         }
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
+        $stopPrice = $this->safe_float($order, 'stop_price');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -833,6 +834,7 @@ class ripio extends Exchange {
             'timeInForce' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

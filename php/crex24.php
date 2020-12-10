@@ -136,6 +136,7 @@ class crex24 extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCH',
+                'BIT' => 'BitMoney',
                 'BULL' => 'BuySell',
                 'CREDIT' => 'TerraCredit',
                 'GHOST' => 'GHOSTPRISM',
@@ -660,7 +661,7 @@ class crex24 extends Exchange {
         //         "$timeInForce" => "GTC",
         //         "volume" => 4.0,
         //         "$price" => 0.000025,
-        //         "stopPrice" => null,
+        //         "$stopPrice" => null,
         //         "remainingVolume" => 4.0,
         //         "lastUpdate" => null,
         //         "parentOrderId" => null,
@@ -713,6 +714,7 @@ class crex24 extends Exchange {
             }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -725,6 +727,7 @@ class crex24 extends Exchange {
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -774,6 +777,7 @@ class crex24 extends Exchange {
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
+            $params = $this->omit($params, 'stopPrice');
         }
         $response = $this->tradingPostPlaceOrder (array_merge($request, $params));
         //

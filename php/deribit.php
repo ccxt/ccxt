@@ -1099,6 +1099,7 @@ class deribit extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = null;
+        $postOnly = $this->safe_value($order, 'post_only');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1109,6 +1110,7 @@ class deribit extends Exchange {
             'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
