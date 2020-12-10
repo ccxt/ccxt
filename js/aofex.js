@@ -798,6 +798,7 @@ module.exports = class aofex extends Exchange {
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
