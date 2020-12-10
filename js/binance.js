@@ -1565,6 +1565,7 @@ module.exports = class binance extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         return {
             'info': order,
             'id': id,
@@ -1575,6 +1576,7 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'amount': amount,
