@@ -325,6 +325,7 @@ class acx(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
             'stopPrice': None,
