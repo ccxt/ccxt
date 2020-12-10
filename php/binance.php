@@ -1572,6 +1572,7 @@ class binance extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1582,6 +1583,7 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
