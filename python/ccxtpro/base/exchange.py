@@ -142,7 +142,10 @@ class Exchange(BaseExchange):
                     async def send_message(rate_limit):
                         if rate_limit is not None:
                             await client.throttle(rate_limit)
-                        await client.send(message)
+                        try:
+                            await client.send(message)
+                        except ConnectionError as e:
+                            future.reject(e)
                     asyncio.ensure_future(send_message(rate_limit))
 
         connected.add_done_callback(after)
