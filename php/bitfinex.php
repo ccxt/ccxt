@@ -890,6 +890,7 @@ class bitfinex extends Exchange {
             'symbol' => $symbol,
             'type' => $orderType,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
             'stopPrice' => null,
