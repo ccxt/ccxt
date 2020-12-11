@@ -1262,6 +1262,7 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
