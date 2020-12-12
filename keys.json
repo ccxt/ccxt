@@ -21,7 +21,6 @@
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
     "gemini":        { "skip": true },
-    "huobiru":       { "skip": true },
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
     "rightbtc":      { "skip": true },
