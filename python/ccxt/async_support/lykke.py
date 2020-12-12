@@ -477,6 +477,7 @@ class lykke(Exchange):
             'symbol': symbol,
             'type': None,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
