@@ -137,7 +137,7 @@ module.exports = class luno extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const status = this.safeString (market, 'trading_status');
-            const active = (status ==== 'ACTIVE');
+            const active = (status === 'ACTIVE');
             const precision = {
                 'amount': this.safeInteger (market, 'volume_scale'),
                 'price': this.safeInteger (market, 'price_scale'),
