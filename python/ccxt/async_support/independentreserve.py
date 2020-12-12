@@ -270,6 +270,7 @@ class independentreserve(Exchange):
             'symbol': symbol,
             'type': orderType,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
