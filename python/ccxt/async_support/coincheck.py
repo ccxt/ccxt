@@ -189,6 +189,7 @@ class coincheck(Exchange):
             'side': side,
             'type': None,
             'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'price': price,
