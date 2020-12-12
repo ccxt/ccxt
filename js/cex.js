@@ -883,6 +883,7 @@ module.exports = class cex extends Exchange {
             'symbol': symbol,
             'type': (price === undefined) ? 'market' : 'limit',
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
