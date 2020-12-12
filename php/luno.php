@@ -109,16 +109,42 @@ class luno extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetTickers ($params);
+        $response = $this->exchangeGetMarkets ($params);
+        //
+        //     {
+        //         "$markets":array(
+        //             array(
+        //                 "market_id":"BCHXBT",
+        //                 "trading_status":"ACTIVE",
+        //                 "base_currency":"BCH",
+        //                 "counter_currency":"XBT",
+        //                 "min_volume":"0.01",
+        //                 "max_volume":"100.00",
+        //                 "volume_scale":2,
+        //                 "min_price":"0.0001",
+        //                 "max_price":"1.00",
+        //                 "price_scale":6,
+        //                 "fee_scale":8,
+        //             ),
+        //         )
+        //     }
+        //
         $result = array();
-        for ($i = 0; $i < count($response['tickers']); $i++) {
-            $market = $response['tickers'][$i];
-            $id = $market['pair'];
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
+        $markets = $this->safe_value($response, 'markets', array());
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'market_id');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $status = $this->safe_string($market, 'trading_status');
+            $active = ($status === 'ACTIVE');
+            $precision = array(
+                'amount' => $this->safe_integer($market, 'volume_scale'),
+                'price' => $this->safe_integer($market, 'price_scale'),
+            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -126,10 +152,23 @@ class luno extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->safe_float($market, 'min_volume'),
+                        'max' => $this->safe_float($market, 'max_volume'),
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_float($market, 'min_price'),
+                        'max' => $this->safe_float($market, 'max_price'),
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
-                'active' => null,
-                'precision' => $this->precision,
-                'limits' => $this->limits,
             );
         }
         return $result;
