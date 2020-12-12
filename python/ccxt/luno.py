@@ -240,6 +240,7 @@ class luno(Exchange):
             'symbol': symbol,
             'type': None,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
