@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.39.29'
+__version__ = '1.39.30'
 
 # -----------------------------------------------------------------------------
 
@@ -126,7 +126,6 @@ from ccxt.async_support.hitbtc import hitbtc                              # noqa
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobijp import huobijp                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
-from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
@@ -251,7 +250,6 @@ exchanges = [
     'hollaex',
     'huobijp',
     'huobipro',
-    'huobiru',
     'ice3x',
     'idex',
     'independentreserve',
