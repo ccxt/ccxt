@@ -38,7 +38,6 @@ Exchange::$exchanges = array(
     'hitbtc',
     'huobijp',
     'huobipro',
-    'huobiru',
     'idex',
     'kraken',
     'kucoin',

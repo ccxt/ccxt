@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.86'
+__version__ = '0.4.87'
 
 # -----------------------------------------------------------------------------
 
@@ -117,6 +117,7 @@ from ccxt.async_support.foxbit import foxbit                              # noqa
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
+from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
@@ -174,7 +175,6 @@ from ccxtpro.gateio import gateio                                         # noqa
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
 from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401
-from ccxtpro.huobiru import huobiru                                       # noqa: F401
 from ccxtpro.idex import idex                                             # noqa: F401
 from ccxtpro.kraken import kraken                                         # noqa: F401
 from ccxtpro.kucoin import kucoin                                         # noqa: F401
