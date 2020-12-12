@@ -341,7 +341,7 @@ class ftx extends Exchange {
                 'amount' => $sizeIncrement,
                 'price' => $priceIncrement,
             );
-            $entry = array(
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -369,7 +369,6 @@ class ftx extends Exchange {
                 ),
                 'info' => $market,
             );
-            $result[] = $entry;
         }
         return $result;
     }

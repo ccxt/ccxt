@@ -351,7 +351,7 @@ class ftx(Exchange):
                 'amount': sizeIncrement,
                 'price': priceIncrement,
             }
-            entry = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -378,8 +378,7 @@ class ftx(Exchange):
                     },
                 },
                 'info': market,
-            }
-            result.append(entry)
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
