@@ -577,6 +577,7 @@ class oceanex extends Exchange {
             'symbol' => $symbol,
             'type' => $this->safe_value($order, 'ord_type'),
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_value($order, 'side'),
             'price' => $this->safe_float($order, 'price'),
             'stopPrice' => null,
