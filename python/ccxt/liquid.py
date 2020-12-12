@@ -822,6 +822,7 @@ class liquid(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'side': side,
