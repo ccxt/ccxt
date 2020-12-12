@@ -598,6 +598,7 @@ class yobit extends Exchange {
             'lastTradeTimestamp' => null,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
