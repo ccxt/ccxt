@@ -106,16 +106,42 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickers (params);
+        const response = await this.exchangeGetMarkets (params);
+        //
+        //     {
+        //         "markets":[
+        //             {
+        //                 "market_id":"BCHXBT",
+        //                 "trading_status":"ACTIVE",
+        //                 "base_currency":"BCH",
+        //                 "counter_currency":"XBT",
+        //                 "min_volume":"0.01",
+        //                 "max_volume":"100.00",
+        //                 "volume_scale":2,
+        //                 "min_price":"0.0001",
+        //                 "max_price":"1.00",
+        //                 "price_scale":6,
+        //                 "fee_scale":8,
+        //             },
+        //         ]
+        //     }
+        //
         const result = [];
-        for (let i = 0; i < response['tickers'].length; i++) {
-            const market = response['tickers'][i];
-            const id = market['pair'];
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
+        const markets = this.safeValue (response, 'markets', []);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market_id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const status = this.safeString (market, 'trading_status');
+            const active = (status ==== 'ACTIVE');
+            const precision = {
+                'amount': this.safeInteger (market, 'volume_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -123,10 +149,23 @@ module.exports = class luno extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'min_volume'),
+                        'max': this.safeFloat (market, 'max_volume'),
+                    },
+                    'price': {
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': undefined,
-                'precision': this.precision,
-                'limits': this.limits,
             });
         }
         return result;
