@@ -339,7 +339,7 @@ module.exports = class ftx extends Exchange {
                 'amount': sizeIncrement,
                 'price': priceIncrement,
             };
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -366,8 +366,7 @@ module.exports = class ftx extends Exchange {
                     },
                 },
                 'info': market,
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
