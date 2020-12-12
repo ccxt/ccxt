@@ -196,6 +196,16 @@ class luno extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
+        //
+        //     {
+        //         'balance' => [
+        //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00','unconfirmed' => '0.00')]}
+        //         ]
+        //     }
+        //
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($wallets); $i++) {
@@ -205,10 +215,15 @@ class luno extends Exchange {
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
-            $account = $this->account();
-            $account['used'] = $this->sum($reserved, $unconfirmed);
-            $account['total'] = $this->sum($balance, $unconfirmed);
-            $result[$code] = $account;
+            if (is_array($result) && array_key_exists($code, $result)) {
+                $result[$code]['used'] = $this->sum($result[$code]['used'], $reserved, $unconfirmed);
+                $result[$code]['total'] = $this->sum($result[$code]['total'], $balance, $unconfirmed);
+            } else {
+                $account = $this->account();
+                $account['used'] = $this->sum($reserved, $unconfirmed);
+                $account['total'] = $this->sum($balance, $unconfirmed);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

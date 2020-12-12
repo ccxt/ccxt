@@ -190,6 +190,16 @@ class luno(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalance(params)
+        #
+        #     {
+        #         'balance': [
+        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        #         ]
+        #     }
+        #
         wallets = self.safe_value(response, 'balance', [])
         result = {'info': response}
         for i in range(0, len(wallets)):
@@ -199,10 +209,14 @@ class luno(Exchange):
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')
-            account = self.account()
-            account['used'] = self.sum(reserved, unconfirmed)
-            account['total'] = self.sum(balance, unconfirmed)
-            result[code] = account
+            if code in result:
+                result[code]['used'] = self.sum(result[code]['used'], reserved, unconfirmed)
+                result[code]['total'] = self.sum(result[code]['total'], balance, unconfirmed)
+            else:
+                account = self.account()
+                account['used'] = self.sum(reserved, unconfirmed)
+                account['total'] = self.sum(balance, unconfirmed)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
