@@ -193,6 +193,16 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         'balance': [
+        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        //         ]
+        //     }
+        //
         const wallets = this.safeValue (response, 'balance', []);
         const result = { 'info': response };
         for (let i = 0; i < wallets.length; i++) {
@@ -202,10 +212,15 @@ module.exports = class luno extends Exchange {
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
-            const account = this.account ();
-            account['used'] = this.sum (reserved, unconfirmed);
-            account['total'] = this.sum (balance, unconfirmed);
-            result[code] = account;
+            if (code in result) {
+                result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
+                result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
+            } else {
+                const account = this.account ();
+                account['used'] = this.sum (reserved, unconfirmed);
+                account['total'] = this.sum (balance, unconfirmed);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
