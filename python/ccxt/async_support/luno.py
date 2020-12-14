@@ -107,16 +107,42 @@ class luno(Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetTickers(params)
+        response = await self.exchangeGetMarkets(params)
+        #
+        #     {
+        #         "markets":[
+        #             {
+        #                 "market_id":"BCHXBT",
+        #                 "trading_status":"ACTIVE",
+        #                 "base_currency":"BCH",
+        #                 "counter_currency":"XBT",
+        #                 "min_volume":"0.01",
+        #                 "max_volume":"100.00",
+        #                 "volume_scale":2,
+        #                 "min_price":"0.0001",
+        #                 "max_price":"1.00",
+        #                 "price_scale":6,
+        #                 "fee_scale":8,
+        #             },
+        #         ]
+        #     }
+        #
         result = []
-        for i in range(0, len(response['tickers'])):
-            market = response['tickers'][i]
-            id = market['pair']
-            baseId = id[0:3]
-            quoteId = id[3:6]
+        markets = self.safe_value(response, 'markets', [])
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'market_id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            status = self.safe_string(market, 'trading_status')
+            active = (status == 'ACTIVE')
+            precision = {
+                'amount': self.safe_integer(market, 'volume_scale'),
+                'price': self.safe_integer(market, 'price_scale'),
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -124,10 +150,23 @@ class luno(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'min_volume'),
+                        'max': self.safe_float(market, 'max_volume'),
+                    },
+                    'price': {
+                        'min': self.safe_float(market, 'min_price'),
+                        'max': self.safe_float(market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
-                'active': None,
-                'precision': self.precision,
-                'limits': self.limits,
             })
         return result
 
@@ -151,6 +190,16 @@ class luno(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance(params)
+        #
+        #     {
+        #         'balance': [
+        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        #         ]
+        #     }
+        #
         wallets = self.safe_value(response, 'balance', [])
         result = {'info': response}
         for i in range(0, len(wallets)):
@@ -160,10 +209,14 @@ class luno(Exchange):
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')
-            account = self.account()
-            account['used'] = self.sum(reserved, unconfirmed)
-            account['total'] = self.sum(balance, unconfirmed)
-            result[code] = account
+            if code in result:
+                result[code]['used'] = self.sum(result[code]['used'], reserved, unconfirmed)
+                result[code]['total'] = self.sum(result[code]['total'], balance, unconfirmed)
+            else:
+                account = self.account()
+                account['used'] = self.sum(reserved, unconfirmed)
+                account['total'] = self.sum(balance, unconfirmed)
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -240,6 +293,7 @@ class luno(Exchange):
             'symbol': symbol,
             'type': None,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

@@ -869,6 +869,7 @@ class liquid extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => null,
             'status' => $status,
             'symbol' => $symbol,
             'side' => $side,

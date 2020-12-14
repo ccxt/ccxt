@@ -795,6 +795,7 @@ class dsx(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': orderType,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

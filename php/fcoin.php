@@ -596,6 +596,7 @@ class fcoin extends Exchange {
             'symbol' => $symbol,
             'type' => $orderType,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,

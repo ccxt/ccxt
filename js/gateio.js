@@ -690,6 +690,7 @@ module.exports = class gateio extends Exchange {
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,

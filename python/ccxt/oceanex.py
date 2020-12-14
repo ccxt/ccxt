@@ -541,6 +541,7 @@ class oceanex(Exchange):
             'symbol': symbol,
             'type': self.safe_value(order, 'ord_type'),
             'timeInForce': None,
+            'postOnly': None,
             'side': self.safe_value(order, 'side'),
             'price': self.safe_float(order, 'price'),
             'stopPrice': None,

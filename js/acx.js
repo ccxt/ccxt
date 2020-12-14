@@ -346,6 +346,7 @@ module.exports = class acx extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': this.safeFloat (order, 'price'),
             'stopPrice': undefined,

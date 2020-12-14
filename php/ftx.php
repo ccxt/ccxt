@@ -210,6 +210,7 @@ class ftx extends Exchange {
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
                     'No such market' => '\\ccxt\\BadRequest',
+                    'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                 ),
             ),
@@ -340,7 +341,7 @@ class ftx extends Exchange {
                 'amount' => $sizeIncrement,
                 'price' => $priceIncrement,
             );
-            $entry = array(
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -368,7 +369,6 @@ class ftx extends Exchange {
                 ),
                 'info' => $market,
             );
-            $result[] = $entry;
         }
         return $result;
     }

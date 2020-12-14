@@ -349,6 +349,7 @@ class ice3x extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $price,
             'stopPrice' => null,

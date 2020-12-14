@@ -359,6 +359,7 @@ module.exports = class mercado extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,

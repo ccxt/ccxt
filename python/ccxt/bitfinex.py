@@ -848,6 +848,7 @@ class bitfinex(Exchange):
             'symbol': symbol,
             'type': orderType,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': self.safe_float(order, 'price'),
             'stopPrice': None,

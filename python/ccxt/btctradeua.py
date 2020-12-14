@@ -304,6 +304,7 @@ class btctradeua(Exchange):
             'symbol': symbol,
             'type': None,
             'timeInForce': None,
+            'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'price'),
             'stopPrice': None,

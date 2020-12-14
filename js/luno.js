@@ -106,16 +106,42 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickers (params);
+        const response = await this.exchangeGetMarkets (params);
+        //
+        //     {
+        //         "markets":[
+        //             {
+        //                 "market_id":"BCHXBT",
+        //                 "trading_status":"ACTIVE",
+        //                 "base_currency":"BCH",
+        //                 "counter_currency":"XBT",
+        //                 "min_volume":"0.01",
+        //                 "max_volume":"100.00",
+        //                 "volume_scale":2,
+        //                 "min_price":"0.0001",
+        //                 "max_price":"1.00",
+        //                 "price_scale":6,
+        //                 "fee_scale":8,
+        //             },
+        //         ]
+        //     }
+        //
         const result = [];
-        for (let i = 0; i < response['tickers'].length; i++) {
-            const market = response['tickers'][i];
-            const id = market['pair'];
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
+        const markets = this.safeValue (response, 'markets', []);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market_id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const status = this.safeString (market, 'trading_status');
+            const active = (status === 'ACTIVE');
+            const precision = {
+                'amount': this.safeInteger (market, 'volume_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -123,10 +149,23 @@ module.exports = class luno extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'min_volume'),
+                        'max': this.safeFloat (market, 'max_volume'),
+                    },
+                    'price': {
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': undefined,
-                'precision': this.precision,
-                'limits': this.limits,
             });
         }
         return result;
@@ -154,6 +193,16 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         'balance': [
+        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        //         ]
+        //     }
+        //
         const wallets = this.safeValue (response, 'balance', []);
         const result = { 'info': response };
         for (let i = 0; i < wallets.length; i++) {
@@ -163,10 +212,15 @@ module.exports = class luno extends Exchange {
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
-            const account = this.account ();
-            account['used'] = this.sum (reserved, unconfirmed);
-            account['total'] = this.sum (balance, unconfirmed);
-            result[code] = account;
+            if (code in result) {
+                result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
+                result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
+            } else {
+                const account = this.account ();
+                account['used'] = this.sum (reserved, unconfirmed);
+                account['total'] = this.sum (balance, unconfirmed);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -254,6 +308,7 @@ module.exports = class luno extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
