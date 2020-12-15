@@ -15,7 +15,7 @@ class cdax extends huobipro {
             'name' => 'CDAX',
             'countries' => array( 'RU' ),
             'hostname' => 'cdax.io',
-            'pro' => true,
+            'pro' => false,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg',
                 'www' => 'https://cdax.io',
