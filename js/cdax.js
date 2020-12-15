@@ -15,9 +15,9 @@ module.exports = class cdax extends huobipro {
             'hostname': 'cdax.io',
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg',
                 'www': 'https://cdax.io',
-                'referral': 'https://www.huobi.com.ru/invite/?invite_code=esc74',
+                'referral': 'https://cdax.io/invite?invite_code=esc74',
                 'doc': 'https://github.com/cloudapidoc/API_Docs',
                 'fees': 'https://cdax.io/about/fee',
             },
