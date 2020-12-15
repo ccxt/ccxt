@@ -476,6 +476,7 @@ declare module 'ccxt' {
     export class coinspot extends Exchange {}
     export class crex24 extends Exchange {}
     export class currencycom extends Exchange {}
+    export class delta extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}
