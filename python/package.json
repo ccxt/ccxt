@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.39.33",
+  "version": "1.39.34",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -537,7 +537,9 @@
     "bitcoin.com",
     "bibox365.com",
     "vcc.exchange",
-    "VCC Exchange"
+    "VCC Exchange",
+    "cdax.io",
+    "CDAX"
   ],
   "collective": {
     "type": "opencollective",
