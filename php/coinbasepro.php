@@ -242,8 +242,7 @@ class coinbasepro extends \ccxt\coinbasepro {
             $name = 'level2';
             $messageHash = $name . ':' . $marketId;
             if ($type === 'snapshot') {
-                $depth = 50; // default $depth is 50
-                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+                $this->orderbooks[$symbol] = $this->order_book(array());
                 $orderbook = $this->orderbooks[$symbol];
                 $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'asks', array()));
                 $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
