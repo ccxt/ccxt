@@ -766,6 +766,9 @@ module.exports = class coinbasepro extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -777,6 +780,9 @@ module.exports = class coinbasepro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
         }
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -791,6 +797,9 @@ module.exports = class coinbasepro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
         }
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
