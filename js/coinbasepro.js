@@ -600,6 +600,9 @@ module.exports = class coinbasepro extends Exchange {
         const request = {
             'id': market['id'], // fixes issue #2
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
         const response = await this.publicGetProductsIdTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
