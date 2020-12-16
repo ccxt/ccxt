@@ -46,7 +46,6 @@ module.exports = async (exchange, symbol) => {
 
             response = await exchange[method] (symbol, timeframe)
 
-
             now = Date.now ()
 
             assert (response instanceof Array)
