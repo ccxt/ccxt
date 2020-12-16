@@ -749,6 +749,8 @@ class coinbasepro(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -759,6 +761,8 @@ class coinbasepro(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -771,6 +775,8 @@ class coinbasepro(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 

@@ -770,6 +770,9 @@ class coinbasepro extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
         $response = $this->privateGetOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -781,6 +784,9 @@ class coinbasepro extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -795,6 +801,9 @@ class coinbasepro extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
         }
         $response = $this->privateGetOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
