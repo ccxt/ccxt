@@ -239,8 +239,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             const name = 'level2';
             const messageHash = name + ':' + marketId;
             if (type === 'snapshot') {
-                const depth = 50; // default depth is 50
-                this.orderbooks[symbol] = this.orderBook ({}, depth);
+                this.orderbooks[symbol] = this.orderBook ({});
                 const orderbook = this.orderbooks[symbol];
                 this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
                 this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
