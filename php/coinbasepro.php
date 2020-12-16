@@ -604,6 +604,9 @@ class coinbasepro extends Exchange {
         $request = array(
             'id' => $market['id'], // fixes issue #2
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
         $response = $this->publicGetProductsIdTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }

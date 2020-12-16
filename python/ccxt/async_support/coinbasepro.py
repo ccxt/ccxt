@@ -600,6 +600,8 @@ class coinbasepro(Exchange):
         request = {
             'id': market['id'],  # fixes issue  #2
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = await self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
