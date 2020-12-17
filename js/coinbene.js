@@ -29,8 +29,6 @@ module.exports = class coinbene extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
             },
-            'apiKey': 'a92549229b8117f1bd3985af059b98ba',
-            'secret': '64b17d6da47940288c082aaf831fac96',
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
