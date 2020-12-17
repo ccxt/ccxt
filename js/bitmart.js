@@ -1249,7 +1249,7 @@ module.exports = class bitmart extends Exchange {
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
-            request['offset'] = 1;
+            request['offset'] = 1; // max offset * limit < 500
             if (limit === undefined) {
                 limit = 100; // max 100
             }
