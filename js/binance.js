@@ -1754,7 +1754,7 @@ module.exports = class binance extends Exchange {
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
-            request['orderId'] = parseInt (id);
+            request['orderId'] = id;
         }
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
