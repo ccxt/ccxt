@@ -1676,7 +1676,7 @@ class binance(Exchange):
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
-            request['orderId'] = int(id)
+            request['orderId'] = id
         query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
