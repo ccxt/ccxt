@@ -594,7 +594,7 @@ module.exports = class xcalibra extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const request = [ method.toLowerCase (), '/api/' + api + urlPath, nonce ].join ('');
+            const request = [ method.toLowerCase (), '/api/' + api + urlPath, nonce, body ].join ('');
             const signature = this.hmac (this.encode (request), this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + this.apiKey,
