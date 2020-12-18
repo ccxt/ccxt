@@ -1791,7 +1791,9 @@ module.exports = class bitmart extends Exchange {
         //         "data": {}
         //     }
         //
-        return response;
+        return {
+            'info': response,
+        };
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
