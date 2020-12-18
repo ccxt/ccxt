@@ -604,6 +604,9 @@ class coinbasepro extends Exchange {
         $request = array(
             'id' => $market['id'], // fixes issue #2
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
         $response = $this->publicGetProductsIdTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -758,17 +761,10 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         $request = array(
             'status' => 'all',
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['product_id'] = $market['id'];
-        }
-        $response = $this->privateGetOrders (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -779,22 +775,18 @@ class coinbasepro extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
         $response = $this->privateGetOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
         $request = array(
             'status' => 'done',
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['product_id'] = $market['id'];
-        }
-        $response = $this->privateGetOrders (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -600,6 +600,8 @@ class coinbasepro(Exchange):
         request = {
             'id': market['id'],  # fixes issue  #2
         }
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -739,16 +741,10 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'all',
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['product_id'] = market['id']
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
+        return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -757,20 +753,16 @@ class coinbasepro(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit  # default 100
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         request = {
             'status': 'done',
         }
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['product_id'] = market['id']
-        response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
+        return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

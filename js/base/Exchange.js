@@ -577,7 +577,7 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            const json = this.parseJson (responseBody)
+            const json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
 
             const responseHeaders = this.getResponseHeaders (response)
 

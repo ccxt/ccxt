@@ -990,7 +990,7 @@ class okex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = 0.00000001  # default precision, todo: fix "magic constants"
             name = self.safe_string(currency, 'name')
             canDeposit = self.safe_integer(currency, 'can_deposit')
             canWithdraw = self.safe_integer(currency, 'can_withdraw')

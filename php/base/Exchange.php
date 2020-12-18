@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.39.33';
+$version = '1.39.48';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.39.33';
+    const VERSION = '1.39.48';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -103,6 +103,7 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
+        'cdax',
         'cex',
         'chilebit',
         'coinbase',
@@ -120,6 +121,7 @@ class Exchange {
         'coinspot',
         'crex24',
         'currencycom',
+        'delta',
         'deribit',
         'digifinex',
         'dsx',

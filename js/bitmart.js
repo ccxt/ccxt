@@ -48,7 +48,7 @@ module.exports = class bitmart extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
-                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'doc': 'https://developer-pro.bitmart.com/',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
                 'fees': 'https://www.bitmart.com/fee/en',
             },
@@ -1249,7 +1249,7 @@ module.exports = class bitmart extends Exchange {
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
-            request['offset'] = 1;
+            request['offset'] = 1; // max offset * limit < 500
             if (limit === undefined) {
                 limit = 100; // max 100
             }
