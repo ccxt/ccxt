@@ -286,46 +286,69 @@ module.exports = class gopax extends Exchange {
         return result;
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "price":25087000,
+        //         "ask":25107000,
+        //         "askVolume":0.05837704,
+        //         "bid":25087000,
+        //         "bidVolume":0.00398628,
+        //         "volume":350.09171591,
+        //         "quoteVolume":8721016926.06529,
+        //         "time":"2020-12-18T21:42:13.774Z",
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
+        const last = this.safeFloat (ticker, 'price');
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
+        const vwap = this.vwap (baseVolume, quoteVolume);
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return {
+            'symbol': symbol,
+            'info': ticker,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': this.safeFloat (ticker, 'bidVolume'),
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': this.safeFloat (ticker, 'askVolume'),
+            'vwap': vwap,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+        };
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'tradingPair': this.safeString (market, 'symbol').replace ('/', '-'),
+            'tradingPair': market['id'],
         };
-        const statsResponse = await this.publicGetTradingPairsTradingPairStats (this.extend (request, params));
-        const tickerResponse = await this.publicGetTradingPairsTradingPairTicker (this.extend (request, params));
-        const statsKeys = Object.keys (statsResponse);
-        for (let i = 0; i < statsKeys.length; i++) {
-            tickerResponse[statsKeys[i]] = statsResponse[statsKeys[i]];
-        }
-        const timestamp = this.parse8601 (this.safeString (statsResponse, 'time'));
-        const open = this.safeFloat (statsResponse, 'open');
-        const close = this.safeFloat (statsResponse, 'close');
-        const baseVolume = this.safeFloat (statsResponse, 'volume');
-        const quoteVolume = this.safeFloat (tickerResponse, 'quoteVolume');
-        const result = {
-            'symbol': this.safeString (market, 'symbol'),
-            'info': tickerResponse,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (statsResponse, 'high'),
-            'low': this.safeFloat (statsResponse, 'low'),
-            'bid': this.safeFloat (tickerResponse, 'bid'),
-            'bidVolume': this.safeFloat (tickerResponse, 'bidVolume'),
-            'ask': this.safeFloat (tickerResponse, 'ask'),
-            'askVolume': this.safeFloat (tickerResponse, 'askVolume'),
-            'vwap': this.vwap (baseVolume, quoteVolume),
-            'open': open,
-            'close': close,
-            'last': close,
-            'previousClose': undefined,
-            'change': close - open,
-            'percentage': ((close - open) / open) * 100.0,
-            'average': (this.sum (close, open)) / 2.0,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-        };
-        return result;
+        const response = await this.publicGetTradingPairsTradingPairTicker (this.extend (request, params));
+        //
+        //     {
+        //         "price":25087000,
+        //         "ask":25107000,
+        //         "askVolume":0.05837704,
+        //         "bid":25087000,
+        //         "bidVolume":0.00398628,
+        //         "volume":350.09171591,
+        //         "quoteVolume":8721016926.06529,
+        //         "time":"2020-12-18T21:42:13.774Z",
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     parsePublicTrade (trade, market = undefined) {
