@@ -64,6 +64,7 @@ module.exports = class gopax extends Exchange {
                 },
                 'www': 'https://gopax.co.kr/',
                 'doc': 'https://gopax.github.io/API/index.en.html',
+                'fees': 'https://www.gopax.com/feeinfo',
             },
             'api': {
                 'public': {
@@ -100,6 +101,15 @@ module.exports = class gopax extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'percentage': true,
+                    'tierBased': false,
+                    'maker': 0.04 / 100,
+                    'taker': 0.04 / 100,
+                },
+
+            },
             'exceptions': {
                 'broad': {
                     'ERROR_INVALID_ORDER_TYPE': InvalidOrder,
@@ -125,30 +135,60 @@ module.exports = class gopax extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetTradingPairs (params);
+        //
+        //     [
+        //         {
+        //             "id":1,
+        //             "name":"ETH-KRW",
+        //             "baseAsset":"ETH",
+        //             "quoteAsset":"KRW",
+        //             "baseAssetScale":8,
+        //             "quoteAssetScale":0,
+        //             "priceMin":1,
+        //             "restApiOrderAmountMin":{
+        //                 "limitAsk":{"amount":10000,"unit":"KRW"},
+        //                 "limitBid":{"amount":10000,"unit":"KRW"},
+        //                 "marketAsk":{"amount":0.001,"unit":"ETH"},
+        //                 "marketBid":{"amount":10000,"unit":"KRW"},
+        //             },
+        //             "makerFeePercent":0.2,
+        //             "takerFeePercent":0.2,
+        //         },
+        //     ]
+        //
         const results = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const amountObj = this.safeValue (market, 'restApiOrderAmountMin');
+            const id = this.safeString (market, 'name');
+            const numericId = this.safeInteger (market, 'id');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'price': this.safeInteger (market, 'quoteAssetScale'),
+                'amount': this.safeInteger (market, 'baseAssetScale'),
+            };
+            const minimums = this.safeValue (market, 'restApiOrderAmountMin', {});
+            const marketAsk = this.safeValue (minimums, 'marketAsk', {});
+            const marketBid = this.safeValue (minimums, 'marketBid', {});
             results.push ({
-                'id': this.safeString (market, 'id'),
-                'symbol': this.safeString (market, 'name').replace ('-', '/'),
-                'base': this.safeString (market, 'baseAsset'),
-                'quote': this.safeString (market, 'quoteAsset'),
+                'id': id,
+                'info': market,
+                'numericId': numericId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
                 'baseId': this.safeString (market, 'baseAsset'),
                 'quoteId': this.safeString (market, 'quoteAsset'),
                 'active': true,
                 'taker': this.safeFloat (market, 'takerFeePercent'),
                 'maker': this.safeFloat (market, 'makerFeePercent'),
-                'percentage': true,
-                'tierBased': false,
-                'precision': {
-                    'price': this.safeInteger (market, 'quoteAssetScale'),
-                    'amount': this.safeInteger (market, 'baseAssetScale'),
-                    'cost': Math.min (this.sum (this.safeInteger (market, 'quoteAssetScale'), this.safeInteger (market, 'baseAssetScale')), 8),
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (this.safeValue (amountObj, 'marketAsk'), 'amount'),
+                        'min': this.safeFloat (marketAsk, 'amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -156,11 +196,10 @@ module.exports = class gopax extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (this.safeValue (amountObj, 'marketBid'), 'amount'),
+                        'min': this.safeFloat (marketBid, 'amount'),
                         'max': undefined,
                     },
                 },
-                'info': market,
             });
         }
         return results;
