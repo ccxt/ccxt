@@ -10,17 +10,15 @@ const { BadRequest, ArgumentsRequired, InvalidOrder } = require ('./base/errors'
 module.exports = class gopax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            // TODO: Insert correct information
             'id': 'gopax',
             'name': 'Gopax',
-            'countries': [ 'KR' ],
+            'countries': [ 'KR' ], // South Korea
             'version': 'v1',
             'rateLimit': 50,
-            // new metainfo interface
             'has': {
                 // public:
-                'fetchMarkets': true, // GET /trading-pairs
-                'fetchCurrencies': true, // GET /assets
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
                 'fetchOrderBook': true, // GET /trading-pairs/{tradingPair}/book
                 'fetchTicker': true, // GET /trading-pairs/{tradingPair}/ticker, GET /trading-pairs/{tradingPair}/stats
                 'fetchOHLCV': true, // GET /trading-pairs/{tradingPair}/candles
@@ -59,8 +57,8 @@ module.exports = class gopax extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'https://api.gopax.co.kr',
-                    'private': 'https://api.gopax.co.kr',
+                    'public': 'https://api.gopax.com', // or 'https://api.gopax.co.kr'
+                    'private': 'https://api.gopax.com',
                 },
                 'www': 'https://gopax.co.kr/',
                 'doc': 'https://gopax.github.io/API/index.en.html',
@@ -207,29 +205,50 @@ module.exports = class gopax extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
+        //
+        //     [
+        //         {
+        //             "id":"KRW",
+        //             "name":"대한민국 원",
+        //             "scale":0,
+        //             "withdrawalFee":1000,
+        //             "withdrawalAmountMin":5000
+        //         },
+        //         {
+        //             "id":"ETH",
+        //             "name":"이더리움",
+        //             "scale":8,
+        //             "withdrawalFee":0.03,
+        //             "withdrawalAmountMin":0.015
+        //         },
+        //     ]
+        //
         const results = [];
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const fee = this.safeFloat (currency, 'withdrawalFee');
+            const precision = this.safeFloat (currency, 'scale');
             results.push ({
-                'id': this.safeString (currency, 'id'),
-                'code': this.safeString (currency, 'id').toUpperCase (),
-                'name': this.safeString (currency, 'name'),
+                'id': id,
+                'info': currency,
+                'code': code,
+                'name': name,
                 'active': true,
-                'fee': this.safeFloat (currency, 'withdrawalFee'),
-                'precision': this.safeFloat (currency, 'scale'),
+                'fee': fee,
+                'precision': ,
                 'limits': {
                     'amount': {
-                        // Depends on the market, hence undefined for a single currency
                         'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        // Depends on the market, hence undefined for a single currency
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        // Depends on the market, hence undefined for a single currency
                         'min': undefined,
                         'max': undefined,
                     },
@@ -238,7 +257,6 @@ module.exports = class gopax extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': currency,
             });
         }
         return results;
