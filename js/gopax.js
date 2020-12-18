@@ -269,6 +269,21 @@ module.exports = class gopax extends Exchange {
             'tradingPair': market['id'],
         };
         const response = await this.publicGetTradingPairsTradingPairBook (this.extend (request, params));
+        //
+        //     {
+        //         "sequence":17691957,
+        //         "bid":[
+        //             ["17690499",25019000,0.00008904,"1608326468921"],
+        //             ["17691894",25010000,0.4295,"1608326499940"],
+        //             ["17691895",25009000,0.2359,"1608326499953"],
+        //         ],
+        //         "ask":[
+        //             ["17689176",25024000,0.000098,"1608326442006"],
+        //             ["17691351",25031000,0.206,"1608326490418"],
+        //             ["17691571",25035000,0.3996,"1608326493742"],
+        //         ]
+        //     }
+        //
         const nonce = this.safeInteger (response, 'sequence');
         const result = this.parseOrderBook (response, undefined, 'bid', 'ask', 1, 2);
         result['nonce'] = nonce;
