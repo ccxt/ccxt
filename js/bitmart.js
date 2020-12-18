@@ -1758,10 +1758,10 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        let succeeded = [id];
-        if (data !== true) {
-            succeeded = this.safeValue (data, 'succeed');
+        if (data === true) {
+            return this.parseOrder (id, market);
         }
+        const succeeded = this.safeValue (data, 'succeed');
         if (succeeded !== undefined) {
             id = this.safeString (succeeded, 0);
             if (id === undefined) {
