@@ -107,7 +107,6 @@ module.exports = class gopax extends Exchange {
                     'maker': 0.04 / 100,
                     'taker': 0.04 / 100,
                 },
-
             },
             'exceptions': {
                 'broad': {
@@ -267,7 +266,7 @@ module.exports = class gopax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'tradingPair': market['symbol'].replace ('/', '-'),
+            'tradingPair': market['id'],
         };
         const response = await this.publicGetTradingPairsTradingPairBook (this.extend (request, params));
         const nonce = this.safeInteger (response, 'sequence');
