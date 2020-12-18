@@ -262,7 +262,9 @@ module.exports = class Client {
             if (message instanceof Buffer) {
                 message = message.toString ()
             }
-            message = isJsonEncodedObject (message) ? JSON.parse (message.replace (/:(\d{9,}),/g, ':"$1",')) : message
+            if (isJsonEncodedObject (message)) {
+                message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
+            }
             if (this.verbose) {
                 this.print (new Date (), 'onMessage', message)
                 // unlimited depth
