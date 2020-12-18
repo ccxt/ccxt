@@ -17,38 +17,25 @@ module.exports = class gopax extends Exchange {
             'rateLimit': 50,
             'hostname': 'gopax.co.kr', // or 'gopax.com'
             'has': {
-                // public:
-                'fetchMarkets': true,
+                'cancelOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchOrderBook': true, // GET /trading-pairs/{tradingPair}/book
-                'fetchTicker': true, // GET /trading-pairs/{tradingPair}/ticker, GET /trading-pairs/{tradingPair}/stats
-                'fetchOHLCV': true, // GET /trading-pairs/{tradingPair}/candles
-                'fetchTrades': true, // GET /trading-pairs/{tradingPair}/trades
-                'fetchTime': true, // GET /time
-                // private:
-                'fetchBalance': true, // GET /balances
-                'fetchDepositAddress': true, // GET /crypto-deposit-addresses
-                'fetchDepositAddresses': true, // GET /crypto-deposit-addresses
-                'fetchMyTrades': true, // GET /trades
-                'fetchTransactions': true, // GET /deposit-withdrawal-status
-                'fetchWithdrawals': true, // GET /deposit-withdrawal-status
-                'fetchDeposits': true, // GET /deposit-withdrawal-status
-                'fetchOpenOrders': true, // GET /orders
-                'fetchClosedOrders': true, // GET /orders
-                'fetchOrders': true, // GET /orders
-                'fetchOrder': true, // GET /orders/{orderId} or GET /orders/clientOrderId/{clientOrderId}
-                'createOrder': true, // POST /orders
-                'createMarketOrder': true, // Flag to show that market orders are enabled on the exchange
-                'cancelOrder': true, // DELETE /orders/{orderId}
-                // unsupported:
-                'fetchTradingLimits': false, // public, not implemented by many exchanges
-                'fetchTradingFees': false, // public, not implemented by many exchanges
-                'fetchFundingLimits': false, // public, not implemented by many exchanges
-                'editOrder': false, // private, not supported by Gopax API
-                'fetchAccounts': false, // private, not implemented by many exchanges
-                'fetchLedger': false, // private, not implemented by many exchanges
-                'transfer': false, // private, not supported by Gopax API
-                'withdraw': false, // private, not supported by Gopax API
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -129,6 +116,14 @@ module.exports = class gopax extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {"serverTime":1608327726656}
+        //
+        return this.safeInteger (response, 'serverTime');
     }
 
     async fetchMarkets (params = {}) {
@@ -291,6 +286,48 @@ module.exports = class gopax extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'tradingPair': this.safeString (market, 'symbol').replace ('/', '-'),
+        };
+        const statsResponse = await this.publicGetTradingPairsTradingPairStats (this.extend (request, params));
+        const tickerResponse = await this.publicGetTradingPairsTradingPairTicker (this.extend (request, params));
+        const statsKeys = Object.keys (statsResponse);
+        for (let i = 0; i < statsKeys.length; i++) {
+            tickerResponse[statsKeys[i]] = statsResponse[statsKeys[i]];
+        }
+        const timestamp = this.parse8601 (this.safeString (statsResponse, 'time'));
+        const open = this.safeFloat (statsResponse, 'open');
+        const close = this.safeFloat (statsResponse, 'close');
+        const baseVolume = this.safeFloat (statsResponse, 'volume');
+        const quoteVolume = this.safeFloat (tickerResponse, 'quoteVolume');
+        const result = {
+            'symbol': this.safeString (market, 'symbol'),
+            'info': tickerResponse,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (statsResponse, 'high'),
+            'low': this.safeFloat (statsResponse, 'low'),
+            'bid': this.safeFloat (tickerResponse, 'bid'),
+            'bidVolume': this.safeFloat (tickerResponse, 'bidVolume'),
+            'ask': this.safeFloat (tickerResponse, 'ask'),
+            'askVolume': this.safeFloat (tickerResponse, 'askVolume'),
+            'vwap': this.vwap (baseVolume, quoteVolume),
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': close - open,
+            'percentage': ((close - open) / open) * 100.0,
+            'average': (this.sum (close, open)) / 2.0,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+        };
+        return result;
+    }
+
     parsePublicTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const price = this.safeFloat (trade, 'price');
@@ -402,53 +439,6 @@ module.exports = class gopax extends Exchange {
         };
         const response = await this.publicGetTradingPairsTradingPairCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'tradingPair': this.safeString (market, 'symbol').replace ('/', '-'),
-        };
-        const statsResponse = await this.publicGetTradingPairsTradingPairStats (this.extend (request, params));
-        const tickerResponse = await this.publicGetTradingPairsTradingPairTicker (this.extend (request, params));
-        const statsKeys = Object.keys (statsResponse);
-        for (let i = 0; i < statsKeys.length; i++) {
-            tickerResponse[statsKeys[i]] = statsResponse[statsKeys[i]];
-        }
-        const timestamp = this.parse8601 (this.safeString (statsResponse, 'time'));
-        const open = this.safeFloat (statsResponse, 'open');
-        const close = this.safeFloat (statsResponse, 'close');
-        const baseVolume = this.safeFloat (statsResponse, 'volume');
-        const quoteVolume = this.safeFloat (tickerResponse, 'quoteVolume');
-        const result = {
-            'symbol': this.safeString (market, 'symbol'),
-            'info': tickerResponse,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (statsResponse, 'high'),
-            'low': this.safeFloat (statsResponse, 'low'),
-            'bid': this.safeFloat (tickerResponse, 'bid'),
-            'bidVolume': this.safeFloat (tickerResponse, 'bidVolume'),
-            'ask': this.safeFloat (tickerResponse, 'ask'),
-            'askVolume': this.safeFloat (tickerResponse, 'askVolume'),
-            'vwap': this.vwap (baseVolume, quoteVolume),
-            'open': open,
-            'close': close,
-            'last': close,
-            'previousClose': undefined,
-            'change': close - open,
-            'percentage': ((close - open) / open) * 100.0,
-            'average': (this.sum (close, open)) / 2.0,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-        };
-        return result;
-    }
-
-    async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
-        return this.safeInteger (response, 'serverTime');
     }
 
     async fetchBalance (params = {}) {
