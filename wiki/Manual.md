@@ -3280,6 +3280,27 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
+#### Liquidation price
+
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin` collateral left and if it goes any further the position will have negative collateral.
+
+```
+// if long
+(liquidationPrice - price) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+
+
+// if short
+(price - liquidationPrice) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+
+
+// if inverse long
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+
+
+// if inverse short
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+```
+
 #### Loading Futures Markets
 
 All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change 
