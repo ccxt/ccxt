@@ -33,6 +33,7 @@ module.exports = class gopax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
@@ -375,6 +376,33 @@ module.exports = class gopax extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
+    }
+
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingPairsStats (params);
+        //
+        //     [
+        //         {
+        //             "name":"ETH-KRW",
+        //             "open":690500,
+        //             "high":719500,
+        //             "low":681500,
+        //             "close":709500,
+        //             "volume":2784.6081544,
+        //             "time":"2020-12-18T21:54:50.795Z"
+        //         }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     parsePublicTrade (trade, market = undefined) {
