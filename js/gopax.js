@@ -288,6 +288,8 @@ module.exports = class gopax extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // fetchTicker
+        //
         //     {
         //         "price":25087000,
         //         "ask":25107000,
@@ -299,31 +301,55 @@ module.exports = class gopax extends Exchange {
         //         "time":"2020-12-18T21:42:13.774Z",
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "name":"ETH-KRW",
+        //         "open":690500,
+        //         "high":719500,
+        //         "low":681500,
+        //         "close":709500,
+        //         "volume":2784.6081544,
+        //         "time":"2020-12-18T21:54:50.795Z"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const last = this.safeFloat (ticker, 'price');
+        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeFloat2 (ticker, 'price', 'close');
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            average = this.sum (last, open) / 2;
+            change = last - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const vwap = this.vwap (baseVolume, quoteVolume);
-        const symbol = (market === undefined) ? undefined : market['symbol'];
         return {
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': this.safeFloat (ticker, 'bidVolume'),
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': this.safeFloat (ticker, 'askVolume'),
             'vwap': vwap,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
         };
