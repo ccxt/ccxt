@@ -1734,6 +1734,15 @@ module.exports = class bitmart extends Exchange {
         //         }
         //     }
         //
+        // spot alternative
+        //
+        //     {
+        //         "code": 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message": "OK",
+        //         "data": true
+        //     }
+        //
         // contract
         //
         //     {
@@ -1749,7 +1758,10 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const succeeded = this.safeValue (data, 'succeed');
+        let succeeded = [id];
+        if (data !== true) {
+            succeeded = this.safeValue (data, 'succeed');
+        }
         if (succeeded !== undefined) {
             id = this.safeString (succeeded, 0);
             if (id === undefined) {
