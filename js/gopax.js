@@ -15,6 +15,7 @@ module.exports = class gopax extends Exchange {
             'countries': [ 'KR' ], // South Korea
             'version': 'v1',
             'rateLimit': 50,
+            'hostname': 'gopax.co.kr', // or 'gopax.com'
             'has': {
                 // public:
                 'fetchMarkets': true,
@@ -57,8 +58,8 @@ module.exports = class gopax extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'https://api.gopax.com', // or 'https://api.gopax.co.kr'
-                    'private': 'https://api.gopax.com',
+                    'public': 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://gopax.co.kr/',
                 'doc': 'https://gopax.github.io/API/index.en.html',
@@ -238,7 +239,7 @@ module.exports = class gopax extends Exchange {
                 'name': name,
                 'active': true,
                 'fee': fee,
-                'precision': ,
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -761,7 +762,7 @@ module.exports = class gopax extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) { // for authentication in private API calls
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (method !== 'POST' && Object.keys (query).length) {
             url += '?' + this.urlencode (query);
