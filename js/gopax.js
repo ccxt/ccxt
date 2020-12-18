@@ -85,7 +85,7 @@ module.exports = class gopax extends Exchange {
                         'balances/{assetName}',
                         'orders',
                         'orders/{orderId}',
-                        'orders/clientOrderId/{ClientOrderId}',
+                        'orders/clientOrderId/{clientOrderId}',
                         'trades',
                         'deposit-withdrawal-status',
                         'crypto-deposit-addresses',
@@ -96,11 +96,9 @@ module.exports = class gopax extends Exchange {
                     ],
                     'delete': [
                         'orders/{orderId}',
-                        'orders/clientOrderId/{ClientOrderId}',
+                        'orders/clientOrderId/{clientOrderId}',
                     ],
                 },
-            },
-            'fees': {
             },
             'exceptions': {
                 'broad': {
