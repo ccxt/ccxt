@@ -267,6 +267,7 @@ module.exports = class gopax extends Exchange {
         const market = this.market (symbol);
         const request = {
             'tradingPair': market['id'],
+            // 'level': 3, // 1 best bidask, 2 top 50 bidasks, 3 all bidasks
         };
         const response = await this.publicGetTradingPairsTradingPairBook (this.extend (request, params));
         //
