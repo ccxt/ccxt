@@ -42,7 +42,7 @@ module.exports = class gopax extends Exchange {
                 '1m': '1',
                 '5m': '5',
                 '30m': '30',
-                '1440m': '1440',
+                '1d': '1440',
             },
             'urls': {
                 'api': {
