@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { BadRequest, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
