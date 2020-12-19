@@ -536,7 +536,24 @@ module.exports = class gopax extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        return [ohlcv[0], ohlcv[3], ohlcv[2], ohlcv[1], ohlcv[4], ohlcv[5]];
+        //
+        //     [
+        //         1606780800000, // timestamp
+        //         21293000,      // low
+        //         21300000,      // high
+        //         21294000,      // open
+        //         21300000,      // close
+        //         1.019126,      // volume
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
