@@ -463,35 +463,34 @@ module.exports = class gopax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('_isPublic' in trade) {
-            return this.parsePublicTrade (trade, market);
-        }
-        return this.parsePrivateTrade (trade, market);
+        return this.parsePublicTrade (trade, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingPair = market['symbol'].replace ('/', '-');
         const request = {
-            'tradingPair': tradingPair,
+            'tradingPair': market['id'],
+            // 'limit': limit,
+            // 'pastmax': id, // read data older than this ID
+            // 'latestmin': id, // read data newer than this ID
+            // 'after': parseInt (since / 1000),
+            // 'before': this.seconds (),
         };
         if (since !== undefined) {
-            if (since > this.milliseconds ()) {
-                throw new BadRequest ('Starting time should be in the past.');
-            }
-            request['after'] = Math.floor (since / 1000.0);
+            request['after'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
-            if (limit <= 0) {
-                throw new BadRequest ('Limit should be a positive number.');
-            }
             request['limit'] = limit;
         }
         const response = await this.publicGetTradingPairsTradingPairTrades (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['_isPublic'] = true;
-        }
+        //
+        //     [
+        //         {"time":"2020-12-19T12:17:43.000Z","date":1608380263,"id":23903608,"price":25155000,"amount":0.0505,"side":"sell"},
+        //         {"time":"2020-12-19T12:17:13.000Z","date":1608380233,"id":23903604,"price":25140000,"amount":0.019,"side":"sell"},
+        //         {"time":"2020-12-19T12:16:49.000Z","date":1608380209,"id":23903599,"price":25140000,"amount":0.0072,"side":"sell"},
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
