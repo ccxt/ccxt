@@ -542,19 +542,30 @@ module.exports = class gopax extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!(timeframe in this.timeframes)) {
-            throw new BadRequest ('Invalid timeframe');
-        }
-        if (since === undefined) {
-            throw new ArgumentsRequired ('Gopax fetchOHLCV requires since argument being specified explicitly.');
-        }
+        limit = (limit === undefined) ? 1024 : limit; // default 1024
         const request = {
-            'tradingPair': this.safeString (market, 'symbol').replace ('/', '-'),
-            'start': since,
-            'end': this.milliseconds (),
+            'tradingPair': market['id'],
+            // 'start': since,
+            // 'end': this.milliseconds (),
             'interval': this.timeframes[timeframe],
         };
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            const end = this.milliseconds ();
+            request['end'] = end;
+            request['start'] = end - limit * duration * 1000;
+        } else {
+            request['start'] = since;
+            request['end'] = this.sum (since, limit * duration * 1000);
+        }
         const response = await this.publicGetTradingPairsTradingPairCandles (this.extend (request, params));
+        //
+        //     [
+        //         [1606780800000,21293000,21300000,21294000,21300000,1.019126],
+        //         [1606780860000,21237000,21293000,21293000,21263000,0.96800057],
+        //         [1606780920000,21240000,21240000,21240000,21240000,0.11068715],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
