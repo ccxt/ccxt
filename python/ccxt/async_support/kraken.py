@@ -369,7 +369,7 @@ class kraken(Exchange):
 
     def safe_currency_code(self, currencyId, currency=None):
         if len(currencyId) > 3:
-            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+            if ((currencyId.find('X') == 0) or (currencyId.find('Z') == 0)) and (currencyId.find('.') < 0):
                 currencyId = currencyId[1:]
         return super(kraken, self).safe_currency_code(currencyId, currency)
 

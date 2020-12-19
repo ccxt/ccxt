@@ -361,7 +361,7 @@ class kraken extends Exchange {
 
     public function safe_currency_code($currencyId, $currency = null) {
         if (strlen($currencyId) > 3) {
-            if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
+            if (((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) && (mb_strpos($currencyId, '.') < 0)) {
                 $currencyId = mb_substr($currencyId, 1);
             }
         }
