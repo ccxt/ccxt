@@ -914,21 +914,25 @@ module.exports = class gopax extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
-        if (method !== 'POST' && Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
-        }
-        if (api === 'private') {
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
-            let msg = 't' + timestamp + method.toUpperCase () + endpoint;
+            let auth = 't' + timestamp + method + endpoint;
             if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
                 body = this.json (params);
-                msg += body;
+                auth += body;
             } else if (endpoint === '/orders') {
-                msg += '?' + this.urlencode (query);
+                if (Object.keys (query).length) {
+                    auth += '?' + this.urlencode (query);
+                }
             }
             const rawSecret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (msg), rawSecret, 'sha512', 'base64');
+            const signature = this.hmac (this.encode (auth), rawSecret, 'sha512', 'base64');
             headers = {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
