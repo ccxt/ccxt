@@ -206,6 +206,7 @@ module.exports = class kraken extends Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
