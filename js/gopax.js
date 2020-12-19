@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, InvalidOrder } = require ('./base/errors');
+const { BadRequest, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -100,20 +100,21 @@ module.exports = class gopax extends Exchange {
                 'broad': {
                     'ERROR_INVALID_ORDER_TYPE': InvalidOrder,
                     'ERROR_INVALID_AMOUNT': InvalidOrder,
-                    'ERROR_INVALID_TRADING_PAIR': InvalidOrder, // Unlikely to be triggered, due to ccxt.gopax.js implementation
-                    'No such order ID:': InvalidOrder,
-                    'Not enough amount': InvalidOrder,
+                    'ERROR_INVALID_TRADING_PAIR': BadSymbol, // Unlikely to be triggered, due to ccxt.gopax.js implementation
+                    'No such order ID:': OrderNotFound,
+                    'Not enough amount': InsufficientFunds,
                     'Forbidden order type': InvalidOrder,
                     'the client order ID will be reusable which order has already been completed or canceled': InvalidOrder,
-                },
-                'exact': {
-                    'ERROR_NO_SUCH_TRADING_PAIR': InvalidOrder, // Unlikely to be triggered, due to ccxt.gopax.js implementation
+                    'ERROR_NO_SUCH_TRADING_PAIR': BadSymbol, // Unlikely to be triggered, due to ccxt.gopax.js implementation
                     'ERROR_INVALID_ORDER_SIDE': InvalidOrder,
                     'ERROR_NOT_HEDGE_TOKEN_USER': InvalidOrder,
                     'ORDER_EVENT_ERROR_NOT_ALLOWED_BID_ORDER': InvalidOrder, // Triggered only when the exchange is locked
-                    'ORDER_EVENT_ERROR_INSUFFICIENT_BALANCE': InvalidOrder,
+                    'ORDER_EVENT_ERROR_INSUFFICIENT_BALANCE': InsufficientFunds,
                     'Invalid option combination': InvalidOrder,
-                    'No such client order ID': InvalidOrder,
+                    'No such client order ID': OrderNotFound,
+                },
+                'exact': {
+                    '10155': AuthenticationError, // {"errorMessage":"Invalid API key","errorCode":10155}
                 },
             },
         });
@@ -947,16 +948,22 @@ module.exports = class gopax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code === 200) {
+        if (response === undefined) {
             return;
         }
-        if ('errorMessage' in response) {
-            const message = this.safeString (response, 'errorMessage');
-            const feedback = this.id + ' ' + body;
-            const exactExceptions = this.safeValue (this.exceptions, 'exact');
-            const broadExceptions = this.safeValue (this.exceptions, 'broad');
-            this.throwExactlyMatchedException (exactExceptions, message, feedback);
-            this.throwBroadlyMatchedException (broadExceptions, message, feedback);
+        //
+        //     {"errorMessage":"Invalid API key","errorCode":10155}
+        //
+        if (!Array.isArray (response)) {
+            const errorCode = this.safeString (response, 'errorCode');
+            const errorMessage = this.safeString (response, 'errorMessage');
+            if (errorCode !== undefined) {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            } else if (errorMessage !== undefined) {
+                const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            }
         }
     }
 };
