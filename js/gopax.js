@@ -463,7 +463,48 @@ module.exports = class gopax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        return this.parsePublicTrade (trade, market);
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "time":"2020-12-19T12:17:43.000Z",
+        //         "date":1608380263,
+        //         "id":23903608,
+        //         "price":25155000,
+        //         "amount":0.0505,
+        //         "side":"sell",
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const marketId = undefined;
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': this.safeInteger (trade, 'orderId'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': this.safeString (trade, 'position'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
