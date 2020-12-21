@@ -49,6 +49,7 @@ module.exports = class decoin extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchTransactions': true,
                 'fetchTradingFees': true,
+                'fetchTime': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -88,6 +89,7 @@ module.exports = class decoin extends Exchange {
                         'market/get-orderbook/{symbol}',
                         'market/get-chart-data',
                         'market/exchangeInfo',
+                        'time',
                     ],
                 },
                 'private': {
@@ -120,6 +122,8 @@ module.exports = class decoin extends Exchange {
             'options': {
                 'defaultTimeInForce': 'FOK',
                 'symbolSeparator': '-',
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
             'commonCurrencies': {
                 'DTEP': 'DTEP',
@@ -144,6 +148,9 @@ module.exports = class decoin extends Exchange {
         // public
         const response = await this.publicGetMarketExchangeInfo (params);
         const res = await this.publicGetMarketGetCurrencies (params);
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const result = [];
         let baseId = '';
         let quoteId = '';
@@ -1156,8 +1163,22 @@ module.exports = class decoin extends Exchange {
         return response['Result'];
     }
 
+    async fetchTime (params = {}) {
+        // const type = this.safeString2 (this.options, 'fetchTime', 'defaultType', 'spot');
+        const method = 'publicGetTime';
+        const response = await this[method] (params);
+        return this.safeInteger (response, 'Time');
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
+    }
+
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1178,8 +1199,8 @@ module.exports = class decoin extends Exchange {
             } else if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-            const time = this.milliseconds ();
-            const exp_time = time + 50000; // add expiration time of signature in milliseconds
+            const time = this.nonce ();
+            const exp_time = 5000; // add expiration time of signature in milliseconds
             // parameters required to request, in LimitOrder rate is mendatory
             // create string by concating all the required values in gives sequence
             url = url.replace ('%20', ' ');
