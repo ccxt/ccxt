@@ -1,12 +1,12 @@
 'use strict';
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 
 module.exports = class gopax extends Exchange {
     describe () {
@@ -17,6 +17,7 @@ module.exports = class gopax extends Exchange {
             'version': 'v1',
             'rateLimit': 50,
             'hostname': 'gopax.co.kr', // or 'gopax.com'
+            'certified': true,
             'has': {
                 'cancelOrder': true,
                 'createMarketOrder': true,
