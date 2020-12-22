@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -27,7 +27,7 @@ module.exports = class gopax extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
                 'fetchMarkets': true,
-                // 'fetchMyTrades': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 // 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -862,24 +862,41 @@ module.exports = class gopax extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {
+            // 'limit': limit, // max 100
+            // 'pastmax': id, // read data older than this id
+            // 'latestmin': id, // read data newer than this id
+            // 'after': parseInt (since / 1000), // Read data after this timestamp in seconds
+            // 'before': this.seconds (), // Read data before this timestamp in seconds
+            'deepSearch': 'true', // read data older than one month ago are inclusively looked up only when it is "true"
+        };
+        if (since !== undefined) {
+            request['after'] = parseInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 73953,                             // trading event ID
+        //             "orderId": 453324,                       // order ID
+        //             "baseAmount": 3,                         // traded base asset amount
+        //             "quoteAmount": 3000000,                  // traded quote asset amount
+        //             "fee": 0.0012,                           // fee
+        //             "price": 1000000,                        // price
+        //             "timestamp": "2020-09-25T04:06:30.000Z", // trading time
+        //             "side": "buy",                           // buy, sell
+        //             "tradingPairName": "ZEC-KRW",            // order book
+        //             "position": "maker"                      // maker, taker
+        //         },
+        //     ]
+        //
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
-        if (since !== undefined) {
-            if (since > this.milliseconds ()) {
-                throw new BadRequest ('Starting time should be in the past.');
-            }
-            request['after'] = Math.floor (since / 1000.0);
-        }
-        if (limit !== undefined && symbol === undefined) {
-            if (limit <= 0) {
-                throw new BadRequest ('Limit should be a positive number.');
-            }
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
