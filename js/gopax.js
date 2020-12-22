@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -45,12 +45,11 @@ module.exports = class gopax extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg',
                 'api': {
                     'public': 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://gopax.co.kr',
+                'www': 'https://gopax.co.kr/',
                 'doc': 'https://gopax.github.io/API/index.en.html',
                 'fees': 'https://www.gopax.com/feeinfo',
             },
@@ -102,7 +101,7 @@ module.exports = class gopax extends Exchange {
                     'ERROR_INVALID_ORDER_TYPE': InvalidOrder,
                     'ERROR_INVALID_AMOUNT': InvalidOrder,
                     'ERROR_INVALID_TRADING_PAIR': BadSymbol, // Unlikely to be triggered, due to ccxt.gopax.js implementation
-                    'No such order ID:': OrderNotFound,
+                    'No such order ID': OrderNotFound, // {"errorMessage":"No such order ID","errorCode":202,"errorData":"Order server error: 202"}
                     'Not enough amount': InsufficientFunds,
                     'Forbidden order type': InvalidOrder,
                     'the client order ID will be reusable which order has already been completed or canceled': InvalidOrder,
@@ -116,6 +115,8 @@ module.exports = class gopax extends Exchange {
                 },
                 'exact': {
                     '10155': AuthenticationError, // {"errorMessage":"Invalid API key","errorCode":10155}
+                    '10069': OrderNotFound, // {"errorMessage":"No such order ID: 73152094","errorCode":10069,"errorData":"73152094"}
+                    '10212': InvalidOrder, // {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
                 },
             },
             'options': {
@@ -1249,12 +1250,15 @@ module.exports = class gopax extends Exchange {
         if (!Array.isArray (response)) {
             const errorCode = this.safeString (response, 'errorCode');
             const errorMessage = this.safeString (response, 'errorMessage');
+            const feedback = this.id + ' ' + body;
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            } else if (errorMessage !== undefined) {
-                const feedback = this.id + ' ' + body;
+            }
+            if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            }
+            if ((errorCode !== undefined) || (errorMessage !== undefined)) {
+                throw new ExchangeError (feedback);
             }
         }
     }
