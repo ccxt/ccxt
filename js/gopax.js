@@ -37,7 +37,7 @@ module.exports = class gopax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                // 'fetchTransactions': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -995,24 +995,41 @@ module.exports = class gopax extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // Invalid request handling
-        if (since !== undefined && since > this.milliseconds ()) {
-            throw new BadRequest ('Starting time should be in the past.');
-        }
-        if (limit !== undefined && limit <= 0) {
-            throw new BadRequest ('Limit should be a positive integer.');
-        }
-        const request = {};
+        const request = {
+            // 'limit': limit, // max 20
+            // 'latestmin': limit, // read data older than this id
+            // 'after': since,
+            // 'before': this.milliseconds (),
+            // 'completedOnly': 'no',
+        };
         if (since !== undefined) {
             request['after'] = since;
         }
-        if (code === undefined) {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.privateGetDepositWithdrawalStatus (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 640,                     // deposit/withdrawal event ID
+        //             "asset": "BTC",                // asset name
+        //             "type": "crypto_withdrawal",   // fiat_withdrawal, fiat_deposit, crypto_withdrawal, crypto_deposit
+        //             "netAmount": 0.0001,           // amount
+        //             "feeAmount": 0.0005,           // fee (null if there is no imposed fee)
+        //             "status": "completed",         // reviewing, rejected, processing, failed, completed
+        //             "reviewStartedAt": 1595556218, // request time
+        //             "completedAt": 1595556902,     // completion time (showed only in case of completed)
+        //             "txId": "eaca5ad3...",         // tx ID
+        //             "sourceAddress": null,         // sender address (showed only in case of crypto_deposit)
+        //             "destinationAddress: "3H8...", // recipient address (showed only in case of crypto_withdrawal)
+        //             "destinationMemoId": null      // recipient address's memo ID
+        //         },
+        //     ]
+        //
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.safeCurrency (code.toLowerCase ());
+            currency = this.currency (code);
         }
         return this.parseTransactions (response, currency, since, limit, params);
     }
