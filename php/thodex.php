@@ -17,8 +17,8 @@ class thodex extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'urls' => array(
-                'logo' => 'https://cdn.thodex.com/assets/images/logo.svg',
-                'api' => 'https://api.thodex.com/v1',
+                'logo' => 'https://user-images.githubusercontent.com/5405177/102882595-a4a83100-445f-11eb-9e26-679f2bc87742.jpeg',
+                'api' => 'https://api.thodex.com/public/v1',
                 'www' => 'https://www.thodex.com',
                 'doc' => 'https://api.thodex.com',
             ),
@@ -319,9 +319,11 @@ class thodex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
-
         $request = array(
             'market' => strtoupper($market['id']),
             'order_id' => $id,
@@ -331,9 +333,8 @@ class thodex extends Exchange {
 
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->safe_integer($order, 'time');
-        $symbol = $this->safe_string($order, 'market');
         $type = $this->safe_integer($order, 'type', 0);
+        $symbol = $market['symbol'];
 
         if ($type === 1) {
             $type = 'market';
@@ -358,19 +359,25 @@ class thodex extends Exchange {
 
         $cost = null;
         if($remaining !== -1){
+            $timestamp = $this->safe_timestamp($order, 'ctime');
+            $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
             $filled = $amount - $remaining;
+            $status = 'closed';
             if ($cost === null) {
                 if (($price !== null) && ($filled !== null)) {
                     $cost = $price * $filled;
                 }
             }
         }else{
+            $status = 'open';
+            $lastTradeTimestamp = null;
+            $timestamp = $this->safe_timestamp($order, 'time');
             $filled = null;
             $remaining = null;
             $cost = $price * $amount;
         }
 
-        return array(
+        $response = array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -381,7 +388,6 @@ class thodex extends Exchange {
             'status' => 'open',
             'type' => $type,
             'timeInForce' => null,
-            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -391,8 +397,8 @@ class thodex extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => null,
-            'trades' => null,
         );
+        return $response;
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -426,6 +432,7 @@ class thodex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetMarketOrderHistory(array_merge($request, $params));
+        print_r($response);
         $records = $this->safe_value($response['result'], 'records', array());
         return $this->parse_trades($records, $market, $since, $limit);
     }
