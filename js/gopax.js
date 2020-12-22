@@ -643,53 +643,124 @@ module.exports = class gopax extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'placed': 'open',
+            'cancelled': 'canceled',
+            'completed': 'closed',
+            'updated': 'open',
+            'reserved': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
-        const datetime = this.safeString (order, 'createdAt');
-        const gopaxStatus = this.safeString (order, 'status');
-        let status = 'open';
-        if (gopaxStatus === 'cancelled') {
-            status = 'canceled';
-        } else if (gopaxStatus === 'completed') {
-            status = 'closed';
-        }
+        //
+        // cancelOrder
+        //
+        //     {} // empty object
+        //
+        // fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        //
+        //     {
+        //         "id": "453324",                          // order ID
+        //         "clientOrderId": "zeckrw23456",          // client order ID (showed only when it exists)
+        //         "status": "updated",                     // placed, cancelled, completed, updated, reserved
+        //         "forcedCompletionReason": undefined,     // the reason in case it was canceled in the middle (protection or timeInForce)
+        //         "tradingPairName": "ZEC-KRW",            // order book
+        //         "side": "buy",                           // buy, sell
+        //         "type": "limit",                         // limit, market
+        //         "price": 1000000,                        // price
+        //         "stopPrice": undefined,                  // stop price (showed only for stop orders)
+        //         "amount": 4,                             // initial amount
+        //         "remaining": 1,                          // outstanding amount
+        //         "protection": "yes",                     // whether protection is activated (yes or no)
+        //         "timeInForce": "gtc",                    // limit order's time in force (gtc/po/ioc/fok)
+        //         "createdAt": "2020-09-25T04:06:20.000Z", // order placement time
+        //         "updatedAt": "2020-09-25T04:06:29.000Z", // order last update time
+        //         "balanceChange": {
+        //             "baseGross": 3,                      // base asset balance's gross change (in ZEC for this case)
+        //             "baseFee": {
+        //                 "taking": 0,                     // base asset fee imposed as taker
+        //                 "making": -0.0012                // base asset fee imposed as maker
+        //             },
+        //             "baseNet": 2.9988,                   // base asset balance's net change (in ZEC for this case)
+        //             "quoteGross": -3000000,              // quote asset balance's gross change (in KRW for
+        //             "quoteFee": {
+        //                 "taking": 0,                     // quote asset fee imposed as taker
+        //                 "making": 0                      // quote asset fee imposed as maker
+        //             },
+        //             "quoteNet": -3000000                 // quote asset balance's net change (in KRW for this case)
+        //         }
+        //     }
+        //
+        const id = this.safeString (order, 'id');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const timeInForce = this.safeStringUpper (order, 'timeInForce');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         const remaining = this.safeFloat (order, 'remaining');
-        const filled = amount - remaining;
-        const side = this.safeString (order, 'side');
-        const symbol = this.safeString (order, 'tradingPairName').replace ('-', '/');
-        const balanceChange = this.safeValue (order, 'balanceChange');
-        let timeInForce = this.safeString (order, 'timeInForce');
-        if (timeInForce !== undefined) {
-            timeInForce = timeInForce.toUpperCase ();
+        const marketId = this.safeString (order, 'tradingPairName');
+        market = this.safeMarket (marketId, market, '-');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let filled = undefined;
+        let cost = undefined;
+        let updated = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+            if (filled > 0) {
+                updated = this.parse8601 (this.safeString (order, 'updatedAt'));
+            }
+            if (price !== undefined) {
+                cost = filled * price;
+            }
         }
-        const fee = {};
+        const balanceChange = this.safeValue (order, 'balanceChange', {});
+        let fee = undefined;
         if (side === 'buy') {
-            const baseFee = this.safeValue (balanceChange, 'baseFee');
-            fee['currency'] = symbol.slice (0, 3);
-            fee['cost'] = this.sum (Math.abs (this.safeFloat (baseFee, 'taking')), Math.abs (this.safeFloat (baseFee, 'making')));
+            const baseFee = this.safeValue (balanceChange, 'baseFee', {});
+            const taking = this.safeFloat (baseFee, 'taking');
+            const making = this.safeFloat (baseFee, 'making');
+            fee = {
+                'currency': market['base'],
+                'cost': this.sum (taking, making),
+            };
         } else {
-            const quoteFee = this.safeValue (balanceChange, 'quoteFee');
-            fee['currency'] = symbol.slice (4);
-            fee['cost'] = this.sum (Math.abs (this.safeFloat (quoteFee, 'taking')), Math.abs (this.safeFloat (quoteFee, 'making')));
+            const quoteFee = this.safeValue (balanceChange, 'quoteFee', {});
+            const taking = this.safeFloat (quoteFee, 'taking');
+            const making = this.safeFloat (quoteFee, 'making');
+            fee = {
+                'currency': market['quote'],
+                'cost': this.sum (taking, making),
+            };
+        }
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            postOnly = (timeInForce === 'PO');
         }
         return {
-            'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'datetime': datetime,
-            'timestamp': this.parse8601 (datetime),
-            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'updatedAt')),
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': updated,
             'status': status,
-            'symbol': symbol,
-            'type': this.safeString (order, 'type'),
+            'symbol': market['symbol'],
+            'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': price,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': filled * price,
+            'cost': cost,
             'trades': undefined,
             'fee': fee,
             'info': order,
@@ -900,7 +971,7 @@ module.exports = class gopax extends Exchange {
             request['clientOrderId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        const response = await this[method] (this.exted (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {}
         //
@@ -1089,12 +1160,12 @@ module.exports = class gopax extends Exchange {
         const request = {
             // 'limit': limit, // max 20
             // 'latestmin': limit, // read data older than this id
-            // 'after': since,
-            // 'before': this.milliseconds (),
+            // 'after': this.milliseconds (),
+            // 'before': since,
             // 'completedOnly': 'no',
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1141,6 +1212,10 @@ module.exports = class gopax extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             let auth = 't' + timestamp + method + endpoint;
+            headers = {
+                'api-key': this.apiKey,
+                'timestamp': timestamp,
+            };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (params);
@@ -1158,11 +1233,7 @@ module.exports = class gopax extends Exchange {
             }
             const rawSecret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), rawSecret, 'sha512', 'base64');
-            headers = {
-                'api-key': this.apiKey,
-                'timestamp': timestamp,
-                'signature': signature,
-            };
+            headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
