@@ -22,14 +22,13 @@ module.exports = class gopax extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                // 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                // 'fetchOpenOrders': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -797,21 +796,10 @@ module.exports = class gopax extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, limit, { 'includePast': false });
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const allOrders = await this.fetchOrders (symbol, since, undefined);
-        const closedOrders = [];
-        for (let i = 0; i < allOrders.length; i++) {
-            if (this.safeString (allOrders[i], 'status') === 'closed') {
-                closedOrders.push (allOrders[i]);
-                if (limit !== undefined && closedOrders.length === limit) {
-                    break;
-                }
-            }
-        }
-        return closedOrders;
+        const request = {
+            'includePast': 'false',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
