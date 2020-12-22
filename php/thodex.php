@@ -64,7 +64,6 @@ class thodex extends Exchange {
         ));
     }
 
-// $this->publicGetOhlcdata (array_merge($request, $params));
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetPublicMarkets($params);
         $result = array();
