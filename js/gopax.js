@@ -830,6 +830,18 @@ module.exports = class gopax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseDepositAddresses (addresses, codes = undefined) {
+        let result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            result.push (address);
+        }
+        if (codes) {
+            result = this.filterByArray (result, 'currency', codes);
+        }
+        return this.indexBy (result, 'currency');
+    }
+
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetCryptoDepositAddresses (params);
@@ -843,7 +855,7 @@ module.exports = class gopax extends Exchange {
         //         },
         //     ]
         //
-        return this.parseDepositAddresses (response);
+        return this.parseDepositAddresses (response, codes);
     }
 
     async fetchDepositAddress (code, params = {}) {
