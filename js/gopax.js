@@ -32,7 +32,7 @@ module.exports = class gopax extends Exchange {
                 // 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                // 'fetchOrders': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -749,14 +749,50 @@ module.exports = class gopax extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {
+            'includePast': 'true', // if true, completed and canceled orders are included as the result, they are accessible for one hour only from its completion or cancellation time
+            // 'pagination': 'false', // if the result is more than 3,000 orders, set this value as true to access 1000 orders at max per each page
+        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (!('includePast' in params)) {
-            params['includePast'] = 'true';
-        }
-        const response = await this.privateGetOrders (params);
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "453324",                          // order ID
+        //             "clientOrderId": "zeckrw23456",          // client order ID (showed only when it exists)
+        //             "status": "updated",                     // placed, cancelled, completed, updated, reserved
+        //             "forcedCompletionReason": undefined,     // the reason in case it was canceled in the middle (protection or timeInForce)
+        //             "tradingPairName": "ZEC-KRW",            // order book
+        //             "side": "buy",                           // buy, sell
+        //             "type": "limit",                         // limit, market
+        //             "price": 1000000,                        // price
+        //             "stopPrice": undefined,                  // stop price (showed only for stop orders)
+        //             "amount": 4,                             // initial amount
+        //             "remaining": 1,                          // outstanding amount
+        //             "protection": "yes",                     // whether protection is activated (yes or no)
+        //             "timeInForce": "gtc",                    // limit order's time in force (gtc/po/ioc/fok)
+        //             "createdAt": "2020-09-25T04:06:20.000Z", // order placement time
+        //             "updatedAt": "2020-09-25T04:06:29.000Z", // order last update time
+        //             "balanceChange": {
+        //                 "baseGross": 3,                      // base asset balance's gross change (in ZEC for this case)
+        //                 "baseFee": {
+        //                     "taking": 0,                     // base asset fee imposed as taker
+        //                     "making": -0.0012                // base asset fee imposed as maker
+        //                 },
+        //                 "baseNet": 2.9988,                   // base asset balance's net change (in ZEC for this case)
+        //                 "quoteGross": -3000000,              // quote asset balance's gross change (in KRW for
+        //                 "quoteFee": {
+        //                     "taking": 0,                     // quote asset fee imposed as taker
+        //                     "making": 0                      // quote asset fee imposed as maker
+        //                 },
+        //                 "quoteNet": -3000000                 // quote asset balance's net change (in KRW for this case)
+        //             }
+        //         },
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1109,7 +1145,7 @@ module.exports = class gopax extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (method === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1123,7 +1159,13 @@ module.exports = class gopax extends Exchange {
                 auth += body;
             } else if (endpoint === '/orders') {
                 if (Object.keys (query).length) {
-                    auth += '?' + this.urlencode (query);
+                    const urlQuery = '?' + this.urlencode (query);
+                    auth += urlQuery;
+                    url += urlQuery;
+                }
+            } else if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
                 }
             }
             const rawSecret = this.base64ToBinary (this.secret);
