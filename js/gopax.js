@@ -670,15 +670,52 @@ module.exports = class gopax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let response = undefined;
-        if ('ClientOrderId' in params) {
-            response = await this.privateGetOrdersClientOrderIdClientOrderId (params);
+        await this.loadMarkets ();
+        let method = undefined;
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        params = this.omit (params, 'clientOrderId');
+        const request = {};
+        if (clientOrderId === undefined) {
+            method = 'privateGetOrdersOrderId';
+            request['orderId'] = id;
         } else {
-            const request = {
-                'orderId': id,
-            };
-            response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            method = 'privateGetOrdersClientOrderIdClientOrderId';
+            request['clientOrderId'] = clientOrderId;
         }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id": "453324",                          // order ID
+        //         "clientOrderId": "zeckrw23456",          // client order ID (showed only when it exists)
+        //         "status": "updated",                     // placed, cancelled, completed, updated, reserved
+        //         "forcedCompletionReason": undefined,     // the reason in case it was canceled in the middle (protection or timeInForce)
+        //         "tradingPairName": "ZEC-KRW",            // order book
+        //         "side": "buy",                           // buy, sell
+        //         "type": "limit",                         // limit, market
+        //         "price": 1000000,                        // price
+        //         "stopPrice": undefined,                  // stop price (showed only for stop orders)
+        //         "amount": 4,                             // initial amount
+        //         "remaining": 1,                          // outstanding amount
+        //         "protection": "yes",                     // whether protection is activated (yes or no)
+        //         "timeInForce": "gtc",                    // limit order's time in force (gtc/po/ioc/fok)
+        //         "createdAt": "2020-09-25T04:06:20.000Z", // order placement time
+        //         "updatedAt": "2020-09-25T04:06:29.000Z", // order last update time
+        //         "balanceChange": {
+        //             "baseGross": 3,                      // base asset balance's gross change (in ZEC for this case)
+        //             "baseFee": {
+        //                 "taking": 0,                     // base asset fee imposed as taker
+        //                 "making": -0.0012                // base asset fee imposed as maker
+        //             },
+        //             "baseNet": 2.9988,                   // base asset balance's net change (in ZEC for this case)
+        //             "quoteGross": -3000000,              // quote asset balance's gross change (in KRW for
+        //             "quoteFee": {
+        //                 "taking": 0,                     // quote asset fee imposed as taker
+        //                 "making": 0                      // quote asset fee imposed as maker
+        //             },
+        //             "quoteNet": -3000000                 // quote asset balance's net change (in KRW for this case)
+        //         }
+        //     }
+        //
         return this.parseOrder (response);
     }
 
