@@ -830,6 +830,28 @@ module.exports = class gopax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "asset": "BTC",                                  // asset name
+        //         "address": "1CwC2cMFu1jRQUBtw925cENbT1kctJBMdm", // deposit address
+        //         "memoId": null,                                  // memo ID (showed only for assets using memo ID)
+        //         "createdAt": 1594802312                          // deposit address creation time
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'memoId');
+        const currencyId = this.safeString (depositAddress, 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        };
+    }
+
     parseDepositAddresses (addresses, codes = undefined) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {
