@@ -588,17 +588,30 @@ module.exports = class gopax extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
+        //
+        //     [
+        //         {
+        //             "asset": "KRW",                   // asset name
+        //             "avail": 1759466.76,              // available amount to place order
+        //             "hold": 16500,                    // outstanding amount on order books
+        //             "pendingWithdrawal": 0,           // amount being withdrawan
+        //             "lastUpdatedAt": "1600684352032", // balance last update time
+        //         },
+        //     ]
+        //
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const currency = this.safeString (response[i], 'asset');
-            const freeAmount = this.safeFloat (response[i], 'avail');
-            const usedAmount = this.sum (this.safeFloat (response[i], 'hold'), this.safeFloat (response[i], 'pendingWithdrawal'));
-            result[currency] = {
-                'free': freeAmount,
-                'used': usedAmount,
-                'total': this.sum (freeAmount, usedAmount),
-            };
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const hold = this.safeFloat (balance, 'hold');
+            const pendingWithdrawal = this.safeFloat (balance, 'pendingWithdrawal');
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'avail');
+            account['used'] = this.sum (hold, pendingWithdrawal);
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -911,6 +924,10 @@ module.exports = class gopax extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) { // for authentication in private API calls
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
@@ -941,10 +958,6 @@ module.exports = class gopax extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    nonce () {
-        return this.milliseconds ();
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
