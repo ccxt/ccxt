@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
+const { BadRequest, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ module.exports = class gopax extends Exchange {
                 'fetchBalance': true,
                 // 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                // 'fetchDepositAddress': true,
+                'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
@@ -882,12 +882,12 @@ module.exports = class gopax extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.safeString (this.safeCurrency (code), 'code');
-        const addresses = await this.fetchDepositAddresses ([currency], params);
-        if (addresses.length === 0) {
-            throw new BadRequest ('No deposit address found');
+        const response = await this.fetchDepositAddresses (undefined, params);
+        const address = this.safeValue (response, code);
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() ' + code + ' address not found');
         }
-        return addresses[0];
+        return address;
     }
 
     parseTransaction (transaction, currency = undefined) {
