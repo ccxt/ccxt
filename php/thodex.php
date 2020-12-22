@@ -340,8 +340,6 @@ class thodex extends Exchange {
             $type = 'market';
         }else if ($type === 2) {
             $type = 'limit';
-        }else{
-            $type = null;
         }
 
         $side = $this->safe_integer($order, 'side', 0);
@@ -349,43 +347,34 @@ class thodex extends Exchange {
             $side = 'buy';
         }else if ($side === 2) {
             $side = 'sell';
-        }else{
-            $side = null;
         }
 
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $remaining = $this->safe_float($order, 'left', -1);
-
+        $taker_fee = $this->safe_float($order, 'taker_fee', 0);
+        $maker_fee = $this->safe_float($order, 'maker_fee', 0);
+        $fee = $taker_fee + $maker_fee;
+        $timestamp = $this->safe_timestamp($order, 'ctime');
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
+        $filled = $amount - $remaining;
+        $status = 'open';
         $cost = null;
-        if($remaining !== -1){
-            $timestamp = $this->safe_timestamp($order, 'ctime');
-            $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
-            $filled = $amount - $remaining;
-            $status = 'closed';
-            if ($cost === null) {
-                if (($price !== null) && ($filled !== null)) {
-                    $cost = $price * $filled;
-                }
+        if ($cost === null) {
+            if (($price !== null) && ($filled !== null)) {
+                $cost = $price * $filled;
             }
-        }else{
-            $status = 'open';
-            $lastTradeTimestamp = null;
-            $timestamp = $this->safe_timestamp($order, 'time');
-            $filled = null;
-            $remaining = null;
-            $cost = $price * $amount;
         }
 
-        $response = array(
+        return array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'status' => 'open',
+            'status' => $status,
             'type' => $type,
             'timeInForce' => null,
             'side' => $side,
@@ -396,9 +385,8 @@ class thodex extends Exchange {
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
-            'fee' => null,
+            'fee' => $fee,
         );
-        return $response;
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
