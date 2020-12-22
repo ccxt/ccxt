@@ -482,33 +482,57 @@ module.exports = class gopax extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "id": 73953,                             // trading event ID
+        //         "orderId": 453324,                       // order ID
+        //         "baseAmount": 3,                         // traded base asset amount
+        //         "quoteAmount": 3000000,                  // traded quote asset amount
+        //         "fee": 0.0012,                           // fee
+        //         "price": 1000000,                        // price
+        //         "timestamp": "2020-09-25T04:06:30.000Z", // trading time
+        //         "side": "buy",                           // buy, sell
+        //         "tradingPairName": "ZEC-KRW",            // order book
+        //         "position": "maker"                      // maker, taker
+        //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        const marketId = undefined;
-        const symbol = this.safeSymbol (marketId, market, '-');
+        const orderId = this.safeInteger (trade, 'orderId');
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'timestamp'));
+        const marketId = this.safeString (trade, 'tradingPairName');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const side = this.safeString (trade, 'side');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        const amount = this.safeFloat2 (trade, 'amount', 'baseAmount');
+        let cost = this.safeFloat (trade, 'quoteAmount');
+        if (cost === undefined) {
+            if ((price !== undefined) && (amount !== undefined)) {
+                cost = price * amount;
+            }
         }
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['base'],
+            };
+        }
+        const takerOrMaker = this.safeString (trade, 'position');
         return {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': this.safeInteger (trade, 'orderId'),
+            'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': this.safeString (trade, 'position'),
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
