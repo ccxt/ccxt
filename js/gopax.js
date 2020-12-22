@@ -18,7 +18,7 @@ module.exports = class gopax extends Exchange {
             'rateLimit': 50,
             'hostname': 'gopax.co.kr', // or 'gopax.com'
             'has': {
-                // 'cancelOrder': true,
+                'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -840,14 +840,24 @@ module.exports = class gopax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if ('ClientOrderId' in params) {
-            await this.privateDeleteOrdersClientOrderIdClientOrderId (params);
+        await this.loadMarkets ();
+        const request = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateDeleteOrdersOrderId';
+            request['orderId'] = id;
         } else {
-            const request = {
-                'orderId': id,
-            };
-            await this.privateDeleteOrdersOrderId (this.extend (request, params));
+            method = 'privateDeleteOrdersClientOrderIdClientOrderId';
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
+        const response = await this[method] (this.exted (request, params));
+        //
+        //     {}
+        //
+        const order = this.parseOrder (response);
+        return this.extend (order, { 'id': id });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
