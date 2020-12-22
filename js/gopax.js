@@ -21,22 +21,22 @@ module.exports = class gopax extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': true,
+                // 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
+                // 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
+                // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': true,
+                // 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                // 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': true,
+                // 'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -831,26 +831,19 @@ module.exports = class gopax extends Exchange {
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetCryptoDepositAddresses (params);
-        const addresses = [];
-        const codesObj = {};
-        if (codes !== undefined) {
-            for (let i = 0; i < codes.length; i++) {
-                codesObj[codes[i]] = true;
-            }
-        }
-        for (let i = 0; i < response.length; i++) {
-            const currency = this.safeString (response[i], 'asset');
-            if (codes === undefined || (currency in codesObj)) {
-                addresses.push ({
-                    'currency': currency,
-                    'address': this.safeString (response[i], 'address'),
-                    'tag': this.safeString (response[i], 'memoId'),
-                    'info': response[i],
-                });
-            }
-        }
-        return addresses;
+        //
+        //     [
+        //         {
+        //             "asset": "BTC",                                  // asset name
+        //             "address": "1CwC2cMFu1jRQUBtw925cENbT1kctJBMdm", // deposit address
+        //             "memoId": null,                                  // memo ID (showed only for assets using memo ID)
+        //             "createdAt": 1594802312                          // deposit address creation time
+        //         },
+        //     ]
+        //
+        return this.parseDepositAddresses (response);
     }
 
     async fetchDepositAddress (code, params = {}) {
