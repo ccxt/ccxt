@@ -943,53 +943,79 @@ module.exports = class gopax extends Exchange {
         return address;
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'reviewing': 'pending',
+            'rejected': 'rejected',
+            'processing': 'pending',
+            'failed': 'failed',
+            'completed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
-        const gopaxType = this.safeString (transaction, 'type');
-        let type = 'deposit';
-        if (gopaxType === 'crypto_withdrawal' || gopaxType === 'fiat_withdrawal') {
+        //
+        //     {
+        //         "id": 640,                     // deposit/withdrawal event ID
+        //         "asset": "BTC",                // asset name
+        //         "type": "crypto_withdrawal",   // fiat_withdrawal, fiat_deposit, crypto_withdrawal, crypto_deposit
+        //         "netAmount": 0.0001,           // amount
+        //         "feeAmount": 0.0005,           // fee (null if there is no imposed fee)
+        //         "status": "completed",         // reviewing, rejected, processing, failed, completed
+        //         "reviewStartedAt": 1595556218, // request time
+        //         "completedAt": 1595556902,     // completion time (showed only in case of completed)
+        //         "txId": "eaca5ad3...",         // tx ID
+        //         "sourceAddress": null,         // sender address (showed only in case of crypto_deposit)
+        //         "destinationAddress: "3H8...", // recipient address (showed only in case of crypto_withdrawal)
+        //         "destinationMemoId": null      // recipient address's memo ID
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'txId');
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let type = this.safeString (transaction, 'type');
+        if ((type === 'crypto_withdrawal') || (type === 'fiat_withdrawal')) {
             type = 'withdrawal';
+        } else if ((type === 'crypto_deposit' || type === 'fiat_deposit')) {
+            type = 'deposit';
         }
         const amount = this.safeFloat (transaction, 'netAmount');
-        const fee = this.safeFloat (transaction, 'feeAmount');
-        let rate = 0;
-        if (fee !== undefined && amount !== undefined && amount !== 0) {
-            rate = fee / amount;
+        const feeCost = this.safeFloat (transaction, 'feeAmount');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
         }
-        const timestamp = this.safeInteger (transaction, 'reviewStartedAt') * 1000;
-        let updated = timestamp;
-        if ('completedAt' in transaction) {
-            const updatedAt = this.safeInteger (transaction, 'completedAt');
-            if (updatedAt) {
-                updated = updatedAt * 1000;
-            }
-        }
-        let code = this.safeString (transaction, 'asset');
-        if (!code) {
-            code = currency.code;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'reviewStartedAt');
+        const updated = this.safeTimestamp (transaction, 'completedAt');
+        const addressFrom = this.safeString (transaction, 'sourceAddress');
+        const addressTo = this.safeString (transaction, 'destinationAddress');
+        const tagFrom = this.safeString (transaction, 'sourceMemoId');
+        const tagTo = this.safeString (transaction, 'destinationMemoId');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
-            'id': this.safeInteger (transaction, 'id'),
-            'txid': this.safeString (transaction, 'txId'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'addressFrom': this.safeString (transaction, 'sourceAddress'),
-            'address': undefined,
-            'addressTo': this.safeString (transaction, 'destinationAddress'),
-            'tagFrom': this.safeString (transaction, 'sourceMemoId'),
-            'tag': undefined,
-            'tagTo': this.safeString (transaction, 'destinationMemoId'),
+            'addressFrom': addressFrom,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': tagFrom,
+            'tag': tagTo,
+            'tagTo': tagTo,
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': this.safeString (transaction, 'status'),
+            'status': status,
             'updated': updated,
             'comment': undefined,
-            'fee': {
-                'currency': code,
-                'cost': fee,
-                'rate': rate,
-            },
+            'fee': fee,
         };
     }
 
