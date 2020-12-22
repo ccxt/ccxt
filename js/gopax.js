@@ -49,7 +49,7 @@ module.exports = class gopax extends Exchange {
                     'public': 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://gopax.co.kr/',
+                'www': 'https://gopax.co.kr',
                 'doc': 'https://gopax.github.io/API/index.en.html',
                 'fees': 'https://www.gopax.com/feeinfo',
             },
@@ -156,7 +156,7 @@ module.exports = class gopax extends Exchange {
         //         },
         //     ]
         //
-        const results = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'name');
@@ -173,7 +173,7 @@ module.exports = class gopax extends Exchange {
             const minimums = this.safeValue (market, 'restApiOrderAmountMin', {});
             const marketAsk = this.safeValue (minimums, 'marketAsk', {});
             const marketBid = this.safeValue (minimums, 'marketBid', {});
-            results.push ({
+            result.push ({
                 'id': id,
                 'info': market,
                 'numericId': numericId,
@@ -202,7 +202,7 @@ module.exports = class gopax extends Exchange {
                 },
             });
         }
-        return results;
+        return result;
     }
 
     async fetchCurrencies (params = {}) {
@@ -225,7 +225,7 @@ module.exports = class gopax extends Exchange {
         //         },
         //     ]
         //
-        const results = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'id');
@@ -233,7 +233,7 @@ module.exports = class gopax extends Exchange {
             const name = this.safeString (currency, 'name');
             const fee = this.safeFloat (currency, 'withdrawalFee');
             const precision = this.safeFloat (currency, 'scale');
-            results.push ({
+            result[code] = {
                 'id': id,
                 'info': currency,
                 'code': code,
@@ -259,9 +259,9 @@ module.exports = class gopax extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
-        return results;
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1206,7 +1206,7 @@ module.exports = class gopax extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
