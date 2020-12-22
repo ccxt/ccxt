@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,7 +18,7 @@ module.exports = class gopax extends Exchange {
             'rateLimit': 50,
             'hostname': 'gopax.co.kr', // or 'gopax.com'
             'has': {
-                'cancelOrder': true,
+                // 'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -116,6 +117,9 @@ module.exports = class gopax extends Exchange {
                 'exact': {
                     '10155': AuthenticationError, // {"errorMessage":"Invalid API key","errorCode":10155}
                 },
+            },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -751,49 +755,88 @@ module.exports = class gopax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // Initial error handling
-        if (type !== 'market' && type !== 'limit') {
-            throw new InvalidOrder ('ERROR_INVALID_ORDER_TYPE');
-        }
-        if (side !== 'buy' && side !== 'sell') {
-            throw new InvalidOrder ('ERROR_INVALID_ORDER_SIDE');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingPairName = this.safeString (market, 'symbol').replace ('/', '-');
         const request = {
-            'tradingPairName': tradingPairName,
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
+            // 'clientOrderId': 'test4321', // max 20 characters of [a-zA-Z0-9_-]
+            'tradingPairName': market['id'],
+            'side': side, // buy, sell
+            'type': type, // limit, market
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'stopPrice': this.priceToPrecision (symbol, stopPrice), // optional, becomes a stop order if set
+            // 'amount': this.amountToPrecision (symbol, amount),
+            // 'protection': 'no', // whether protection is activated
+            // 'timeInForce': 'gtc', // gtc, po, ioc, fok
         };
-        if ('clientOrderId' in params) {
-            const clientOrderId = this.safeInteger (params, 'clientOrderId');
-            if (clientOrderId !== undefined) {
-                request['clientOrderId'] = clientOrderId;
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let total = amount;
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument");
+                    }
+                    total = price * amount;
+                }
+                const precision = market['precision']['price'];
+                request['amount'] = this.decimalToPrecision (total, TRUNCATE, precision, this.precisionMode);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
         }
-        if ('stopPrice' in params) {
-            const stopPrice = this.safeFloat (params, 'stopPrice');
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = stopPrice;
-            }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
         }
-        if ('protection' in params) {
-            const protection = this.safeString (params, 'protection');
-            if (protection !== undefined) {
-                request['protection'] = protection;
-            }
+        const stopPrice = this.safeFloat (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, 'stopPrice');
         }
-        if ('timeInForce' in params) {
-            const timeInForce = this.safeString (params, 'timeInForce');
-            if (timeInForce !== undefined) {
-                request['timeInForce'] = timeInForce;
-            }
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+            params = this.omit (params, 'timeInForce');
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response);
+        //
+        //     {
+        //         "id": "453327",                          // order ID
+        //         "clientOrderId": "test4321",             // client order ID (showed only when it exists)
+        //         "status": "reserved",                    // placed, cancelled, completed, updated, reserved
+        //         "forcedCompletionReason": undefined,     // the reason in case it was canceled in the middle (protection or timeInForce)
+        //         "tradingPairName": "BCH-KRW",            // order book
+        //         "side": "sell",                          // buy, sell
+        //         "type": "limit",                         // limit, market
+        //         "price": 11000000,                       // price
+        //         "stopPrice": 12000000,                   // stop price (showed only for stop orders)
+        //         "amount": 0.5,                           // initial amount
+        //         "remaining": 0.5,                        // outstanding amount
+        //         "protection": "no",                      // whether protection is activated (yes or no)
+        //         "timeInForce": "gtc",                    // limit order's time in force (gtc/po/ioc/fok)
+        //         "createdAt": "2020-09-25T04:51:31.000Z", // order placement time
+        //         "balanceChange": {
+        //             "baseGross": 0,                      // base asset balance's gross change (in BCH for this case)
+        //             "baseFee": {
+        //                 "taking": 0,                     // base asset fee imposed as taker
+        //                 "making": 0                      // base asset fee imposed as maker
+        //             },
+        //             "baseNet": 0,                        // base asset balance's net change (in BCH for this case)
+        //             "quoteGross": 0,                     // quote asset balance's gross change (in KRW for
+        //             "quoteFee": {
+        //                 "taking": 0,                     // quote asset fee imposed as taker
+        //                 "making": 0                      // quote asset fee imposed as maker
+        //             },
+        //             "quoteNet": 0                        // quote asset balance's net change (in KRW for this case)
+        //         }
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
