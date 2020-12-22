@@ -432,7 +432,6 @@ class thodex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetMarketOrderHistory(array_merge($request, $params));
-        print_r($response);
         $records = $this->safe_value($response['result'], 'records', array());
         return $this->parse_trades($records, $market, $since, $limit);
     }
