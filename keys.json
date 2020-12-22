@@ -1,5 +1,5 @@
 {
-    "bitfinex": {"skip": false},
+    "currencycom": {"skip": true}
     "dsx": {"skip": true},
     "idex": {"skip": true},
     "ripio": {"skip": true},
