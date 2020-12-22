@@ -993,30 +993,6 @@ module.exports = class gopax extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const transactions = await this.fetchTransactions (code, since, limit, params);
-        const deposits = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const type = this.safeString (transactions[i], 'type');
-            if (type === 'deposit') {
-                deposits.push (transactions[i]);
-            }
-        }
-        return deposits;
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const transactions = await this.fetchTransactions (code, since, limit, params);
-        const withdrawals = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const type = this.safeString (transactions[i], 'type');
-            if (type === 'withdrawal') {
-                withdrawals.push (transactions[i]);
-            }
-        }
-        return withdrawals;
-    }
-
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // Invalid request handling
