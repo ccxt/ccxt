@@ -46,7 +46,7 @@ The structure of the library can be outlined as follows:
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
 - [Exchanges](#exchanges)
-- [Unified API](#unified-api)
+- [Markets](#markets)
 - [API Methods / Endpoints](#api-methods--endpoints)
 - [Market Data](#market-data)
 - [Trading](#trading)
@@ -184,75 +184,6 @@ The CCXT library currently supports the following 125 cryptocurrency exchange ma
 | [![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)](https://www.zb.com)                                                                 | zb                 | [ZB](https://www.zb.com)                                                                | 1   | [API](https://www.zb.com/i/developer)                                                       |                                                                                                                             |                                                                              |
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have [dark pools](https://en.wikipedia.org/wiki/Dark_pool), [OTC](https://en.wikipedia.org/wiki/Over-the-counter_(finance)) (over-the-counter trading), merchant APIs and much more.
-
-
-## Unified API
-
-The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
-
-- [`fetchMarkets ([params])`](#market-structure): Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
-- [`fetchCurrencies ([params])`](#currency-structure): Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded. [structure]- `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- [`fetchOrderBook (symbol[, limit = undefined[, params = {}]])`](#order-book-structure): Fetch L2/L3 order book for a particular market trading symbol.
-- [`fetchTicker (symbol)`](#ticker-structure)
-- [`fetchBalance ()`](#balance-structure)
-- [`createOrder (symbol, type, side, amount[, price[, params]])`](#order-structure)
-- [`createLimitBuyOrder (symbol, amount, price[, params])`](#order-structure)
-- [`createLimitSellOrder (symbol, amount, price[, params])`](#order-structure)
-- [`createMarketBuyOrder (symbol, amount[, params])`](#order-structure)
-- [`createMarketSellOrder (symbol, amount[, params])`](#order-structure)
-- [`cancelOrder (id[, symbol[, params]])`](#order-structure)
-- [`fetchOrder (id[, symbol[, params]])`](#order-structure)
-- [`fetchOrders ([symbol[, since[, limit[, params]]]])`](#all-orders)
-- [`fetchOpenOrders ([symbol[, since, limit, params]]]])`](#open-orders)
-- [`fetchClosedOrders ([symbol[, since[, limit[, params]]]])`](#closed-orders)
-- [`fetchTrades (symbol[, since[, [limit, [params]]]])`](#trade-structure): Fetch recent trades for a particular trading symbol. 
-- [`fetchMyTrades ([symbol[, since[, limit[, params]]]])`](#trade-structure)
-- [`fetchTransactions ([symbol[, since[, limit[, params]]]])`](#transaction-structure)
-- [`fetchWithdrawals ([symbol[, since[, limit[, params]]]])`](#withdraw)
-- [`fetchDeposits ([symbol[, since[, limit[, params]]]])`](#deposit)
-- [`fetchDepositAddress (code, params)`](#address-structure)
-- [`fetchPositions ([symbols[, since[, limit[, params]]]])`](#position-structure) **RECENTLY UNIFIED**
-- ...
-
-### Overriding Unified API Params
-
-Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
-
-```JavaScript
-// JavaScript
-(async () => {
-
-    const params = {
-        'foo': 'bar',      // exchange-specific overrides in unified queries
-        'Hello': 'World!', // see their docs for more details on parameter names
-    }
-
-    // the overrides go into the last argument to the unified call ↓ HERE
-    const result = await exchange.fetchOrderBook (symbol, length, params)
-}) ()
-```
-
-```Python
-# Python
-params = {
-    'foo': 'bar',       # exchange-specific overrides in unified queries
-    'Hello': 'World!',  # see their docs for more details on parameter names
-}
-
-# overrides go in the last argument to the unified call ↓ HERE
-result = exchange.fetch_order_book(symbol, length, params)
-```
-
-```PHP
-// PHP
-$params = array (
-    'foo' => 'bar',       // exchange-specific overrides in unified queries
-    'Hello' => 'World!',  // see their docs for more details on parameter names
-}
-
-// overrides go into the last argument to the unified call ↓ HERE
-$result = $exchange->fetch_order_book ($symbol, $length, $params);
-```
 
 ## Instantiation
 
@@ -488,7 +419,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the `enableRateLimit` property to true.
 
-- `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own [rate limiting](#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
+- `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own [rate limiting](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
 
 - `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string. The value of `userAgent` may be overrided by HTTP `headers` property below.
 
@@ -510,7 +441,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://crossorigin.me/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
-- `apiKey`: This is your public API key string literal. Most exchanges require [API keys setup](#api-keys-setup).
+- `apiKey`: This is your public API key string literal. Most exchanges require [API keys setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup).
 
 - `secret`: Your private secret API key string literal. Most exchanges require this as well together with the apiKey.
 
@@ -524,7 +455,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
 
-See this section on [Overriding exchange properties](#overriding-exchange-properties-upon-instantiation).
+See this section on [Overriding exchange properties](https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation).
 
 #### Exchange Metadata
 
@@ -633,9 +564,9 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 
 A later retry is usually enough to handle that. More on that here:
 
-- [Authentication](#authentication)
-- [Troubleshooting](#troubleshooting)
-- [Overriding The Nonce](#overriding-the-nonce)
+- [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
+- [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
+- [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 
 ### Notes On Rate Limiter
 
@@ -980,50 +911,6 @@ Apart from the market info, the `loadMarkets()` call will also load the currenci
 
 The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the `loadMarkets()` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
 
-## Market Cache Force Reload
-
-The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
-
-When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
-
-```JavaScript
-// JavaScript
-(async () => {
-    let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
-    await kraken.load_markets () // request markets
-    console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
-    console.log (Object.keys (kraken.markets)) // output a short list of market symbols
-    console.log (kraken.markets['BTC/USD'])    // output single market details
-    await kraken.load_markets () // return a locally cached version, no reload
-    let reloadedMarkets = await kraken.load_markets (true) // force HTTP reload = true
-    console.log (reloadedMarkets['ETH/BTC'])
-}) ()
-```
-
-```Python
-# Python
-poloniex = ccxt.poloniex({'verbose': True}) # log HTTP requests
-poloniex.load_markets() # request markets
-print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
-print(list(poloniex.markets.keys())) # output a short list of market symbols
-print(poloniex.markets['BTC/ETH'])     # output single market details
-poloniex.load_markets() # return a locally cached version, no reload
-reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
-print(reloadedMarkets['ETH/ZEC'])
-```
-
-```PHP
-// PHP
-$bitfinex = new \ccxt\bitfinex (array ('verbose' => true)); // log HTTP requests
-$bitfinex.load_markets (); // request markets
-var_dump ($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
-var_dump (array_keys ($bitfinex->markets));   // output a short list of market symbols
-var_dump ($bitfinex->markets['XRP/USD']);     // output single market details
-$bitfinex->load_markets (); // return a locally cached version, no reload
-$reloadedMarkets = $bitfinex->load_markets (true); // force HTTP reload = true
-var_dump ($bitfinex->markets['XRP/BTC']);
-```
-
 ## Symbols And Market Ids
 
 Market ids are used during the REST request-response process to reference trading pairs within exchanges. The set of market ids is unique per exchange and cannot be used across exchanges. For example, the BTC/USD pair/market may have different ids on various popular exchanges, like `btcusd`, `BTCUSD`, `XBTUSD`, `btc/usd`, `42` (numeric id), `BTC/USD`, `Btc/Usd`, `tBTCUSD`, `XXBTZUSD`. You don't need to remember or use market ids, they are there for internal HTTP request-response purposes inside exchange implementations.
@@ -1181,6 +1068,50 @@ base currency ↓
                     ↑ quote currency
 ```
 
+## Market Cache Force Reload
+
+The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
+
+When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
+
+```JavaScript
+// JavaScript
+(async () => {
+    let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
+    await kraken.load_markets () // request markets
+    console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
+    console.log (Object.keys (kraken.markets)) // output a short list of market symbols
+    console.log (kraken.markets['BTC/USD'])    // output single market details
+    await kraken.load_markets () // return a locally cached version, no reload
+    let reloadedMarkets = await kraken.load_markets (true) // force HTTP reload = true
+    console.log (reloadedMarkets['ETH/BTC'])
+}) ()
+```
+
+```Python
+# Python
+poloniex = ccxt.poloniex({'verbose': True}) # log HTTP requests
+poloniex.load_markets() # request markets
+print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
+print(list(poloniex.markets.keys())) # output a short list of market symbols
+print(poloniex.markets['BTC/ETH'])     # output single market details
+poloniex.load_markets() # return a locally cached version, no reload
+reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
+print(reloadedMarkets['ETH/ZEC'])
+```
+
+```PHP
+// PHP
+$bitfinex = new \ccxt\bitfinex (array ('verbose' => true)); // log HTTP requests
+$bitfinex.load_markets (); // request markets
+var_dump ($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
+var_dump (array_keys ($bitfinex->markets));   // output a short list of market symbols
+var_dump ($bitfinex->markets['XRP/USD']);     // output single market details
+$bitfinex->load_markets (); // return a locally cached version, no reload
+$reloadedMarkets = $bitfinex->load_markets (true); // force HTTP reload = true
+var_dump ($bitfinex->markets['XRP/BTC']);
+```
+
 # API Methods / Endpoints
 
 Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
@@ -1223,12 +1154,13 @@ A public API is used to access market data and does not require any authenticati
 
 Public APIs include the following:
 
-- market information
+- instruments/trading pairs
 - price feeds (exchange rates)
 - order books (L1, L2, L3...)
 - trade history (closed orders, transactions, executions)
 - tickers (spot / 24h price)
 - OHLCV series for charting
+- other public endpoints
 
 For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
 
@@ -1242,7 +1174,6 @@ Private APIs allow the following:
 - create deposit addresses and fund accounts
 - request withdrawal of fiat and crypto funds
 - query personal open / closed orders
-- query personal trades
 - query positions in margin/leverage trading
 - get ledger history
 - transfer funds between accounts
@@ -1336,6 +1267,72 @@ To get a list of all available methods with an exchange instance, you can simply
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
+```
+
+## Unified API
+
+The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
+
+- `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
+- `fetchCurrencies ()`: Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
+- `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
+- `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
+- `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
+- `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
+- `fetchBalance ()`: Fetch Balance.
+- `createOrder (symbol, type, side, amount[, price[, params]])`
+- `createLimitBuyOrder (symbol, amount, price[, params])`
+- `createLimitSellOrder (symbol, amount, price[, params])`
+- `createMarketBuyOrder (symbol, amount[, params])`
+- `createMarketSellOrder (symbol, amount[, params])`
+- `cancelOrder (id[, symbol[, params]])`
+- `fetchOrder (id[, symbol[, params]])`
+- `fetchOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchOpenOrders ([symbol[, since, limit, params]]]])`
+- `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
+- ...
+
+### Overriding Unified API Params
+
+Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+
+```JavaScript
+// JavaScript
+(async () => {
+
+    const params = {
+        'foo': 'bar',      // exchange-specific overrides in unified queries
+        'Hello': 'World!', // see their docs for more details on parameter names
+    }
+
+    // the overrides go into the last argument to the unified call ↓ HERE
+    const result = await exchange.fetchOrderBook (symbol, length, params)
+}) ()
+```
+
+```Python
+# Python
+params = {
+    'foo': 'bar',       # exchange-specific overrides in unified queries
+    'Hello': 'World!',  # see their docs for more details on parameter names
+}
+
+# overrides go in the last argument to the unified call ↓ HERE
+result = exchange.fetch_order_book(symbol, length, params)
+```
+
+```PHP
+// PHP
+$params = array (
+    'foo' => 'bar',       // exchange-specific overrides in unified queries
+    'Hello' => 'World!',  // see their docs for more details on parameter names
+}
+
+// overrides go into the last argument to the unified call ↓ HERE
+$result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
 
 ### Pagination
@@ -1582,13 +1579,13 @@ if ($exchange->has['fetchMyTrades']) {
 
 # Market Data
 
-- [Order Book / Market Depth](#order-book--market-depth)
-  - [Market Price](#market-price)
-- [Price Tickers](#price-tickers)
-  - [Individually By Symbol](#individually-by-symbol)
-  - [All At Once](#all-at-once)
-- [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
-- [Public Trades](#public-trades)
+- [Order Book / Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth)
+  - [Market Price](https://github.com/ccxt/ccxt/wiki/Manual#market-price)
+- [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
+  - [Individually By Symbol](https://github.com/ccxt/ccxt/wiki/Manual#individually-by-symbol)
+  - [All At Once](https://github.com/ccxt/ccxt/wiki/Manual#all-at-once)
+- [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
+- [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#public-trades)
 
 ## Order Book
 
@@ -1829,7 +1826,7 @@ Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some exchanges even serve top bid/ask volumes) you should not treat a ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bids and asks you should use `fetchL[123]OrderBook` family instead.
 
-To get historical prices and volumes use the unified [`fetchOHLCV`](#ohlcv-candlestick-charts) method where available.
+To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 
 Methods for fetching tickers:
 
@@ -1871,7 +1868,7 @@ if ($exchange->has['fetchTicker']) {
 
 ### All At Once
 
-Some exchanges (not all of them) also support fetching all tickers at once. See [their docs](#exchanges) for details. You can fetch all tickers with a single call like so:
+Some exchanges (not all of them) also support fetching all tickers at once. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details. You can fetch all tickers with a single call like so:
 
 ```JavaScript
 // JavaScript
@@ -1938,7 +1935,17 @@ A general solution for fetching all tickers from all exchanges (even the ones th
 UNDER CONSTRUCTION
 ```
 
+#### Async Mode / Concurrency
+
+```
+UNDER CONSTRUCTION
+```
+
 ## OHLCV Candlestick Charts
+
+```diff
+- this is under heavy development right now, contributions appreciated
+```
 
 Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named `has['fetchOHLCV']` indicates whether the exchange supports candlestick data series or not.
 
@@ -1955,6 +1962,7 @@ You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of 
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 if (exchange.has.fetchOHLCV) {
     for (symbol in exchange.markets) {
+        await sleep (exchange.rateLimit) // milliseconds
         console.log (await exchange.fetchOHLCV (symbol, '1m')) // one minute
     }
 }
@@ -1965,6 +1973,7 @@ if (exchange.has.fetchOHLCV) {
 import time
 if exchange.has['fetchOHLCV']:
     for symbol in exchange.markets:
+        time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
         print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 ```
 
@@ -1972,6 +1981,7 @@ if exchange.has['fetchOHLCV']:
 // PHP
 if ($exchange->has['fetchOHLCV']) {
     foreach ($exchange->markets as $symbol => $market) {
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
 }
@@ -1985,7 +1995,7 @@ The returned list of candles may have one or more missing periods, if the exchan
 
 **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
 
-Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to [override default values](#overriding-unified-api-params) that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to [override default values](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params) that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
 
 The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
 
@@ -2013,11 +2023,11 @@ The list of candles is returned sorted in ascending (historical/chronological) o
 
 ### OHLCV Emulation
 
-Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](#public-trades). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
+Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
 
 **WARNING: the fetchOHLCV emulation is experimental!**
 
-## Public Trades
+## Trades, Executions, Transactions
 
 ```diff
 - this is under heavy development right now, contributions appreciated
@@ -2034,7 +2044,9 @@ For example, if you want to print recent trades for all symbols one by one seque
 ```JavaScript
 // JavaScript
 if (exchange.has['fetchTrades']) {
+    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
     for (symbol in exchange.markets) {
+        await sleep (exchange.rateLimit) // milliseconds
         console.log (await exchange.fetchTrades (symbol))
     }
 }
@@ -2045,6 +2057,7 @@ if (exchange.has['fetchTrades']) {
 import time
 if exchange.has['fetchTrades']:
     for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)  # time.sleep wants seconds
         print (symbol, exchange.fetch_trades (symbol))
 ```
 
@@ -2052,6 +2065,7 @@ if exchange.has['fetchTrades']:
 // PHP
 if ($exchange->has['fetchTrades']) {
     foreach ($exchange->markets as $symbol => $market) {
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_trades ($symbol));
     }
 }
@@ -2072,8 +2086,6 @@ The fetchTrades method shown above returns an ordered list of trades (a flat arr
         'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
         'price':      0.06917684,               // float price in quote currency
         'amount':     1.5,                      // amount of base currency
-        'cost':       0.10376526,               // the price times the amount of the trade
-        'takerOrMaker': 'taker',                // whether the trade executed as a taker or maker
     },
     ...
 ]
@@ -2095,188 +2107,8 @@ On the other hand, **some exchanges don't support pagination for public trades a
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
-
-## Personal Trades
-
 ```
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
-
-### How Orders Are Related To Trades
-
-A trade is also often called `a fill`. Each trade is a result of order execution. Note, that orders and trades have a one-to-many relationship: an execution of one order may result in several trades. However, when one order matches another opposing order, the pair of two matching orders yields one trade. Thus, when an order matches multiple opposing orders, this yields multiple trades, one trade per each pair of matched orders.
-
-To put it shortly, an order can contain *one or more* trades. Or, in other words, an order can be *filled* with one or more trades.
-
-For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
-
-```
-    | price  | amount
-----|----------------
-  a |  1.200 | 200
-  s |  1.100 | 300
-  k |  0.900 | 100
-----|----------------
-  b |  0.800 | 100
-  i |  0.700 | 200
-  d |  0.500 | 100
-```
-
-All specific numbers above aren't real, this is just to illustrate the way orders and trades are related in general.
-
-A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
-
-```
-    | price  | amount
-----|----------------  ↓
-  a |  1.200 | 200     ↓
-  s |  1.100 | 300     ↓
-  k |  0.900 | 100     ↓
-----|----------------  ↓
-  b |  0.800 | 100     ↓ sell 150 for 0.700
-  i |  0.700 | 200     --------------------
-  d |  0.500 | 100
-```
-
-As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
-
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
-
-2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
-
-3. Order `b` now has a status of `closed` and a filled volume of 100. It contains one trade against the selling order. The selling order has an `open` status and a filled volume of 100. It contains one trade against order `b`. Thus each order has just one fill-trade so far.
-
-4. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
-
-The intermediate state of the orderbook is now (order `b` is `closed` and is not in the orderbook anymore):
-
-```
-    | price  | amount
-----|----------------  ↓
-  a |  1.200 | 200     ↓
-  s |  1.100 | 300     ↓
-  k |  0.900 | 100     ↓
-----|----------------  ↓ sell remaining 50 for 0.700
-  i |  0.700 | 200     -----------------------------
-  d |  0.500 | 100
-```
-
-5. Order `i` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order `i` which is 200 completely annihilates the remaining sell amount of 50. The order `i` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is fulfilled completely by this second match.
-
-6. A trade is generated for the order `i` against the incoming sell order. That trade partially fills order `i`. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
-
-7. Order `i` now has a status of `open`, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a `closed` status now and it has completely filled its total initial amount of 150. However, it contains two trades, the first against order `b` and the second against order `i`. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
-
-After the above sequence takes place, the updated orderbook will look like this.
-
-```
-    | price  | amount
-----|----------------
-  a |  1.200 | 200
-  s |  1.100 | 300
-  k |  0.900 | 100
-----|----------------
-  i |  0.700 | 150
-  d |  0.500 | 100
-```
-
-Notice that the order `b` has disappeared, the selling order also isn't there. All closed and fully-filled orders disappear from the orderbook. The order `i` which was filled partially and still has a remaining volume and an `open` status, is still there.
-
-
-### Personal Trades
-
-Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
-
-As with all other unified methods for fetching historical data, the `fetchMyTrades` method accepts a `since` argument for [date-based pagination](#date-based-pagination). Just like with all other unified methods throughout the CCXT library, the `since` argument for `fetchMyTrades` must be an **integer timestamp in milliseconds**.
-
-To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
-
-In most cases users are **required to use at least some type of [pagination](#pagination)** in order to get the expected results consistently.
-
-```JavaScript
-// JavaScript
-// fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
-
-if (exchange.has['fetchMyTrades']) {
-    const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
-}
-```
-
-```Python
-# Python
-# fetch_my_trades(symbol=None, since=None, limit=None, params={})
-
-if exchange.has['fetchMyTrades']:
-    exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
-```
-
-```PHP
-// PHP
-// fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
-
-if ($exchange->has['fetchMyTrades']) {
-    $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
-}
-```
-
-Returns ordered array `[]` of trades (most recent trade last).
-
-#### Trade structure
-
-```JavaScript
-{
-    'info':         { ... },                    // the original decoded JSON as is
-    'id':           '12345-67890:09876/54321',  // string trade id
-    'timestamp':    1502962946216,              // Unix timestamp in milliseconds
-    'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
-    'symbol':       'ETH/BTC',                  // symbol
-    'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
-    'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
-    'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
-    'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
-    'price':        0.06917684,                 // float price in quote currency
-    'amount':       1.5,                        // amount of base currency
-    'cost':         0.10376526,                 // total cost (including fees), `price * amount`
-    'fee':          {                           // provided by exchange or calculated by ccxt
-        'cost':  0.0015,                        // float
-        'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
-        'rate': 0.002,                          // the fee rate (if available)
-    },
-}
-```
-
-- The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
-- The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
-- The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
-
-### Trades By Order Id
-
-```JavaScript
-// JavaScript
-// fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
-
-if (exchange.has['fetchOrderTrades']) {
-    const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
-}
-```
-
-```Python
-# Python
-# fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
-
-if exchange.has['fetchOrderTrades']:
-    exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
-```
-
-```PHP
-// PHP
-// fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
-
-if ($exchange->has['fetchOrderTrades']) {
-    $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
-}
+UNDER CONSTRUCTION
 ```
 
 # Trading
@@ -2308,8 +2140,8 @@ The API credentials usually include the following:
 
 - `apiKey`. This is your public API Key and/or Token. This part is *non-secret*, it is included in your request header or body and sent over HTTPS in open text to identify your request. It is often a string in Hex or Base64 encoding or an UUID identifier.
 - `secret`. This is your private key. Keep it secret, don't tell it to anybody. It is used to sign your requests locally before sending them to exchanges. The secret key does not get sent over the internet in the request-response process and should not be published or emailed. It is used together with the nonce to generate a cryptographically strong signature. That signature is sent with your public key to authenticate your identity. Each request has a unique nonce and therefore a unique cryptographic signature.
-- `uid`. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See [their docs](#exchanges) for details.
-- `password`. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See [their docs](#exchanges) for details.
+- `uid`. Some exchanges (not all of them) also generate a user id or *uid* for short. It can be a string or numeric literal. You should set it, if that is explicitly required by your exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+- `password`. Some exchanges (not all of them) also require your password/phrase for trading. You should set this string, if that is explicitly required by your exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 In order to create API keys find the API tab or button in your user settings on the exchange website. Then create your keys and copy-paste them to your config file. Your config file permissions should be set appropriately, unreadable to anyone except the owner.
 
@@ -2711,7 +2543,7 @@ To place an order you will need the following information:
 
 - `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
 - `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see [Customer Order Params](#custom-order-params) and [Other Order Types](#other-order-types)
+- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params and https://github.com/ccxt/ccxt/wiki/Manual#other-order-types
 - `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
 - `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
 
@@ -2726,7 +2558,7 @@ Note, that some fields from the order structure returned from `createOrder` may 
 }
 ```
 
-- **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
+- **Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 #### Market Orders
 
@@ -2931,7 +2763,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 
 #### Other Order Types
 
-The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: [Overriding Unified API Params](#overriding-unified-api-params)
+The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params.
 
 The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
 
@@ -3007,6 +2839,189 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
 
+## Personal Trades
+
+```
+- this part of the unified API is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+### How Orders Are Related To Trades
+
+A trade is also often called `a fill`. Each trade is a result of order execution. Note, that orders and trades have a one-to-many relationship: an execution of one order may result in several trades. However, when one order matches another opposing order, the pair of two matching orders yields one trade. Thus, when an order matches multiple opposing orders, this yields multiple trades, one trade per each pair of matched orders.
+
+To put it shortly, an order can contain *one or more* trades. Or, in other words, an order can be *filled* with one or more trades.
+
+For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
+
+```
+    | price  | amount
+----|----------------
+  a |  1.200 | 200
+  s |  1.100 | 300
+  k |  0.900 | 100
+----|----------------
+  b |  0.800 | 100
+  i |  0.700 | 200
+  d |  0.500 | 100
+```
+
+All specific numbers above aren't real, this is just to illustrate the way orders and trades are related in general.
+
+A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
+
+```
+    | price  | amount
+----|----------------  ↓
+  a |  1.200 | 200     ↓
+  s |  1.100 | 300     ↓
+  k |  0.900 | 100     ↓
+----|----------------  ↓
+  b |  0.800 | 100     ↓ sell 150 for 0.700
+  i |  0.700 | 200     --------------------
+  d |  0.500 | 100
+```
+
+As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
+
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
+
+2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
+
+3. Order `b` now has a status of `closed` and a filled volume of 100. It contains one trade against the selling order. The selling order has an `open` status and a filled volume of 100. It contains one trade against order `b`. Thus each order has just one fill-trade so far.
+
+4. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
+
+The intermediate state of the orderbook is now (order `b` is `closed` and is not in the orderbook anymore):
+
+```
+    | price  | amount
+----|----------------  ↓
+  a |  1.200 | 200     ↓
+  s |  1.100 | 300     ↓
+  k |  0.900 | 100     ↓
+----|----------------  ↓ sell remaining 50 for 0.700
+  i |  0.700 | 200     -----------------------------
+  d |  0.500 | 100
+```
+
+5. Order `i` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order `i` which is 200 completely annihilates the remaining sell amount of 50. The order `i` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is fulfilled completely by this second match.
+
+6. A trade is generated for the order `i` against the incoming sell order. That trade partially fills order `i`. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
+
+7. Order `i` now has a status of `open`, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a `closed` status now and it has completely filled its total initial amount of 150. However, it contains two trades, the first against order `b` and the second against order `i`. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
+
+After the above sequence takes place, the updated orderbook will look like this.
+
+```
+    | price  | amount
+----|----------------
+  a |  1.200 | 200
+  s |  1.100 | 300
+  k |  0.900 | 100
+----|----------------
+  i |  0.700 | 150
+  d |  0.500 | 100
+```
+
+Notice that the order `b` has disappeared, the selling order also isn't there. All closed and fully-filled orders disappear from the orderbook. The order `i` which was filled partially and still has a remaining volume and an `open` status, is still there.
+
+
+### Personal Trades
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+As with all other unified methods for fetching historical data, the `fetchMyTrades` method accepts a `since` argument for [date-based pagination](#date-based-pagination). Just like with all other unified methods throughout the CCXT library, the `since` argument for `fetchMyTrades` must be an **integer timestamp in milliseconds**.
+
+To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of [pagination](#pagination)** in order to get the expected results consistently.
+
+```JavaScript
+// JavaScript
+// fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchMyTrades']) {
+    const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_my_trades(symbol=None, since=None, limit=None, params={})
+
+if exchange.has['fetchMyTrades']:
+    exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
+```
+
+```PHP
+// PHP
+// fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
+
+if ($exchange->has['fetchMyTrades']) {
+    $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
+}
+```
+
+Returns ordered array `[]` of trades (most recent trade last).
+
+#### Trade structure
+
+```JavaScript
+{
+    'info':         { ... },                    // the original decoded JSON as is
+    'id':           '12345-67890:09876/54321',  // string trade id
+    'timestamp':    1502962946216,              // Unix timestamp in milliseconds
+    'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
+    'symbol':       'ETH/BTC',                  // symbol
+    'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
+    'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
+    'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
+    'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
+    'price':        0.06917684,                 // float price in quote currency
+    'amount':       1.5,                        // amount of base currency
+    'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+    'fee':          {                           // provided by exchange or calculated by ccxt
+        'cost':  0.0015,                        // float
+        'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
+        'rate': 0.002,                          // the fee rate (if available)
+    },
+}
+```
+
+- The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+- The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+- The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
+
+### Trades By Order Id
+
+```JavaScript
+// JavaScript
+// fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchOrderTrades']) {
+    const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
+
+if exchange.has['fetchOrderTrades']:
+    exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
+```
+
+```PHP
+// PHP
+// fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
+
+if ($exchange->has['fetchOrderTrades']) {
+    $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
+}
+```
+
 ## Funding Your Account
 
 ```diff
@@ -3014,6 +3029,8 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - there may be some issues and missing implementations here and there
 - contributions, pull requests and feedback appreciated
 ```
+
+### Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
 
@@ -3067,7 +3084,7 @@ exchange.withdraw(code, amount, address, tag=None, params={})
 
 ```PHP
 // PHP
-$exchange->withdraw($code, $amount, $address, $tag = null, $params = array ())
+$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
 ```
 
 The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
@@ -3083,7 +3100,7 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
-In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
+In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 ### Transactions
 
@@ -3099,9 +3116,9 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'addressFrom': '0x38b1F8644ED1Dbd5DcAedb3610301Bf5fa640D6f', // sender
     'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
     'addressTo': '0x304C68D441EF7EB0E2c056E836E8293BD28F8129', // receiver
-    'tagFrom', '0xabcdef',   // "tag" or "memo" or "payment_id" associated with the sender
-    'tag':      '0xabcdef'   // "tag" or "memo" or "payment_id" associated with the address
-    'tagTo': '0xhijgklmn',   // "tag" or "memo" or "payment_id" associated with the receiver
+    'tagFrom', '0xabcdef', // "tag" or "memo" or "payment_id" associated with the sender
+    'tag':      '0xabcdef' // "tag" or "memo" or "payment_id" associated with the address
+    'tagTo': '0xhijgklmn', // "tag" or "memo" or "payment_id" associated with the receiver
     'type':     'deposit',   // or 'withdrawal', string
     'amount':    1.2345,     // float (does not include the fee)
     'currency': 'ETH',       // a common unified currency code, string
@@ -3375,7 +3392,14 @@ Because this is still a work in progress, some or all of methods and info descri
 
 ### Fee Structure
 
-ADD ACCURATE FEE STRUCTURE HERE
+```Javascript
+{
+    'type': takerOrMaker,
+    'currency': 'BTC', // the unified fee currency code
+    'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
+    'cost': feePaid, // the fee cost (amount * fee rate)
+}
+```
 
 ### Exchange Status
 
@@ -3386,7 +3410,7 @@ The exchange status describes the latest known information on the availability o
 - Updated using the dedicated exchange API status endpoint.
 
 ```Javascript
-fetchStatus (params = {})
+fetchStatus(params = {})
  ```
 
 #### Exchange Status Structure
@@ -3861,7 +3885,7 @@ The ccxt library also throws this error if it detects any of the following keywo
 
 ### InvalidNonce
 
-Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
+Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
   - You are not rate-limiting your requests or sending too many of them too often.
   - Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
@@ -3907,7 +3931,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
   - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 - Check your nonce. If you used your API keys with other software, you most likely should [override your nonce function](#overriding-the-nonce) to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
-- Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](#order-book--market-depth).
+- Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth).
 - Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
 - Check your connectivity with the exchange by accessing it with your browser.
 - Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
