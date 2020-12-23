@@ -3284,7 +3284,6 @@ We present a unified structure for the positions returned by exchanges.
    'realizedPnl': 10,           // float, the total funding and trading fees incurred by this position so far, can be negative
    'pnl ': 310,                 // float, the sum of the realizedPnl and the unrealizedPnl, can be negative
    'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'expiry': 1607723554607,     // integer, unix timestamp when the future "expires" to the price of the underlying index
    'status': 'open',            // string, can be "open", "closed" or "liquidating"
    'settlementCurrency': 'USDT' // will be the quote for linear contracts and the base for inverse contracts
 }
@@ -3322,13 +3321,13 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 
 #### Loading Futures Markets
 
-All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change 
+All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change
 
 ```Javascript
 binance.options['fetchMarkets'] = [ 'linear' ]
-``` 
+```
 
-if you are only interested in loading the USDT-margined futures and 
+if you are only interested in loading the USDT-margined futures and
 
 ```Javascript
 binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
@@ -3346,7 +3345,7 @@ await binance.fetchPositions ()
 
 // equivalent to the above
 await binance.fetchPositions (undefined, undefined, undefined, { 'type': 'inverse' }}
-``` 
+```
 
 You can also filter out the open positions by doing
 
