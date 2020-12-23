@@ -18,19 +18,19 @@ class thodex extends Exchange {
             'version' => '1',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/5405177/102882595-a4a83100-445f-11eb-9e26-679f2bc87742.jpeg',
-                'api' => 'https://api.thodex.com/public/v1',
+                'api' => 'https://api.thodex.com/v1',
                 'www' => 'https://www.thodex.com',
                 'doc' => 'https://api.thodex.com',
             ),
             'has' => array(
-                'fetchMarkets' => true,
-                'fetchTicker' => true,
-                'fetchOrderBook ' => true,
+                    'fetchMarkets' => true,
+                    'fetchTicker' => true,
+                    'fetchOrderBook ' => true,
                 'fetchTrades' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'fetchOpenOrders' => true,
+                    'fetchBalance' => true,
+                    'createOrder' => true,
+                    'cancelOrder' => true,
+                    'fetchOpenOrders' => true,
                 'fetchMyTrades' => true
             ),
             'api' => array(
@@ -337,9 +337,9 @@ class thodex extends Exchange {
         $symbol = $market['symbol'];
 
         if ($type === 1) {
-            $type = 'market';
-        }else if ($type === 2) {
             $type = 'limit';
+        }else if ($type === 2) {
+            $type = 'market';
         }
 
         $side = $this->safe_integer($order, 'side', 0);
@@ -352,12 +352,14 @@ class thodex extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $remaining = $this->safe_float($order, 'left', -1);
+
         $taker_fee = $this->safe_float($order, 'taker_fee', 0);
         $maker_fee = $this->safe_float($order, 'maker_fee', 0);
         $fee = $taker_fee + $maker_fee;
         $timestamp = $this->safe_timestamp($order, 'ctime');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'mtime');
         $filled = $amount - $remaining;
+
         $status = 'open';
         $cost = null;
         if ($cost === null) {
