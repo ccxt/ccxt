@@ -49,6 +49,7 @@ class gopax extends Exchange {
                 '1d' => '1440',
             ),
             'urls' => array(
+                'logo' => 'https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg',
                 'api' => array(
                     'public' => 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
                     'private' => 'https://api.{hostname}',
