@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { sortBy } = require ('./base/functions');
 const { ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, NotSupported, BadRequest, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -169,16 +168,18 @@ module.exports = class xcalibra extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
-            const active = !currency.disable_deposits && !currency.disable_withdrawals;
+            const disableDeposits = this.safeValue (currency, 'disable_deposits');
+            const disableWithdrawals = this.safeValue (currency, 'disable_withdrawals');
+            const active = !disableDeposits && !disableWithdrawals;
             result[id] = {
                 'id': id,
                 'info': currency,
-                'name': currency.name,
+                'name': this.safeString (currency, 'name'),
                 'active': active,
-                'fee': currency.withdrawal_fee_abs,
+                'fee': this.safeFloat (currency, 'withdrawal_fee_abs'),
                 'limits': {
                     'withdraw': {
-                        'min': currency.min_withdrawal,
+                        'min': this.safeFloat (currency, 'min_withdrawal'),
                     },
                 },
             };
@@ -186,7 +187,7 @@ module.exports = class xcalibra extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         timestamp:  1584950100,
@@ -254,7 +255,7 @@ module.exports = class xcalibra extends Exchange {
         };
     }
 
-    async fetchTickers () {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const tickers = await this.publicGetTickers ();
         const ids = Object.keys (tickers);
@@ -328,7 +329,7 @@ module.exports = class xcalibra extends Exchange {
         return this.parseTrades (trades, market, null, limit);
     }
 
-    async fetchMyTrades () {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetTradesHistory (request);
@@ -389,13 +390,6 @@ module.exports = class xcalibra extends Exchange {
         };
     }
 
-    parseOrders (orders, market) {
-        let result = Object.values (orders).map ((order) => this.parseOrder ({ 'order': order }, market));
-        result = sortBy (result, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol);
-    }
-
     async createOrder (symbol, type, side, quantity, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -434,7 +428,7 @@ module.exports = class xcalibra extends Exchange {
         return order;
     }
 
-    async fetchOrders (symbol = undefined) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol');
         }
@@ -444,7 +438,9 @@ module.exports = class xcalibra extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrdersForPairPair (request);
-        const orders = [...response.buy_list, ...response.sell_list];
+        const buyList = this.safeValue (response, 'buy_list', []);
+        const sellList = this.safeValue (response, 'sell_list', []);
+        const orders = this.arrayConcat (buyList, sellList);
         return this.parseOrders (orders, market);
     }
 
