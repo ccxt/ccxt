@@ -1,5 +1,5 @@
 {
-    "currencycom": {"skip": true}
+    "currencycom": {"skip": true},
     "dsx": {"skip": true},
     "idex": {"skip": true},
     "ripio": {"skip": true},
