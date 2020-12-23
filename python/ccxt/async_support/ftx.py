@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -225,6 +226,7 @@ class ftx(Exchange):
                     'No such market': BadRequest,
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,

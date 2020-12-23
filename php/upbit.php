@@ -19,7 +19,6 @@ class upbit extends Exchange {
             'countries' => array( 'KR' ),
             'version' => 'v1',
             'rateLimit' => 1000,
-            'certified' => true,
             'pro' => true,
             // new metainfo interface
             'has' => array(

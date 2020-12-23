@@ -212,6 +212,7 @@ class ftx extends Exchange {
                     'No such market' => '\\ccxt\\BadRequest',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
+                    'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
                 ),
             ),
             'precisionMode' => TICK_SIZE,

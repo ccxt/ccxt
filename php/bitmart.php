@@ -1739,6 +1739,15 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
+        // spot alternative
+        //
+        //     {
+        //         "code" => 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message" => "OK",
+        //         "$data" => true
+        //     }
+        //
         // contract
         //
         //     {
@@ -1754,6 +1763,9 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
+        if ($data === true) {
+            return $this->parse_order($id, $market);
+        }
         $succeeded = $this->safe_value($data, 'succeed');
         if ($succeeded !== null) {
             $id = $this->safe_string($succeeded, 0);
