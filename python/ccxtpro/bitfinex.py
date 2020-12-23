@@ -233,7 +233,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             # 'symbol': marketId,  # added in subscribe()
             'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            # 'len': '25',  # string, number of price points, '25', '100', default = '25'
+            'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
         future = self.subscribe('book', symbol, self.deep_extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
