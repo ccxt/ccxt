@@ -249,7 +249,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             // 'symbol': marketId, // added in subscribe()
             'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            // 'len': '25', // string, number of price points, '25', '100', default = '25'
+            'len': limit, // string, number of price points, '25', '100', default = '25'
         };
         const future = this.subscribe ('book', symbol, this.deepExtend (request, params));
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
