@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.39.56",
+  "version": "1.39.57",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -543,7 +543,8 @@
     "delta.exchange",
     "Delta Exchange",
     "gopax.co.kr",
-    "Gopax"
+    "Gopax",
+    "GOPAX"
   ],
   "collective": {
     "type": "opencollective",

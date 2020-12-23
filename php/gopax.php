@@ -15,7 +15,7 @@ class gopax extends Exchange {
     public function describe() {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'gopax',
-            'name' => 'Gopax',
+            'name' => 'GOPAX',
             'countries' => array( 'KR' ), // South Korea
             'version' => 'v1',
             'rateLimit' => 50,

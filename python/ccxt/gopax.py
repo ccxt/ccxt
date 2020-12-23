@@ -20,7 +20,7 @@ class gopax(Exchange):
     def describe(self):
         return self.deep_extend(super(gopax, self).describe(), {
             'id': 'gopax',
-            'name': 'Gopax',
+            'name': 'GOPAX',
             'countries': ['KR'],  # South Korea
             'version': 'v1',
             'rateLimit': 50,
