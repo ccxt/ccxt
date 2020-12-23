@@ -12,7 +12,7 @@ module.exports = class gopax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gopax',
-            'name': 'Gopax',
+            'name': 'GOPAX',
             'countries': [ 'KR' ], // South Korea
             'version': 'v1',
             'rateLimit': 50,
