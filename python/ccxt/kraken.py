@@ -230,6 +230,7 @@ class kraken(Exchange):
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M',  # https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -369,7 +370,7 @@ class kraken(Exchange):
 
     def safe_currency_code(self, currencyId, currency=None):
         if len(currencyId) > 3:
-            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+            if ((currencyId.find('X') == 0) or (currencyId.find('Z') == 0)) and (currencyId.find('.') < 0):
                 currencyId = currencyId[1:]
         return super(kraken, self).safe_currency_code(currencyId, currency)
 

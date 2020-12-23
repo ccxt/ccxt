@@ -1676,7 +1676,7 @@ class binance(Exchange):
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
-            request['orderId'] = int(id)
+            request['orderId'] = id
         query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
@@ -1796,11 +1796,11 @@ class binance(Exchange):
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
-            # 'orderId': int(id),
+            # 'orderId': id,
             # 'origClientOrderId': id,
         }
         if origClientOrderId is None:
-            request['orderId'] = int(id)
+            request['orderId'] = id
         else:
             request['origClientOrderId'] = origClientOrderId
         method = 'privateDeleteOrder'

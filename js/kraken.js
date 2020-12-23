@@ -206,6 +206,7 @@ module.exports = class kraken extends Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -351,7 +352,7 @@ module.exports = class kraken extends Exchange {
 
     safeCurrencyCode (currencyId, currency = undefined) {
         if (currencyId.length > 3) {
-            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+            if (((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) && (currencyId.indexOf ('.') < 0)) {
                 currencyId = currencyId.slice (1);
             }
         }
