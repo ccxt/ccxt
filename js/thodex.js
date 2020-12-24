@@ -5,7 +5,6 @@
 const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-
 const responseCodes = {
     '401': 'Unauthorized',
     '404': 'NotFound',
@@ -89,7 +88,7 @@ module.exports = class thodex extends Exchange {
                         'market/buy',
                         'market/sell',
                         'market/cancel',
-                    ]
+                    ],
                 },
             },
             'options': {
@@ -120,10 +119,11 @@ module.exports = class thodex extends Exchange {
                 'amount': this.safeInteger (market, 'stock_prec'),
                 'price': this.safeInteger (market, 'money_prec'),
             };
-            var active = false;
+            let active = false;
             const maintenance = this.safeString (market, 'maintenance');
-            if (maintenance == 'NO')
+            if (maintenance == 'NO') {
                 active = true;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -149,10 +149,8 @@ module.exports = class thodex extends Exchange {
         return result;
     }
 
-
-
     async fetchBalance (params = {}) {
-        var headers = [];
+        let headers = [];
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalance (params, headers);
         const result = [];
@@ -176,27 +174,24 @@ module.exports = class thodex extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         let side = undefined;
         let type = undefined;
-
-        let sideId = this.safeString (order, 'side');
+        const sideId = this.safeString (order, 'side');
         if (sideId === 1) {
             side = 'sell';
         } else {
             side = 'buy';
         }
-
         if (typeId === 1) {
             type = 'limit';
         } else {
             type = 'market';
         }
-
         const timestamp = this.safeFloat (order, 'ctime') * 1000;
         const lastTradeTimestamp = this.safeFloat (order, 'mtime');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat (order, 'left');
-        let filled = amount - remaining;
-        let status = 'open';
+        const filled = amount - remaining;
+        const status = 'open';
         let cost = undefined;
         if (filled !== undefined) {
             if (price !== undefined) {
@@ -211,7 +206,7 @@ module.exports = class thodex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
@@ -233,7 +228,6 @@ module.exports = class thodex extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -243,7 +237,6 @@ module.exports = class thodex extends Exchange {
             'limit': limit,
             'market': market['id'],
         };
-
         const response = await this.privateGetMarketOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'result');
         const orders = this.safeValue (data, 'records', []);
@@ -253,11 +246,10 @@ module.exports = class thodex extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.milliseconds ();
-
         const close = this.safeFloat (ticker, 'close');
-        const high = this.safeFloat (ticker, 'high')
-        const low = this.safeFloat (ticker, 'low')
-        const open = this.safeFloat (ticker, 'open')
+        const high = this.safeFloat (ticker, 'high');
+        const low = this.safeFloat (ticker, 'low');
+        const open = this.safeFloat (ticker, 'open');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -284,10 +276,7 @@ module.exports = class thodex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-
-        const request = {
-            'market': market['id'].toUpperCase (),
-        };
+        const request = { 'market': market['id'].toUpperCase () };
         const response = await this.publicGetPublicMarketStatus (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         return this.parseTicker (result, market);
@@ -313,38 +302,32 @@ module.exports = class thodex extends Exchange {
         let role = undefined;
         let side = undefined;
         let order = undefined;
-
         const timestamp = this.safeTimestamp (trade, 'time');
         const user = this.safeInteger (trade, 'user');
-
         if (user === undefined) {
             side = this.safeString (trade, 'type');
-            if(amount !== undefined){
-                if(price !== undefined){
+            if (amount !== undefined) {
+                if (price !== undefined) {
                     cost = price * amount;
                 }
             }
-        }else{
+        } else {
             order = this.safeString (trade, 'deal_order_id');
             cost = this.safeFloat (trade, 'deal');
             fee = this.safeFloat (trade, 'fee');
             let side_id = this.safeInteger (trade, 'type');
-            if(side_id === 1){
+            if (side_id === 1) {
                 side = 'sell';
-            }else{
+            } else {
                 side = 'buy';
             }
-
-            let role_id = this.safeInteger (trade, 'type');
-            if(role_id === 1){
+            const role_id = this.safeInteger (trade, 'role');
+            if (role_id === 1) {
                 role = 'maker';
-            }else{
+            } else {
                 role = 'taker';
             }
         }
-
-
-
         return {
             'id': id,
             'info': trade,
@@ -362,11 +345,10 @@ module.exports = class thodex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
         }
-
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -406,21 +388,20 @@ module.exports = class thodex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        var method = '';
-
+        let method = '';
         if (type === 'limit') {
-            if (side === 'buy')
-                method = 'privatePostMarketBuyLimit'
-            else
-                method = 'privatePostMarketSellLimit'
+            if (side === 'buy') {
+                method = 'privatePostMarketBuyLimit';
+            } else {
+                method = 'privatePostMarketSellLimit';
+            }
+        } else if (type === 'market') {
+            if (side === 'buy'){
+                method = 'privatePostMarketBuy';
+            } else {
+                method = 'privatePostMarketSell';
+            }
         }
-        else if (type === 'market') {
-            if (side === 'buy')
-                method = 'privatePostMarketBuy'
-            else
-                method = 'privatePostMarketSell'
-        }
-
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
@@ -445,7 +426,6 @@ module.exports = class thodex extends Exchange {
         if ((type === 'limit')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'result');
         return this.parseOrder (data, market);
@@ -480,13 +460,8 @@ module.exports = class thodex extends Exchange {
             const urlencoded = this.urlencode (query);
             url += '?' + urlencoded;
             const signature = crypto.createHash ('sha256').update (urlencoded + '&secret=' + this.secret).digest ('hex');
-
-            headers = {
-                'Authorization': signature,
-                'Content-Type': 'application/json',
-                'cache-control': 'no-cache',
-            };
-            if (method === 'POST'){
+            headers = { 'Authorization': signature, 'Content-Type': 'application/json', 'cache-control': 'no-cache' };
+            if (method === 'POST') {
                 body = this.json (query);
             }
         }
