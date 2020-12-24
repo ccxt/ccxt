@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress, BadRequest } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -116,9 +116,48 @@ module.exports = class gopax extends Exchange {
                     'No such client order ID': OrderNotFound,
                 },
                 'exact': {
+                    '10004': AuthenticationError, // Not authorized
+                    // '10004': ExchangeError, // API key not exist
+                    // '10004': ExchangeError, // User KYC not approved
+                    // '10004': ExchangeError, // User account is frozen
+                    // '10004': ExchangeError, // User is under deactivation process
+                    // '10004': ExchangeError, // 2FA is not enabled
+                    // '10004': ExchangeError, // Invalid signature
+                    '10041': BadRequest, // Invalid exchange
+                    '10056': BadRequest, // No registered asset
+                    '10319': BadRequest, // Pagination is required as you have too many orders
+                    '10360': InvalidOrder, // Invalid order status
+                    '10359': InvalidOrder, // Invalid order side
+                    '10358': InvalidOrder, // Invalid order type
+                    '10362': InvalidOrder, // Invalid order protection
+                    '10361': InvalidOrder, // Invalid order time in force
+                    '10221': OrderNotFound, // No such client order ID
+                    '10222': InvalidOrder, // Client order ID being used
+                    '10223': InvalidOrder, // Soon the client order ID will be reusable which order has already been completed or canceled
+                    '10227': InvalidOrder, // Invalid client order ID format
+                    '10363': InvalidOrder, // Invalid forced completion reason
+                    '100': BadSymbol, // Invalid asset name
+                    '106': BadSymbol, // Invalid asset name
+                    '103': InvalidOrder, // Invalid order type
+                    '101': BadSymbol, // Invalid trading pair
+                    '104': BadSymbol, // Invalid trading pair
+                    '105': BadSymbol, // Trading pair temporarily disabled
+                    '107': InvalidOrder, // Invalid order amount
+                    '111': InvalidOrder, // Invalid event type
+                    '108': InvalidOrder, // Invalid order price
+                    '201': InsufficientFunds, // Not enough balance
+                    '202': InvalidOrder, // Invalid order ID
+                    '203': InvalidOrder, // Order amount X order price too large
+                    '204': InvalidOrder, // Bid order temporarily unavailable
+                    '205': InvalidOrder, // Invalid side
+                    '206': InvalidOrder, // Invalid order option combination
+                    '10057': BadSymbol, // No registered trading pair
+                    '10059': BadSymbol, // Invalid trading pair
                     '10155': AuthenticationError, // {"errorMessage":"Invalid API key","errorCode":10155}
                     '10069': OrderNotFound, // {"errorMessage":"No such order ID: 73152094","errorCode":10069,"errorData":"73152094"}
                     '10212': InvalidOrder, // {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
+                    '10062': BadRequest, // Invalid chart interval
+                    '10166': BadRequest, // Invalid chart range
                 },
             },
             'options': {
@@ -1253,11 +1292,11 @@ module.exports = class gopax extends Exchange {
             const errorCode = this.safeString (response, 'errorCode');
             const errorMessage = this.safeString (response, 'errorMessage');
             const feedback = this.id + ' ' + body;
-            if (errorCode !== undefined) {
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            }
             if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            }
+            if (errorCode !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             }
             if ((errorCode !== undefined) || (errorMessage !== undefined)) {
                 throw new ExchangeError (feedback);
