@@ -3354,15 +3354,26 @@ await binance.fetchOpenPositions ()
 
 This is an emulated function and just filters data from `fetchPositions`.
 
-#### Naming conventions of futures
+#### Contract Naming Conventions
 
-We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
+We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
+##### Futures
+
+```JavaScript
+'BTC/USDT:BTC@2021-12-25'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+'BTC/USDT:USDT@2021-12-25' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT:ETH@2021-06-25'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+'ETH/USDT:USDT@2021-06-25' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 ```
-BTC/USDT>PERP   --->   *linear* perpetual *swap*
-BTC/USDT>0326   --->   *linear* expiring *future*
-BTC/USDT<PERP   --->   *inverse* perpetual *swap*
-BTC/USDT<0326   --->   *inverse* expiring *future*
+
+##### Perpetual Swaps
+
+```JavaScript
+'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract settled in BTC
+'BTC/USDT:USDT' // BTC/USDT perpetual swap contract settled in USDT
+'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract settled in ETH
+'ETH/USDT:USDT' // ETH/USDT perpetual swap contract settled in USDT
 ```
 
 ## Fees
