@@ -15,7 +15,7 @@ class thodex extends Exchange {
             'name' => 'Thodex',
             'countries' => array('TR'),
             'rateLimit' => 1000,
-            'version' => '1',
+            'version' => 'v1',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/5405177/102882595-a4a83100-445f-11eb-9e26-679f2bc87742.jpeg',
                 'api' => 'http://165.227.225.241/thodex_api/public/v1',
