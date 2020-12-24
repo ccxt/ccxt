@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const { hash } = require ('./base/functions/crypto');
-const { encode } = require ('./base/functions/encode')
+const { encode } = require ('./base/functions/encode');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
