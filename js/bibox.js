@@ -425,7 +425,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-         const request = {
+        const request = {
             'cmd': 'currencies',
         };
         const response = await this.publicGetCdata (this.extend (request, params));
