@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -124,9 +125,48 @@ class gopax(Exchange):
                     'No such client order ID': OrderNotFound,
                 },
                 'exact': {
-                    '10155': AuthenticationError,  # {"errorMessage":"Invalid API key","errorCode":10155}
+                    '100': BadSymbol,  # Invalid asset name
+                    '101': BadSymbol,  # Invalid trading pair
+                    '103': InvalidOrder,  # Invalid order type
+                    '104': BadSymbol,  # Invalid trading pair
+                    '105': BadSymbol,  # Trading pair temporarily disabled
+                    '106': BadSymbol,  # Invalid asset name
+                    '107': InvalidOrder,  # Invalid order amount
+                    '108': InvalidOrder,  # Invalid order price
+                    '111': InvalidOrder,  # Invalid event type
+                    '201': InsufficientFunds,  # Not enough balance
+                    '202': InvalidOrder,  # Invalid order ID
+                    '203': InvalidOrder,  # Order amount X order price too large
+                    '204': InvalidOrder,  # Bid order temporarily unavailable
+                    '205': InvalidOrder,  # Invalid side
+                    '206': InvalidOrder,  # Invalid order option combination
+                    '10004': AuthenticationError,  # Not authorized
+                    # '10004': ExchangeError,  # API key not exist
+                    # '10004': ExchangeError,  # User KYC not approved
+                    # '10004': ExchangeError,  # User account is frozen
+                    # '10004': ExchangeError,  # User is under deactivation process
+                    # '10004': ExchangeError,  # 2FA is not enabled
+                    # '10004': ExchangeError,  # Invalid signature
+                    '10041': BadRequest,  # Invalid exchange
+                    '10056': BadRequest,  # No registered asset
+                    '10057': BadSymbol,  # No registered trading pair
+                    '10059': BadSymbol,  # Invalid trading pair
+                    '10062': BadRequest,  # Invalid chart interval
                     '10069': OrderNotFound,  # {"errorMessage":"No such order ID: 73152094","errorCode":10069,"errorData":"73152094"}
+                    '10155': AuthenticationError,  # {"errorMessage":"Invalid API key","errorCode":10155}
+                    '10166': BadRequest,  # Invalid chart range
                     '10212': InvalidOrder,  # {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
+                    '10221': OrderNotFound,  # No such client order ID
+                    '10222': InvalidOrder,  # Client order ID being used
+                    '10223': InvalidOrder,  # Soon the client order ID will be reusable which order has already been completed or canceled
+                    '10227': InvalidOrder,  # Invalid client order ID format
+                    '10319': BadRequest,  # Pagination is required as you have too many orders
+                    '10358': InvalidOrder,  # Invalid order type
+                    '10359': InvalidOrder,  # Invalid order side
+                    '10360': InvalidOrder,  # Invalid order status
+                    '10361': InvalidOrder,  # Invalid order time in force
+                    '10362': InvalidOrder,  # Invalid order protection
+                    '10363': InvalidOrder,  # Invalid forced completion reason
                 },
             },
             'options': {
@@ -1182,9 +1222,9 @@ class gopax(Exchange):
             errorCode = self.safe_string(response, 'errorCode')
             errorMessage = self.safe_string(response, 'errorMessage')
             feedback = self.id + ' ' + body
-            if errorCode is not None:
-                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             if errorMessage is not None:
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
+            if errorCode is not None:
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             if (errorCode is not None) or (errorMessage is not None):
                 raise ExchangeError(feedback)

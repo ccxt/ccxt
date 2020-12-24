@@ -119,9 +119,48 @@ class gopax extends Exchange {
                     'No such client order ID' => '\\ccxt\\OrderNotFound',
                 ),
                 'exact' => array(
-                    '10155' => '\\ccxt\\AuthenticationError', // array("errorMessage":"Invalid API key","errorCode":10155)
+                    '100' => '\\ccxt\\BadSymbol', // Invalid asset name
+                    '101' => '\\ccxt\\BadSymbol', // Invalid trading pair
+                    '103' => '\\ccxt\\InvalidOrder', // Invalid order type
+                    '104' => '\\ccxt\\BadSymbol', // Invalid trading pair
+                    '105' => '\\ccxt\\BadSymbol', // Trading pair temporarily disabled
+                    '106' => '\\ccxt\\BadSymbol', // Invalid asset name
+                    '107' => '\\ccxt\\InvalidOrder', // Invalid order amount
+                    '108' => '\\ccxt\\InvalidOrder', // Invalid order price
+                    '111' => '\\ccxt\\InvalidOrder', // Invalid event type
+                    '201' => '\\ccxt\\InsufficientFunds', // Not enough balance
+                    '202' => '\\ccxt\\InvalidOrder', // Invalid order ID
+                    '203' => '\\ccxt\\InvalidOrder', // Order amount X order price too large
+                    '204' => '\\ccxt\\InvalidOrder', // Bid order temporarily unavailable
+                    '205' => '\\ccxt\\InvalidOrder', // Invalid side
+                    '206' => '\\ccxt\\InvalidOrder', // Invalid order option combination
+                    '10004' => '\\ccxt\\AuthenticationError', // Not authorized
+                    // '10004' => '\\ccxt\\ExchangeError', // API key not exist
+                    // '10004' => '\\ccxt\\ExchangeError', // User KYC not approved
+                    // '10004' => '\\ccxt\\ExchangeError', // User account is frozen
+                    // '10004' => '\\ccxt\\ExchangeError', // User is under deactivation process
+                    // '10004' => '\\ccxt\\ExchangeError', // 2FA is not enabled
+                    // '10004' => '\\ccxt\\ExchangeError', // Invalid signature
+                    '10041' => '\\ccxt\\BadRequest', // Invalid exchange
+                    '10056' => '\\ccxt\\BadRequest', // No registered asset
+                    '10057' => '\\ccxt\\BadSymbol', // No registered trading pair
+                    '10059' => '\\ccxt\\BadSymbol', // Invalid trading pair
+                    '10062' => '\\ccxt\\BadRequest', // Invalid chart interval
                     '10069' => '\\ccxt\\OrderNotFound', // array("errorMessage":"No such order ID => 73152094","errorCode":10069,"errorData":"73152094")
+                    '10155' => '\\ccxt\\AuthenticationError', // array("errorMessage":"Invalid API key","errorCode":10155)
+                    '10166' => '\\ccxt\\BadRequest', // Invalid chart range
                     '10212' => '\\ccxt\\InvalidOrder', // array("errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":array())
+                    '10221' => '\\ccxt\\OrderNotFound', // No such client order ID
+                    '10222' => '\\ccxt\\InvalidOrder', // Client order ID being used
+                    '10223' => '\\ccxt\\InvalidOrder', // Soon the client order ID will be reusable which order has already been completed or canceled
+                    '10227' => '\\ccxt\\InvalidOrder', // Invalid client order ID format
+                    '10319' => '\\ccxt\\BadRequest', // Pagination is required as you have too many orders
+                    '10358' => '\\ccxt\\InvalidOrder', // Invalid order type
+                    '10359' => '\\ccxt\\InvalidOrder', // Invalid order side
+                    '10360' => '\\ccxt\\InvalidOrder', // Invalid order status
+                    '10361' => '\\ccxt\\InvalidOrder', // Invalid order time in force
+                    '10362' => '\\ccxt\\InvalidOrder', // Invalid order protection
+                    '10363' => '\\ccxt\\InvalidOrder', // Invalid forced completion reason
                 ),
             ),
             'options' => array(
@@ -1256,11 +1295,11 @@ class gopax extends Exchange {
             $errorCode = $this->safe_string($response, 'errorCode');
             $errorMessage = $this->safe_string($response, 'errorMessage');
             $feedback = $this->id . ' ' . $body;
-            if ($errorCode !== null) {
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            }
             if ($errorMessage !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
+            }
+            if ($errorCode !== null) {
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             }
             if (($errorCode !== null) || ($errorMessage !== null)) {
                 throw new ExchangeError($feedback);
