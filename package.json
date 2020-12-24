@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -490,6 +490,8 @@
     "exchange.ripio.com",
     "Ripio",
     "exchange.bitcoin.com",
-    "bitcoin.com"
+    "bitcoin.com",
+    "cdax.io",
+    "CDAX"
   ]
 }
