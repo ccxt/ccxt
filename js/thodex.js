@@ -390,7 +390,7 @@ module.exports = class thodex extends Exchange {
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        if ((type === 'limit')) {
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
@@ -471,10 +471,10 @@ module.exports = class thodex extends Exchange {
         };
         const response = await this.fetch2 (path, api, method, params, headers, body);
         const error = this.safeValue (response, 'error');
-        if (error != null) {
-            const code = this.safeString (error, 'code');
+        const code = this.safeInteger (error, 'code');
+        if (code !== undefined) {
             const message = this.safeString (error, 'message');
-            if ((code !== '0') || ((message !== 'Ok'))) {
+            if (message !== 'Ok'){
                 const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
                 throw new ExchangeError (ErrorClass);
             }
