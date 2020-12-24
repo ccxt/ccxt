@@ -1,10 +1,10 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 module.exports = class cdax extends huobipro {
     describe () {
@@ -32,7 +32,6 @@ module.exports = class cdax extends huobipro {
                 'referral': 'https://cdax.io/invite?invite_code=esc74',
                 'doc': 'https://github.com/cloudapidoc/API_Docs',
                 'fees': 'https://cdax.io/about/fee',
-
             },
         });
     }
