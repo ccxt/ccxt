@@ -3285,7 +3285,6 @@ We present a unified structure for the positions returned by exchanges.
    'pnl ': 310,                 // float, the sum of the realizedPnl and the unrealizedPnl, can be negative
    'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
    'status': 'open',            // string, can be "open", "closed" or "liquidating"
-   'settlementCurrency': 'USDT' // will be the quote for linear contracts and the base for inverse contracts
 }
 ```
 Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
