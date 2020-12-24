@@ -65,7 +65,6 @@ module.exports = class thodex extends Exchange {
                 'www': 'https://www.thodex.com',
                 'doc': 'https://api.thodex.com',
                 'fees': 'https://www.thodex.com/en/fees',
-                'referral': 'https://www.thodex.com/tr/register?ref_code=G99Xc0ppsLK7',
             },
             'api': {
                 'public': {
