@@ -6,8 +6,6 @@ const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
-//  ---------------------------------------------------------------------------
-
 const responseCodes = {
     '401': 'Unauthorized',
     '404': 'NotFound',
