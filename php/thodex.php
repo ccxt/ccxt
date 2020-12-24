@@ -23,14 +23,14 @@ class thodex extends Exchange {
                 'doc' => 'https://api.thodex.com',
             ),
             'has' => array(
-                    'fetchMarkets' => true,
-                    'fetchTicker' => true,
-                    'fetchOrderBook ' => true,
+                'fetchMarkets' => true,
+                'fetchTicker' => true,
+                'fetchOrderBook ' => true,
                 'fetchTrades' => true,
-                    'fetchBalance' => true,
-                    'createOrder' => true,
-                    'cancelOrder' => true,
-                    'fetchOpenOrders' => true,
+                'fetchBalance' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'fetchOpenOrders' => true,
                 'fetchMyTrades' => true
             ),
             'api' => array(
@@ -146,20 +146,20 @@ class thodex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'bid' => null,
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => null,
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => null,
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_float($ticker, 'amount'),
+            'baseVolume' => $this->safe_float($ticker, ''),
+            'quoteVolume' => null,
             'info' => $ticker,
         );
     }
@@ -333,12 +333,12 @@ class thodex extends Exchange {
 
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 'id');
-        $type = $this->safe_integer($order, 'type', 0);
+        $typeId = $this->safe_integer($order, 'type', 0);
         $symbol = $market['symbol'];
 
-        if ($type === 1) {
+        if ($typeId === 1) {
             $type = 'limit';
-        }else if ($type === 2) {
+        }else if ($typeId === 2) {
             $type = 'market';
         }
 
