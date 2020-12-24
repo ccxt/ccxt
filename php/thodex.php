@@ -18,7 +18,8 @@ class thodex extends Exchange {
             'version' => '1',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/5405177/102882595-a4a83100-445f-11eb-9e26-679f2bc87742.jpeg',
-                'api' => 'https://api.thodex.com/v1',
+                'api' => 'http://165.227.225.241/thodex_api/public/v1',
+//                'api' => 'https://api.thodex.com/v1',
                 'www' => 'https://www.thodex.com',
                 'doc' => 'https://api.thodex.com',
             ),
@@ -189,17 +190,17 @@ class thodex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $symbol = null;
+        $symbol = $market['symbol'];
         $cost = null;
         $fee = null;
         $role = null;
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
+        $info = $this->safe_string($trade, 'market');
 
-        if ($market !== null) {
+        if ($info === null) {
             // market history
-            $symbol = $market['symbol'];
             $side = $this->safe_string($trade, 'type');
             $order = null;
             if ($amount !== null) {
@@ -209,15 +210,14 @@ class thodex extends Exchange {
             }
         }else{
             // order history
-            $symbol = $this->safe_string($trade, 'market');
             $order = $this->safe_string($trade, 'deal_order_id');
             $cost = $this->safe_float($trade, 'deal');
             $fee = $this->safe_float($trade, 'fee');
             $side_id = $this->safe_integer($trade, 'type');
             if($side_id === 1){
-                $side = 'buy';
-            }else{
                 $side = 'sell';
+            }else{
+                $side = 'buy';
             }
 
             $role_id = $this->safe_integer($trade, 'type');
@@ -344,9 +344,9 @@ class thodex extends Exchange {
 
         $side = $this->safe_integer($order, 'side', 0);
         if ($side === 1) {
-            $side = 'buy';
-        }else if ($side === 2) {
             $side = 'sell';
+        }else if ($side === 2) {
+            $side = 'buy';
         }
 
         $price = $this->safe_float($order, 'price');
