@@ -474,7 +474,7 @@ module.exports = class thodex extends Exchange {
         const code = this.safeInteger (error, 'code');
         if (code !== undefined) {
             const message = this.safeString (error, 'message');
-            if (message !== 'Ok'){
+            if (message !== 'Ok') {
                 const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
                 throw new ExchangeError (ErrorClass);
             }
