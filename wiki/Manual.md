@@ -3361,10 +3361,10 @@ We currently load spot markets with the unified `BASE/QUOTE` symbol schema into 
 ##### Futures
 
 ```JavaScript
-'BTC/USDT:BTC@2021-12-25'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-'BTC/USDT:USDT@2021-12-25' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-'ETH/USDT:ETH@2021-06-25'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-'ETH/USDT:USDT@2021-06-25' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+'BTC/USDT:BTC@20211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+'BTC/USDT:USDT@20211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT:ETH@20210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+'ETH/USDT:USDT@20210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 ```
 
 ##### Perpetual Swaps
