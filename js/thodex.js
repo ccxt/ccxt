@@ -1,8 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-const { hash } = require ('./base/functions/crypto');
-const { encode } = require ('./base/functions/encode');
+
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
@@ -427,7 +426,7 @@ module.exports = class thodex extends Exchange {
             query = this.keysort (query);
             const urlencoded = this.urlencode (query);
             url += '?' + urlencoded;
-            const signature = hash (encode (urlencoded + '&secret=' + this.secret), 'sha256', 'hex');
+            const signature = this.hash (this.encode (urlencoded + '&secret=' + this.secret), 'sha256', 'hex');
             headers = { 'Authorization': signature, 'Content-Type': 'application/json', 'cache-control': 'no-cache' };
             if (method === 'POST') {
                 body = this.json (query);
