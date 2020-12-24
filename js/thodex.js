@@ -1,44 +1,10 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
-const crypto = require ('crypto');
+const { hash } = require ('./base/functions/crypto');
+const { encode } = require ('./base/functions/encode')
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-
-const responseCodes = {
-    '401': 'Unauthorized',
-    '404': 'NotFound',
-    '406': 'NotAcceptable',
-    '429': 'TooManyRequest',
-    '500': 'InternalServerError',
-    '600': 'ApiKeyRequired',
-    '601': 'ApiKeyNoValid',
-    '604': 'UserNotFound',
-    '605': 'BelowMinLevel',
-    '606': 'InvalidCredentials',
-    '607': 'AccountDisabled',
-    '608': 'WhitelistUnauthorizedIp',
-    '609': 'AuthorizationTokenRequired',
-    '610': 'AuthorizationTokenMismatch',
-    '611': 'InvalidTonce',
-    '612': 'MarketLimitOrderCreationFailed',
-    '613': 'MarketOrderCreationFailed',
-    '614': 'MarketOrderCancelationFailed',
-    '619': 'ParametersValidationFailed',
-    '630': 'AmountMustExceedTransferFee',
-    '634': 'WalletNotFound',
-    '639': 'OnlyHttpsConnectionsAllowed',
-    '641': 'WalletCreationFailed',
-    '651': 'TransferFailedPleaseContactUs',
-    '652': 'TheAmountMustExceedMinimumTransferLimit',
-    '657': 'LocationLock',
-    '658': 'InvalidCaptcha',
-    '659': 'WhiteListToggleFailed',
-    '660': 'WhiteListAddNewFailed',
-    '661': 'WhiteListDeleteFailed',
-    '673': 'SelectedNationalityDeniedAsset',
-};
 
 module.exports = class thodex extends Exchange {
     describe () {
@@ -461,7 +427,7 @@ module.exports = class thodex extends Exchange {
             query = this.keysort (query);
             const urlencoded = this.urlencode (query);
             url += '?' + urlencoded;
-            const signature = crypto.createHash ('sha256').update (urlencoded + '&secret=' + this.secret).digest ('hex');
+            const signature = hash (encode (urlencoded + '&secret=' + this.secret), 'sha256', 'hex');
             headers = { 'Authorization': signature, 'Content-Type': 'application/json', 'cache-control': 'no-cache' };
             if (method === 'POST') {
                 body = this.json (query);
@@ -471,6 +437,39 @@ module.exports = class thodex extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const responseCodes = {
+            '401': 'Unauthorized',
+            '404': 'NotFound',
+            '406': 'NotAcceptable',
+            '429': 'TooManyRequest',
+            '500': 'InternalServerError',
+            '600': 'ApiKeyRequired',
+            '601': 'ApiKeyNoValid',
+            '604': 'UserNotFound',
+            '605': 'BelowMinLevel',
+            '606': 'InvalidCredentials',
+            '607': 'AccountDisabled',
+            '608': 'WhitelistUnauthorizedIp',
+            '609': 'AuthorizationTokenRequired',
+            '610': 'AuthorizationTokenMismatch',
+            '611': 'InvalidTonce',
+            '612': 'MarketLimitOrderCreationFailed',
+            '613': 'MarketOrderCreationFailed',
+            '614': 'MarketOrderCancelationFailed',
+            '619': 'ParametersValidationFailed',
+            '630': 'AmountMustExceedTransferFee',
+            '634': 'WalletNotFound',
+            '639': 'OnlyHttpsConnectionsAllowed',
+            '641': 'WalletCreationFailed',
+            '651': 'TransferFailedPleaseContactUs',
+            '652': 'TheAmountMustExceedMinimumTransferLimit',
+            '657': 'LocationLock',
+            '658': 'InvalidCaptcha',
+            '659': 'WhiteListToggleFailed',
+            '660': 'WhiteListAddNewFailed',
+            '661': 'WhiteListDeleteFailed',
+            '673': 'SelectedNationalityDeniedAsset',
+        };
         const response = await this.fetch2 (path, api, method, params, headers, body);
         const error = this.safeValue (response, 'error');
         if (error != null) {
