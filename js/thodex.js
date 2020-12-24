@@ -5,6 +5,9 @@
 const crypto = require ('crypto');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+
+//  ---------------------------------------------------------------------------
+
 const responseCodes = {
     '401': 'Unauthorized',
     '404': 'NotFound',
@@ -121,7 +124,7 @@ module.exports = class thodex extends Exchange {
             };
             let active = false;
             const maintenance = this.safeString (market, 'maintenance');
-            if (maintenance == 'NO') {
+            if (maintenance === 'NO') {
                 active = true;
             }
             result.push ({
@@ -150,7 +153,7 @@ module.exports = class thodex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let headers = [];
+        const headers = [];
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalance (params, headers);
         const result = [];
@@ -170,7 +173,7 @@ module.exports = class thodex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
-        let typeId = this.safeString (order, 'type');
+        const typeId = this.safeString (order, 'type');
         const symbol = this.safeString (market, 'symbol');
         let side = undefined;
         let type = undefined;
@@ -273,6 +276,7 @@ module.exports = class thodex extends Exchange {
             'info': ticker,
         };
     }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -315,7 +319,7 @@ module.exports = class thodex extends Exchange {
             order = this.safeString (trade, 'deal_order_id');
             cost = this.safeFloat (trade, 'deal');
             fee = this.safeFloat (trade, 'fee');
-            let side_id = this.safeInteger (trade, 'type');
+            const side_id = this.safeInteger (trade, 'type');
             if (side_id === 1) {
                 side = 'sell';
             } else {
@@ -396,7 +400,7 @@ module.exports = class thodex extends Exchange {
                 method = 'privatePostMarketSellLimit';
             }
         } else if (type === 'market') {
-            if (side === 'buy'){
+            if (side === 'buy') {
                 method = 'privatePostMarketBuy';
             } else {
                 method = 'privatePostMarketSell';
