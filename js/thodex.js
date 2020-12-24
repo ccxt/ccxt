@@ -189,7 +189,7 @@ module.exports = class thodex extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 100;
