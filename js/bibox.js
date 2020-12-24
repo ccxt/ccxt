@@ -71,6 +71,7 @@ module.exports = class bibox extends Exchange {
                     'get': [
                         'cquery',
                         'mdata',
+                        'cdata',
                     ],
                 },
                 'private': {
@@ -424,14 +425,10 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        if (!this.apiKey || !this.secret) {
-            throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
-        }
         const request = {
-            'cmd': 'transfer/coinList',
-            'body': {},
+            'cmd': 'currencies',
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        const response = await this.publicGetCdata (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -483,9 +480,9 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
-            const name = currency['name']; // contains hieroglyphs causing python ASCII bug
+            const name = this.safeString (currency, 'name'); // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
-            const precision = 8;
+            const precision = this.safeInteger (currency, 'valid_decimals');
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
             const active = (deposit && withdraw);
@@ -500,19 +497,19 @@ module.exports = class bibox extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'min': this.safeFloat (currency, 'withdraw_min'),
+                        'max': undefined,
                     },
                 },
             };
