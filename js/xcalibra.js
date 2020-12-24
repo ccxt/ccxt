@@ -250,7 +250,7 @@ module.exports = class xcalibra extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'quantity'),
             'info': ticker,
         };
     }
@@ -293,6 +293,12 @@ module.exports = class xcalibra extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        const side = this.safeString (trade, 'side');
+        const userSide = this.safeString (trade, 'user_side');
+        let takerOrMaker = undefined;
+        if (side && userSide) {
+            takerOrMaker = side === userSide ? 'taker' : 'maker';
+        }
         return {
             'id': this.safeString (trade, 'signature'),
             'order': undefined,
@@ -300,9 +306,9 @@ module.exports = class xcalibra extends Exchange {
             'timestamp': this.parse8601 (this.safeString (trade, 'timestamp')),
             'datetime': this.safeString (trade, 'timestamp'),
             'symbol': market && market['symbol'],
-            'type': undefined,
+            'type': this.safeString (trade, 'order_type'),
             'side': this.safeString (trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'quantity'),
             'cost': undefined,
@@ -333,7 +339,7 @@ module.exports = class xcalibra extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetTradesHistory (request);
-        const trades = response['items'];
+        const trades = this.safeValue (response, 'items', []);
         return this.parseTrades (trades);
     }
 
@@ -354,11 +360,10 @@ module.exports = class xcalibra extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const description = this.safeValue (order, 'order');
-        const marketId = this.safeString (description, 'pair');
+        const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (description, 'timestamp'));
-        const amount = this.safeFloat (description, 'quantity');
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
+        const amount = this.safeFloat (order, 'quantity');
         const remaining = this.safeFloat (order, 'remaining_quantity');
         let filled = undefined;
         if (amount !== undefined) {
@@ -367,7 +372,7 @@ module.exports = class xcalibra extends Exchange {
             }
         }
         return {
-            'id': this.safeString (description, 'id'),
+            'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
@@ -375,17 +380,17 @@ module.exports = class xcalibra extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': symbol,
-            'type': this.safeString (description, 'type'),
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
-            'side': this.safeStringLower (description, 'side'),
-            'price': this.safeFloat (description, 'price'),
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
             'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': filled,
             'remaining': remaining,
             'average': undefined,
-            'fee': this.safeFloat (description, 'fee'),
+            'fee': this.safeFloat (order, 'fee'),
             'trades': this.safeValue (order, 'trades'),
         };
     }
@@ -406,7 +411,8 @@ module.exports = class xcalibra extends Exchange {
         if (shouldIncludePrice) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const order = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
+        const order = this.safeValue (response, 'order', {});
         return this.parseOrder (order);
     }
 
@@ -424,7 +430,7 @@ module.exports = class xcalibra extends Exchange {
             'oid': id,
         };
         const response = await this.privateGetOrdersOid (this.extend (request, params));
-        const order = this.parseOrder ({ 'order': response });
+        const order = this.parseOrder (response);
         return order;
     }
 
@@ -549,14 +555,16 @@ module.exports = class xcalibra extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetDeposits (this.extend (request, params));
-        return this.parseTransactionsByType ('deposit', response['items']);
+        const deposits = this.safeValue (response, 'items', []);
+        return this.parseTransactionsByType ('deposit', deposits);
     }
 
     async fetchWithdrawals (codes = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetWithdrawals (this.extend (request, params));
-        return this.parseTransactionsByType ('withdrawal', response['items']);
+        const withdrawals = this.safeValue (response, 'items', []);
+        return this.parseTransactionsByType ('withdrawal', withdrawals);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -571,7 +579,7 @@ module.exports = class xcalibra extends Exchange {
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         return {
             'info': response,
-            'id': response['id'],
+            'id': this.safeString (response, 'id'),
         };
     }
 
