@@ -430,6 +430,27 @@ module.exports = class bibox extends Exchange {
         };
         const response = await this.publicGetCdata (this.extend (request, params));
         //
+        // publicGetCdata
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "name":"BTC",
+        //                 "valid_decimals":8,
+        //                 "original_decimals":8,
+        //                 "is_erc20":0,
+        //                 "enable_withdraw":1,
+        //                 "enable_deposit":1,
+        //                 "withdraw_min":0.005,
+        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"},{\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\"}]"
+        //             }
+        //         ],
+        //         "cmd":"currencies"
+        //     }
+        //
+        // publicGetMdata
+        //
         //     {
         //         "result":[
         //             {
