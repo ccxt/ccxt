@@ -154,6 +154,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -199,6 +200,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
