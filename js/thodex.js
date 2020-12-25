@@ -449,7 +449,8 @@ module.exports = class thodex extends Exchange {
                     throw new ExchangeError (this.id + ' ' + body);
                 }
             }
-            if (!('result' in response)) {
+            const result = this.safeValue (response, 'result');
+            if (result === undefined) {
                 throw new ExchangeError (this.id + ' ' + body);
             }
         }
