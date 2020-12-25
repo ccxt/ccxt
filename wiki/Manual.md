@@ -3360,20 +3360,31 @@ We currently load spot markets with the unified `BASE/QUOTE` symbol schema into 
 
 ##### Futures
 
+A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier.Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
+
 ```JavaScript
-'BTC/USDT:BTC@20211225'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-'BTC/USDT:USDT@20211225' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-'ETH/USDT:ETH@20210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-'ETH/USDT:USDT@20210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+//
+// base asset or currency
+//
+//    quote asset or currency
+//
+//         settlement asset or currency
+//
+//              identifier
+//
+'BTC/USDT-211225:BTC'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+'BTC/USDT-211225:USDT' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT-210625:ETH'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 ```
 
 ##### Perpetual Swaps
 
 ```JavaScript
-'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract settled in BTC
-'BTC/USDT:USDT' // BTC/USDT perpetual swap contract settled in USDT
-'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract settled in ETH
-'ETH/USDT:USDT' // ETH/USDT perpetual swap contract settled in USDT
+'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
+'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
+'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
+'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
 ```
 
 ## Fees
