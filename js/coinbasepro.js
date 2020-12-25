@@ -787,12 +787,13 @@ module.exports = class coinbasepro extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             // common params --------------------------------------------------
             // 'client_oid': clientOrderId,
             'type': type,
             'side': side,
-            'product_id': this.marketId (symbol),
+            'product_id': market['id'],
             // 'size': this.amountToPrecision (symbol, amount),
             // 'stp': 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
             // 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
@@ -836,7 +837,26 @@ module.exports = class coinbasepro extends Exchange {
             }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response);
+        //
+        //     {
+        //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price": "0.10000000",
+        //         "size": "0.01000000",
+        //         "product_id": "BTC-USD",
+        //         "side": "buy",
+        //         "stp": "dc",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "post_only": false,
+        //         "created_at": "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees": "0.0000000000000000",
+        //         "filled_size": "0.00000000",
+        //         "executed_value": "0.0000000000000000",
+        //         "status": "pending",
+        //         "settled": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
