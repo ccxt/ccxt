@@ -916,8 +916,14 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const request
-        return await this.privateDeleteOrders (params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol):
+            request['product_id'] = market['symbol']; // the request will be more performant if you include it
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
