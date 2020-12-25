@@ -761,10 +761,18 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateGetOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateGetOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
