@@ -920,7 +920,7 @@ module.exports = class coinbasepro extends Exchange {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol):
+            market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
         return await this.privateDeleteOrders (this.extend (request, params));
