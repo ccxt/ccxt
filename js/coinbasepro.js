@@ -787,15 +787,53 @@ module.exports = class coinbasepro extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // let oid = this.nonce ().toString ();
         const request = {
-            'product_id': this.marketId (symbol),
-            'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            // common params --------------------------------------------------
+            // 'client_oid': clientOrderId,
             'type': type,
+            'side': side,
+            'product_id': this.marketId (symbol),
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'stp': 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
+            // 'stop_price': this.priceToPrecision (symbol, price),
+            // limit order params ---------------------------------------------
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'time_in_force': 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only': false, // invalid when time_in_force is IOC or FOK
+            // market order params --------------------------------------------
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'funds': this.costToPrecision (symbol, amount),
         };
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop_price');
+        if (stopPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
+        }
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+            params = this.omit (params, [ 'timeInForce', 'time_in_force' ]);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['size'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            let cost = this.safeFloat2 (params, 'cost', 'funds');
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            } else {
+                params = this.omit (params, [ 'cost', 'funds' ]);
+            }
+            if (cost !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, cost);
+            } else {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response);
