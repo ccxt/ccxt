@@ -2394,7 +2394,7 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function costToPrecision($symbol, $cost) {
