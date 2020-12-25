@@ -671,6 +671,27 @@ class coinbasepro(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        #         "price": "0.10000000",
+        #         "size": "0.01000000",
+        #         "product_id": "BTC-USD",
+        #         "side": "buy",
+        #         "stp": "dc",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "post_only": False,
+        #         "created_at": "2016-12-08T20:02:28.53864Z",
+        #         "fill_fees": "0.0000000000000000",
+        #         "filled_size": "0.00000000",
+        #         "executed_value": "0.0000000000000000",
+        #         "status": "pending",
+        #         "settled": False
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_market(marketId, market, '-')
@@ -697,9 +718,13 @@ class coinbasepro(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
+        timeInForce = self.safe_string(order, 'time_in_force')
+        postOnly = self.safe_value(order, 'post_only')
+        stopPrice = self.safe_float(order, 'stop_price')
+        clientOrderId = self.safe_string(order, 'client_oid')
         return {
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -707,11 +732,11 @@ class coinbasepro(Exchange):
             'status': status,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -766,12 +791,13 @@ class coinbasepro(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         request = {
             # common params --------------------------------------------------
             # 'client_oid': clientOrderId,
             'type': type,
             'side': side,
-            'product_id': self.market_id(symbol),
+            'product_id': market['id'],
             # 'size': self.amount_to_precision(symbol, amount),
             # 'stp': 'dc',  # self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
             # 'stop': 'loss',  # "loss" = stop loss below price, "entry" = take profit above price
@@ -809,7 +835,26 @@ class coinbasepro(Exchange):
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
-        return self.parse_order(response)
+        #
+        #     {
+        #         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        #         "price": "0.10000000",
+        #         "size": "0.01000000",
+        #         "product_id": "BTC-USD",
+        #         "side": "buy",
+        #         "stp": "dc",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "post_only": False,
+        #         "created_at": "2016-12-08T20:02:28.53864Z",
+        #         "fill_fees": "0.0000000000000000",
+        #         "filled_size": "0.00000000",
+        #         "executed_value": "0.0000000000000000",
+        #         "status": "pending",
+        #         "settled": False
+        #     }
+        #
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
