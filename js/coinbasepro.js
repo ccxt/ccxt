@@ -886,7 +886,18 @@ module.exports = class coinbasepro extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersId ({ 'id': id });
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateDeleteOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateDeleteOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
