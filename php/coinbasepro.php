@@ -765,10 +765,18 @@ class coinbasepro extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = $this->privateGetOrdersId (array_merge($request, $params));
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        $method = null;
+        if ($clientOrderId === null) {
+            $method = 'privateGetOrdersId';
+            $request['id'] = $id;
+        } else {
+            $method = 'privateGetOrdersClientClientOid';
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
@@ -890,7 +898,18 @@ class coinbasepro extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrdersId (array( 'id' => $id ));
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        $method = null;
+        if ($clientOrderId === null) {
+            $method = 'privateDeleteOrdersId';
+            $request['id'] = $id;
+        } else {
+            $method = 'privateDeleteOrdersClientClientOid';
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        return $this->$method (array_merge($request, $params));
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {

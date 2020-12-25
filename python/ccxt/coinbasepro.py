@@ -748,10 +748,17 @@ class coinbasepro(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'id': id,
-        }
-        response = self.privateGetOrdersId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        method = None
+        if clientOrderId is None:
+            method = 'privateGetOrdersId'
+            request['id'] = id
+        else:
+            method = 'privateGetOrdersClientClientOid'
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -858,7 +865,17 @@ class coinbasepro(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateDeleteOrdersId({'id': id})
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        method = None
+        if clientOrderId is None:
+            method = 'privateDeleteOrdersId'
+            request['id'] = id
+        else:
+            method = 'privateDeleteOrdersClientClientOid'
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
+        return getattr(self, method)(self.extend(request, params))
 
     def cancel_all_orders(self, symbol=None, params={}):
         return self.privateDeleteOrders(params)
