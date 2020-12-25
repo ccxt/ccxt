@@ -766,15 +766,48 @@ class coinbasepro(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        # oid = str(self.nonce())
         request = {
-            'product_id': self.market_id(symbol),
-            'side': side,
-            'size': self.amount_to_precision(symbol, amount),
+            # common params --------------------------------------------------
+            # 'client_oid': clientOrderId,
             'type': type,
+            'side': side,
+            'product_id': self.market_id(symbol),
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'stp': 'dc',  # self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            # 'stop': 'loss',  # "loss" = stop loss below price, "entry" = take profit above price
+            # 'stop_price': self.price_to_precision(symbol, price),
+            # limit order params ---------------------------------------------
+            # 'price': self.price_to_precision(symbol, price),
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'time_in_force': 'GTC',  # GTC, GTT, IOC, or FOK
+            # 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            # 'post_only': False,  # invalid when time_in_force is IOC or FOK
+            # market order params --------------------------------------------
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'funds': self.cost_to_precision(symbol, amount),
         }
+        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop_price')
+        if stopPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, ['stopPrice', 'stop_price'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
+            params = self.omit(params, ['timeInForce', 'time_in_force'])
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
+        elif type == 'market':
+            cost = self.safe_float_2(params, 'cost', 'funds')
+            if cost is None:
+                if price is not None:
+                    cost = amount * price
+            else:
+                params = self.omit(params, ['cost', 'funds'])
+            if cost is not None:
+                request['funds'] = self.cost_to_precision(symbol, cost)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response)
 

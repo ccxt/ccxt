@@ -791,15 +791,53 @@ class coinbasepro extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        // $oid = (string) $this->nonce();
         $request = array(
-            'product_id' => $this->market_id($symbol),
-            'side' => $side,
-            'size' => $this->amount_to_precision($symbol, $amount),
+            // common $params --------------------------------------------------
+            // 'client_oid' => clientOrderId,
             'type' => $type,
+            'side' => $side,
+            'product_id' => $this->market_id($symbol),
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'stp' => 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop' => 'loss', // "loss" = stop loss below $price, "entry" = take profit above $price
+            // 'stop_price' => $this->price_to_precision($symbol, $price),
+            // limit order $params ---------------------------------------------
+            // 'price' => $this->price_to_precision($symbol, $price),
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'time_in_force' => 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only' => false, // invalid when time_in_force is IOC or FOK
+            // market order $params --------------------------------------------
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'funds' => $this->cost_to_precision($symbol, $amount),
         );
+        $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop_price');
+        if ($stopPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
+        }
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            $request['time_in_force'] = $timeInForce;
+            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
+        }
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
+        } else if ($type === 'market') {
+            $cost = $this->safe_float_2($params, 'cost', 'funds');
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $amount * $price;
+                }
+            } else {
+                $params = $this->omit($params, array( 'cost', 'funds' ));
+            }
+            if ($cost !== null) {
+                $request['funds'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+            }
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
         return $this->parse_order($response);
