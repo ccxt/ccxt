@@ -865,7 +865,9 @@ class coinbasepro(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {}
+        request = {
+            # 'product_id': market['id'],  # the request will be more performant if you include it
+        }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         method = None
         if clientOrderId is None:
@@ -875,10 +877,20 @@ class coinbasepro(Exchange):
             method = 'privateDeleteOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return await getattr(self, method)(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
-        return await self.privateDeleteOrders(params)
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['symbol']  # the request will be more performant if you include it
+        return await self.privateDeleteOrders(self.extend(request, params))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

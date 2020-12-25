@@ -898,7 +898,9 @@ class coinbasepro extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array();
+        $request = array(
+            // 'product_id' => $market['id'], // the $request will be more performant if you include it
+        );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
         $method = null;
         if ($clientOrderId === null) {
@@ -909,11 +911,23 @@ class coinbasepro extends Exchange {
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
         return $this->$method (array_merge($request, $params));
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        return $this->privateDeleteOrders ($params);
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
+        return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
