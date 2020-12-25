@@ -909,7 +909,7 @@ module.exports = class coinbasepro extends Exchange {
         }
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol):
+            market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
         return await this[method] (this.extend (request, params));
