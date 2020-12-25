@@ -436,49 +436,19 @@ module.exports = class thodex extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const responseCodes = {
-            '401': 'Unauthorized',
-            '404': 'NotFound',
-            '406': 'NotAcceptable',
-            '429': 'TooManyRequest',
-            '500': 'InternalServerError',
-            '600': 'ApiKeyRequired',
-            '601': 'ApiKeyNoValid',
-            '604': 'UserNotFound',
-            '605': 'BelowMinLevel',
-            '606': 'InvalidCredentials',
-            '607': 'AccountDisabled',
-            '608': 'WhitelistUnauthorizedIp',
-            '609': 'AuthorizationTokenRequired',
-            '610': 'AuthorizationTokenMismatch',
-            '611': 'InvalidTonce',
-            '612': 'MarketLimitOrderCreationFailed',
-            '613': 'MarketOrderCreationFailed',
-            '614': 'MarketOrderCancelationFailed',
-            '619': 'ParametersValidationFailed',
-            '630': 'AmountMustExceedTransferFee',
-            '634': 'WalletNotFound',
-            '639': 'OnlyHttpsConnectionsAllowed',
-            '641': 'WalletCreationFailed',
-            '651': 'TransferFailedPleaseContactUs',
-            '652': 'TheAmountMustExceedMinimumTransferLimit',
-            '657': 'LocationLock',
-            '658': 'InvalidCaptcha',
-            '659': 'WhiteListToggleFailed',
-            '660': 'WhiteListAddNewFailed',
-            '661': 'WhiteListDeleteFailed',
-            '673': 'SelectedNationalityDeniedAsset',
-        };
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        const error = this.safeValue (response, 'error');
-        const code = this.safeInteger (error, 'code');
-        if (code !== undefined) {
-            const message = this.safeString (error, 'message');
-            if (message !== 'Ok') {
-                const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
-                throw new ExchangeError (ErrorClass);
+        return response;
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (code >= 400) {
+            const error = this.safeValue (response, 'error');
+            const code = this.safeInteger (error, 'code');
+            if (error !== undefined) {
+                if (code !== undefined) {
+                    throw new ExchangeError (this.id + ' ' + body);
+                }
             }
         }
-        return response;
     }
 };
