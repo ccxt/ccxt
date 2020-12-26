@@ -3303,19 +3303,17 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 
 ```
 // if long
-(liquidationPrice - price) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
-
+(liquidationPrice - price) * contracts = maintenanceMargin
 
 // if short
-(price - liquidationPrice) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+(price - liquidationPrice) * contracts = maintenanceMargin
 
 
 // if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
-
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
 
 // if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin = maintenanceMarginPercentage * notional
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
 #### Loading Futures Markets
