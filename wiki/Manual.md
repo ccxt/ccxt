@@ -1,6 +1,7 @@
 # Overview
 
 
+
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
 The structure of the library can be outlined as follows:
@@ -60,6 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Instantiation](#instantiation)
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
+
 The CCXT library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                 | name                                                                                    | ver | doc                                                                                         | certified                                                                                                                   | pro                                                                          |
@@ -674,6 +676,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
+
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
 In terms of the ccxt library, every exchange offers multiple markets within itself. The set of markets differs from exchange to exchange opening possibilities for cross-exchange and cross-market arbitrage. A market is usually a pair of traded crypto/fiat currencies.
@@ -1127,6 +1130,7 @@ var_dump ($bitfinex->markets['XRP/BTC']);
 - [Returned JSON Objects](#returned-json-objects)
 - [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
 - [Unified API](#unified-api)
+
 Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
 
 Usually, there is an endpoint for getting a list of markets from an exchange, an endpoint for retrieving an order book for a particular market, an endpoint for retrieving trade history, endpoints for placing and canceling orders, for money deposit and withdrawal, etc... Basically every kind of action you could perform within a particular exchange has a separate endpoint URL offered by the API.
@@ -1604,6 +1608,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Your Account](#funding-your-account)
 - [Positions](#positions)
 - [Fees](#fees)
+
   
 
   
@@ -2144,6 +2149,7 @@ UNDER CONSTRUCTION
 - [Fees](#fees)
 - [Ledger](#ledger)
 - [Overriding The Nonce](#overriding-the-nonce)
+
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
 ## Authentication
@@ -3688,6 +3694,7 @@ class MyZaif extends \ccxt\zaif {
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
 - [NetworkError](#networkerror)
+
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 
 To handle the errors you should add a `try` block around the call to a unified method and catch the exceptions like you would normally do with your language:
