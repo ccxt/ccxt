@@ -51,8 +51,10 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchanges](#exchanges)
 - [Markets](#markets)
 - [API Methods / Endpoints](#api-methods--endpoints)
+- [Unified API](#unified-api)
 - [Market Data](#market-data)
 - [Trading](#trading)
+- [Positions](#positions)
 - [Error Handling](#error-handling)
 - [Troubleshooting](#troubleshooting)
 
@@ -673,6 +675,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
 - [Market Structure](#market-structure)
 - [Currency Structure](#currency-structure)
+- [Precision And Limits](#precision-and-limits)
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
@@ -772,7 +775,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
     - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
 - `limits`. The minimums and maximums for prices, amounts (volumes), costs (where cost = price * amount) and withdrawals.
 
-### Precision And Limits
+## Precision And Limits
 
 **Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
 
@@ -1127,9 +1130,7 @@ var_dump ($bitfinex->markets['XRP/BTC']);
 - [Implicit API Methods](#implicit-api-methods)
 - [Public/Private API](#publicprivate-api)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
-- [Returned JSON Objects](#returned-json-objects)
 - [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
-- [Unified API](#unified-api)
 
 Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
 
@@ -1241,7 +1242,7 @@ asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
 
 In PHP all API methods are synchronous.
 
-## Returned JSON Objects
+### Returned JSON Objects
 
 All public and private API methods return raw decoded JSON objects in response from the exchanges, as is, untouched. The unified API returns JSON-decoded objects in a common format and structured uniformly across all exchanges.
 
@@ -1286,7 +1287,10 @@ print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
-## Unified API
+# Unified API
+
+
+
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
@@ -1311,6 +1315,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
+
+\# TODO: ADD LINKS ABOVE
 
 ### Overriding Unified API Params
 
@@ -1606,7 +1612,9 @@ if ($exchange->has['fetchMyTrades']) {
 - [Orders](#orders)
 - [Personal Trades](#personal-trades)
 - [Funding Your Account](#funding-your-account)
-- [Positions](#positions)
+- [Position Structure](#position-structure)
+- [Using fetchPositions](#using-fetchpositions)
+- [Contract Naming Conventions](#contract-naming-conventions)
 - [Fees](#fees)
 
   
@@ -2145,10 +2153,6 @@ UNDER CONSTRUCTION
 - [Orders](#orders)
 - [Personal Trades](#personal-trades)
 - [Funding Your Account](#funding-your-account)
-- [Positions](#positions)
-- [Fees](#fees)
-- [Ledger](#ledger)
-- [Overriding The Nonce](#overriding-the-nonce)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -3279,7 +3283,15 @@ if ($exchange->has['fetchTransactions']) {
 }
 ```
 
-## Positions
+# Positions
+
+- [Position Structure](#position-structure)
+- [Using fetchPositions](#using-fetchpositions)
+- [Contract Naming Conventions](#contract-naming-conventions)
+- [Fees](#fees)
+- [Ledger](#ledger)
+- [Overriding The Nonce](#overriding-the-nonce)
+
 
 ```diff
 - this part of the unified API is currenty a work in progress
@@ -3291,7 +3303,7 @@ Derivative trading has become increasingly popular within the crypto ecosystem. 
 
 We present a unified structure for the positions returned by exchanges.
 
-### Position Structure
+## Position Structure
 
 ```Javascript
 {
@@ -3330,7 +3342,7 @@ It is recommended to use the `maintenanceMargin` and `initialMargin` instead of 
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
 
-#### Liquidation price
+### Liquidation price
 
 It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin` collateral left and if it goes any further the position will have negative collateral.
 
@@ -3347,7 +3359,7 @@ It is the price at which the `initialMargin + unrealized = collateral = maintena
 (1/price - 1/liquidationPrice) * contracts = maintenanceMargin
 ```
 
-#### Loading Futures Markets
+### Loading Futures Markets
 
 All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change
 
@@ -3363,7 +3375,7 @@ binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
 
 if you are interested in loading both the USDT-margined futures and the COIN-margined futures.
 
-#### Using fetchPositions
+## Using fetchPositions
 
 Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
 
@@ -3383,7 +3395,7 @@ await binance.fetchOpenPositions ()
 
 This is an emulated function and just filters data from `fetchPositions`.
 
-#### Contract Naming Conventions
+## Contract Naming Conventions
 
 We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
@@ -3694,6 +3706,10 @@ class MyZaif extends \ccxt\zaif {
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
 - [NetworkError](#networkerror)
+- [DDoSProtection](#ddosprotection)
+- [RequestTimeout](#requesttimeout)
+- [ExchangeNotAvailable](#exchangenotavailable)
+- [InvalidNonce](#invalidnonce)
 
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 
@@ -3893,7 +3909,7 @@ Other exceptions derived from `ExchangeError`:
 
 All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 
-### DDoSProtection
+## DDoSProtection
 
 This exception is thrown in either of two cases:
 
@@ -3907,7 +3923,7 @@ In addition to default error handling, the ccxt library does a case-insensitive 
   - `overload`
   - `ddos`
 
-### RequestTimeout
+## RequestTimeout
 
 This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome of a request (whether it was accepted by the exchange server or not).
 
@@ -3921,7 +3937,7 @@ Thus it's advised to handle this type of exception in the following manner:
   - call `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
   - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run and then was filled and closed by the time of the second check.
 
-### ExchangeNotAvailable
+## ExchangeNotAvailable
 
 This type of exception is thrown when the underlying exchange is unreachable.
 
@@ -3936,7 +3952,7 @@ The ccxt library also throws this error if it detects any of the following keywo
   - `maintenance`
   - `maintenancing`
 
-### InvalidNonce
+## InvalidNonce
 
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
