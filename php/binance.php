@@ -2535,7 +2535,7 @@ class binance extends Exchange {
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $params));
-            } else if ($path === 'batchOrders') {
+            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false)) {
                 $query = $this->rawencode(array_merge(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,

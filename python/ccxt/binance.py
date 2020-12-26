@@ -2389,7 +2389,7 @@ class binance(Exchange):
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, params))
-            elif path == 'batchOrders':
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
                 query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
