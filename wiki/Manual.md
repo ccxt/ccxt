@@ -3413,7 +3413,7 @@ Because this is still a work in progress, some or all of methods and info descri
 ```Javascript
 {
     'type': takerOrMaker,
-    'currency': 'BTC', // the unified fee curren``cy code
+    'currency': 'BTC', // the unified fee currency code
     'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
     'cost': feePaid, // the fee cost (amount * fee rate)
 }
