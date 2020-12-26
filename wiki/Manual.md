@@ -52,11 +52,6 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [API Methods / Endpoints](#api-methods--endpoints)
 - [Market Data](#market-data)
 - [Trading](#trading)
-- [A: the shortest](#a:-the-shortest)
-- [B: custom nonce](#b:-custom-nonce)
-- [C: milliseconds nonce](#c:-milliseconds-nonce)
-- [D: milliseconds nonce inline](#d:-milliseconds-nonce-inline)
-- [E: milliseconds nonce](#e:-milliseconds-nonce)
 - [Error Handling](#error-handling)
 - [Troubleshooting](#troubleshooting)
 
@@ -3617,20 +3612,20 @@ There are exchanges that confuse milliseconds with microseconds in their API doc
 ```JavaScript
 // JavaScript
 
-// A: custom nonce redefined in constructor parameters
+// 1: custom nonce redefined in constructor parameters
 let nonce = 1
 let kraken1 = new ccxt.kraken ({ nonce: () => nonce++ })
 
-// B: nonce redefined explicitly
+// 2: nonce redefined explicitly
 let kraken2 = new ccxt.kraken ()
 kraken2.nonce = function () { return nonce++ } // uses same nonce as kraken1
 
-// C: milliseconds nonce
+// 3: milliseconds nonce
 let kraken3 = new ccxt.kraken ({
     nonce: function () { return this.milliseconds () },
 })
 
-// D: newer ES syntax
+// 4: newer ES syntax
 let kraken4 = new ccxt.kraken ({
     nonce () { return this.milliseconds () },
 })
@@ -3641,43 +3636,33 @@ In Python and PHP you can do the same by subclassing and overriding nonce functi
 ```Python
 # Python
 
-# A: the shortest
-
-
+# 1: the shortest
 coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
 
-# B: custom nonce
-
-
+# 2: custom nonce
 class MyKraken(ccxt.kraken):
     n = 1
     def nonce(self):
         return self.n += 1
 
-# C: milliseconds nonce
-
-
+# 3: milliseconds nonce
 class MyBitfinex(ccxt.bitfinex):
     def nonce(self):
         return self.milliseconds()
 
-# D: milliseconds nonce inline
-
-
+# 4: milliseconds nonce inline
 hitbtc = ccxt.hitbtc({
     'nonce': lambda: int(time.time() * 1000)
 })
 
-# E: milliseconds nonce
-
-
+# 5: milliseconds nonce
 acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
 ```
 
 ```PHP
 // PHP
 
-// A: custom nonce value
+// 1: custom nonce value
 class MyOKCoinUSD extends \ccxt\okcoinusd {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array ('i' => 1), $options));
@@ -3687,7 +3672,7 @@ class MyOKCoinUSD extends \ccxt\okcoinusd {
     }
 }
 
-// B: milliseconds nonce
+// 2: milliseconds nonce
 class MyZaif extends \ccxt\zaif {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array ('i' => 1), $options));
