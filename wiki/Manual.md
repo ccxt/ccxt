@@ -1126,8 +1126,7 @@ var_dump ($bitfinex->markets['XRP/BTC']);
 # Implicit API
 
 - [API Methods / Endpoints](#api-methods--endpoints)
-- [Implicit API](#implicit-api)
-- [Public/Private API](#publicprivate-api)
+- [Implicit API Methods](#implicit-api-methods)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
 - [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
 
@@ -1145,7 +1144,7 @@ The endpoint URLs are predefined in the `api` property for each exchange. You do
 
 Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
 
-## Implicit API
+## Implicit API Methods
 
 Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
@@ -1158,51 +1157,6 @@ An implicit method takes a dictionary of parameters, sends the request to the ex
 The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
 
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
-
-```
-console.log (new ccxt.kraken ())   // JavaScript
-print(dir(ccxt.hitbtc()))           # Python
-var_dump (new \ccxt\okcoinusd ()); // PHP
-```
-
-## Public/Private API
-
-API URLs are often grouped into two sets of methods called a *public API* for market data and a *private API* for trading and account access. These groups of API methods are usually prefixed with a word 'public' or 'private'.
-
-A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
-
-Public APIs include the following:
-
-- instruments/trading pairs
-- price feeds (exchange rates)
-- order books (L1, L2, L3...)
-- trade history (closed orders, transactions, executions)
-- tickers (spot / 24h price)
-- OHLCV series for charting
-- other public endpoints
-
-For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
-
-If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
-
-Private APIs allow the following:
-
-- manage personal account info
-- query account balances
-- trade by making market and limit orders
-- create deposit addresses and fund accounts
-- request withdrawal of fiat and crypto funds
-- query personal open / closed orders
-- query positions in margin/leverage trading
-- get ledger history
-- transfer funds between accounts
-- use merchant services
-
-Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
-
-A few exchanges also expose a merchant API which allows you to create invoices and accept crypto and fiat payments from your clients. This kind of API is often called *merchant*, *wallet*, *payment*, *ecapi* (for e-commerce).
-
-To get a list of all available methods with an exchange instance, you can simply do the following:
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
@@ -1603,10 +1557,56 @@ if ($exchange->has['fetchMyTrades']) {
 
 # Public API
 
+- [Public/Private API](#publicprivate-api)
 - [Order Book](#order-book)
 - [Price Tickers](#price-tickers)
 - [Public Trades](#public-trades)
 - [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
+
+## Public/Private API
+
+API URLs are often grouped into two sets of methods called a *public API* for market data and a *private API* for trading and account access. These groups of API methods are usually prefixed with a word 'public' or 'private'.
+
+A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
+
+Public APIs include the following:
+
+- instruments/trading pairs
+- price feeds (exchange rates)
+- order books (L1, L2, L3...)
+- trade history (closed orders, transactions, executions)
+- tickers (spot / 24h price)
+- OHLCV series for charting
+- other public endpoints
+
+For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
+
+If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
+
+Private APIs allow the following:
+
+- manage personal account info
+- query account balances
+- trade by making market and limit orders
+- create deposit addresses and fund accounts
+- request withdrawal of fiat and crypto funds
+- query personal open / closed orders
+- query positions in margin/leverage trading
+- get ledger history
+- transfer funds between accounts
+- use merchant services
+
+Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
+
+A few exchanges also expose a merchant API which allows you to create invoices and accept crypto and fiat payments from your clients. This kind of API is often called *merchant*, *wallet*, *payment*, *ecapi* (for e-commerce).
+
+To get a list of all available methods with an exchange instance, you can simply do the following:
+
+```
+console.log (new ccxt.kraken ())   // JavaScript
+print(dir(ccxt.hitbtc()))           # Python
+var_dump (new \ccxt\okcoinusd ()); // PHP
+```
 
 ## Order Book
 
@@ -3383,7 +3383,7 @@ We currently load spot markets with the unified `BASE/QUOTE` symbol schema into 
 
 #### Futures
 
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier.Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
+A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
 
 ```JavaScript
 //
@@ -3435,12 +3435,47 @@ Because this is still a work in progress, some or all of methods and info descri
 
 ### Fee Structure
 
+##### Trading
+
 ```Javascript
 {
-    'type': takerOrMaker,
     'currency': 'BTC', // the unified fee currency code
     'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
     'cost': feePaid, // the fee cost (amount * fee rate)
+}
+```
+
+##### Funding
+
+`fetchFees` will automatically call both `fetchFundingFees` and `fetchTradingFees` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
+```Javascript
+fetchFees (params = {})
+{
+    'funding': {
+        'withdraw': {
+            'BTC': 0.00001,
+            'ETH': 0.001,
+            'LTC': 0.0003,
+        },
+        'deposit': {
+            'BTC': 0,
+        },
+        'info': { ... },
+    },
+    'trading': {
+        'ETH/BTC': {
+             'maker': 0.001,
+             'taker': 0.002,
+             'info': { ... },
+             'symbol': 'ETH/BTC',
+        },
+        'LTC/BTC': {
+             'maker': 0.001,
+             'taker': 0.002,
+             'info': { ... },
+             'symbol': 'LTC/BTC',
+        },
+    },
 }
 ```
 
@@ -3527,6 +3562,27 @@ Fees can be negative, this is very common amongst derivative exchanges. A negati
 
 Also, some exchanges might not specify fees as percentage of volume, check the `percentage` field of the market to be sure.
 
+#### Trading Fee Strucuture
+
+Some exchanges have an endpoint for fetching the trading fees, this is mapped to the unified method `fetchTradingFees`:
+```Javascript
+fetchTradingFees (params = {})
+{
+     'ETH/BTC': {
+         'maker': 0.001,
+         'taker': 0.002,
+         'info': { ... },
+         'symbol': 'ETH/BTC',
+     },
+     'LTC/BTC': {
+         'maker': 0.001,
+         'taker': 0.002,
+         'info': { ... },
+         'symbol': 'LTC/BTC',
+     },
+}
+```
+
 ### Funding Fees
 
 Funding fees are properties of currencies (account balance).
@@ -3536,6 +3592,25 @@ Accessing funding fee rates should be done via the `.currencies` property. This 
 ```Javascript
 exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
+```
+
+#### Funding Fee Strucuture
+
+Some exchanges have an endpoint for fetching the funding fees, this is mapped to the unified method `fetchFundingFees`:
+
+```Javascript
+fetchFundingFees (params = {})
+{
+    'withdraw': {
+        'BTC': 0.00001,
+        'ETH': 0.001,
+        'LTC': 0.0003,
+    },
+    'deposit': {
+        'BTC': 0,
+    },
+    'info': { ... },
+}
 ```
 
 ## Ledger
