@@ -3188,7 +3188,7 @@ An inverse contract will allow you to go long or short on BTC/USD by putting up 
 
 ### Liquidation price
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin` collateral left and if it goes any further the position will have negative collateral.
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
 
 ```
 // if long
