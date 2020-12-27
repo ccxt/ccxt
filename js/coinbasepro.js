@@ -59,7 +59,28 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'level2';
-        const future = this.subscribe (name, symbol, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = name + ':' + market['id'];
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': [
+                market['id'],
+            ],
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend (subscribe, params);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'marketId': market['id'],
+            'limit': limit,
+        };
+        const future = this.watch (url, messageHash, request, messageHash, subscription);
+        // this.subscribe (name, symbol, params);
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
@@ -224,49 +245,40 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         //
         const type = this.safeString (message, 'type');
         const marketId = this.safeString (message, 'product_id');
-        if (marketId !== undefined) {
-            let symbol = undefined;
-            let market = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const name = 'level2';
+        const messageHash = name + ':' + marketId;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const limit = this.safeInteger (subscription, 'limit');
+        if (type === 'snapshot') {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
+            this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
+            orderbook['timestamp'] = undefined;
+            orderbook['datetime'] = undefined;
+            client.resolve (orderbook, messageHash);
+        } else if (type === 'l2update') {
+            const orderbook = this.orderbooks[symbol];
+            const timestamp = this.parse8601 (this.safeString (message, 'time'));
+            const changes = this.safeValue (message, 'changes', []);
+            const sides = {
+                'sell': 'asks',
+                'buy': 'bids',
+            };
+            for (let i = 0; i < changes.length; i++) {
+                const change = changes[i];
+                const key = this.safeString (change, 0);
+                const side = this.safeString (sides, key);
+                const price = this.safeFloat (change, 1);
+                const amount = this.safeFloat (change, 2);
+                const bookside = orderbook[side];
+                bookside.store (price, amount);
             }
-            const name = 'level2';
-            const messageHash = name + ':' + marketId;
-            if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook ({});
-                const orderbook = this.orderbooks[symbol];
-                this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
-                this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
-                orderbook['timestamp'] = undefined;
-                orderbook['datetime'] = undefined;
-                client.resolve (orderbook, messageHash);
-            } else if (type === 'l2update') {
-                const orderbook = this.orderbooks[symbol];
-                const timestamp = this.parse8601 (this.safeString (message, 'time'));
-                const changes = this.safeValue (message, 'changes', []);
-                const sides = {
-                    'sell': 'asks',
-                    'buy': 'bids',
-                };
-                for (let i = 0; i < changes.length; i++) {
-                    const change = changes[i];
-                    const key = this.safeString (change, 0);
-                    const side = this.safeString (sides, key);
-                    const price = this.safeFloat (change, 1);
-                    const amount = this.safeFloat (change, 2);
-                    const bookside = orderbook[side];
-                    bookside.store (price, amount);
-                }
-                orderbook['timestamp'] = timestamp;
-                orderbook['datetime'] = this.iso8601 (timestamp);
-                client.resolve (orderbook, messageHash);
-            }
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            client.resolve (orderbook, messageHash);
         }
     }
 
