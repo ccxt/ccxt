@@ -819,6 +819,10 @@ class coinbasepro(Exchange):
             # 'size': self.amount_to_precision(symbol, amount),
             # 'funds': self.cost_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        if clientOrderId is not None:
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
         stopPrice = self.safe_float_2(params, 'stopPrice', 'stop_price')
         if stopPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)

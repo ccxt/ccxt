@@ -827,7 +827,7 @@ class coinbasepro extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             // common $params --------------------------------------------------
-            // 'client_oid' => clientOrderId,
+            // 'client_oid' => $clientOrderId,
             'type' => $type,
             'side' => $side,
             'product_id' => $market['id'],
@@ -845,6 +845,11 @@ class coinbasepro extends Exchange {
             // 'size' => $this->amount_to_precision($symbol, $amount),
             // 'funds' => $this->cost_to_precision($symbol, $amount),
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId !== null) {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
         $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop_price');
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
