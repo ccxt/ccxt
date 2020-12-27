@@ -54,6 +54,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [**Private API**](#private-api)
 - [**Error Handling**](#error-handling)
 - [**Troubleshooting**](#troubleshooting)
+- [**CCXT PRO**](#ccxt-pro)
 
 # Exchanges
 
@@ -1245,6 +1246,7 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 # Unified API
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
+- [Overriding The Nonce](#overriding-the-nonce)
 - [Pagination](#pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
@@ -1311,6 +1313,94 @@ $params = array (
 
 // overrides go into the last argument to the unified call ↓ HERE
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
+```
+
+## Overriding The Nonce
+
+**The default nonce is a 32-bit Unix Timestamp in seconds. You should override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
+
+In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
+
+In some cases you are unable to create new keys due to lack of permissions or whatever. If that happens you can still override the nonce. Base market class has the following methods for convenience:
+
+- `seconds ()`: returns a Unix Timestamp in seconds.
+- `milliseconds ()`: same in milliseconds (ms = 1000 * s, thousandths of a second).
+- `microseconds ()`: same in microseconds (μs = 1000 * ms, millionths of a second).
+
+There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a `nonce` parameter to the exchange constructor or by setting it explicitly on exchange object:
+
+```JavaScript
+// JavaScript
+
+// 1: custom nonce redefined in constructor parameters
+let nonce = 1
+let kraken1 = new ccxt.kraken ({ nonce: () => nonce++ })
+
+// 2: nonce redefined explicitly
+let kraken2 = new ccxt.kraken ()
+kraken2.nonce = function () { return nonce++ } // uses same nonce as kraken1
+
+// 3: milliseconds nonce
+let kraken3 = new ccxt.kraken ({
+    nonce: function () { return this.milliseconds () },
+})
+
+// 4: newer ES syntax
+let kraken4 = new ccxt.kraken ({
+    nonce () { return this.milliseconds () },
+})
+```
+
+In Python and PHP you can do the same by subclassing and overriding nonce function of a particular exchange class:
+
+```Python
+# Python
+
+# 1: the shortest
+coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
+
+# 2: custom nonce
+class MyKraken(ccxt.kraken):
+    n = 1
+    def nonce(self):
+        return self.n += 1
+
+# 3: milliseconds nonce
+class MyBitfinex(ccxt.bitfinex):
+    def nonce(self):
+        return self.milliseconds()
+
+# 4: milliseconds nonce inline
+hitbtc = ccxt.hitbtc({
+    'nonce': lambda: int(time.time() * 1000)
+})
+
+# 5: milliseconds nonce
+acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
+```
+
+```PHP
+// PHP
+
+// 1: custom nonce value
+class MyOKCoinUSD extends \ccxt\okcoinusd {
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array ('i' => 1), $options));
+    }
+    public function nonce () {
+        return $this->i++;
+    }
+}
+
+// 2: milliseconds nonce
+class MyZaif extends \ccxt\zaif {
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array ('i' => 1), $options));
+    }
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+}
 ```
 
 ## Pagination
@@ -2133,15 +2223,14 @@ UNDER CONSTRUCTION
 
 - [Authentication](#authentication)
 - [API Keys Setup](#api-keys-setup)
-- [Querying Account Balance](#querying-account-balance)
+- [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
-- [Funding Your Account](#funding-your-account)
+- [Account](#account)
 - [Transactions](#transactions)
 - [Positions](#positions)
 - [Fees](#fees)
 - [Ledger](#ledger)
-- [Overriding The Nonce](#overriding-the-nonce)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -2292,7 +2381,7 @@ $exchange = new $exchange_class (array (
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
-## Querying Account Balance
+## Account Balance
 
 To query for balance and get the amount of funds available for trading or funds locked in orders, use the `fetchBalance` method:
 
@@ -3051,7 +3140,7 @@ if ($exchange->has['fetchOrderTrades']) {
 }
 ```
 
-## Funding Your Account
+## Account
 
 ```diff
 - this part of the unified API is currenty a work in progress
@@ -3670,94 +3759,6 @@ The `status` field is there to support for exchanges that include pending and ca
 
 The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 
-## Overriding The Nonce
-
-**The default nonce is a 32-bit Unix Timestamp in seconds. You should override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
-
-In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
-
-In some cases you are unable to create new keys due to lack of permissions or whatever. If that happens you can still override the nonce. Base market class has the following methods for convenience:
-
-- `seconds ()`: returns a Unix Timestamp in seconds.
-- `milliseconds ()`: same in milliseconds (ms = 1000 * s, thousandths of a second).
-- `microseconds ()`: same in microseconds (μs = 1000 * ms, millionths of a second).
-
-There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a `nonce` parameter to the exchange constructor or by setting it explicitly on exchange object:
-
-```JavaScript
-// JavaScript
-
-// 1: custom nonce redefined in constructor parameters
-let nonce = 1
-let kraken1 = new ccxt.kraken ({ nonce: () => nonce++ })
-
-// 2: nonce redefined explicitly
-let kraken2 = new ccxt.kraken ()
-kraken2.nonce = function () { return nonce++ } // uses same nonce as kraken1
-
-// 3: milliseconds nonce
-let kraken3 = new ccxt.kraken ({
-    nonce: function () { return this.milliseconds () },
-})
-
-// 4: newer ES syntax
-let kraken4 = new ccxt.kraken ({
-    nonce () { return this.milliseconds () },
-})
-```
-
-In Python and PHP you can do the same by subclassing and overriding nonce function of a particular exchange class:
-
-```Python
-# Python
-
-# 1: the shortest
-coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
-
-# 2: custom nonce
-class MyKraken(ccxt.kraken):
-    n = 1
-    def nonce(self):
-        return self.n += 1
-
-# 3: milliseconds nonce
-class MyBitfinex(ccxt.bitfinex):
-    def nonce(self):
-        return self.milliseconds()
-
-# 4: milliseconds nonce inline
-hitbtc = ccxt.hitbtc({
-    'nonce': lambda: int(time.time() * 1000)
-})
-
-# 5: milliseconds nonce
-acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
-```
-
-```PHP
-// PHP
-
-// 1: custom nonce value
-class MyOKCoinUSD extends \ccxt\okcoinusd {
-    public function __construct ($options = array ()) {
-        parent::__construct (array_merge (array ('i' => 1), $options));
-    }
-    public function nonce () {
-        return $this->i++;
-    }
-}
-
-// 2: milliseconds nonce
-class MyZaif extends \ccxt\zaif {
-    public function __construct ($options = array ()) {
-        parent::__construct (array_merge (array ('i' => 1), $options));
-    }
-    public function nonce () {
-        return $this->milliseconds ();
-    }
-}
-```
-
 # Error Handling
 
 - [Exception Hierarchy](#exception-hierarchy)
@@ -4020,6 +4021,9 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 # Troubleshooting
 
+- [Notes](#notes)
+
+
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 - Make sure that you have the most recent version of ccxt.
@@ -4063,6 +4067,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
 - Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
+- Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
 ## Notes
 
@@ -4071,6 +4076,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
-- ...
+# CCXT PRO
 
-```UNDER CONSTRUCTION```
+```Under Construction...
+Please check back here for the CCXT Pro Manual```
