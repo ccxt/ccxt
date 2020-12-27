@@ -51,10 +51,11 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [**Implicit API**](#implicit-api)
 - [**Unified API**](#unified-api)
 - [**Public API**](#public-api)
-- [**Private API**](#private-api)
+- [**Private API - Trading**](#private-api---trading)
+- [**Private API - Funding**](#private-api---funding)
 - [**Error Handling**](#error-handling)
 - [**Troubleshooting**](#troubleshooting)
-- [**CCXT PRO**](#ccxt-pro)
+- [**Pro**](#pro)
 
 # Exchanges
 
@@ -2219,18 +2220,14 @@ Some exchanges don't offer any OHLCV method, and for those, the ccxt library wil
 UNDER CONSTRUCTION
 ```
 
-# Private API
+# Private API - Trading
 
 - [Authentication](#authentication)
 - [API Keys Setup](#api-keys-setup)
 - [Account Balance](#account-balance)
 - [Orders](#orders)
 - [My Trades](#my-trades)
-- [Account](#account)
-- [Transactions](#transactions)
 - [Positions](#positions)
-- [Fees](#fees)
-- [Ledger](#ledger)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -3139,16 +3136,151 @@ if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
-
-## Account
-
+## Positions
 ```diff
 - this part of the unified API is currenty a work in progress
 - there may be some issues and missing implementations here and there
 - contributions, pull requests and feedback appreciated
 ```
 
-### Deposit
+Derivative trading has become increasingly popular within the crypto ecosystem. This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
+
+We present a unified structure for the positions returned by exchanges.
+
+### Position Structure
+
+```Javascript
+{
+   'info': { ... },             // json response returned from the exchange as is
+   'id': '1234323',             // string, position id to reference the position, similar to an order id
+   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
+   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
+   'datetime': '2020-12-11T21:52:34.607Z',  // iso8601 representation of the unix time above
+   'isolated': true,            // boolean, whether or not the position is isolated, as oppose to cross where margin is added automatically
+   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
+   'side': 'long',              // string, long or short
+   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
+   'price': 20000,              // float, the average entry price of the position
+   'markPrice': 20050,          // float, a price that is used for funding calculations
+   'notional': 100000,          // float, the number of contracts times the price
+   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
+   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position in the same currency as the notional
+   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated in the same currency as the notional
+   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
+   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
+   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
+   'realizedPnl': 10,           // float, the total funding and trading fees incurred by this position so far, can be negative
+   'pnl ': 310,                 // float, the sum of the realizedPnl and the unrealizedPnl, can be negative
+   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
+   'status': 'open',            // string, can be "open", "closed" or "liquidating"
+}
+```
+Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
+
+When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
+
+As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
+
+It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
+
+An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+### Liquidation price
+
+It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin` collateral left and if it goes any further the position will have negative collateral.
+
+```
+// if long
+(liquidationPrice - price) * contracts = maintenanceMargin
+
+// if short
+(price - liquidationPrice) * contracts = maintenanceMargin
+// if inverse long
+(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+
+// if inverse short
+(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+```
+
+### Loading Futures Markets
+
+All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change
+
+```Javascript
+binance.options['fetchMarkets'] = [ 'linear' ]
+```
+
+if you are only interested in loading the USDT-margined futures and
+
+```Javascript
+binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
+```
+
+if you are interested in loading both the USDT-margined futures and the COIN-margined futures.
+
+### Using fetchPositions
+
+Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
+
+```Javascript
+binance.options['fetchPositions'] = 'inverse'
+await binance.fetchPositions ()
+
+// equivalent to the above
+await binance.fetchPositions (undefined, undefined, undefined, { 'type': 'inverse' }}
+```
+
+You can also filter out the open positions by doing
+
+```Javascript
+await binance.fetchOpenPositions ()
+```
+
+This is an emulated function and just filters data from `fetchPositions`.
+
+### Contract Naming Conventions
+
+We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
+
+#### Futures
+
+A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
+
+```JavaScript
+//
+// base asset or currency
+//
+//    quote asset or currency
+//
+//         settlement asset or currency
+//
+//              identifier
+//
+'BTC/USDT-211225:BTC'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
+'BTC/USDT-211225:USDT' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
+'ETH/USDT-210625:ETH'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
+'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
+```
+
+#### Perpetual Swaps
+
+```JavaScript
+'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
+'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
+'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
+'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
+```
+
+# Private API - Funding
+
+- [Deposit](#deposit)
+- [Withdraw](#withdraw)
+- [Transactions](#transactions)
+- [Fees](#fees)
+- [Ledger](#ledger)
+
+## Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
 
@@ -3188,7 +3320,7 @@ With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XM
 
 Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
-### Withdraw
+## Withdraw
 
 ```JavaScript
 // JavaScript
@@ -3363,142 +3495,6 @@ if ($exchange->has['fetchTransactions']) {
 }
 ```
 
-## Positions
-```diff
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
-
-Derivative trading has become increasingly popular within the crypto ecosystem. This can include futures with a set expiry date, perpetual swaps with funding payments, and inverse futures or swaps.
-
-We present a unified structure for the positions returned by exchanges.
-
-### Position Structure
-
-```Javascript
-{
-   'info': { ... },             // json response returned from the exchange as is
-   'id': '1234323',             // string, position id to reference the position, similar to an order id
-   'symbol': 'BTC/USD',         // uppercase string literal of a pair of currencies
-   'timestamp': 1607723554607,  // integer unix time since 1st Jan 1970 in milliseconds
-   'datetime': '2020-12-11T21:52:34.607Z',  // iso8601 representation of the unix time above
-   'isolated': true,            // boolean, whether or not the position is isolated, as oppose to cross where margin is added automatically
-   'hedged': false,             // boolean, whether or not the position is hedged, i.e. if trading in the opposite direction will close this position or make a new one
-   'side': 'long',              // string, long or short
-   'contracts': 5,              // float, number of contracts bought, aka the amount or size of the position
-   'price': 20000,              // float, the average entry price of the position
-   'markPrice': 20050,          // float, a price that is used for funding calculations
-   'notional': 100000,          // float, the number of contracts times the price
-   'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
-   'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position in the same currency as the notional
-   'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated in the same currency as the notional
-   'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
-   'maintenanceMarginPercentage': 0.01,  // float, the maintenanceMargin as a percentage of the notional
-   'unrealizedPnl': 300,        // float, the difference between the market price and the entry price times the number of contracts, can be negative
-   'realizedPnl': 10,           // float, the total funding and trading fees incurred by this position so far, can be negative
-   'pnl ': 310,                 // float, the sum of the realizedPnl and the unrealizedPnl, can be negative
-   'liquidationPrice': 19850,   // float, the price at which collateral becomes less than maintenanceMargin
-   'status': 'open',            // string, can be "open", "closed" or "liquidating"
-}
-```
-Positions allow you to borrow money from an exchange to go long or short on an market. Some exchanges require you to pay a funding fee to keep the position open.
-
-When you go long on a position you are betting that the price will be higher in the future and that the price will never be less than the `liquidationPrice`.
-
-As the price of the underlying index changes so does the unrealisedPnl and as a consequence the amount of collateral you have left in the position (since you can only close it at market price or worse). At some price you will have zero collateral left, this is called the "bust" or "zero" price. Beyond this point, if the price goes in the opposite direction far enough, the collateral of the position will drop below the `maintenanceMargin`. The maintenanceMargin acts as a safety buffer between your position and negative collateral, a scenario where the exchange incurs losses on your behalf. To protect itself the exchange will swiftly liquidate your position if and when this happens. Even if the price returns back above the liquidationPrice you will not get your money back since the exchange sold all the `contracts` you bought at market. In other words the maintenanceMargin is a hidden fee to borrow money.
-
-It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
-
-An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
-
-### Liquidation price
-
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin` collateral left and if it goes any further the position will have negative collateral.
-
-```
-// if long
-(liquidationPrice - price) * contracts = maintenanceMargin
-
-// if short
-(price - liquidationPrice) * contracts = maintenanceMargin
-// if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
-
-// if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
-```
-
-### Loading Futures Markets
-
-All the market types defined in `this.options['fetchMarkets']` are loaded upon calling `exchange.loadMarkets`, including futures and swaps. Some exchanges serve linear and inverse markets from different endpoints, and they might also have different endpoints for futures (that expire) and swaps (that are perpetual). Thoughout the library we will use the term `linear` to reference USD settled futures, `inverse` to reference base currency settled futures, `swap` to reference perpertual swaps, and `future` to reference a contract that expires to the price of an underlying index. You might want to change
-
-```Javascript
-binance.options['fetchMarkets'] = [ 'linear' ]
-```
-
-if you are only interested in loading the USDT-margined futures and
-
-```Javascript
-binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
-```
-
-if you are interested in loading both the USDT-margined futures and the COIN-margined futures.
-
-### Using fetchPositions
-
-Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
-
-```Javascript
-binance.options['fetchPositions'] = 'inverse'
-await binance.fetchPositions ()
-
-// equivalent to the above
-await binance.fetchPositions (undefined, undefined, undefined, { 'type': 'inverse' }}
-```
-
-You can also filter out the open positions by doing
-
-```Javascript
-await binance.fetchOpenPositions ()
-```
-
-This is an emulated function and just filters data from `fetchPositions`.
-
-### Contract Naming Conventions
-
-We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
-
-#### Futures
-
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
-
-```JavaScript
-//
-// base asset or currency
-//
-//    quote asset or currency
-//
-//         settlement asset or currency
-//
-//              identifier
-//
-'BTC/USDT-211225:BTC'  // BTC/USDT futures contract settled in BTC (inverse) on 2021-12-25
-'BTC/USDT-211225:USDT' // BTC/USDT futures contract settled in USDT (linear, vanilla) on 2021-12-25
-'ETH/USDT-210625:ETH'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
-'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
-```
-
-#### Perpetual Swaps
-
-```JavaScript
-'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
-'BTC/USDT:USDT' // BTC/USDT perpetual swap contract funded in USDT
-'ETH/USDT:ETH'  // ETH/USDT perpetual swap contract funded in ETH
-'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
-```
-
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
@@ -3657,18 +3653,18 @@ Some exchanges have an endpoint for fetching the trading fees, this is mapped to
 ```Javascript
 fetchTradingFees (params = {})
 {
-     'ETH/BTC': {
-         'maker': 0.001,
-         'taker': 0.002,
-         'info': { ... },
-         'symbol': 'ETH/BTC',
-     },
-     'LTC/BTC': {
-         'maker': 0.001,
-         'taker': 0.002,
-         'info': { ... },
-         'symbol': 'LTC/BTC',
-     },
+    'ETH/BTC': {
+        'maker': 0.001,
+        'taker': 0.002,
+        'info': { ... },
+        'symbol': 'ETH/BTC',
+    },
+    'LTC/BTC': {
+        'maker': 0.001,
+        'taker': 0.002,
+        'info': { ... },
+        'symbol': 'LTC/BTC',
+	},
 }
 ```
 
@@ -4021,7 +4017,6 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 # Troubleshooting
 
-- [Notes](#notes)
 
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
@@ -4069,14 +4064,17 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 - Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
-## Notes
+### Notes
 
 - Use the `verbose = true` option or instantiate your troublesome exchange with `new ccxt.exchange ({ 'verbose': true })` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
 - Use DEBUG logging in Python!
 - As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
-# CCXT PRO
 
-```Under Construction...
-Please check back here for the CCXT Pro Manual```
+# Pro
+
+```
+Under Construction...
+Please check back here for the CCXT Pro Manual
+```
