@@ -57,7 +57,28 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'level2'
-        future = self.subscribe(name, symbol, params)
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = name + ':' + market['id']
+        url = self.urls['api']['ws']
+        subscribe = {
+            'type': 'subscribe',
+            'product_ids': [
+                market['id'],
+            ],
+            'channels': [
+                name,
+            ],
+        }
+        request = self.extend(subscribe, params)
+        subscription = {
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'marketId': market['id'],
+            'limit': limit,
+        }
+        future = self.watch(url, messageHash, request, messageHash, subscription)
+        # self.subscribe(name, symbol, params)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
     def handle_trade(self, client, message):
@@ -211,46 +232,39 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         #
         type = self.safe_string(message, 'type')
         marketId = self.safe_string(message, 'product_id')
-        if marketId is not None:
-            symbol = None
-            market = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            name = 'level2'
-            messageHash = name + ':' + marketId
-            if type == 'snapshot':
-                self.orderbooks[symbol] = self.order_book({})
-                orderbook = self.orderbooks[symbol]
-                self.handle_deltas(orderbook['asks'], self.safe_value(message, 'asks', []))
-                self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
-                orderbook['timestamp'] = None
-                orderbook['datetime'] = None
-                client.resolve(orderbook, messageHash)
-            elif type == 'l2update':
-                orderbook = self.orderbooks[symbol]
-                timestamp = self.parse8601(self.safe_string(message, 'time'))
-                changes = self.safe_value(message, 'changes', [])
-                sides = {
-                    'sell': 'asks',
-                    'buy': 'bids',
-                }
-                for i in range(0, len(changes)):
-                    change = changes[i]
-                    key = self.safe_string(change, 0)
-                    side = self.safe_string(sides, key)
-                    price = self.safe_float(change, 1)
-                    amount = self.safe_float(change, 2)
-                    bookside = orderbook[side]
-                    bookside.store(price, amount)
-                orderbook['timestamp'] = timestamp
-                orderbook['datetime'] = self.iso8601(timestamp)
-                client.resolve(orderbook, messageHash)
+        market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
+        name = 'level2'
+        messageHash = name + ':' + marketId
+        subscription = self.safe_value(client.subscriptions, messageHash, {})
+        limit = self.safe_integer(subscription, 'limit')
+        if type == 'snapshot':
+            self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            self.handle_deltas(orderbook['asks'], self.safe_value(message, 'asks', []))
+            self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
+            orderbook['timestamp'] = None
+            orderbook['datetime'] = None
+            client.resolve(orderbook, messageHash)
+        elif type == 'l2update':
+            orderbook = self.orderbooks[symbol]
+            timestamp = self.parse8601(self.safe_string(message, 'time'))
+            changes = self.safe_value(message, 'changes', [])
+            sides = {
+                'sell': 'asks',
+                'buy': 'bids',
+            }
+            for i in range(0, len(changes)):
+                change = changes[i]
+                key = self.safe_string(change, 0)
+                side = self.safe_string(sides, key)
+                price = self.safe_float(change, 1)
+                amount = self.safe_float(change, 2)
+                bookside = orderbook[side]
+                bookside.store(price, amount)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            client.resolve(orderbook, messageHash)
 
     def handle_subscription_status(self, client, message):
         #

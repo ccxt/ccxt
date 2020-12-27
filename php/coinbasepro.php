@@ -62,7 +62,28 @@ class coinbasepro extends \ccxt\coinbasepro {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $name = 'level2';
-        $future = $this->subscribe($name, $symbol, $params);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $messageHash = $name . ':' . $market['id'];
+        $url = $this->urls['api']['ws'];
+        $subscribe = array(
+            'type' => 'subscribe',
+            'product_ids' => [
+                $market['id'],
+            ],
+            'channels' => array(
+                $name,
+            ),
+        );
+        $request = array_merge($subscribe, $params);
+        $subscription = array(
+            'messageHash' => $messageHash,
+            'symbol' => $symbol,
+            'marketId' => $market['id'],
+            'limit' => $limit,
+        );
+        $future = $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        // $this->subscribe($name, $symbol, $params);
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
@@ -227,49 +248,40 @@ class coinbasepro extends \ccxt\coinbasepro {
         //
         $type = $this->safe_string($message, 'type');
         $marketId = $this->safe_string($message, 'product_id');
-        if ($marketId !== null) {
-            $symbol = null;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $market['symbol'];
+        $name = 'level2';
+        $messageHash = $name . ':' . $marketId;
+        $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+        $limit = $this->safe_integer($subscription, 'limit');
+        if ($type === 'snapshot') {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'asks', array()));
+            $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
+            $orderbook['timestamp'] = null;
+            $orderbook['datetime'] = null;
+            $client->resolve ($orderbook, $messageHash);
+        } else if ($type === 'l2update') {
+            $orderbook = $this->orderbooks[$symbol];
+            $timestamp = $this->parse8601($this->safe_string($message, 'time'));
+            $changes = $this->safe_value($message, 'changes', array());
+            $sides = array(
+                'sell' => 'asks',
+                'buy' => 'bids',
+            );
+            for ($i = 0; $i < count($changes); $i++) {
+                $change = $changes[$i];
+                $key = $this->safe_string($change, 0);
+                $side = $this->safe_string($sides, $key);
+                $price = $this->safe_float($change, 1);
+                $amount = $this->safe_float($change, 2);
+                $bookside = $orderbook[$side];
+                $bookside->store ($price, $amount);
             }
-            $name = 'level2';
-            $messageHash = $name . ':' . $marketId;
-            if ($type === 'snapshot') {
-                $this->orderbooks[$symbol] = $this->order_book(array());
-                $orderbook = $this->orderbooks[$symbol];
-                $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'asks', array()));
-                $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
-                $orderbook['timestamp'] = null;
-                $orderbook['datetime'] = null;
-                $client->resolve ($orderbook, $messageHash);
-            } else if ($type === 'l2update') {
-                $orderbook = $this->orderbooks[$symbol];
-                $timestamp = $this->parse8601($this->safe_string($message, 'time'));
-                $changes = $this->safe_value($message, 'changes', array());
-                $sides = array(
-                    'sell' => 'asks',
-                    'buy' => 'bids',
-                );
-                for ($i = 0; $i < count($changes); $i++) {
-                    $change = $changes[$i];
-                    $key = $this->safe_string($change, 0);
-                    $side = $this->safe_string($sides, $key);
-                    $price = $this->safe_float($change, 1);
-                    $amount = $this->safe_float($change, 2);
-                    $bookside = $orderbook[$side];
-                    $bookside->store ($price, $amount);
-                }
-                $orderbook['timestamp'] = $timestamp;
-                $orderbook['datetime'] = $this->iso8601($timestamp);
-                $client->resolve ($orderbook, $messageHash);
-            }
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $client->resolve ($orderbook, $messageHash);
         }
     }
 
