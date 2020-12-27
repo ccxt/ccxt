@@ -841,6 +841,11 @@ module.exports = class coinbasepro extends Exchange {
             // 'size': this.amountToPrecision (symbol, amount),
             // 'funds': this.costToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop_price');
         if (stopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
