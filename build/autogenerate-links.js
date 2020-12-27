@@ -1,4 +1,5 @@
 "use strict"
+
 const fs = require ('fs')
 const unifiedFs = require ('./fs')
 
@@ -17,9 +18,10 @@ function replaceTopLevelLinks () {
     while (match = links.exec (file)) {
         topLevelLinks.push (match[1])
     }
+    topLevelLinks.shift () // ignore Overview
     const insertBefore = '# Exchanges'
     const [ before, after ] = file.split (insertBefore)
-    const newLinks = toLinks (topLevelLinks)
+    const newLinks = toLinks (topLevelLinks, true)
     file = before + '\n' + newLinks + '\n\n' + insertBefore + after
 }
 
@@ -40,10 +42,11 @@ function replaceSubLinks () {
     }
 }
 
-function toLinks (headers) {
+function toLinks (headers, bold= false) {
     const removeChars = /[/]/g
+    bold = bold ? '**' : ''
     return headers.map ((link) => {
-        return '- [' + link + '](#' + link.replace (removeChars, '')
+        return '- [' + bold + link + bold + '](#' + link.replace (removeChars, '')
             .replace (/ /g, '-').toLowerCase () + ')'
     }).join ('\n')
 }

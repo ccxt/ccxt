@@ -1,7 +1,5 @@
 # Overview
-
-
-
+	
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
@@ -48,16 +46,14 @@ The structure of the library can be outlined as follows:
 
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
-- [Overview](#overview)
-- [Exchanges](#exchanges)
-- [Markets](#markets)
-- [API Methods / Endpoints](#api-methods--endpoints)
-- [Unified API](#unified-api)
-- [Market Data](#market-data)
-- [Trading](#trading)
-- [Positions](#positions)
-- [Error Handling](#error-handling)
-- [Troubleshooting](#troubleshooting)
+- [**Exchanges**](#exchanges)
+- [**Markets**](#markets)
+- [**Implicit API**](#implicit-api)
+- [**Unified API**](#unified-api)
+- [**Public API**](#public-api)
+- [**Private API**](#private-api)
+- [**Error Handling**](#error-handling)
+- [**Troubleshooting**](#troubleshooting)
 
 # Exchanges
 
@@ -680,6 +676,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
+- [API Methods / Endpoints](#api-methods--endpoints)
 
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
@@ -1126,12 +1123,15 @@ $reloadedMarkets = $bitfinex->load_markets (true); // force HTTP reload = true
 var_dump ($bitfinex->markets['XRP/BTC']);
 ```
 
-# API Methods / Endpoints
+# Implicit API
 
-- [Implicit API Methods](#implicit-api-methods)
+- [API Methods / Endpoints](#api-methods--endpoints)
+- [Implicit API](#implicit-api)
 - [Public/Private API](#publicprivate-api)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
 - [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
+
+## API Methods / Endpoints
 
 Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
 
@@ -1143,9 +1143,9 @@ Because the set of methods differs from exchange to exchange, the ccxt library i
 
 The endpoint URLs are predefined in the `api` property for each exchange. You don't have to override it, unless you are implementing a new exchange API (at least you should know what you're doing).
 
-## Implicit API Methods
-
 Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
+
+## Implicit API
 
 Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
@@ -1290,7 +1290,8 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 
 # Unified API
 
-
+- [Overriding Unified API Params](#overriding-unified-api-params)
+- [Pagination](#pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
@@ -1318,7 +1319,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 \# TODO: ADD LINKS ABOVE
 
-### Overriding Unified API Params
+## Overriding Unified API Params
 
 Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
@@ -1358,7 +1359,7 @@ $params = array (
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
 
-### Pagination
+## Pagination
 
 Most of unified methods will return either a single object or a plain array (a list) of objects (trades, orders, transactions and so on). However, very few exchanges (if any at all) will return all orders, all trades, all ohlcv candles or all transactions at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
 
@@ -1389,7 +1390,7 @@ exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
 
-#### Date-based pagination
+### Date-based pagination
 
 This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
 
@@ -1453,7 +1454,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-#### id-based pagination
+### id-based pagination
 
 The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
 
@@ -1523,7 +1524,7 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-#### Pagenumber-based (cursor) pagination
+### Pagenumber-based (cursor) pagination
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
 
@@ -1600,27 +1601,13 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
-# Market Data
+# Public API
 
 - [Order Book](#order-book)
 - [Price Tickers](#price-tickers)
-- [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
-- [Authentication](#authentication)
-- [API Keys Setup](#api-keys-setup)
-- [Querying Account Balance](#querying-account-balance)
-- [Orders](#orders)
 - [Public Trades](#public-trades)
-- [Private Trades](#private-trades)
-- [Funding Your Account](#funding-your-account)
-- [Position Structure](#position-structure)
-- [Using fetchPositions](#using-fetchpositions)
-- [Contract Naming Conventions](#contract-naming-conventions)
-- [Fees](#fees)
+- [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
 
-  
-
-  
-  
 ## Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
@@ -1975,6 +1962,83 @@ UNDER CONSTRUCTION
 UNDER CONSTRUCTION
 ```
 
+## Public Trades
+
+```diff
+- this is under heavy development right now, contributions appreciated
+```
+
+You can call the unified `fetchTrades` / `fetch_trades` method to get the list of most recent trades for a particular symbol. The `fetchTrades` method is declared in the following way:
+
+```
+async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
+```
+
+For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+    for (symbol in exchange.markets) {
+        console.log (await exchange.fetchTrades (symbol))
+    }
+}
+```
+
+```Python
+# Python
+import time
+if exchange.has['fetchTrades']:
+    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
+        print (symbol, exchange.fetch_trades (symbol))
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchTrades']) {
+    foreach ($exchange->markets as $symbol => $market) {
+        var_dump ($exchange->fetch_trades ($symbol));
+    }
+}
+```
+
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
+
+```JavaScript
+[
+    {
+        'info':       { ... },                  // the original decoded JSON as is
+        'id':        '12345-67890:09876/54321', // string trade id
+        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
+        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol':    'ETH/BTC',                 // symbol
+        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
+        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
+        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
+        'price':      0.06917684,               // float price in quote currency
+        'amount':     1.5,                      // amount of base currency
+    },
+    ...
+]
+```
+
+Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
+
+The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
+
+If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
+
+On the other hand, **some exchanges don't support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
+
+The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
+
 ## OHLCV Candlestick Charts
 
 ```diff
@@ -2065,15 +2129,19 @@ Some exchanges don't offer any OHLCV method, and for those, the ccxt library wil
 UNDER CONSTRUCTION
 ```
 
-# Trading
+# Private API
 
 - [Authentication](#authentication)
 - [API Keys Setup](#api-keys-setup)
 - [Querying Account Balance](#querying-account-balance)
 - [Orders](#orders)
-- [Public Trades](#public-trades)
-- [Private Trades](#private-trades)
+- [My Trades](#my-trades)
 - [Funding Your Account](#funding-your-account)
+- [Transactions](#transactions)
+- [Positions](#positions)
+- [Fees](#fees)
+- [Ledger](#ledger)
+- [Overriding The Nonce](#overriding-the-nonce)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -2564,7 +2632,7 @@ if ($exchange->has['createMarketOrder']) {
 }
 ```
 
-##### Market Buys
+#### Market Buys
 
 In general, when placing a `market buy` or `market sell` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
 
@@ -2647,7 +2715,7 @@ More about it:
 - https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
 - https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
 
-##### Emulating Market Orders With Limit Orders
+#### Emulating Market Orders With Limit Orders
 
 It is also possible to emulate a `market` order with a `limit` order.
 
@@ -2800,83 +2868,8 @@ A cancel-request might also throw a `NetworkError` indicating that the order mig
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
-## Public Trades
 
-```diff
-- this is under heavy development right now, contributions appreciated
-```
-
-You can call the unified `fetchTrades` / `fetch_trades` method to get the list of most recent trades for a particular symbol. The `fetchTrades` method is declared in the following way:
-
-```
-async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
-```
-
-For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
-
-```JavaScript
-// JavaScript
-if (exchange.has['fetchTrades']) {
-    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-    for (symbol in exchange.markets) {
-        console.log (await exchange.fetchTrades (symbol))
-    }
-}
-```
-
-```Python
-# Python
-import time
-if exchange.has['fetchTrades']:
-    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
-        print (symbol, exchange.fetch_trades (symbol))
-```
-
-```PHP
-// PHP
-if ($exchange->has['fetchTrades']) {
-    foreach ($exchange->markets as $symbol => $market) {
-        var_dump ($exchange->fetch_trades ($symbol));
-    }
-}
-```
-
-The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
-
-```JavaScript
-[
-    {
-        'info':       { ... },                  // the original decoded JSON as is
-        'id':        '12345-67890:09876/54321', // string trade id
-        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
-        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        'symbol':    'ETH/BTC',                 // symbol
-        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
-        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
-        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
-        'price':      0.06917684,               // float price in quote currency
-        'amount':     1.5,                      // amount of base currency
-    },
-    ...
-]
-```
-
-Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
-
-The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
-
-If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
-
-Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
-
-To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
-
-In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
-
-On the other hand, **some exchanges don't support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
-
-The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
-## Private Trades
+## My Trades
 
 ```
 - this part of the unified API is currenty a work in progress
@@ -2963,6 +2956,7 @@ After the above sequence takes place, the updated orderbook will look like this.
 ```
 
 Notice that the order `b` has disappeared, the selling order also isn't there. All closed and fully-filled orders disappear from the orderbook. The order `i` which was filled partially and still has a remaining volume and an `open` status, is still there.
+
 ### Personal Trades
 
 Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
@@ -3137,7 +3131,7 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
 
-### Transactions
+## Transactions
 
 #### Transaction Structure
 
@@ -3177,7 +3171,8 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 - The `fee` substructure may be missing, if not supplied within the reply coming from the exchange.
 - The `comment` field may be `undefined/None/null`, otherwise it will contain a message or note defined by the user upon creating the transaction.
 - Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
-#### Deposits
+
+### Deposits
 
 ```JavaScript
 // JavaScript
@@ -3211,7 +3206,7 @@ if ($exchange->has['fetchDeposits']) {
 }
 ```
 
-#### Withdrawals
+### Withdrawals
 
 ```JavaScript
 // JavaScript
@@ -3245,7 +3240,7 @@ if ($exchange->has['fetchWithdrawals']) {
 }
 ```
 
-#### All Transactions
+### All Transactions
 
 ```JavaScript
 // JavaScript
@@ -3279,15 +3274,7 @@ if ($exchange->has['fetchTransactions']) {
 }
 ```
 
-# Positions
-
-- [Position Structure](#position-structure)
-- [Using fetchPositions](#using-fetchpositions)
-- [Contract Naming Conventions](#contract-naming-conventions)
-- [Fees](#fees)
-- [Ledger](#ledger)
-- [Overriding The Nonce](#overriding-the-nonce)
-
+## Positions
 ```diff
 - this part of the unified API is currenty a work in progress
 - there may be some issues and missing implementations here and there
@@ -3298,7 +3285,7 @@ Derivative trading has become increasingly popular within the crypto ecosystem. 
 
 We present a unified structure for the positions returned by exchanges.
 
-## Position Structure
+### Position Structure
 
 ```Javascript
 {
@@ -3370,7 +3357,7 @@ binance.options['fetchMarkets'] = [ 'linear', 'inverse' ]
 
 if you are interested in loading both the USDT-margined futures and the COIN-margined futures.
 
-## Using fetchPositions
+### Using fetchPositions
 
 Information about the positions can be served from different endpoints depending on the exchange. In the case that there are multiple endpoints serving different types of derivatives CCXT will default to just loading the "linear" (as oppose to the "inverse") contracts or the "swap" (as oppose to the "future") contracts. If you want to get the position information of the inverse contracts you can set:
 
@@ -3390,11 +3377,11 @@ await binance.fetchOpenPositions ()
 
 This is an emulated function and just filters data from `fetchPositions`.
 
-## Contract Naming Conventions
+### Contract Naming Conventions
 
 We currently load spot markets with the unified `BASE/QUOTE` symbol schema into the `.markets` mapping, indexed by symbol. This would cause a naming conflict for futures and other derivatives that have the same symbol as their spot market counterparts. To accomodate both types of markets in the `.markets` we require the symbols between 'future' and 'spot' markets to be distinct, as well as the symbols between 'linear' and 'inverse' contracts to be distinct.
 
-##### Futures
+#### Futures
 
 A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier.Most often the identifier is the settlement date of the futures contract in `YYMMDD` format:
 
@@ -3414,7 +3401,7 @@ A futures market symbol consists of the underlying currency, the quoting currenc
 'ETH/USDT-210625:USDT' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 ```
 
-##### Perpetual Swaps
+#### Perpetual Swaps
 
 ```JavaScript
 'BTC/USDT:BTC'  // BTC/USDT perpetual swap contract funded in BTC
