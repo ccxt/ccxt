@@ -1,5 +1,5 @@
 # Overview
-	
+
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
@@ -4072,9 +4072,6 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
 
-# Pro
+# CCXT Pro
 
-```
-Under Construction...
-Please check back here for the CCXT Pro Manual
-```
+- [CCXT Pro Manual](ccxt.pro.manual)
