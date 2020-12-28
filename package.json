@@ -26,7 +26,7 @@
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
-    "update-links": "node build/autogenerate-links",
+    "update-links": "node build/update-links",
     "transpile": "node build/transpile",
     "vss": "node build/vss",
     "lint": "eslint",
