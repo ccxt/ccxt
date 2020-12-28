@@ -55,8 +55,6 @@ module.exports = class coinbene extends Exchange {
                 ],
                 'fees': '',
             },
-            'apiKey': 'a92549229b8117f1bd3985af059b98ba',
-            'secret': '64b17d6da47940288c082aaf831fac96',
             'api': {
                 'public': {
                     'get': [
