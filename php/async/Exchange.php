@@ -1,12 +1,12 @@
 <?php
 
 
-namespace ccxt;
+namespace ccxt\async;
 
 require 'Exchange.php';
 require '../../vendor/autoload.php';
 
-class AsyncExchange extends Exchange {
+class Exchange extends \ccxt\Exchange {
     public $loop;
     public $client;
     public $kernel;
@@ -48,7 +48,7 @@ class AsyncExchange extends Exchange {
 }
 
 
-$x = new AsyncExchange();
+$x = new Exchange();
 
 $x->kernel->execute(function () use ($x) {
     $r = yield $x->fetch('https://google.com');
