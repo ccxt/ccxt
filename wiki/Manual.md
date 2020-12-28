@@ -1,4 +1,5 @@
 # Overview
+
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
 The structure of the library can be outlined as follows:
@@ -49,8 +50,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [**Implicit API**](#implicit-api)
 - [**Unified API**](#unified-api)
 - [**Public API**](#public-api)
-- [**Private API - Trading**](#private-api---trading)
-- [**Private API - Funding**](#private-api---funding)
+- [**Private API**](#private-api)
 - [**Error Handling**](#error-handling)
 - [**Troubleshooting**](#troubleshooting)
 - [**CCXT Pro**](#ccxt-pro)
@@ -1291,7 +1291,6 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 # Unified API
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
-- [Overriding The Nonce](#overriding-the-nonce)
 - [Pagination](#pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
@@ -1318,7 +1317,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
 
-\# TODO: ADD LINKS ABOVE
+```
+TODO: ADD LINKS ABOVE
+```
 
 ## Overriding Unified API Params
 
@@ -1358,94 +1359,6 @@ $params = array (
 
 // overrides go into the last argument to the unified call ↓ HERE
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
-```
-
-## Overriding The Nonce
-
-**The default nonce is a 32-bit Unix Timestamp in seconds. You should override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
-
-In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
-
-In some cases you are unable to create new keys due to lack of permissions or whatever. If that happens you can still override the nonce. Base market class has the following methods for convenience:
-
-- `seconds ()`: returns a Unix Timestamp in seconds.
-- `milliseconds ()`: same in milliseconds (ms = 1000 * s, thousandths of a second).
-- `microseconds ()`: same in microseconds (μs = 1000 * ms, millionths of a second).
-
-There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a `nonce` parameter to the exchange constructor or by setting it explicitly on exchange object:
-
-```JavaScript
-// JavaScript
-
-// 1: custom nonce redefined in constructor parameters
-let nonce = 1
-let kraken1 = new ccxt.kraken ({ nonce: () => nonce++ })
-
-// 2: nonce redefined explicitly
-let kraken2 = new ccxt.kraken ()
-kraken2.nonce = function () { return nonce++ } // uses same nonce as kraken1
-
-// 3: milliseconds nonce
-let kraken3 = new ccxt.kraken ({
-    nonce: function () { return this.milliseconds () },
-})
-
-// 4: newer ES syntax
-let kraken4 = new ccxt.kraken ({
-    nonce () { return this.milliseconds () },
-})
-```
-
-In Python and PHP you can do the same by subclassing and overriding nonce function of a particular exchange class:
-
-```Python
-# Python
-
-# 1: the shortest
-coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
-
-# 2: custom nonce
-class MyKraken(ccxt.kraken):
-    n = 1
-    def nonce(self):
-        return self.n += 1
-
-# 3: milliseconds nonce
-class MyBitfinex(ccxt.bitfinex):
-    def nonce(self):
-        return self.milliseconds()
-
-# 4: milliseconds nonce inline
-hitbtc = ccxt.hitbtc({
-    'nonce': lambda: int(time.time() * 1000)
-})
-
-# 5: milliseconds nonce
-acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
-```
-
-```PHP
-// PHP
-
-// 1: custom nonce value
-class MyOKCoinUSD extends \ccxt\okcoinusd {
-    public function __construct ($options = array ()) {
-        parent::__construct (array_merge (array ('i' => 1), $options));
-    }
-    public function nonce () {
-        return $this->i++;
-    }
-}
-
-// 2: milliseconds nonce
-class MyZaif extends \ccxt\zaif {
-    public function __construct ($options = array ()) {
-        parent::__construct (array_merge (array ('i' => 1), $options));
-    }
-    public function nonce () {
-        return $this->milliseconds ();
-    }
-}
 ```
 
 ## Pagination
@@ -2218,7 +2131,39 @@ On the other hand, **some exchanges don't support pagination for public trades a
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
-# Private API - Trading
+### Exchange Status
+
+The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
+
+- Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+- Updated using the exchange ping or `fetchTime` endpoint to see if its alive
+- Updated using the dedicated exchange API status endpoint.
+
+```Javascript
+fetchStatus(params = {})
+```
+
+#### Exchange Status Structure
+
+The `fetchStatus()` method will return a status structure like shown below:
+
+```Javascript
+{
+    'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
+    'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
+    'eta': undefined, // when the maintenance or outage is expected to end
+    'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+}
+```
+
+The possible values in the `status` field are:
+
+- `'ok'` means the exchange API is fully operational
+- `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
+- `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+- `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
+
+# Private API
 
 - [Authentication](#authentication)
 - [API Keys Setup](#api-keys-setup)
@@ -2226,6 +2171,11 @@ The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params`
 - [Orders](#orders)
 - [My Trades](#my-trades)
 - [Positions](#positions)
+- [Deposit](#deposit)
+- [Withdraw](#withdraw)
+- [Transactions](#transactions)
+- [Fees](#fees)
+- [Ledger](#ledger)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -2375,6 +2325,94 @@ $exchange = new $exchange_class (array (
 ```
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
+
+### Overriding The Nonce
+
+**The default nonce is defined by the underlying exchange. You can override it with a milliseconds-nonce if you want to make private requests more frequently than once per second! Most exchanges will throttle your requests if you hit their rate limits, read [API docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) carefully!**
+
+In case you need to reset the nonce it is much easier to create another pair of keys for using with private APIs. Creating new keys and setting up a fresh unused keypair in your config is usually enough for that.
+
+In some cases you are unable to create new keys due to lack of permissions or whatever. If that happens you can still override the nonce. Base market class has the following methods for convenience:
+
+- `seconds ()`: returns a Unix Timestamp in seconds.
+- `milliseconds ()`: same in milliseconds (ms = 1000 * s, thousandths of a second).
+- `microseconds ()`: same in microseconds (μs = 1000 * ms, millionths of a second).
+
+There are exchanges that confuse milliseconds with microseconds in their API docs, let's all forgive them for that, folks. You can use methods listed above to override the nonce value. If you need to use the same keypair from multiple instances simultaneously use closures or a common function to avoid nonce conflicts. In Javascript you can override the nonce by providing a `nonce` parameter to the exchange constructor or by setting it explicitly on exchange object:
+
+```JavaScript
+// JavaScript
+
+// 1: custom nonce redefined in constructor parameters
+let nonce = 1
+let kraken1 = new ccxt.kraken ({ nonce: () => nonce++ })
+
+// 2: nonce redefined explicitly
+let kraken2 = new ccxt.kraken ()
+kraken2.nonce = function () { return nonce++ } // uses same nonce as kraken1
+
+// 3: milliseconds nonce
+let kraken3 = new ccxt.kraken ({
+    nonce: function () { return this.milliseconds () },
+})
+
+// 4: newer ES syntax
+let kraken4 = new ccxt.kraken ({
+    nonce () { return this.milliseconds () },
+})
+```
+
+In Python and PHP you can do the same by subclassing and overriding nonce function of a particular exchange class:
+
+```Python
+# Python
+
+# 1: the shortest
+coinbasepro = ccxt.coinbasepro({'nonce': ccxt.Exchange.milliseconds})
+
+# 2: custom nonce
+class MyKraken(ccxt.kraken):
+    n = 1
+    def nonce(self):
+        return self.n += 1
+
+# 3: milliseconds nonce
+class MyBitfinex(ccxt.bitfinex):
+    def nonce(self):
+        return self.milliseconds()
+
+# 4: milliseconds nonce inline
+hitbtc = ccxt.hitbtc({
+    'nonce': lambda: int(time.time() * 1000)
+})
+
+# 5: milliseconds nonce
+acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
+```
+
+```PHP
+// PHP
+
+// 1: custom nonce value
+class MyOKCoinUSD extends \ccxt\okcoinusd {
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array ('i' => 1), $options));
+    }
+    public function nonce () {
+        return $this->i++;
+    }
+}
+
+// 2: milliseconds nonce
+class MyZaif extends \ccxt\zaif {
+    public function __construct ($options = array ()) {
+        parent::__construct (array_merge (array ('i' => 1), $options));
+    }
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+}
+```
 
 ## Account Balance
 
@@ -3270,14 +3308,6 @@ A futures market symbol consists of the underlying currency, the quoting currenc
 'ETH/USDT:USDT' // ETH/USDT perpetual swap contract funded in USDT
 ```
 
-# Private API - Funding
-
-- [Deposit](#deposit)
-- [Withdraw](#withdraw)
-- [Transactions](#transactions)
-- [Fees](#fees)
-- [Ledger](#ledger)
-
 ## Deposit
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
@@ -3516,9 +3546,11 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
+`fetchFees` will automatically call both `fetchFundingFees` and `fetchTradingFees` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
+
 ### Fee Structure
 
-##### Trading
+Orders, private trades, transactions and ledger entries may define the following info in their `fee` field:
 
 ```Javascript
 {
@@ -3528,11 +3560,13 @@ Because this is still a work in progress, some or all of methods and info descri
 }
 ```
 
-##### Funding
+### Fee Schedule
 
-`fetchFees` will automatically call both `fetchFundingFees` and `fetchTradingFees` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
 ```Javascript
 fetchFees (params = {})
+```
+
+```Javascript
 {
     'funding': {
         'withdraw': {
@@ -3561,38 +3595,6 @@ fetchFees (params = {})
     },
 }
 ```
-
-### Exchange Status
-
-The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
-
-- Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
-- Updated using the exchange ping or `fetchTime` endpoint to see if its alive
-- Updated using the dedicated exchange API status endpoint.
-
-```Javascript
-fetchStatus(params = {})
- ```
-
-#### Exchange Status Structure
-
-The `fetchStatus()` method will return a status structure like shown below:
-
-```Javascript
-{
-    'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
-    'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
-    'eta': undefined, // when the maintenance or outage is expected to end
-    'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
-}
-```
-
-The possible values in the `status` field are:
-
-- `'ok'` means the exchange API is fully operational
-- `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
-- `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
-- `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
 ### Trading Fees
 
@@ -3645,11 +3647,15 @@ Fees can be negative, this is very common amongst derivative exchanges. A negati
 
 Also, some exchanges might not specify fees as percentage of volume, check the `percentage` field of the market to be sure.
 
-#### Trading Fee Strucuture
+#### Trading Fee Schedule
 
-Some exchanges have an endpoint for fetching the trading fees, this is mapped to the unified method `fetchTradingFees`:
+Some exchanges have an endpoint for fetching the trading fee schedule, this is mapped to the unified method `fetchTradingFees`:
+
 ```Javascript
 fetchTradingFees (params = {})
+```
+
+```JavaScript
 {
     'ETH/BTC': {
         'maker': 0.001,
@@ -3677,12 +3683,15 @@ exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 ```
 
-#### Funding Fee Strucuture
+#### Funding Fee Schedule
 
-Some exchanges have an endpoint for fetching the funding fees, this is mapped to the unified method `fetchFundingFees`:
+Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified method `fetchFundingFees`:
 
 ```Javascript
 fetchFundingFees (params = {})
+```
+
+```JavaScript
 {
     'withdraw': {
         'BTC': 0.00001,
