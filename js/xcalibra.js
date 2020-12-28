@@ -167,6 +167,7 @@ module.exports = class xcalibra extends Exchange {
             const active = !disableDeposits && !disableWithdrawals;
             result[id] = {
                 'id': id,
+                'code': this.safeCurrencyCode (id),
                 'info': currency,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
@@ -213,6 +214,7 @@ module.exports = class xcalibra extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
+        const close = this.safeFloat (ticker, 'close');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -225,8 +227,8 @@ module.exports = class xcalibra extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
-            'close': this.safeFloat (ticker, 'close'),
-            'last': undefined,
+            'close': close,
+            'last': close,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
@@ -307,8 +309,10 @@ module.exports = class xcalibra extends Exchange {
         const id = market['id'];
         const request = {
             'pair': id,
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const trades = await this.publicGetTradeHistoryPair (this.extend (request, params));
         const length = trades.length;
         if (length <= 0) {
