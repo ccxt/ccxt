@@ -1609,6 +1609,8 @@ if ($exchange->has['fetchMyTrades']) {
 - [Price Tickers](#price-tickers)
 - [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
 - [Public Trades](#public-trades)
+- [Exchange Time](#exchange-time)
+- [Exchange Status](#exchange-status)
 
 ## Order Book
 
@@ -2131,7 +2133,15 @@ On the other hand, **some exchanges don't support pagination for public trades a
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
-### Exchange Status
+## Exchange Time
+
+The `fetchTime()` method (if available) returns the current integer timestamp in milliseconds from the exchange server.
+
+```JavaScript
+fetchTime(params = {})
+```
+
+## Exchange Status
 
 The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
 
@@ -2143,7 +2153,7 @@ The exchange status describes the latest known information on the availability o
 fetchStatus(params = {})
 ```
 
-#### Exchange Status Structure
+### Exchange Status Structure
 
 The `fetchStatus()` method will return a status structure like shown below:
 
