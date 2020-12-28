@@ -573,6 +573,11 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 - `InvalidNonce`
 
 A later retry is usually enough to handle that. More on that here:
+
+- [Authentication](#authentication)
+- [Troubleshooting](#troubleshooting)
+- [Overriding The Nonce](#overriding-the-nonce)
+
 ### Notes On Rate Limiter
 
 The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
