@@ -287,6 +287,12 @@ class Transpiler {
         ]
     }
 
+    getSyncPHPRegexes () {
+        return [
+            [ /(\s)yield(\s)/g, '$1' ]
+        ]
+    }
+
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
@@ -316,6 +322,7 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
+            [ /\sawait\s/g, ' yield '], // support async php
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -694,6 +701,17 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    transpileAsyncPHPToSyncPHP (php) {
+
+        // remove yield from php body
+        let phpBody = this.regexAll (php, this.getSyncPHPRegexes ())
+
+        return phpBody
+    }
+
+    // ------------------------------------------------------------------------
+
+
     transpileJavaScriptToPHP ({ js, variables }) {
 
         // match all local variables (let, const or var)
@@ -757,10 +775,13 @@ class Transpiler {
         // remove await from Python 2 body (transpile Python 3 → Python 2)
         let python2Body = this.transpilePython3ToPython2 (python3Body)
 
-        // transpile JS → PHP
-        let phpBody = this.transpileJavaScriptToPHP (args)
+        // transpile JS → Async PHP
+        let asyncPhpBody = this.transpileJavaScriptToPHP (args)
 
-        return { python3Body, python2Body, phpBody }
+        // transpile async PHP -> sync PHP
+        let phpBody = this.transpileAsyncPHPToSyncPHP (asyncPhpBody)
+
+        return { python3Body, python2Body, phpBody, asyncPhpBody }
     }
 
     //-----------------------------------------------------------------------------
@@ -814,12 +835,14 @@ class Transpiler {
 
         let className = exchangeClassDeclarationMatches[1]
         let baseClass = exchangeClassDeclarationMatches[2]
+        let asyncPhpBaseClass = baseClass === 'Exchange' ? 'AsyncExchange' : baseClass;
 
         let methods = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
 
         let python2 = []
         let python3 = []
         let php = []
+        let asyncPhp = []
 
         methodNames = [] // methodNames || []
 
@@ -880,7 +903,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, asyncPhpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
@@ -901,14 +924,20 @@ class Transpiler {
             php.push (phpBody);
             php.push ('    }')
 
+            // compile signature + body for async PHP (mostly same as above)
+            asyncPhp.push ('');
+            asyncPhp.push ('    public function ' + method + '(' + phpArgs + ') {');
+            asyncPhp.push (asyncPhpBody);
+            asyncPhp.push ('    }')
         }
 
         return {
 
-            // altogether in PHP, Python 2 and 3 (async)
-            python2: this.createPythonClass (className, baseClass, python2, methodNames),
-            python3: this.createPythonClass (className, baseClass, python3, methodNames, true),
-            php:     this.createPHPClass    (className, baseClass, php,     methodNames),
+            // altogether in PHP and asyncPHP, Python 2 and 3 (async)
+            python2:  this.createPythonClass (className, baseClass, python2, methodNames),
+            python3:  this.createPythonClass (className, baseClass, python3, methodNames, true),
+            php:      this.createPHPClass    (className, baseClass, php,     methodNames),
+            asyncPhp: this.createPHPClass    (className, baseClass, asyncPhp,     methodNames),
 
             className,
             baseClass,
@@ -941,7 +970,7 @@ class Transpiler {
             // const { python2, python3, php, className, baseClass } =
             //     this.transpileDerivedExchangeClass (contents, methodNames)
 
-            const { python2, python3, php, className, baseClass } =
+            const { python2, python3, php, asyncPhp, className, baseClass } =
                 this.transpileDerivedExchangeClass (contents)
 
             log.cyan ('Transpiling from', filename.yellow)
@@ -950,6 +979,7 @@ class Transpiler {
                 [ python2Folder, filename.replace ('.js', '.py'), python2 ],
                 [ python3Folder, filename.replace ('.js', '.py'), python3 ],
                 [ phpFolder, filename.replace ('.js', '.php'), php ],
+                [ asyncPhpFolder, filename.replace ('.js', '.php'), asyncPhp ],
             ].forEach (([ folder, filename, code ]) => {
                 if (folder) {
                     overwriteFile (folder + filename, code)
@@ -1428,14 +1458,16 @@ class Transpiler {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv
-            , python2Folder = './python/ccxt/'
-            , python3Folder = './python/ccxt/async_support/'
-            , phpFolder     = './php/'
-            , options = { python2Folder, python3Folder, phpFolder }
+            , python2Folder  = './python/ccxt/'
+            , python3Folder  = './python/ccxt/async_support/'
+            , phpFolder      = './php/'
+            , asyncPhpFolder = './php/async'
+            , options = { python2Folder, python3Folder, phpFolder, asyncPhpFolder }
 
         createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpFolder)
+        createFolderRecursively (asyncPhpFolder)
 
         //*
 
