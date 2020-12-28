@@ -1129,6 +1129,7 @@ var_dump ($bitfinex->markets['XRP/BTC']);
 
 - [API Methods / Endpoints](#api-methods--endpoints)
 - [Implicit API Methods](#implicit-api-methods)
+- [Public/Private API](#publicprivate-api)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
 - [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
 
@@ -1159,6 +1160,51 @@ An implicit method takes a dictionary of parameters, sends the request to the ex
 The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
 
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
+
+```
+console.log (new ccxt.kraken ())   // JavaScript
+print(dir(ccxt.hitbtc()))           # Python
+var_dump (new \ccxt\okcoinusd ()); // PHP
+```
+
+## Public/Private API
+
+API URLs are often grouped into two sets of methods called a *public API* for market data and a *private API* for trading and account access. These groups of API methods are usually prefixed with a word 'public' or 'private'.
+
+A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
+
+Public APIs include the following:
+
+- instruments/trading pairs
+- price feeds (exchange rates)
+- order books (L1, L2, L3...)
+- trade history (closed orders, transactions, executions)
+- tickers (spot / 24h price)
+- OHLCV series for charting
+- other public endpoints
+
+For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
+
+If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
+
+Private APIs allow the following:
+
+- manage personal account info
+- query account balances
+- trade by making market and limit orders
+- create deposit addresses and fund accounts
+- request withdrawal of fiat and crypto funds
+- query personal open / closed orders
+- query positions in margin/leverage trading
+- get ledger history
+- transfer funds between accounts
+- use merchant services
+
+Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
+
+A few exchanges also expose a merchant API which allows you to create invoices and accept crypto and fiat payments from your clients. This kind of API is often called *merchant*, *wallet*, *payment*, *ecapi* (for e-commerce).
+
+To get a list of all available methods with an exchange instance, you can simply do the following:
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
@@ -1648,56 +1694,10 @@ if ($exchange->has['fetchMyTrades']) {
 
 # Public API
 
-- [Public/Private API](#publicprivate-api)
 - [Order Book](#order-book)
 - [Price Tickers](#price-tickers)
-- [Public Trades](#public-trades)
 - [OHLCV Candlestick Charts](#ohlcv-candlestick-charts)
-
-## Public/Private API
-
-API URLs are often grouped into two sets of methods called a *public API* for market data and a *private API* for trading and account access. These groups of API methods are usually prefixed with a word 'public' or 'private'.
-
-A public API is used to access market data and does not require any authentication whatsoever. Most exchanges provide market data openly to all (under their rate limit). With the ccxt library anyone can access market data out of the box without having to register with the exchanges and without setting up account keys and passwords.
-
-Public APIs include the following:
-
-- instruments/trading pairs
-- price feeds (exchange rates)
-- order books (L1, L2, L3...)
-- trade history (closed orders, transactions, executions)
-- tickers (spot / 24h price)
-- OHLCV series for charting
-- other public endpoints
-
-For trading with private API you need to obtain API keys from/to exchanges. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well.
-
-If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
-
-Private APIs allow the following:
-
-- manage personal account info
-- query account balances
-- trade by making market and limit orders
-- create deposit addresses and fund accounts
-- request withdrawal of fiat and crypto funds
-- query personal open / closed orders
-- query positions in margin/leverage trading
-- get ledger history
-- transfer funds between accounts
-- use merchant services
-
-Some exchanges offer the same logic under different names. For example, a public API is also often called *market data*, *basic*, *market*, *mapi*, *api*, *price*, etc... All of them mean a set of methods for accessing data available to public. A private API is also often called *trading*, *trade*, *tapi*, *exchange*, *account*, etc...
-
-A few exchanges also expose a merchant API which allows you to create invoices and accept crypto and fiat payments from your clients. This kind of API is often called *merchant*, *wallet*, *payment*, *ecapi* (for e-commerce).
-
-To get a list of all available methods with an exchange instance, you can simply do the following:
-
-```
-console.log (new ccxt.kraken ())   // JavaScript
-print(dir(ccxt.hitbtc()))           # Python
-var_dump (new \ccxt\okcoinusd ()); // PHP
-```
+- [Public Trades](#public-trades)
 
 ## Order Book
 
@@ -2053,83 +2053,6 @@ UNDER CONSTRUCTION
 UNDER CONSTRUCTION
 ```
 
-## Public Trades
-
-```diff
-- this is under heavy development right now, contributions appreciated
-```
-
-You can call the unified `fetchTrades` / `fetch_trades` method to get the list of most recent trades for a particular symbol. The `fetchTrades` method is declared in the following way:
-
-```
-async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
-```
-
-For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
-
-```JavaScript
-// JavaScript
-if (exchange.has['fetchTrades']) {
-    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-    for (symbol in exchange.markets) {
-        console.log (await exchange.fetchTrades (symbol))
-    }
-}
-```
-
-```Python
-# Python
-import time
-if exchange.has['fetchTrades']:
-    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
-        print (symbol, exchange.fetch_trades (symbol))
-```
-
-```PHP
-// PHP
-if ($exchange->has['fetchTrades']) {
-    foreach ($exchange->markets as $symbol => $market) {
-        var_dump ($exchange->fetch_trades ($symbol));
-    }
-}
-```
-
-The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
-
-```JavaScript
-[
-    {
-        'info':       { ... },                  // the original decoded JSON as is
-        'id':        '12345-67890:09876/54321', // string trade id
-        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
-        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        'symbol':    'ETH/BTC',                 // symbol
-        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
-        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
-        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
-        'price':      0.06917684,               // float price in quote currency
-        'amount':     1.5,                      // amount of base currency
-    },
-    ...
-]
-```
-
-Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
-
-The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
-
-If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
-
-Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
-
-To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
-
-In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
-
-On the other hand, **some exchanges don't support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
-
-The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
-
 ## OHLCV Candlestick Charts
 
 ```diff
@@ -2219,6 +2142,83 @@ Some exchanges don't offer any OHLCV method, and for those, the ccxt library wil
 ```
 UNDER CONSTRUCTION
 ```
+
+## Public Trades
+
+```diff
+- this is under heavy development right now, contributions appreciated
+```
+
+You can call the unified `fetchTrades` / `fetch_trades` method to get the list of most recent trades for a particular symbol. The `fetchTrades` method is declared in the following way:
+
+```
+async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
+```
+
+For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+    for (symbol in exchange.markets) {
+        console.log (await exchange.fetchTrades (symbol))
+    }
+}
+```
+
+```Python
+# Python
+import time
+if exchange.has['fetchTrades']:
+    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
+        print (symbol, exchange.fetch_trades (symbol))
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchTrades']) {
+    foreach ($exchange->markets as $symbol => $market) {
+        var_dump ($exchange->fetch_trades ($symbol));
+    }
+}
+```
+
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
+
+```JavaScript
+[
+    {
+        'info':       { ... },                  // the original decoded JSON as is
+        'id':        '12345-67890:09876/54321', // string trade id
+        'timestamp':  1502962946216,            // Unix timestamp in milliseconds
+        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
+        'symbol':    'ETH/BTC',                 // symbol
+        'order':     '12345-67890:09876/54321', // string order id or undefined/None/null
+        'type':      'limit',                   // order type, 'market', 'limit' or undefined/None/null
+        'side':      'buy',                     // direction of the trade, 'buy' or 'sell'
+        'price':      0.06917684,               // float price in quote currency
+        'amount':     1.5,                      // amount of base currency
+    },
+    ...
+]
+```
+
+Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
+
+The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
+
+If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
+
+On the other hand, **some exchanges don't support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
+
+The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
 # Private API - Trading
 
