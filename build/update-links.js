@@ -1,10 +1,10 @@
 "use strict"
 
-const fs = require ('fs')
-const unifiedFs = require ('./fs')
+const { readFileSync } = require ('fs')
+    , { overwriteFile } = require ('./fs')
 
 const manual = './wiki/Manual.md'
-let file = fs.readFileSync (manual).toString ()
+let file = readFileSync (manual).toString ()
 const topLevelLinks = []
 
 function deleteLinks () {
@@ -54,4 +54,4 @@ function toLinks (headers, bold= false) {
 deleteLinks ()
 replaceTopLevelLinks ()
 replaceSubLinks ()
-unifiedFs.overwriteFile (manual, file)
+overwriteFile (manual, file)
