@@ -937,7 +937,7 @@ class Transpiler {
             python2:  this.createPythonClass (className, baseClass, python2, methodNames),
             python3:  this.createPythonClass (className, baseClass, python3, methodNames, true),
             php:      this.createPHPClass    (className, baseClass, php,     methodNames),
-            asyncPhp: this.createPHPClass    (className, baseClass, asyncPhp,     methodNames),
+            asyncPhp: this.createPHPClass    (className, asyncPhpBaseClass, asyncPhp,     methodNames),
 
             className,
             baseClass,
@@ -952,7 +952,7 @@ class Transpiler {
 
         try {
 
-            const { python2Folder, python3Folder, phpFolder } = options
+            const { python2Folder, python3Folder, phpFolder, asyncPhpFolder } = options
             const path = jsFolder + filename
             const contents = fs.readFileSync (path, 'utf8')
 
@@ -1461,7 +1461,7 @@ class Transpiler {
             , python2Folder  = './python/ccxt/'
             , python3Folder  = './python/ccxt/async_support/'
             , phpFolder      = './php/'
-            , asyncPhpFolder = './php/async'
+            , asyncPhpFolder = './php/async/'
             , options = { python2Folder, python3Folder, phpFolder, asyncPhpFolder }
 
         createFolderRecursively (python2Folder)
