@@ -55,6 +55,8 @@ module.exports = class coinbene extends Exchange {
                 ],
                 'fees': '',
             },
+            'apiKey': 'a92549229b8117f1bd3985af059b98ba',
+            'secret': '64b17d6da47940288c082aaf831fac96',
             'api': {
                 'public': {
                     'get': [
@@ -250,9 +252,12 @@ module.exports = class coinbene extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (asset, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountInfo (params);
+        const request = {
+            'asset': asset,
+        };
+        const response = await this.privateGetAccountOne (this.extend (request, params));
         const balances = this.safeValue (response, 'data');
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -289,7 +294,36 @@ module.exports = class coinbene extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersWithMethod ('privateGetOrderOpenOrders', symbol, since, limit, params);
+        const result = [];
+        const request = {
+            'symbol': symbol,
+        };
+        const response = await this.privateGetOrderOpenOrders (this.extend (request, params));
+        const orders = this.safeValue (response, 'data');
+        if (!orders.length) {
+            return result;
+        }
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            result.push ({
+                'id': order['orderId'],
+                'datetime': order['orderTime'],
+                'timestamp': undefined,
+                'lastTradeTimestamp': undefined,
+                'status': order['orderStatus'],
+                'symbol': order['symbol'],
+                'type': undefined,
+                'side': order['orderDirection'],
+                'price': order['orderPrice'],
+                'amount': order['amount'],
+                'filled': order['amount'],
+                'remaining': undefined,
+                'const': undefined,
+                'fee': order['fee'],
+                'info': order,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -308,15 +342,18 @@ module.exports = class coinbene extends Exchange {
                 body = query;
             }
             const timestamp = this.iso8601 (this.milliseconds ());
-            const auth = timestamp + method + request + query;
+            let auth = '';
+            if (query.length) {
+                auth = timestamp + method + request + '?' + query;
+            } else {
+                auth = timestamp + method + request;
+            }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=UTF-8',
+                'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
-                'Cookie': 'locale=zh_CN',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
