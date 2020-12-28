@@ -1,6 +1,4 @@
 # Overview
-
-
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
 The structure of the library can be outlined as follows:
@@ -55,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [**Private API - Funding**](#private-api---funding)
 - [**Error Handling**](#error-handling)
 - [**Troubleshooting**](#troubleshooting)
-- [**Pro**](#pro)
+- [**CCXT Pro**](#ccxt-pro)
 
 # Exchanges
 
@@ -573,11 +571,6 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 - `InvalidNonce`
 
 A later retry is usually enough to handle that. More on that here:
-
-- [Authentication](#authentication)
-- [Troubleshooting](#troubleshooting)
-- [Overriding The Nonce](#overriding-the-nonce)
-
 ### Notes On Rate Limiter
 
 The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
@@ -4079,4 +4072,4 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 # CCXT Pro
 
-- [CCXT Pro Manual](ccxt.pro.manual)
+See the CCXT Pro Manual here: [CCXT Pro Manual](ccxt.pro.manual)
