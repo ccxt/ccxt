@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, DECIMAL_PLACES, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -116,12 +116,13 @@ module.exports = class bitget extends Exchange {
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ],
                 },
                 'swap': {
@@ -135,8 +136,13 @@ module.exports = class bitget extends Exchange {
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan', // conditional
+                        'order/history',
+                        'order/historyPlan', // conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ],
                     'post': [
                         'account/leverage',
@@ -148,6 +154,7 @@ module.exports = class bitget extends Exchange {
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ],
                 },
             },
@@ -798,12 +805,11 @@ module.exports = class bitget extends Exchange {
         if (spot) {
             symbol = base + '/' + quote;
         }
-        const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
-        const tick_size = this.safeFloat (market, 'tick_size');
-        const newtick_size = parseFloat ('1e-' + this.numberToString (tick_size));
+        const tickSize = this.safeString (market, 'tick_size');
+        const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': this.safeFloat (market, 'size_increment', lotSize),
-            'price': newtick_size,
+            'amount': parseFloat ('1e-' + sizeIncrement),
+            'price': parseFloat ('1e-' + tickSize),
         };
         const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
@@ -840,10 +846,6 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMarketsByType (type, params = {}) {
@@ -1344,17 +1346,18 @@ module.exports = class bitget extends Exchange {
         } else if (takerOrMaker === 'T') {
             takerOrMaker = 'taker';
         }
-        let side = this.safeString2 (trade, 'side', 'direction');
-        const type = this.parseOrderType (side);
-        side = this.parseOrderSide (side);
-        // if (side === undefined) {
-        //     const orderType = this.safeString (trade, 'type');
-        //     if (orderType !== undefined) {
-        //         const parts = orderType.split ('-');
-        //         side = this.safeStringLower (parts, 0);
-        //         type = this.safeStringLower (parts, 1);
-        //     }
-        // }
+        const orderType = this.safeString (trade, 'type');
+        let side = undefined;
+        let type = undefined;
+        if (orderType !== undefined) {
+            side = this.safeString (trade, 'type');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        } else {
+            side = this.safeString2 (trade, 'side', 'direction');
+            type = this.parseOrderType (side);
+            side = this.parseOrderSide (side);
+        }
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -1956,8 +1959,11 @@ module.exports = class bitget extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2726,6 +2732,68 @@ module.exports = class bitget extends Exchange {
         return await this.parseTrades (data, market, since, limit);
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapGetPositionSinglePosition (this.extend (request, params));
+        //
+        //     {
+        //         "margin_mode":"fixed", // Margin mode: crossed / fixed
+        //         "holding":[
+        //             {
+        //                 "symbol":"cmt_btcusdt", // Contract name
+        //                 "liquidation_price":"0.00", // Estimated liquidation price
+        //                 "position":"0", // Position Margin, the margin for holding current positions
+        //                 "avail_position":"0", // Available position
+        //                 "avg_cost":"0.00", // Transaction average price
+        //                 "leverage":"2", // Leverage
+        //                 "realized_pnl":"0.00000000", // Realized Profit and loss
+        //                 "keepMarginRate":"0.005", // Maintenance margin rate
+        //                 "side":"1", // Position Direction Long or short, Mark obsolete
+        //                 "holdSide":"1", // Position Direction Long or short
+        //                 "timestamp":"1557571623963", // System timestamp
+        //                 "margin":"0.0000000000000000", // Used margin
+        //                 "unrealized_pnl":"0.00000000", // Unrealized profit and loss
+        //             }
+        //         ]
+        //     }
+        return response;
+    }
+
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.swapGetPositionAllPosition (params);
+        //
+        //     [
+        //         {
+        //             "margin_mode":"fixed",
+        //             "holding":[
+        //                 {
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         if ((api === 'capi') || (api === 'swap')) {
@@ -2756,7 +2824,7 @@ module.exports = class bitget extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-SIGN': this.decode (signature),
+                'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
             };

@@ -24,7 +24,6 @@ class upbit(Exchange):
             'countries': ['KR'],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': True,
             'pro': True,
             # new metainfo interface
             'has': {
@@ -159,10 +158,12 @@ class upbit(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchTickersMaxLength': 4096,  # 2048,
                 'fetchOrderBooksMaxLength': 4096,  # 2048,
-                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'TON': 'Tokamak Network',
             },
         })
 
@@ -437,17 +438,6 @@ class upbit(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def get_symbol_from_market_id(self, marketId, market=None):
-        if marketId is None:
-            return None
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            return market['symbol']
-        baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
-
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
         ids = None
@@ -495,7 +485,8 @@ class upbit(Exchange):
         result = {}
         for i in range(0, len(response)):
             orderbook = response[i]
-            symbol = self.get_symbol_from_market_id(self.safe_string(orderbook, 'market'))
+            marketId = self.safe_string(orderbook, 'market')
+            symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
                 'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
@@ -540,7 +531,8 @@ class upbit(Exchange):
         #                     timestamp:  1542883543813  }
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
-        symbol = self.get_symbol_from_market_id(self.safe_string_2(ticker, 'market', 'code'), market)
+        marketId = self.safe_string_2(ticker, 'market', 'code')
+        symbol = self.safe_symbol(marketId, market, '-')
         previous = self.safe_float(ticker, 'prev_closing_price')
         last = self.safe_float(ticker, 'trade_price')
         change = self.safe_float(ticker, 'signed_change_price')
@@ -671,7 +663,7 @@ class upbit(Exchange):
                 if price is not None:
                     cost = price * amount
         marketId = self.safe_string_2(trade, 'market', 'code')
-        market = self.safe_value(self.markets_by_id, marketId, market)
+        market = self.safe_market(marketId, market)
         fee = None
         feeCurrency = None
         symbol = None
@@ -1116,19 +1108,8 @@ class upbit(Exchange):
         average = None
         fee = None
         feeCost = self.safe_float(order, 'paid_fee')
-        feeCurrency = None
         marketId = self.safe_string(order, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        else:
-            baseId, quoteId = marketId.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            feeCurrency = quote
+        market = self.safe_market(marketId, market)
         trades = self.safe_value(order, 'trades', [])
         trades = self.parse_trades(trades, market, None, None, {
             'order': id,
@@ -1154,7 +1135,7 @@ class upbit(Exchange):
             average = cost / filled
         if feeCost is not None:
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCost,
             }
         result = {
@@ -1164,10 +1145,13 @@ class upbit(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

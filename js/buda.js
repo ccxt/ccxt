@@ -539,16 +539,8 @@ module.exports = class buda extends Exchange {
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = order['market_id'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market_id');
+        const symbol = this.safeSymbol (marketId, market);
         const type = this.safeString (order, 'price_type');
         const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -576,8 +568,11 @@ module.exports = class buda extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -761,7 +756,7 @@ module.exports = class buda extends Exchange {
             const nonce = this.nonce ().toString ();
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
-                const base64Body = this.stringToBase64 (this.encode (body));
+                const base64Body = this.stringToBase64 (body);
                 components.push (this.decode (base64Body));
             }
             components.push (nonce);

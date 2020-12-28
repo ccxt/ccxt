@@ -16,7 +16,6 @@ before_install:
 - nvm use stable
 - rm -rf node_modules
 - npm install
-- npm install web3 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
 - sudo apt-get install python3-pip
 - python3 --version
@@ -27,7 +26,7 @@ before_install:
 - sudo -H pip install --ignore-installed six
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
-- pip install --upgrade web3 aiohttp requests cryptography pyopenssl
+- pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
 - git pull --tags
 script:
@@ -37,7 +36,7 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
-- bash -c 'node run-tests --js --python 5' 2>&1
+- bash -c 'node run-tests --js --python-async 5' 2>&1
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
 after_failure:

@@ -333,16 +333,8 @@ module.exports = class bw extends Exchange {
         //         "469849357.2364"  // quote volume
         //     ]
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 0);
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.milliseconds ();
         const close = parseFloat (this.safeValue (ticker, 1));
         const bid = this.safeValue (ticker, 'bid', {});
@@ -733,9 +725,7 @@ module.exports = class bw extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'marketId');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'createTime');
         let side = this.safeString (order, 'type');
         if (side === '0') {
@@ -768,10 +758,13 @@ module.exports = class bw extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,

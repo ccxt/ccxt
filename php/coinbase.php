@@ -144,6 +144,9 @@ class coinbase extends Exchange {
                 'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                 'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
             ),
+            'commonCurrencies' => array(
+                'CGLD' => 'CELO',
+            ),
             'options' => array(
                 'fetchCurrencies' => array(
                     'expires' => 5000,

@@ -346,12 +346,8 @@ class latoken(Exchange):
         #         "priceChange":-0.1500
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         open = self.safe_float(ticker, 'open')
         close = self.safe_float(ticker, 'close')
         change = None
@@ -593,11 +589,7 @@ class latoken(Exchange):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_timestamp(order, 'timeCreated')
         marketId = self.safe_string(order, 'symbol')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
         price = self.safe_float(order, 'price')
@@ -627,8 +619,11 @@ class latoken(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,

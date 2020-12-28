@@ -842,8 +842,11 @@ class dsx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'remaining' => $remaining,
@@ -1192,7 +1195,7 @@ class dsx extends Exchange {
             $body = $this->urlencode(array_merge(array(
                 'nonce' => $nonce,
             ), $query));
-            $signature = $this->decode($this->hmac($this->encode($body), $this->encode($this->secret), 'sha512', 'base64'));
+            $signature = $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,

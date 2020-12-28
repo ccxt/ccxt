@@ -483,8 +483,11 @@ class coinfloor extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => null,
             'filled' => null,
             'remaining' => $amount,
@@ -541,7 +544,7 @@ class coinfloor extends Exchange {
             $nonce = $this->nonce();
             $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = $this->decode(base64_encode($this->encode($auth)));
+            $signature = $this->decode(base64_encode($auth));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,

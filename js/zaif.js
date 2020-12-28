@@ -261,16 +261,8 @@ module.exports = class zaif extends Exchange {
                 cost = amount * price;
             }
         }
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
             'info': trade,
@@ -344,12 +336,8 @@ module.exports = class zaif extends Exchange {
         let side = this.safeString (order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        if (!market) {
-            const marketId = this.safeString (order, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         let cost = undefined;
@@ -359,10 +347,6 @@ module.exports = class zaif extends Exchange {
             }
         }
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -372,8 +356,11 @@ module.exports = class zaif extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': undefined,
@@ -383,21 +370,6 @@ module.exports = class zaif extends Exchange {
             'info': order,
             'average': undefined,
         };
-    }
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        const ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.extend (this.parseOrder (order, market), params));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

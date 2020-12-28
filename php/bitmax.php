@@ -963,7 +963,7 @@ class bitmax extends Exchange {
         //         "seqNum" =>       2623469,
         //         "$side" =>         "Buy",
         //         "$status" =>       "Filled",
-        //         "stopPrice" =>    "",
+        //         "$stopPrice" =>    "",
         //         "execInst" =>     "NULL_VAL"
         //     }
         //
@@ -985,26 +985,13 @@ class bitmax extends Exchange {
         //         "seqNum" => 24105338,
         //         "$side" => "Buy",
         //         "$status" => "Canceled",
-        //         "stopPrice" => "",
+        //         "$stopPrice" => "",
         //         "$symbol" => "BTC-PERP"
         //     ),
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('/', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
         $price = $this->safe_float($order, 'price');
@@ -1044,6 +1031,7 @@ class bitmax extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1053,8 +1041,11 @@ class bitmax extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1694,12 +1685,12 @@ class bitmax extends Exchange {
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $auth = $timestamp . '+' . $request;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $payload = $timestamp . '+' . $request;
+            $hmac = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
-                'x-$auth-key' => $this->apiKey,
-                'x-$auth-timestamp' => $timestamp,
-                'x-$auth-signature' => $this->decode($signature),
+                'x-auth-key' => $this->apiKey,
+                'x-auth-timestamp' => $timestamp,
+                'x-auth-signature' => $hmac,
             );
             if ($method === 'GET') {
                 if ($query) {

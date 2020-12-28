@@ -336,16 +336,8 @@ class bw extends Exchange {
         //         "469849357.2364"  // quote volume
         //     ]
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 0);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $marketId;
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->milliseconds();
         $close = floatval($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
@@ -736,9 +728,7 @@ class bw extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'createTime');
         $side = $this->safe_string($order, 'type');
         if ($side === '0') {
@@ -771,10 +761,13 @@ class bw extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

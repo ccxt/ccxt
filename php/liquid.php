@@ -48,7 +48,7 @@ class liquid extends Exchange {
                     'https://developers.liquid.com',
                 ),
                 'fees' => 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral' => 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral' => 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             ),
             'api' => array(
                 'public' => array(
@@ -233,6 +233,7 @@ class liquid extends Exchange {
             $amountPrecision = $this->safe_integer($currency, 'display_precision');
             $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
             $precision = max ($amountPrecision, $pricePrecision);
+            $decimalPrecision = 1 / pow(10, $precision);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -240,7 +241,7 @@ class liquid extends Exchange {
                 'name' => $code,
                 'active' => $active,
                 'fee' => $this->safe_float($currency, 'withdrawal_fee'),
-                'precision' => $precision,
+                'precision' => $decimalPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$amountPrecision),
@@ -867,10 +868,13 @@ class liquid extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'status' => $status,
             'symbol' => $symbol,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,

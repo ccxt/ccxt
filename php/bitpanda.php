@@ -46,6 +46,7 @@ class bitpanda extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1/MINUTES',
@@ -150,12 +151,6 @@ class bitpanda extends Exchange {
                 'apiKey' => true,
                 'secret' => false,
             ),
-            // exchange-specific options
-            'options' => array(
-                'fetchTradingFees' => array(
-                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
-                ),
-            ),
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_CLIENT_UUID' => '\\ccxt\\InvalidOrder',
@@ -241,6 +236,13 @@ class bitpanda extends Exchange {
             ),
             'commonCurrencies' => array(
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+            ),
+            // exchange-specific options
+            'options' => array(
+                'fetchTradingFees' => array(
+                    'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                ),
+                'fiat' => array( 'EUR', 'CHF' ),
             ),
         ));
     }
@@ -500,20 +502,7 @@ class bitpanda extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'instrument_code');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float($ticker, 'last_price');
         $percentage = $this->safe_float($ticker, 'price_change_percentage');
         $change = $this->safe_float($ticker, 'price_change');
@@ -813,21 +802,7 @@ class bitpanda extends Exchange {
             $cost = $amount * $price;
         }
         $marketId = $this->safe_string($trade, 'instrument_code');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($market !== null) && ($symbol === null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCost = $this->safe_float($feeInfo, 'fee_amount');
         $takerOrMaker = null;
         $fee = null;
@@ -1088,6 +1063,55 @@ class bitpanda extends Exchange {
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $code,
+            'amount' => $this->currency_to_precision($code, $amount),
+            // 'payout_account_id' => '66756a10-3e86-48f4-9678-b634c4b135b2', // fiat only
+            // 'recipient' => array( // crypto only
+            //     'address' => $address,
+            //     // 'destination_tag' => '',
+            // ),
+        );
+        $options = $this->safe_value($this->options, 'fiat', array());
+        $isFiat = $this->in_array($code, $options);
+        $method = $isFiat ? 'privatePostAccountWithdrawFiat' : 'privatePostAccountWithdrawCrypto';
+        if ($isFiat) {
+            $payoutAccountId = $this->safe_string($params, 'payout_account_id');
+            if ($payoutAccountId === null) {
+                throw ArgumentsRequired ($this->id . ' withdraw() requires a payout_account_id param for fiat ' . $code . ' withdrawals');
+            }
+        } else {
+            $recipient = array( 'address' => $address );
+            if ($tag !== null) {
+                $recipient['destination_tag'] = $tag;
+            }
+            $request['recipient'] = $recipient;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // crypto
+        //
+        //     {
+        //         "$amount" => "1234.5678",
+        //         "fee" => "1234.5678",
+        //         "$recipient" => "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        //         "destination_tag" => "",
+        //         "transaction_id" => "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        //     }
+        //
+        // fiat
+        //
+        //     {
+        //         "transaction_id" => "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits, fetchWithdrawals
@@ -1106,16 +1130,37 @@ class bitpanda extends Exchange {
         //         "related_transaction_id" => "e298341a-3855-405e-bce3-92db368a3157"
         //     }
         //
+        // withdraw
+        //
+        //
+        //     crypto
+        //
+        //     {
+        //         "$amount" => "1234.5678",
+        //         "$fee" => "1234.5678",
+        //         "recipient" => "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        //         "destination_tag" => "",
+        //         "transaction_id" => "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        //     }
+        //
+        //     fiat
+        //
+        //     {
+        //         "transaction_id" => "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        //     }
+        //
         $id = $this->safe_string($transaction, 'transaction_id');
         $amount = $this->safe_float($transaction, 'amount');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $status = null;
-        $feeCost = $this->safe_float($transaction, 'fee_amount');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $status = 'ok'; // the exchange returns cleared transactions only
+        $feeCost = $this->safe_float_2($transaction, 'fee_amount', 'fee');
         $fee = null;
+        $addressTo = $this->safe_string($transaction, 'recipient');
+        $tagTo = $this->safe_string($transaction, 'destination_tag');
         if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($transaction, 'fee_currency');
+            $feeCurrencyId = $this->safe_string($transaction, 'fee_currency', $currencyId);
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
@@ -1125,14 +1170,14 @@ class bitpanda extends Exchange {
         return array(
             'info' => $transaction,
             'id' => $id,
-            'currency' => $code,
+            'currency' => $currency['code'],
             'amount' => $amount,
-            'address' => null,
+            'address' => $addressTo,
             'addressFrom' => null,
-            'addressTo' => null,
-            'tag' => null,
+            'addressTo' => $addressTo,
+            'tag' => $tagTo,
             'tagFrom' => null,
-            'tagTo' => null,
+            'tagTo' => $tagTo,
             'status' => $status,
             'type' => null,
             'updated' => null,
@@ -1231,21 +1276,8 @@ class bitpanda extends Exchange {
         $clientOrderId = $this->safe_string($order, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($order, 'time'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'instrument_code');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $cost = null;
@@ -1294,6 +1326,9 @@ class bitpanda extends Exchange {
                 $cost = $average * $filled;
             }
         }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
+        $stopPrice = $this->safe_float($order, 'trigger_price');
+        $postOnly = $this->safe_value($order, 'is_post_only');
         $result = array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1303,8 +1338,11 @@ class bitpanda extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1341,6 +1379,16 @@ class bitpanda extends Exchange {
             $result['fee'] = null;
         }
         return $result;
+    }
+
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GOOD_TILL_CANCELLED' => 'GTC',
+            'GOOD_TILL_TIME' => 'GTT',
+            'IMMEDIATE_OR_CANCELLED' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

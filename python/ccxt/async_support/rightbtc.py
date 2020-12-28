@@ -305,13 +305,8 @@ class rightbtc(Exchange):
         amount = self.safe_float(trade, 'quantity', amount)
         if amount is not None:
             amount = amount / 1e8
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'trading_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'trading_pair')
+        symbol = self.safe_symbol(marketId, market)
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
         side = self.safe_string_lower(trade, 'side')
@@ -471,12 +466,7 @@ class rightbtc(Exchange):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'trading_pair')
-        if market is None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        symbol = marketId
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
@@ -522,8 +512,11 @@ class rightbtc(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'filled': filled,

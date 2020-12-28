@@ -348,11 +348,7 @@ class eterbase(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'time')
         last = self.safe_float(ticker, 'price')
         baseVolume = self.safe_float(ticker, 'volumeBase')
@@ -486,12 +482,8 @@ class eterbase(Exchange):
             takerOrMaker = 'maker' if (liquidity == '1') else 'taker'
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'id')
-        symbol = None
         marketId = self.safe_string(trade, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
             'id': id,
@@ -747,11 +739,7 @@ class eterbase(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'placedAt')
         marketId = self.safe_integer(order, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'state'))
         if status == 'closed':
             status = self.parse_order_status(self.safe_string(order, 'closeReason'))
@@ -786,6 +774,9 @@ class eterbase(Exchange):
         if cost is not None:
             if filled:
                 average = cost / filled
+        timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
             'id': id,
@@ -795,8 +786,11 @@ class eterbase(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1056,8 +1050,7 @@ class eterbase(Exchange):
                 digest = 'SHA-256=' + self.hash(payload, 'sha256', 'base64')
                 message += "\ndigest" + ':' + ' ' + digest  # eslint-disable-line quotes
                 headersCSV += ' ' + 'digest'
-            signature64 = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
-            signature = self.decode(signature64)
+            signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256, 'base64')
             authorizationHeader = 'hmac username="' + self.apiKey + '",algorithm="hmac-sha256",headers="' + headersCSV + '",' + 'signature="' + signature + '"'
             httpHeaders = {
                 'Date': date,

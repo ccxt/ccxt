@@ -341,22 +341,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'market');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
         const amount = this.safeFloat (order, 'startAmount');
         const remaining = this.safeFloat (order, 'currentAmount');
@@ -366,6 +351,7 @@ module.exports = class bitbay extends Exchange {
                 filled = Math.max (0, amount - remaining);
             }
         }
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -376,8 +362,11 @@ module.exports = class bitbay extends Exchange {
             'status': undefined,
             'symbol': symbol,
             'type': this.safeString (order, 'mode'),
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': filled,
@@ -954,33 +943,11 @@ module.exports = class bitbay extends Exchange {
         }
         const feeCost = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
-        let base = undefined;
-        let quote = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-                base = market['base'];
-                quote = market['quote'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-            if (base === undefined) {
-                base = market['base'];
-            }
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCcy = (side === 'buy') ? base : quote;
+            const feeCcy = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,

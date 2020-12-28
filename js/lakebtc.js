@@ -164,13 +164,10 @@ module.exports = class lakebtc extends Exchange {
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let symbol = ids[i];
-            const ticker = response[symbol];
-            let market = undefined;
-            if (symbol in this.markets_by_id) {
-                market = this.markets_by_id[symbol];
-                symbol = market['symbol'];
-            }
+            const marketId = ids[i];
+            const ticker = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -301,7 +298,7 @@ module.exports = class lakebtc extends Exchange {
             ];
             query = query.join ('&');
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
-            const auth = this.encode (this.apiKey + ':' + signature);
+            const auth = this.apiKey + ':' + signature;
             const signature64 = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,

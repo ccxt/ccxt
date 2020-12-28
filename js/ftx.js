@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -194,6 +195,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
@@ -207,7 +209,9 @@ module.exports = class ftx extends Exchange {
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
+                    'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -337,7 +341,7 @@ module.exports = class ftx extends Exchange {
                 'amount': sizeIncrement,
                 'price': priceIncrement,
             };
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -364,8 +368,7 @@ module.exports = class ftx extends Exchange {
                     },
                 },
                 'info': market,
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
@@ -854,7 +857,7 @@ module.exports = class ftx extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder
+        // limit orders - fetchOrder, fetchOrders, fetchOpenOrders, createOrder, editOrder
         //
         //     {
         //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
@@ -912,6 +915,29 @@ module.exports = class ftx extends Exchange {
         //         "error": null,
         //         "triggeredAt": null,
         //         "reduceOnly": false
+        //     }
+        //
+        // editOrder (conditional, stop, trailing stop, take profit)
+        //
+        //     {
+        //         "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //         "future": "XRP-PERP",
+        //         "id": 9596912,
+        //         "market": "XRP-PERP",
+        //         "triggerPrice": 0.306225,
+        //         "orderId": null,
+        //         "side": "sell",
+        //         "size": 31431,
+        //         "status": "open",
+        //         "type": "stop",
+        //         "orderPrice": null,
+        //         "error": null,
+        //         "triggeredAt": null,
+        //         "reduceOnly": false,
+        //         "orderType": "market",
+        //         "filledSize": 0,
+        //         "avgFillPrice": null,
+        //         "retryUntilFilled": false
         //     }
         //
         // canceled order with a closed status
@@ -973,6 +999,8 @@ module.exports = class ftx extends Exchange {
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -982,8 +1010,11 @@ module.exports = class ftx extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1086,6 +1117,104 @@ module.exports = class ftx extends Exchange {
         //
         //
         const result = this.safeValue (response, 'result', []);
+        return this.parseOrder (result, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        const triggerPrice = this.safeFloat (params, 'triggerPrice');
+        const orderPrice = this.safeFloat (params, 'orderPrice');
+        const trailValue = this.safeFloat (params, 'trailValue');
+        params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ]);
+        const triggerPriceIsDefined = (triggerPrice !== undefined);
+        const orderPriceIsDefined = (orderPrice !== undefined);
+        const trailValueIsDefined = (trailValue !== undefined);
+        if (triggerPriceIsDefined || orderPriceIsDefined || trailValueIsDefined) {
+            method = 'privatePostConditionalOrdersOrderIdModify';
+            request['order_id'] = id;
+            if (triggerPriceIsDefined) {
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
+            }
+            if (orderPriceIsDefined) {
+                // only for stop limit or take profit limit orders
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, orderPrice));
+            }
+            if (trailValueIsDefined) {
+                // negative for sell orders, positive for buy orders
+                request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue));
+            }
+        } else {
+            if (clientOrderId === undefined) {
+                method = 'privatePostOrdersByClientIdClientOrderIdModify';
+                request['client_order_id'] = clientOrderId;
+                // request['clientId'] = clientOrderId;
+            } else {
+                method = 'privatePostOrdersOrderIdModify';
+                request['order_id'] = id;
+            }
+            if (price !== undefined) {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            }
+        }
+        if (amount !== undefined) {
+            request['size'] = parseFloat (this.amountToPrecision (symbol, amount));
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // regular order
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "createdAt": "2019-03-05T11:56:55.728933+00:00",
+        //             "filledSize": 0,
+        //             "future": "XRP-PERP",
+        //             "id": 9596932,
+        //             "market": "XRP-PERP",
+        //             "price": 0.326525,
+        //             "remainingSize": 31431,
+        //             "side": "sell",
+        //             "size": 31431,
+        //             "status": "open",
+        //             "type": "limit",
+        //             "reduceOnly": false,
+        //             "ioc": false,
+        //             "postOnly": false,
+        //             "clientId": null,
+        //         }
+        //     }
+        //
+        // conditional trigger order
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "createdAt": "2019-03-05T09:56:55.728933+00:00",
+        //             "future": "XRP-PERP",
+        //             "id": 9596912,
+        //             "market": "XRP-PERP",
+        //             "triggerPrice": 0.306225,
+        //             "orderId": null,
+        //             "side": "sell",
+        //             "size": 31431,
+        //             "status": "open",
+        //             "type": "stop",
+        //             "orderPrice": null,
+        //             "error": null,
+        //             "triggeredAt": null,
+        //             "reduceOnly": false,
+        //             "orderType": "market",
+        //             "filledSize": 0,
+        //             "avgFillPrice": null,
+        //             "retryUntilFilled": false
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -1363,6 +1492,60 @@ module.exports = class ftx extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccount (params);
+        //
+        //     {
+        //         "result":{
+        //             "backstopProvider":false,
+        //             "chargeInterestOnNegativeUsd":false,
+        //             "collateral":2830.2567913677476,
+        //             "freeCollateral":2829.670741867416,
+        //             "initialMarginRequirement":0.05,
+        //             "leverage":20.0,
+        //             "liquidating":false,
+        //             "maintenanceMarginRequirement":0.03,
+        //             "makerFee":0.0,
+        //             "marginFraction":null,
+        //             "openMarginFraction":null,
+        //             "positionLimit":null,
+        //             "positionLimitUsed":null,
+        //             "positions":[
+        //                 {
+        //                     "collateralUsed":0.0,
+        //                     "cost":0.0,
+        //                     "entryPrice":null,
+        //                     "estimatedLiquidationPrice":null,
+        //                     "future":"XRP-PERP",
+        //                     "initialMarginRequirement":0.05,
+        //                     "longOrderSize":0.0,
+        //                     "maintenanceMarginRequirement":0.03,
+        //                     "netSize":0.0,
+        //                     "openSize":0.0,
+        //                     "realizedPnl":0.016,
+        //                     "shortOrderSize":0.0,
+        //                     "side":"buy",
+        //                     "size":0.0,
+        //                     "unrealizedPnl":0.0,
+        //                 }
+        //             ],
+        //             "spotLendingEnabled":false,
+        //             "spotMarginEnabled":false,
+        //             "takerFee":0.0007,
+        //             "totalAccountValue":2830.2567913677476,
+        //             "totalPositionSize":0.0,
+        //             "useFttCollateral":true,
+        //             "username":"igor.kroitor@gmail.com"
+        //         },
+        //         "success":true
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        // todo unify parsePosition/parsePositions
+        return this.safeValue (result, 'positions', []);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1542,7 +1725,7 @@ module.exports = class ftx extends Exchange {
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + method + request;
             headers = {};
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'DELETE')) {
                 body = this.json (query);
                 auth += body;
                 headers['Content-Type'] = 'application/json';

@@ -274,15 +274,7 @@ class hollaex(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             orderbook = response[marketId]
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
             result[symbol] = self.parse_order_book(response[marketId], timestamp)
         return result
@@ -363,17 +355,9 @@ class hollaex(Exchange):
         for i in range(0, len(keys)):
             key = keys[i]
             ticker = response[key]
-            symbol = key
-            market = None
             marketId = self.safe_string(ticker, 'symbol', key)
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            market = self.safe_market(marketId, None, '-')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -404,19 +388,8 @@ class hollaex(Exchange):
         #         "symbol": "bch-usdt"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_float(ticker, 'close')
         result = {
@@ -488,20 +461,9 @@ class hollaex(Exchange):
         #         "fee": 0.1
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
@@ -514,12 +476,13 @@ class hollaex(Exchange):
         feeCost = self.safe_float(trade, 'fee')
         fee = None
         if feeCost is not None:
+            quote = market['quote']
             feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        result = {
+        return {
             'info': trade,
             'id': None,
             'timestamp': timestamp,
@@ -534,7 +497,6 @@ class hollaex(Exchange):
             'cost': cost,
             'fee': fee,
         }
-        return result
 
     async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         await self.load_markets()
@@ -688,19 +650,8 @@ class hollaex(Exchange):
         #         "filled":0
         #     }
         #
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         type = self.safe_string(order, 'type')
@@ -725,8 +676,11 @@ class hollaex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

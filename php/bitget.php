@@ -120,12 +120,13 @@ class bitget extends Exchange {
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ),
                 ),
                 'swap' => array(
@@ -139,8 +140,13 @@ class bitget extends Exchange {
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan', // conditional
+                        'order/history',
+                        'order/historyPlan', // conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -152,6 +158,7 @@ class bitget extends Exchange {
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ),
                 ),
             ),
@@ -761,7 +768,7 @@ class bitget extends Exchange {
         //         "base_currency":"btc",
         //         "quote_currency":"usdt",
         //         "$symbol":"btc_usdt",
-        //         "$tick_size":"2",
+        //         "tick_size":"2",
         //         "size_increment":"4",
         //         "$status":"1",
         //         "base_asset_precision":"8"
@@ -779,7 +786,7 @@ class bitget extends Exchange {
         //         "listing":null,
         //         "delivery":["07:00:00","15:00:00","23:00:00"],
         //         "size_increment":"0",
-        //         "$tick_size":"1",
+        //         "tick_size":"1",
         //         "forwardContractFlag":false,
         //         "priceEndStep":5
         //     }
@@ -802,12 +809,11 @@ class bitget extends Exchange {
         if ($spot) {
             $symbol = $base . '/' . $quote;
         }
-        $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
-        $tick_size = $this->safe_float($market, 'tick_size');
-        $newtick_size = floatval('1e-' . $this->number_to_string($tick_size));
+        $tickSize = $this->safe_string($market, 'tick_size');
+        $sizeIncrement = $this->safe_string($market, 'size_increment');
         $precision = array(
-            'amount' => $this->safe_float($market, 'size_increment', $lotSize),
-            'price' => $newtick_size,
+            'amount' => floatval('1e-' . $sizeIncrement),
+            'price' => floatval('1e-' . $tickSize),
         );
         $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
         $status = $this->safe_string($market, 'status');
@@ -844,10 +850,6 @@ class bitget extends Exchange {
                 ),
             ),
         ));
-    }
-
-    public function amount_to_precision($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_markets_by_type($type, $params = array ()) {
@@ -1348,17 +1350,18 @@ class bitget extends Exchange {
         } else if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
-        $side = $this->safe_string_2($trade, 'side', 'direction');
-        $type = $this->parse_order_type($side);
-        $side = $this->parse_order_side($side);
-        // if ($side === null) {
-        //     $orderType = $this->safe_string($trade, 'type');
-        //     if ($orderType !== null) {
-        //         $parts = explode('-', $orderType);
-        //         $side = $this->safe_string_lower($parts, 0);
-        //         $type = $this->safe_string_lower($parts, 1);
-        //     }
-        // }
+        $orderType = $this->safe_string($trade, 'type');
+        $side = null;
+        $type = null;
+        if ($orderType !== null) {
+            $side = $this->safe_string($trade, 'type');
+            $type = $this->parse_order_type($side);
+            $side = $this->parse_order_side($side);
+        } else {
+            $side = $this->safe_string_2($trade, 'side', 'direction');
+            $type = $this->parse_order_type($side);
+            $side = $this->parse_order_side($side);
+        }
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -1960,8 +1963,11 @@ class bitget extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -2730,6 +2736,68 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapGetPositionSinglePosition (array_merge($request, $params));
+        //
+        //     {
+        //         "margin_mode":"fixed", // Margin mode => crossed / fixed
+        //         "holding":array(
+        //             {
+        //                 "$symbol":"cmt_btcusdt", // Contract name
+        //                 "liquidation_price":"0.00", // Estimated liquidation price
+        //                 "position":"0", // Position Margin, the margin for holding current positions
+        //                 "avail_position":"0", // Available position
+        //                 "avg_cost":"0.00", // Transaction average price
+        //                 "leverage":"2", // Leverage
+        //                 "realized_pnl":"0.00000000", // Realized Profit and loss
+        //                 "keepMarginRate":"0.005", // Maintenance margin rate
+        //                 "side":"1", // Position Direction Long or short, Mark obsolete
+        //                 "holdSide":"1", // Position Direction Long or short
+        //                 "timestamp":"1557571623963", // System timestamp
+        //                 "margin":"0.0000000000000000", // Used margin
+        //                 "unrealized_pnl":"0.00000000", // Unrealized profit and loss
+        //             }
+        //         )
+        //     }
+        return $response;
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->swapGetPositionAllPosition ($params);
+        //
+        //     array(
+        //         array(
+        //             "margin_mode":"fixed",
+        //             "holding":array(
+        //                 array(
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 ),
+        //             )
+        //         ),
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         if (($api === 'capi') || ($api === 'swap')) {
@@ -2760,7 +2828,7 @@ class bitget extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $this->decode($signature),
+                'ACCESS-SIGN' => $signature,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-PASSPHRASE' => $this->password,
             );

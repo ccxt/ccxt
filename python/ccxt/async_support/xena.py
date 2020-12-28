@@ -405,14 +405,7 @@ class xena(Exchange):
         #
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'lastPx')
         open = self.safe_float(ticker, 'firstPx')
         percentage = None
@@ -648,19 +641,8 @@ class xena(Exchange):
         elif side == '2':
             side = 'sell'
         orderId = self.safe_string(trade, 'orderId')
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['id']
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float_2(trade, 'lastPx', 'mdEntryPx')
         amount = self.safe_float_2(trade, 'lastQty', 'mdEntrySize')
         cost = None
@@ -903,15 +885,8 @@ class xena(Exchange):
         transactTime = self.safe_integer(order, 'transactTime')
         timestamp = int(transactTime / 1000000)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty')
@@ -943,8 +918,11 @@ class xena(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,

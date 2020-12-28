@@ -176,16 +176,7 @@ class coincheck(Exchange):
                     cost = filled * price
         status = None
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
             'clientOrderId': None,
@@ -197,9 +188,12 @@ class coincheck(Exchange):
             'filled': filled,
             'side': side,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'fee': None,
             'info': order,

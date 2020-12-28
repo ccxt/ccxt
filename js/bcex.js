@@ -99,6 +99,7 @@ module.exports = class bcex extends Exchange {
                 '订单信息不存在': OrderNotFound, // {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
             },
             'commonCurrencies': {
+                'UNI': 'UNI COIN',
                 'PNT': 'Penta',
             },
             'options': {
@@ -557,8 +558,11 @@ module.exports = class bcex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

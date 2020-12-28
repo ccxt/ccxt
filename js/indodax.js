@@ -326,6 +326,15 @@ module.exports = class indodax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -341,12 +350,7 @@ module.exports = class indodax extends Exchange {
         if ('type' in order) {
             side = order['type'];
         }
-        let status = this.safeString (order, 'status', 'open');
-        if (status === 'filled') {
-            status = 'closed';
-        } else if (status === 'cancelled') {
-            status = 'canceled';
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol = undefined;
         let cost = undefined;
         const price = this.safeFloat (order, 'price');
@@ -394,8 +398,11 @@ module.exports = class indodax extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -466,12 +473,9 @@ module.exports = class indodax extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
-        if (symbol !== undefined) {
-            return this.filterBySymbol (orders, symbol);
-        }
-        return orders;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -493,9 +497,11 @@ module.exports = class indodax extends Exchange {
         }
         request[currency] = amount;
         const result = await this.privatePostTrade (this.extend (request, params));
+        const data = this.safeValue (result, 'return', {});
+        const id = this.safeString (data, 'order_id');
         return {
             'info': result,
-            'id': result['return']['order_id'].toString (),
+            'id': id,
         };
     }
 

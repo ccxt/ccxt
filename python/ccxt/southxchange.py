@@ -74,9 +74,10 @@ class southxchange(Exchange):
                 },
             },
             'commonCurrencies': {
-                'SMT': 'SmartNode',
-                'MTC': 'Marinecoin',
                 'BHD': 'Bithold',
+                'GHOST': 'GHOSTPRISM',
+                'MTC': 'Marinecoin',
+                'SMT': 'SmartNode',
             },
         })
 
@@ -166,11 +167,8 @@ class southxchange(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            symbol = id
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+            market = self.safe_market(id)
+            symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
@@ -250,8 +248,11 @@ class southxchange(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'filled': filled,
@@ -283,9 +284,10 @@ class southxchange(Exchange):
         if type == 'limit':
             request['limitPrice'] = price
         response = self.privatePostPlaceOrder(self.extend(request, params))
+        id = json.loads(response)
         return {
             'info': response,
-            'id': str(response),
+            'id': id,
         }
 
     def cancel_order(self, id, symbol=None, params={}):

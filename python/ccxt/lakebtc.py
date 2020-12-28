@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -170,12 +169,10 @@ class lakebtc(Exchange):
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
-            symbol = ids[i]
-            ticker = response[symbol]
-            market = None
-            if symbol in self.markets_by_id:
-                market = self.markets_by_id[symbol]
-                symbol = market['symbol']
+            marketId = ids[i]
+            ticker = response[marketId]
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -290,8 +287,8 @@ class lakebtc(Exchange):
             ]
             query = '&'.join(query)
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
-            auth = self.encode(self.apiKey + ':' + signature)
-            signature64 = self.decode(base64.b64encode(auth))
+            auth = self.apiKey + ':' + signature
+            signature64 = self.decode(self.string_to_base64(auth))
             headers = {
                 'Json-Rpc-Tonce': nonceAsString,
                 'Authorization': 'Basic ' + signature64,

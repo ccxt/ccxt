@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -65,7 +64,7 @@ class wavesexchange(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
-                    'node': 'https://nodes.wavesnodes.com',
+                    'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
@@ -261,6 +260,7 @@ class wavesexchange(Exchange):
                 'wavesAddress': None,
                 'withdrawFeeUSDN': 7420,
                 'withdrawFeeWAVES': 100000,
+                'wavesPrecision': 8,
             },
             'requiresEddsa': True,
             'exceptions': {
@@ -404,8 +404,10 @@ class wavesexchange(Exchange):
 
     def parse_order_book_side(self, bookSide, market=None, limit=None):
         precision = market['precision']
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         amountPrecision = math.pow(10, precision['amount'])
-        pricePrecision = math.pow(10, precision['price'])
+        difference = precision['amount'] - precision['price']
+        pricePrecision = math.pow(10, wavesPrecision - difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
@@ -431,8 +433,8 @@ class wavesexchange(Exchange):
             secretKeyBytes = self.base58_to_binary(self.secret)
         except Exception as e:
             raise AuthenticationError(self.id + ' secret must be a base58 encoded private key')
-        hexApiKeyBytes = base64.b16encode(apiKeyBytes)
-        hexSecretKeyBytes = base64.b16encode(secretKeyBytes)
+        hexApiKeyBytes = self.binary_to_base16(apiKeyBytes)
+        hexSecretKeyBytes = self.binary_to_base16(secretKeyBytes)
         if len(hexApiKeyBytes) != 64:
             raise AuthenticationError(self.id + ' apiKey must be a base58 encoded public key')
         if len(hexSecretKeyBytes) != 64:
@@ -490,9 +492,9 @@ class wavesexchange(Exchange):
             seconds = str(seconds)
             clientId = 'waves.exchange'
             message = 'W:' + clientId + ':' + seconds
-            messageHex = self.decode(base64.b16encode(self.encode(message)))
+            messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
-            hexKey = base64.b16encode(self.base58_to_binary(self.secret))
+            hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
             signature = self.eddsa(payload, hexKey, 'ed25519')
             request = {
                 'grant_type': 'password',
@@ -710,8 +712,8 @@ class wavesexchange(Exchange):
         items = self.safe_value(supportedCurrencies, 'items', [])
         for i in range(0, len(items)):
             entry = items[i]
-            code = self.safe_string(entry, 'id')
-            currencies[code] = True
+            currencyCode = self.safe_string(entry, 'id')
+            currencies[currencyCode] = True
         if not (code in currencies):
             codes = list(currencies.keys())
             raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + str(codes))
@@ -772,7 +774,10 @@ class wavesexchange(Exchange):
         return currencyId
 
     def price_to_precision(self, symbol, price):
-        return int(float(self.to_wei(price, self.markets[symbol]['precision']['price'])))
+        market = self.markets[symbol]
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
+        difference = market['precision']['amount'] - market['precision']['price']
+        return int(float(self.to_wei(price, wavesPrecision - difference)))
 
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_wei(amount, self.markets[symbol]['precision']['amount'])))
@@ -782,6 +787,12 @@ class wavesexchange(Exchange):
 
     def currency_from_precision(self, currency, amount):
         return self.from_wei(amount, self.currencies[currency]['precision'])
+
+    def price_from_precision(self, symbol, price):
+        market = self.markets[symbol]
+        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
+        difference = market['precision']['amount'] - market['precision']['price']
+        return self.from_wei(price, wavesPrecision - difference)
 
     def get_default_expiry(self):
         expiry = self.safe_integer(self.options, 'createOrderDefaultExpiry')
@@ -883,11 +894,11 @@ class wavesexchange(Exchange):
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES')
         if matcherFee is None:
+            wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
             rate = self.safe_float(rates, matcherFeeAssetId)
             code = self.safe_currency_code(matcherFeeAssetId)
-            waves = self.currency('WAVES')
             currency = self.currency(code)
-            newPrecison = math.pow(10, waves['precision'] - currency['precision'])
+            newPrecison = math.pow(10, wavesPrecision - currency['precision'])
             matcherFee = int(math.ceil(rate * baseMatcherFee / newPrecison))
         byteArray = [
             self.number_to_be(3, 1),
@@ -904,7 +915,7 @@ class wavesexchange(Exchange):
             self.get_asset_bytes(matcherFeeAssetId),
         ]
         binary = self.binary_concat_array(byteArray)
-        signature = self.eddsa(base64.b16encode(binary), base64.b16encode(self.base58_to_binary(self.secret)), 'ed25519')
+        signature = self.eddsa(self.binary_to_base16(binary), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         assetPair = {
             'amountAsset': amountAsset,
             'priceAsset': priceAsset,
@@ -1001,8 +1012,8 @@ class wavesexchange(Exchange):
             self.number_to_be(timestamp, 8),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
@@ -1093,12 +1104,60 @@ class wavesexchange(Exchange):
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
     def parse_order(self, order, market=None):
-        isCreateOrder = self.safe_integer(order, 'version')
+        #
+        #     createOrder
+        #
+        #     {
+        #         version: 3,
+        #         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        #         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        #         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        #         assetPair: {
+        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        #         },
+        #         orderType: 'buy',
+        #         amount: 10000,
+        #         price: 400000000,
+        #         timestamp: 1599848586891,
+        #         expiration: 1602267786891,
+        #         matcherFee: 3008,
+        #         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         proofs: [
+        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
+        #         ]
+        #     }
+        #
+        #     fetchClosedOrders
+        #
+        #     {
+        #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
+        #         type: 'buy',
+        #         orderType: 'limit',
+        #         amount: 30000000000,
+        #         filled: 0,
+        #         price: 1000000,
+        #         fee: 300000,
+        #         filledFee: 0,
+        #         feeAsset: 'WAVES',
+        #         timestamp: 1594303779322,
+        #         status: 'Cancelled',
+        #         assetPair: {
+        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             priceAsset: 'WAVES'
+        #         },
+        #         avgWeighedPrice: 0,
+        #         version: 3
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_2(order, 'type', 'orderType')
         type = 'limit'
-        if not isCreateOrder:
-            type = self.safe_string(order, 'orderType')
+        if 'type' in order:
+            # fetchOrders
+            type = self.safe_string(order, 'orderType', type)
         id = self.safe_string(order, 'id')
         filled = self.safe_string(order, 'filled')
         price = self.safe_string(order, 'price')
@@ -1109,9 +1168,8 @@ class wavesexchange(Exchange):
             symbol = self.get_symbol_from_asset_pair(assetPair)
         elif market is not None:
             symbol = market['symbol']
-        priceCurrency = self.safe_currency_code(self.safe_string(assetPair, 'priceAsset', 'WAVES'))
         amountCurrency = self.safe_currency_code(self.safe_string(assetPair, 'amountAsset', 'WAVES'))
-        price = self.currency_from_precision(priceCurrency, price)
+        price = self.price_from_precision(symbol, price)
         amount = self.currency_from_precision(amountCurrency, amount)
         cost = None
         if (price is not None) and (amount is not None):
@@ -1120,20 +1178,20 @@ class wavesexchange(Exchange):
         remaining = None
         if (filled is not None) and (amount is not None):
             remaining = amount - filled
-        average = self.currency_from_precision(priceCurrency, self.safe_string(order, 'avgWeighedPrice'))
+        average = self.price_from_precision(symbol, self.safe_string(order, 'avgWeighedPrice'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = None
-        if isCreateOrder:
-            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
-            fee = {
-                'currency': currency,
-                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
-            }
-        else:
+        if 'type' in order:
             currency = self.safe_currency_code(self.safe_string(order, 'feeAsset'))
             fee = {
                 'currency': currency,
                 'fee': self.currency_from_precision(currency, self.safe_integer(order, 'filledFee')),
+            }
+        else:
+            currency = self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES'))
+            fee = {
+                'currency': currency,
+                'fee': self.currency_from_precision(currency, self.safe_integer(order, 'matcherFee')),
             }
         return {
             'info': order,
@@ -1144,8 +1202,11 @@ class wavesexchange(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1236,8 +1297,8 @@ class wavesexchange(Exchange):
             self.number_to_be(timestamp, 8),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
@@ -1410,20 +1471,40 @@ class wavesexchange(Exchange):
             items = self.safe_value(supportedCurrencies, 'items', [])
             for i in range(0, len(items)):
                 entry = items[i]
-                code = self.safe_string(entry, 'id')
-                currencies[code] = True
+                currencyCode = self.safe_string(entry, 'id')
+                currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
                 raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))
         self.load_markets()
-        withdrawAddressRequest = {
-            'address': address,
-            'currency': code,
-        }
+        hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+        set = {}
+        for i in range(0, len(hexChars)):
+            key = hexChars[i]
+            set[key] = True
+        isErc20 = True
+        noPrefix = self.remove0x_prefix(address)
+        lower = noPrefix.lower()
+        for i in range(0, len(lower)):
+            character = lower[i]
+            if not (character in set):
+                isErc20 = False
+                break
         self.get_access_token()
         proxyAddress = None
-        if code != 'WAVES':
+        if code == 'WAVES' and not isErc20:
+            proxyAddress = address
+        else:
+            withdrawAddressRequest = {
+                'address': address,
+                'currency': code,
+            }
             withdrawAddress = self.privateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest)
+            currency = self.safe_value(withdrawAddress, 'currency')
+            allowedAmount = self.safe_value(currency, 'allowed_amount')
+            minimum = self.safe_float(allowedAmount, 'min')
+            if amount <= minimum:
+                raise BadRequest(self.id + ' ' + code + ' withdraw failed, amount ' + str(amount) + ' must be greater than the minimum allowed amount of ' + str(minimum))
             # {
             #   "type": "withdrawal_addresses",
             #   "currency": {
@@ -1447,8 +1528,6 @@ class wavesexchange(Exchange):
             # }
             proxyAddresses = self.safe_value(withdrawAddress, 'proxy_addresses', [])
             proxyAddress = self.safe_string(proxyAddresses, 0)
-        else:
-            proxyAddress = address
         fee = self.safe_integer(self.options, 'withdrawFeeWAVES', 100000)  # 0.001 WAVES
         feeAssetId = 'WAVES'
         type = 4  # transfer
@@ -1469,8 +1548,8 @@ class wavesexchange(Exchange):
             self.number_to_be(0, 2),
         ]
         binary = self.binary_concat_array(byteArray)
-        hexSecret = base64.b16encode(self.base58_to_binary(self.secret))
-        signature = self.eddsa(base64.b16encode(binary), hexSecret, 'ed25519')
+        hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
+        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,

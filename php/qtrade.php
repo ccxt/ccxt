@@ -403,21 +403,8 @@ class qtrade extends Exchange {
         //         "last_change":1588533365354609
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'id_hr');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $quote . '/' . $base;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer_product($ticker, 'last_change', 0.001);
         $previous = $this->safe_float($ticker, 'day_open');
         $last = $this->safe_float($ticker, 'last');
@@ -651,21 +638,8 @@ class qtrade extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
         $side = $this->safe_string($trade, 'side');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'market_string');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $quote . '/' . $base;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $cost = $this->safe_float_2($trade, 'base_volume', 'base_amount');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'market_amount', 'amount');
@@ -888,21 +862,8 @@ class qtrade extends Exchange {
         } else {
             $status = 'closed';
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market_string');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $rawTrades = $this->safe_value($order, 'trades', array());
         $parsedTrades = $this->parse_trades($rawTrades, $market, null, null, array(
             'order' => $id,
@@ -956,8 +917,11 @@ class qtrade extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,
@@ -1541,7 +1505,7 @@ class qtrade extends Exchange {
             if (gettype($key) !== 'string') {
                 $key = (string) $key;
             }
-            $signature = 'HMAC-SHA256 ' . $key . ':' . $this->decode($hash);
+            $signature = 'HMAC-SHA256 ' . $key . ':' . $hash;
             $headers = array(
                 'Authorization' => $signature,
                 'HMAC-Timestamp' => $timestamp,

@@ -520,8 +520,11 @@ class coinone extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
@@ -647,7 +650,7 @@ class coinone extends Exchange {
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
-            $payload = base64_encode($this->encode($json));
+            $payload = base64_encode($json);
             $body = $this->decode($payload);
             $secret = strtoupper($this->secret);
             $signature = $this->hmac($payload, $this->encode($secret), 'sha512');

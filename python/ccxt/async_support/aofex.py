@@ -479,21 +479,10 @@ class aofex(Exchange):
         result = {}
         for i in range(0, len(tickers)):
             marketId = self.safe_string(tickers[i], 'symbol')
-            market = None
-            symbol = marketId
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
+            market = self.safe_market(marketId, None, '-')
+            symbol = market['symbol']
             data = self.safe_value(tickers[i], 'data', {})
-            ticker = self.parse_ticker(data, market)
-            ticker['symbol'] = symbol
-            result[symbol] = ticker
+            result[symbol] = self.parse_ticker(data, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -686,22 +675,8 @@ class aofex(Exchange):
         id = self.safe_string(order, 'order_sn')
         orderStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(orderStatus)
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        base = None
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        market = self.safe_market(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'ctime'))
         if timestamp is not None:
             timestamp -= 28800000  # 8 hours, adjust to UTC
@@ -761,7 +736,7 @@ class aofex(Exchange):
                     if filled > 0:
                         average = cost / filled
                 if feeCost is not None:
-                    feeCurrencyCode = base if (side == 'buy') else quote
+                    feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
                     fee = {
                         'cost': feeCost,
                         'currency': feeCurrencyCode,
@@ -788,10 +763,13 @@ class aofex(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

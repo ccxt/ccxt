@@ -352,14 +352,8 @@ class latoken extends Exchange {
         //         "priceChange":-0.1500
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $open = $this->safe_float($ticker, 'open');
         $close = $this->safe_float($ticker, 'close');
         $change = null;
@@ -618,13 +612,7 @@ class latoken extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_timestamp($order, 'timeCreated');
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
         $price = $this->safe_float($order, 'price');
@@ -659,8 +647,11 @@ class latoken extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

@@ -253,13 +253,8 @@ class zaif(Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        if market is None:
-            marketId = self.safe_string(trade, 'currency_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'currency_pair')
+        symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
             'info': trade,
@@ -326,10 +321,8 @@ class zaif(Exchange):
         side = self.safe_string(order, 'action')
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(order, 'timestamp')
-        if not market:
-            marketId = self.safe_string(order, 'currency_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'currency_pair')
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         cost = None
@@ -337,9 +330,6 @@ class zaif(Exchange):
             if amount is not None:
                 cost = price * amount
         id = self.safe_string(order, 'id')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         return {
             'id': id,
             'clientOrderId': None,
@@ -349,8 +339,11 @@ class zaif(Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': None,
@@ -360,18 +353,6 @@ class zaif(Exchange):
             'info': order,
             'average': None,
         }
-
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        result = []
-        ids = list(orders.keys())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        for i in range(0, len(ids)):
-            id = ids[i]
-            order = self.extend({'id': id}, orders[id])
-            result.append(self.extend(self.parse_order(order, market), params))
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

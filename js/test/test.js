@@ -238,15 +238,24 @@ async function testExchange (exchange) {
         'BTC/ETH',
         'ETH/BTC',
         'ETH/USD',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
     ]
 
     for (let i = 0; i < symbols.length; i++) {
-        if (exchange.symbols.includes (symbols[i]) &&
-            (('active' in exchange.markets[symbols[i]]) ? exchange.markets[symbols[i]]['active'] : true)) {
-            symbol = symbols[i]
+        const s = symbols[i]
+        if (exchange.symbols.includes (s)) {
+            if ('active' in exchange.markets[s]) {
+                if (exchange.markets[s]['active'] === undefined) {
+                    symbol = s;
+                } else if (exchange.markets[s]['active']) {
+                    symbol = s;
+                }
+            } else {
+                symbol = s;
+            }
             break
         }
     }

@@ -187,18 +187,7 @@ class coincheck extends Exchange {
         }
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -210,9 +199,12 @@ class coincheck extends Exchange {
             'filled' => $filled,
             'side' => $side,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'status' => $status,
             'symbol' => $symbol,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'fee' => null,
             'info' => $order,

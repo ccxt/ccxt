@@ -24,8 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -138,12 +136,13 @@ class bitget(Exchange):
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ],
                 },
                 'swap': {
@@ -157,8 +156,13 @@ class bitget(Exchange):
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan',  # conditional
+                        'order/history',
+                        'order/historyPlan',  # conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ],
                     'post': [
                         'account/leverage',
@@ -170,6 +174,7 @@ class bitget(Exchange):
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ],
                 },
             },
@@ -811,12 +816,11 @@ class bitget(Exchange):
         symbol = id.upper()
         if spot:
             symbol = base + '/' + quote
-        lotSize = self.safe_float_2(market, 'lot_size', 'trade_increment')
-        tick_size = self.safe_float(market, 'tick_size')
-        newtick_size = float('1e-' + self.number_to_string(tick_size))
+        tickSize = self.safe_string(market, 'tick_size')
+        sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': self.safe_float(market, 'size_increment', lotSize),
-            'price': newtick_size,
+            'amount': float('1e-' + sizeIncrement),
+            'price': float('1e-' + tickSize),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
@@ -852,9 +856,6 @@ class bitget(Exchange):
                 },
             },
         })
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets_by_type(self, type, params={}):
         if type == 'spot':
@@ -1330,17 +1331,17 @@ class bitget(Exchange):
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        side = self.safe_string_2(trade, 'side', 'direction')
-        type = self.parse_order_type(side)
-        side = self.parse_order_side(side)
-        # if side is None:
-        #     orderType = self.safe_string(trade, 'type')
-        #     if orderType is not None:
-        #         parts = orderType.split('-')
-        #         side = self.safe_string_lower(parts, 0)
-        #         type = self.safe_string_lower(parts, 1)
-        #     }
-        # }
+        orderType = self.safe_string(trade, 'type')
+        side = None
+        type = None
+        if orderType is not None:
+            side = self.safe_string(trade, 'type')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
+        else:
+            side = self.safe_string_2(trade, 'side', 'direction')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
         cost = None
         if amount is not None:
             if price is not None:
@@ -1891,8 +1892,11 @@ class bitget(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2607,6 +2611,66 @@ class bitget(Exchange):
             data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
+    def fetch_position(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.swapGetPositionSinglePosition(self.extend(request, params))
+        #
+        #     {
+        #         "margin_mode":"fixed",  # Margin mode: crossed / fixed
+        #         "holding":[
+        #             {
+        #                 "symbol":"cmt_btcusdt",  # Contract name
+        #                 "liquidation_price":"0.00",  # Estimated liquidation price
+        #                 "position":"0",  # Position Margin, the margin for holding current positions
+        #                 "avail_position":"0",  # Available position
+        #                 "avg_cost":"0.00",  # Transaction average price
+        #                 "leverage":"2",  # Leverage
+        #                 "realized_pnl":"0.00000000",  # Realized Profit and loss
+        #                 "keepMarginRate":"0.005",  # Maintenance margin rate
+        #                 "side":"1",  # Position Direction Long or short, Mark obsolete
+        #                 "holdSide":"1",  # Position Direction Long or short
+        #                 "timestamp":"1557571623963",  # System timestamp
+        #                 "margin":"0.0000000000000000",  # Used margin
+        #                 "unrealized_pnl":"0.00000000",  # Unrealized profit and loss
+        #             }
+        #         ]
+        #     }
+        return response
+
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.swapGetPositionAllPosition(params)
+        #
+        #     [
+        #         {
+        #             "margin_mode":"fixed",
+        #             "holding":[
+        #                 {
+        #                     "liquidation_price":"0.00",
+        #                     "position":"0",
+        #                     "avail_position":"0",
+        #                     "avg_cost":"0.00",
+        #                     "symbol":"btcusd",
+        #                     "leverage":"20",
+        #                     "keepMarginRate":"0.005",
+        #                     "realized_pnl":"0.00000000",
+        #                     "unrealized_pnl":"0",
+        #                     "side":"long",
+        #                     "holdSide":"1",
+        #                     "timestamp":"1595698564915",
+        #                     "margin":"0.0000000000000000"
+        #                 },
+        #             ]
+        #         },
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         if (api == 'capi') or (api == 'swap'):
@@ -2633,7 +2697,7 @@ class bitget(Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-SIGN': self.decode(signature),
+                'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
             }

@@ -184,18 +184,7 @@ module.exports = class coincheck extends Exchange {
         }
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -207,9 +196,12 @@ module.exports = class coincheck extends Exchange {
             'filled': filled,
             'side': side,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'status': status,
             'symbol': symbol,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'fee': undefined,
             'info': order,
