@@ -296,6 +296,7 @@ class bybit(Exchange):
                 'marketTypes': {
                     'BTC/USDT': 'linear',
                     'ETH/USDT': 'linear',
+                    'BCH/USDT': 'linear',
                     'LTC/USDT': 'linear',
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
