@@ -946,6 +946,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $balances );
