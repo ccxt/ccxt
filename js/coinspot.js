@@ -76,14 +76,21 @@ module.exports = class coinspot extends Exchange {
             'commonCurrencies': {
                 'DRK': 'DASH',
             },
+            'options': {
+                'fetchBalance': 'private_post_my_balances',
+            },
         });
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostMyBalances (params);
+        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
+        const response = await this[method] (params);
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balance', {});
+        let balances = this.safeValue2 (response, 'balance', 'balances');
+        if (Array.isArray (balances)) {
+            balances = balances[0];
+        }
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
