@@ -354,7 +354,7 @@ module.exports = class kraken extends Exchange {
         if (currencyId.length > 3) {
             if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
                 if (currencyId.indexOf ('.') > 0) {
-                    currencyId = currencyId; // do nothing
+                    return super.safeCurrency (currencyId, currency);
                 } else {
                     currencyId = currencyId.slice (1);
                 }
