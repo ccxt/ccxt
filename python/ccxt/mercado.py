@@ -100,8 +100,8 @@ class mercado(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.7 / 100,
+                    'maker': 0.003,
+                    'taker': 0.007,
                 },
             },
             'options': {
@@ -118,25 +118,25 @@ class mercado(Exchange):
     def fetch_markets(self, params={}):
         response = self.publicGetCoins(params)
         #
-        # [
-        #     "BCH",
-        #     "BTC",
-        #     "ETH",
-        #     "LTC",
-        #     "XRP",
-        #     "MBPRK01",
-        #     "MBPRK02",
-        #     "MBPRK03",
-        #     "MBPRK04",
-        #     "MBCONS01",
-        #     "USDC",
-        #     "WBX",
-        #     "CHZ",
-        #     "MBCONS02",
-        #     "PAXG",
-        #     "MBVASCO01",
-        #     "LINK"
-        # ]
+        #     [
+        #         "BCH",
+        #         "BTC",
+        #         "ETH",
+        #         "LTC",
+        #         "XRP",
+        #         "MBPRK01",
+        #         "MBPRK02",
+        #         "MBPRK03",
+        #         "MBPRK04",
+        #         "MBCONS01",
+        #         "USDC",
+        #         "WBX",
+        #         "CHZ",
+        #         "MBCONS02",
+        #         "PAXG",
+        #         "MBVASCO01",
+        #         "LINK"
+        #     ]
         #
         result = []
         amountLimits = self.safe_value(self.options, 'limits', {})

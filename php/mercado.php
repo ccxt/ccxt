@@ -99,8 +99,8 @@ class mercado extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.3 / 100,
-                    'taker' => 0.7 / 100,
+                    'maker' => 0.003,
+                    'taker' => 0.007,
                 ),
             ),
             'options' => array(
@@ -118,25 +118,25 @@ class mercado extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetCoins ($params);
         //
-        // array(
-        //     "BCH",
-        //     "BTC",
-        //     "ETH",
-        //     "LTC",
-        //     "XRP",
-        //     "MBPRK01",
-        //     "MBPRK02",
-        //     "MBPRK03",
-        //     "MBPRK04",
-        //     "MBCONS01",
-        //     "USDC",
-        //     "WBX",
-        //     "CHZ",
-        //     "MBCONS02",
-        //     "PAXG",
-        //     "MBVASCO01",
-        //     "LINK"
-        // )
+        //     array(
+        //         "BCH",
+        //         "BTC",
+        //         "ETH",
+        //         "LTC",
+        //         "XRP",
+        //         "MBPRK01",
+        //         "MBPRK02",
+        //         "MBPRK03",
+        //         "MBPRK04",
+        //         "MBCONS01",
+        //         "USDC",
+        //         "WBX",
+        //         "CHZ",
+        //         "MBCONS02",
+        //         "PAXG",
+        //         "MBVASCO01",
+        //         "LINK"
+        //     )
         //
         $result = array();
         $amountLimits = $this->safe_value($this->options, 'limits', array());
