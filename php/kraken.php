@@ -360,13 +360,17 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function safe_currency_code($currencyId, $currency = null) {
+    public function safe_currency($currencyId, $currency = null) {
         if (strlen($currencyId) > 3) {
-            if (((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) && (mb_strpos($currencyId, '.') < 0)) {
-                $currencyId = mb_substr($currencyId, 1);
+            if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
+                if (mb_strpos($currencyId, '.') > 0) {
+                    return parent::safe_currency($currencyId, $currency);
+                } else {
+                    $currencyId = mb_substr($currencyId, 1);
+                }
             }
         }
-        return parent::safe_currency_code($currencyId, $currency);
+        return parent::safe_currency($currencyId, $currency);
     }
 
     public function append_inactive_markets($result) {
