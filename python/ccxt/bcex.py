@@ -18,20 +18,22 @@ class bcex(Exchange):
         return self.deep_extend(super(bcex, self).describe(), {
             'id': 'bcex',
             'name': 'BCEX',
-            'countries': ['CN', 'CA'],
+            'countries': ['CN', 'HK'],
             'version': '1',
             'has': {
-                'fetchBalance': True,
-                'fetchMarkets': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOrderBook': True,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
-                'fetchOpenOrders': True,
                 'fetchTradingLimits': True,
             },
             'urls': {
@@ -101,6 +103,10 @@ class bcex(Exchange):
                 '您的btc不足': InsufficientFunds,  # {code: 1, msg: '您的btc不足'} - your btc is insufficient
                 '参数非法': InvalidOrder,  # {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
                 '订单信息不存在': OrderNotFound,  # {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
+            },
+            'commonCurrencies': {
+                'UNI': 'UNI COIN',
+                'PNT': 'Penta',
             },
             'options': {
                 'limits': {
@@ -528,8 +534,11 @@ class bcex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

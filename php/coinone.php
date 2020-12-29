@@ -20,8 +20,11 @@ class coinone extends Exchange {
             'rateLimit' => 667,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -183,7 +186,7 @@ class coinone extends Exchange {
                 $result[$symbol]['timestamp'] = $timestamp;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -517,8 +520,11 @@ class coinone extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
@@ -644,7 +650,7 @@ class coinone extends Exchange {
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
             ), $params));
-            $payload = base64_encode($this->encode($json));
+            $payload = base64_encode($json);
             $body = $this->decode($payload);
             $secret = strtoupper($this->secret);
             $signature = $this->hmac($payload, $this->encode($secret), 'sha512');

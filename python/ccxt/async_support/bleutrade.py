@@ -23,23 +23,29 @@ class bleutrade(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'cancelOrder': False,  # todo
-                'createLimitOrder': False,  # todo
-                'createMarketOrder': False,  # todo
-                'createOrder': False,  # todo
-                'editOrder': False,  # todo
-                'withdraw': False,  # todo
-                'fetchTrades': False,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOrders': False,
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchWithdrawals': True,
-                'fetchOrderTrades': False,
-                'fetchLedger': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
+                'fetchWithdrawals': True,
+                'withdraw': False,
             },
             'timeframes': {
                 '1h': '1h',
@@ -55,7 +61,7 @@ class bleutrade(Exchange):
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -124,7 +130,6 @@ class bleutrade(Exchange):
             },
             'options': {
                 'parseOrderStatus': True,
-                'symbolSeparator': '_',
             },
         })
         # undocumented api calls
@@ -248,7 +253,7 @@ class bleutrade(Exchange):
             'market': market['id'],
         }
         response = await self.v3PublicGetGetmarketsummary(self.extend(request, params))
-        ticker = response['result'][0]
+        ticker = self.safe_value(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
@@ -282,15 +287,8 @@ class bleutrade(Exchange):
         #     MarketCurrency: 'Litecoin',
         #     BaseCurrency: 'Tether'}
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
         change = None
@@ -387,12 +385,6 @@ class bleutrade(Exchange):
         response = await self.v3PrivatePostGetopenorders(self.extend(request, params))
         items = self.safe_value(response, 'result', [])
         return self.parse_orders(items, market, since, limit)
-
-    def parse_symbol(self, id):
-        base, quote = id.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(base)
-        quote = self.safe_currency_code(quote)
-        return base + '/' + quote
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -603,17 +595,8 @@ class bleutrade(Exchange):
         #     Comments: {String: '', Valid: True}
         side = self.safe_string(order, 'Type').lower()
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
         marketId = self.safe_string(order, 'Exchange')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = None
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
@@ -641,8 +624,11 @@ class bleutrade(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

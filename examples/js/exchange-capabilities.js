@@ -7,6 +7,9 @@ const ccxt        = require ('../../ccxt.js')
     , log         = require ('ololog').noLocate
     , ansi        = require ('ansicolor').nice
 
+console.log (ccxt.iso8601 (ccxt.milliseconds ()))
+console.log ('CCXT v' + ccxt.version)
+
 ;(async function test () {
 
     let total = 0

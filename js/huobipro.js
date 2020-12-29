@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
+const { TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,20 +22,27 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
-                'fetchDepositAddress': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchTradingLimits': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -62,10 +70,10 @@ module.exports = class huobipro extends Exchange {
                     'v2Public': 'https://{hostname}',
                     'v2Private': 'https://{hostname}',
                 },
-                'www': 'https://www.huobi.pro',
-                'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
+                'www': 'https://www.huobi.com',
+                'referral': 'https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://huobiapi.github.io/docs/spot/v1/cn/',
-                'fees': 'https://www.huobi.pro/about/fee/',
+                'fees': 'https://www.huobi.com/about/fee/',
             },
             'api': {
                 'v2Public': {
@@ -77,11 +85,27 @@ module.exports = class huobipro extends Exchange {
                     'get': [
                         'account/ledger',
                         'account/withdraw/quota',
+                        'account/withdraw/address', // 提币地址查询(限母用户可用)
                         'account/deposit/address',
                         'reference/transact-fee-rate',
+                        'account/asset-valuation', // 获取账户资产估值
+                        'point/account', // 点卡余额查询
+                        'sub-user/user-list', // 获取子用户列表
+                        'sub-user/user-state', // 获取特定子用户的用户状态
+                        'sub-user/account-list', // 获取特定子用户的账户列表
+                        'sub-user/deposit-address', // 子用户充币地址查询
+                        'sub-user/query-deposit', // 子用户充币记录查询
+                        'user/api-key', // 母子用户API key信息查询
                     ],
                     'post': [
-                        'sub-user/management',
+                        'point/transfer', // 点卡划转
+                        'sub-user/management', // 冻结/解冻子用户
+                        'sub-user/creation', // 子用户创建
+                        'sub-user/tradable-market', // 设置子用户交易权限
+                        'sub-user/transferability', // 设置子用户资产转出权限
+                        'sub-user/api-key-generation', // 子用户API key创建
+                        'sub-user/api-key-modification', // 修改子用户API key
+                        'sub-user/api-key-deletion', // 删除子用户API key
                     ],
                 },
                 'market': {
@@ -111,6 +135,7 @@ module.exports = class huobipro extends Exchange {
                         'account/accounts/{sub-uid}',
                         'account/history',
                         'cross-margin/loan-info',
+                        'margin/loan-info', // 查询借币币息率及额度
                         'fee/fee-rate/get',
                         'order/openOrders',
                         'order/orders',
@@ -119,10 +144,13 @@ module.exports = class huobipro extends Exchange {
                         'order/orders/getClientOrder',
                         'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
-                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
                         'query/deposit-withdraw',
+                        'margin/loan-info',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'cross-margin/loan-orders', // 查询借币订单
+                        'cross-margin/accounts/balance', // 借币账户详情
                         'points/actions',
                         'points/orders',
                         'subuser/aggregate-balance',
@@ -130,6 +158,7 @@ module.exports = class huobipro extends Exchange {
                         'stable-coin/quote',
                     ],
                     'post': [
+                        'account/transfer', // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
                         'futures/transfer',
                         'order/batch-orders',
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -142,12 +171,16 @@ module.exports = class huobipro extends Exchange {
                         'dw/balance/transfer', // 资产划转
                         'dw/withdraw/api/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
                         'dw/transfer-in/margin', // 现货账户划入至借贷账户
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'cross-margin/transfer-in', // 资产划转
+                        'cross-margin/transfer-out', // 资产划转
+                        'cross-margin/orders', // 申请借币
+                        'cross-margin/orders/{id}/repay', // 归还借币
                         'stable-coin/exchange',
                         'subuser/transfer',
                     ],
@@ -181,10 +214,12 @@ module.exports = class huobipro extends Exchange {
                     'api-signature-check-failed': AuthenticationError,
                     'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                     'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                    'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'base-symbol-error': BadSymbol, // {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
+                    'system-maintenance': OnMaintenance, // {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     // err-msg
                     'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
-                    'invalid-parameter': BadRequest, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
-                    'base-symbol-trade-disabled': BadSymbol, // {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for this symbol","data":null}
+                    'symbol trade not open now': BadSymbol, // {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
                 },
             },
             'options': {
@@ -203,6 +238,11 @@ module.exports = class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://coinmarketcap.com/currencies/penta/markets/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'PNT': 'Penta',
             },
         });
     }
@@ -274,13 +314,17 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+    }
+
     async fetchMarkets (params = {}) {
         const method = this.options['fetchMarketsMethod'];
         const response = await this[method] (params);
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+            throw new NetworkError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -292,8 +336,9 @@ module.exports = class huobipro extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
+                'amount': this.safeInteger (market, 'amount-precision'),
+                'price': this.safeInteger (market, 'price-precision'),
+                'cost': this.safeInteger (market, 'value-precision'),
             };
             const maker = (base === 'OMG') ? 0 : 0.2 / 100;
             const taker = (base === 'OMG') ? 0 : 0.2 / 100;
@@ -408,10 +453,7 @@ module.exports = class huobipro extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'amount');
         const quoteVolume = this.safeFloat (ticker, 'vol');
-        let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -467,7 +509,7 @@ module.exports = class huobipro extends Exchange {
         //
         if ('tick' in response) {
             if (!response['tick']) {
-                throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
+                throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
@@ -520,15 +562,12 @@ module.exports = class huobipro extends Exchange {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const marketId = this.safeString (tickers[i], 'symbol');
-            const market = this.safeValue (this.markets_by_id, marketId);
-            let symbol = marketId;
-            if (market !== undefined) {
-                symbol = market['symbol'];
-                const ticker = this.parseTicker (tickers[i], market);
-                ticker['timestamp'] = timestamp;
-                ticker['datetime'] = this.iso8601 (timestamp);
-                result[symbol] = ticker;
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const ticker = this.parseTicker (tickers[i], market);
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -548,16 +587,26 @@ module.exports = class huobipro extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        //     {
+        //          'symbol': 'swftcbtc',
+        //          'fee-currency': 'swftc',
+        //          'filled-fees': '0',
+        //          'source': 'spot-api',
+        //          'id': 83789509854000,
+        //          'type': 'buy-limit',
+        //          'order-id': 83711103204909,
+        //          'filled-points': '0.005826843283532154',
+        //          'fee-deduct-currency': 'ht',
+        //          'filled-amount': '45941.53',
+        //          'price': '0.0000001401',
+        //          'created-at': 1597933260729,
+        //          'match-id': 100087455560,
+        //          'role': 'maker',
+        //          'trade-id': 100050305348
+        //     },
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         const order = this.safeString (trade, 'order-id');
         let side = this.safeString (trade, 'direction');
@@ -580,7 +629,7 @@ module.exports = class huobipro extends Exchange {
         let feeCost = this.safeFloat (trade, 'filled-fees');
         let feeCurrency = undefined;
         if (market !== undefined) {
-            feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         }
         const filledPoints = this.safeFloat (trade, 'filled-points');
         if (filledPoints !== undefined) {
@@ -1010,18 +1059,8 @@ module.exports = class huobipro extends Exchange {
             type = orderType[1];
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            if ('symbol' in order) {
-                if (order['symbol'] in this.markets_by_id) {
-                    const marketId = order['symbol'];
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
@@ -1065,8 +1104,11 @@ module.exports = class huobipro extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1094,9 +1136,10 @@ module.exports = class huobipro extends Exchange {
                 } else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
-                    // more about it here: https://github.com/ccxt/ccxt/pull/4395
-                    // we use priceToPrecision instead of amountToPrecision here
-                    // because in this case the amount is in the quote currency
+                    // more about it here:
+                    // https://github.com/ccxt/ccxt/pull/4395
+                    // https://github.com/ccxt/ccxt/issues/7611
+                    // we use amountToPrecision here because the exchange requires cost in base precision
                     request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             } else {

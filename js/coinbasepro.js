@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound, OnMaintenance, PermissionDenied, RateLimitExceeded } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -18,21 +19,31 @@ module.exports = class coinbasepro extends Exchange {
             'pro': true,
             'has': {
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': true,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'deposit': true,
                 'fetchAccounts': true,
+                'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
+                'fetchDepositAddress': false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderTrades': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTime': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'fetchTransactions': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -69,6 +80,7 @@ module.exports = class coinbasepro extends Exchange {
                     'get': [
                         'currencies',
                         'products',
+                        'products/{id}',
                         'products/{id}/book',
                         'products/{id}/candles',
                         'products/{id}/stats',
@@ -85,17 +97,32 @@ module.exports = class coinbasepro extends Exchange {
                         'accounts/{id}/ledger',
                         'accounts/{id}/transfers',
                         'coinbase-accounts',
-                        'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
                         'fees',
+                        'margin/profile_information',
+                        'margin/buying_power',
+                        'margin/withdrawal_power',
+                        'margin/withdrawal_power_all',
+                        'margin/exit_plan',
+                        'margin/liquidation_history',
+                        'margin/position_refresh_amounts',
+                        'margin/status',
+                        'oracle',
                         'orders',
                         'orders/{id}',
+                        'orders/client:{client_oid}',
                         'otc/orders',
                         'payment-methods',
                         'position',
-                        'reports/{id}',
+                        'profiles',
+                        'profiles/{id}',
+                        'reports/{report_id}',
+                        'transfers',
+                        'transfers/{transfer_id}',
                         'users/self/trailing-volume',
+                        'users/self/exchange-limits',
+                        'withdrawals/fee-estimate',
                     ],
                     'post': [
                         'conversions',
@@ -106,17 +133,24 @@ module.exports = class coinbasepro extends Exchange {
                         'orders',
                         'position/close',
                         'profiles/margin-transfer',
+                        'profiles/transfer',
                         'reports',
                         'withdrawals/coinbase',
+                        'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
                     ],
                     'delete': [
                         'orders',
+                        'orders/client:{client_oid}',
                         'orders/{id}',
                     ],
                 },
             },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
+            },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
@@ -164,13 +198,107 @@ module.exports = class coinbasepro extends Exchange {
                     'price too precise': InvalidOrder,
                     'under maintenance': OnMaintenance,
                     'size is too small': InvalidOrder,
+                    'Cancel only mode': OnMaintenance, // https://github.com/ccxt/ccxt/issues/7690
                 },
             },
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             id: 'XTZ',
+        //             name: 'Tezos',
+        //             min_size: '0.000001',
+        //             status: 'online',
+        //             message: '',
+        //             max_precision: '0.000001',
+        //             convertible_to: [],
+        //             details: {
+        //                 type: 'crypto',
+        //                 symbol: 'Τ',
+        //                 network_confirmations: 60,
+        //                 sort_order: 53,
+        //                 crypto_address_link: 'https://tzstats.com/{{address}}',
+        //                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
+        //                 push_payment_methods: [ 'crypto' ],
+        //                 group_types: [],
+        //                 display_name: '',
+        //                 processing_time_seconds: 0,
+        //                 min_withdrawal_amount: 1
+        //             }
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'id');
+            const name = this.safeString (currency, 'name');
+            const code = this.safeCurrencyCode (id);
+            const details = this.safeValue (currency, 'details', {});
+            const precision = this.safeFloat (currency, 'max_precision');
+            const status = this.safeString (currency, 'status');
+            const active = (status === 'online');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': this.safeString (details, 'type'),
+                'name': name,
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (details, 'min_size'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (details, 'min_withdrawal_amount'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "id":"ZEC-BTC",
+        //             "base_currency":"ZEC",
+        //             "quote_currency":"BTC",
+        //             "base_min_size":"0.01000000",
+        //             "base_max_size":"1500.00000000",
+        //             "quote_increment":"0.00000100",
+        //             "base_increment":"0.00010000",
+        //             "display_name":"ZEC/BTC",
+        //             "min_market_funds":"0.001",
+        //             "max_market_funds":"30",
+        //             "margin_enabled":false,
+        //             "post_only":false,
+        //             "limit_only":false,
+        //             "cancel_only":false,
+        //             "trading_disabled":false,
+        //             "status":"online",
+        //             "status_message":""
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -185,10 +313,11 @@ module.exports = class coinbasepro extends Exchange {
                 'max': undefined,
             };
             const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
-                'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
+                'amount': this.safeFloat (market, 'base_increment'),
+                'price': this.safeFloat (market, 'quote_increment'),
             };
-            const active = market['status'] === 'online';
+            const status = this.safeString (market, 'status');
+            const active = (status === 'online');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -403,21 +532,8 @@ module.exports = class coinbasepro extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         let feeRate = undefined;
         let feeCurrency = undefined;
         let takerOrMaker = undefined;
@@ -484,6 +600,9 @@ module.exports = class coinbasepro extends Exchange {
         const request = {
             'id': market['id'], // fixes issue #2
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
         const response = await this.publicGetProductsIdTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -560,20 +679,30 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price": "0.10000000",
+        //         "size": "0.01000000",
+        //         "product_id": "BTC-USD",
+        //         "side": "buy",
+        //         "stp": "dc",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "post_only": false,
+        //         "created_at": "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees": "0.0000000000000000",
+        //         "filled_size": "0.00000000",
+        //         "executed_value": "0.0000000000000000",
+        //         "status": "pending",
+        //         "settled": false
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'product_id');
-        let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        market = this.safeMarket (marketId, market, '-');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'filled_size');
@@ -591,8 +720,6 @@ module.exports = class coinbasepro extends Exchange {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 feeCurrencyCode = market['quote'];
-            } else if (quote !== undefined) {
-                feeCurrencyCode = quote;
             }
             fee = {
                 'cost': feeCost,
@@ -600,24 +727,28 @@ module.exports = class coinbasepro extends Exchange {
                 'rate': undefined,
             };
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
+        const timeInForce = this.safeString (order, 'time_in_force');
+        const postOnly = this.safeValue (order, 'post_only');
+        const stopPrice = this.safeFloat (order, 'stop_price');
+        const clientOrderId = this.safeString (order, 'client_oid');
         return {
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -630,10 +761,18 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateGetOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateGetOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -651,17 +790,10 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         const request = {
             'status': 'all',
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['product_id'] = market['id'];
-        }
-        const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -672,47 +804,131 @@ module.exports = class coinbasepro extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         const request = {
             'status': 'done',
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['product_id'] = market['id'];
-        }
-        const response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // let oid = this.nonce ().toString ();
+        const market = this.market (symbol);
         const request = {
-            'product_id': this.marketId (symbol),
-            'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            // common params --------------------------------------------------
+            // 'client_oid': clientOrderId,
             'type': type,
+            'side': side,
+            'product_id': market['id'],
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'stp': 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
+            // 'stop_price': this.priceToPrecision (symbol, price),
+            // limit order params ---------------------------------------------
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'time_in_force': 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only': false, // invalid when time_in_force is IOC or FOK
+            // market order params --------------------------------------------
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'funds': this.costToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop_price');
+        if (stopPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
+        }
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+            params = this.omit (params, [ 'timeInForce', 'time_in_force' ]);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['size'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            let cost = this.safeFloat2 (params, 'cost', 'funds');
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            } else {
+                params = this.omit (params, [ 'cost', 'funds' ]);
+            }
+            if (cost !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, cost);
+            } else {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response);
+        //
+        //     {
+        //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price": "0.10000000",
+        //         "size": "0.01000000",
+        //         "product_id": "BTC-USD",
+        //         "side": "buy",
+        //         "stp": "dc",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "post_only": false,
+        //         "created_at": "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees": "0.0000000000000000",
+        //         "filled_size": "0.00000000",
+        //         "executed_value": "0.0000000000000000",
+        //         "status": "pending",
+        //         "settled": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersId ({ 'id': id });
+        const request = {
+            // 'product_id': market['id'], // the request will be more performant if you include it
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateDeleteOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateDeleteOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = market['symbol']; // the request will be more performant if you include it
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        return await this.privateDeleteOrders (params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = market['symbol']; // the request will be more performant if you include it
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -795,28 +1011,47 @@ module.exports = class coinbasepro extends Exchange {
         let currency = undefined;
         let id = this.safeString (params, 'id'); // account id
         if (id === undefined) {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no account id specified in params');
+            if (code !== undefined) {
+                currency = this.currency (code);
+                const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+                const account = this.safeValue (accountsByCurrencyCode, code);
+                if (account === undefined) {
+                    throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+                }
+                id = account['id'];
             }
-            currency = this.currency (code);
-            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
-            const account = this.safeValue (accountsByCurrencyCode, code);
-            if (account === undefined) {
-                throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
-            }
-            id = account['id'];
         }
-        const request = {
-            'id': id,
-        };
+        const request = {};
+        if (id !== undefined) {
+            request['id'] = id;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = code;
+        let response = undefined;
+        if (id === undefined) {
+            response = await this.privateGetTransfers (this.extend (request, params));
+            for (let i = 0; i < response.length; i++) {
+                const account_id = this.safeString (response[i], 'account_id');
+                const account = this.safeValue (this.accountsById, account_id);
+                const code = this.safeString (account, 'currency');
+                response[i]['currency'] = code;
+            }
+        } else {
+            response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+            for (let i = 0; i < response.length; i++) {
+                response[i]['currency'] = code;
+            }
         }
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'deposit' }));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactions (code, since, limit, this.extend (params, { 'type': 'withdraw' }));
     }
 
     parseTransactionStatus (transaction) {
@@ -843,16 +1078,23 @@ module.exports = class coinbasepro extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const fee = undefined;
         const status = this.parseTransactionStatus (transaction);
         const amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         const tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
+        let fee = undefined;
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
+            const feeCost = this.safeFloat (details, 'fee');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'code': code,
+                };
+            }
         }
         return {
             'info': transaction,
@@ -895,42 +1137,13 @@ module.exports = class coinbasepro extends Exchange {
             const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
-                'CB-ACCESS-SIGN': this.decode (signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-PASSPHRASE': this.password,
                 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        let accounts = this.safeValue (this.options, 'coinbaseAccounts');
-        if (accounts === undefined) {
-            accounts = await this.privateGetCoinbaseAccounts ();
-            this.options['coinbaseAccounts'] = accounts; // cache it
-            this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
-        }
-        const currencyId = currency['id'];
-        const account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
-        if (account === undefined) {
-            // eslint-disable-next-line quotes
-            throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
-        }
-        const request = {
-            'id': account['id'],
-        };
-        const response = await this.privateGetCoinbaseAccountsIdAddresses (this.extend (request, params));
-        const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'destination_tag');
-        return {
-            'currency': code,
-            'address': this.checkAddress (address),
-            'tag': tag,
-            'info': response,
-        };
     }
 
     async createDepositAddress (code, params = {}) {

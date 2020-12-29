@@ -82,12 +82,14 @@ module.exports = (exchange, ticker, method, symbol) => {
         'okex',
         'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png
         'bitmart',
+        'gateio', // some ticker bids are greaters than asks
+        'timex',
 
     ].includes (exchange.id)) {
 
         if (ticker['baseVolume'] || ticker['quoteVolume']) {
             if (ticker['bid'] && ticker['ask']) {
-                assert (ticker['bid'] <= ticker['ask'], 'ticker bid is greater than ticker ask!')
+                assert (ticker['bid'] <= ticker['ask'], (ticker['symbol'] ? (ticker['symbol'] + ' ') : '') + 'ticker bid is greater than ticker ask!')
             }
         }
 

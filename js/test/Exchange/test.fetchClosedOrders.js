@@ -17,16 +17,16 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching closed orders...')
 
-        let orders = await exchange.fetchClosedOrders (symbol)
+        const orders = await exchange.fetchClosedOrders (symbol)
 
         log ('fetched', orders.length.toString ().green, 'closed orders, testing each')
 
         assert (orders instanceof Array)
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
+            const order = orders[i]
             testOrder (exchange, order, symbol, now)
             assert (order.status === 'closed' || order.status === 'canceled')
         }

@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitso(Exchange):
@@ -27,26 +28,37 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
-                'fees': 'https://bitso.com/fees?l=es',
+                'fees': 'https://bitso.com/fees',
                 'referral': 'https://bitso.com/?ref=itej',
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'precision': {
-                    'XRP': 6,
-                    'MXN': 2,
-                    'TUSD': 2,
+                    'XRP': 0.000001,
+                    'MXN': 0.01,
+                    'TUSD': 0.01,
                 },
-                'defaultPrecision': 8,
+                'defaultPrecision': 0.00000001,
             },
             'api': {
                 'public': {
@@ -110,6 +122,38 @@ class bitso(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetAvailableBooks(params)
+        #
+        #     {
+        #         "success":true,
+        #         "payload":[
+        #             {
+        #                 "book":"btc_mxn",
+        #                 "minimum_price":"500",
+        #                 "maximum_price":"10000000",
+        #                 "minimum_amount":"0.00005",
+        #                 "maximum_amount":"500",
+        #                 "minimum_value":"5",
+        #                 "maximum_value":"10000000",
+        #                 "tick_size":"0.01",
+        #                 "fees":{
+        #                     "flat_rate":{"maker":"0.500","taker":"0.650"},
+        #                     "structure":[
+        #                         {"volume":"1500000","maker":"0.00500","taker":"0.00650"},
+        #                         {"volume":"2000000","maker":"0.00490","taker":"0.00637"},
+        #                         {"volume":"5000000","maker":"0.00480","taker":"0.00624"},
+        #                         {"volume":"7000000","maker":"0.00440","taker":"0.00572"},
+        #                         {"volume":"10000000","maker":"0.00420","taker":"0.00546"},
+        #                         {"volume":"15000000","maker":"0.00400","taker":"0.00520"},
+        #                         {"volume":"35000000","maker":"0.00370","taker":"0.00481"},
+        #                         {"volume":"50000000","maker":"0.00300","taker":"0.00390"},
+        #                         {"volume":"150000000","maker":"0.00200","taker":"0.00260"},
+        #                         {"volume":"250000000","maker":"0.00100","taker":"0.00130"},
+        #                         {"volume":"9999999999","maker":"0.00000","taker":"0.00130"},
+        #                     ]
+        #                 }
+        #             },
+        #         ]
+        #     }
         markets = self.safe_value(response, 'payload')
         result = []
         for i in range(0, len(markets)):
@@ -135,11 +179,41 @@ class bitso(Exchange):
                     'max': self.safe_float(market, 'maximum_value'),
                 },
             }
+            defaultPricePrecision = self.safe_float(self.options['precision'], quote, self.options['defaultPrecision'])
+            pricePrecision = self.safe_float(market, 'tick_size', defaultPricePrecision)
             precision = {
-                'amount': self.safe_integer(self.options['precision'], base, self.options['defaultPrecision']),
-                'price': self.safe_integer(self.options['precision'], quote, self.options['defaultPrecision']),
+                'amount': self.safe_float(self.options['precision'], base, self.options['defaultPrecision']),
+                'price': pricePrecision,
             }
-            result.append({
+            fees = self.safe_value(market, 'fees', {})
+            flatRate = self.safe_value(fees, 'flat_rate', {})
+            maker = self.safe_float(flatRate, 'maker')
+            taker = self.safe_float(flatRate, 'taker')
+            feeTiers = self.safe_value(fees, 'structure', [])
+            fee = {
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+            takerFees = []
+            makerFees = []
+            for i in range(0, len(feeTiers)):
+                tier = feeTiers[i]
+                volume = self.safe_float(tier, 'volume')
+                takerFee = self.safe_float(tier, 'taker')
+                makerFee = self.safe_float(tier, 'maker')
+                takerFees.append([volume, takerFee])
+                makerFees.append([volume, makerFee])
+                if i == 0:
+                    fee['taker'] = taker
+                    fee['maker'] = maker
+            tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            }
+            fee['tiers'] = tiers
+            result.append(self.extend({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -150,7 +224,7 @@ class bitso(Exchange):
                 'limits': limits,
                 'precision': precision,
                 'active': None,
-            })
+            }, fee))
         return result
 
     async def fetch_balance(self, params={}):
@@ -219,13 +293,8 @@ class bitso(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'book')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'book')
+        symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string_2(trade, 'side', 'maker_side')
         amount = self.safe_float_2(trade, 'amount', 'major')
         if amount is not None:
@@ -330,19 +399,8 @@ class bitso(Exchange):
         id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'book')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         orderType = self.safe_string(order, 'type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
@@ -362,8 +420,11 @@ class bitso(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'remaining': remaining,
@@ -430,10 +491,10 @@ class bitso(Exchange):
         response = await self.privateGetFundingDestination(self.extend(request, params))
         address = self.safe_string(response['payload'], 'account_identifier')
         tag = None
-        if code == 'XRP':
+        if address.find('?dt=') >= 0:
             parts = address.split('?dt=')
-            address = parts[0]
-            tag = parts[1]
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
             'currency': code,

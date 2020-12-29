@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,13 +27,18 @@ class bithumb(Exchange):
             'countries': ['KR'],  # South Korea
             'rateLimit': 500,
             'has': {
-                'CORS': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'CORS': True,
                 'createMarketOrder': True,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -109,13 +113,13 @@ class bithumb(Exchange):
         data = self.safe_value(response, 'data')
         currencyIds = list(data.keys())
         result = []
+        quote = self.safe_currency_code('KRW')
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             if currencyId == 'date':
                 continue
             market = data[currencyId]
-            base = currencyId
-            quote = 'KRW'
+            base = self.safe_currency_code(currencyId)
             symbol = currencyId + '/' + quote
             active = True
             if isinstance(market, list):
@@ -240,9 +244,7 @@ class bithumb(Exchange):
             average = self.sum(open, close) / 2
         baseVolume = self.safe_float(ticker, 'units_traded_24H')
         quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
-        vwap = None
-        if quoteVolume is not None and baseVolume is not None:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -307,7 +309,7 @@ class bithumb(Exchange):
             if not isArray:
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -385,7 +387,7 @@ class bithumb(Exchange):
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'units_traded')
+        amount = self.safe_float_2(trade, 'units_traded', 'units')
         cost = self.safe_float(trade, 'total')
         if cost is None:
             if amount is not None:
@@ -484,25 +486,26 @@ class bithumb(Exchange):
         #     {
         #         "status": "0000",
         #         "data": {
-        #             "transaction_date": "1572497603668315",
-        #             "type": "bid",
-        #             "order_status": "Completed",
-        #             "order_currency": "BTC",
-        #             "payment_currency": "KRW",
-        #             "order_price": "8601000",
-        #             "order_qty": "0.007",
-        #             "cancel_date": "",
-        #             "cancel_type": "",
-        #             "contract": [
+        #             order_date: '1603161798539254',
+        #             type: 'ask',
+        #             order_status: 'Cancel',
+        #             order_currency: 'BTC',
+        #             payment_currency: 'KRW',
+        #             watch_price: '0',
+        #             order_price: '13344000',
+        #             order_qty: '0.0125',
+        #             cancel_date: '1603161803809993',
+        #             cancel_type: '사용자취소',
+        #             contract: [
         #                 {
-        #                     "transaction_date": "1572497603902030",
-        #                     "price": "8601000",
-        #                     "units": "0.005",
-        #                     "fee_currency": "KRW",
-        #                     "fee": "107.51",
-        #                     "total": "43005"
-        #                 },
-        #             ]
+        #                     transaction_date: '1603161799976383',
+        #                     price: '13344000',
+        #                     units: '0.0015',
+        #                     fee_currency: 'KRW',
+        #                     fee: '0',
+        #                     total: '20016'
+        #                 }
+        #             ],
         #         }
         #     }
         #
@@ -518,6 +521,7 @@ class bithumb(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
         #
         # fetchOrder
         #
@@ -541,6 +545,29 @@ class bithumb(Exchange):
         #                 "total": "43005"
         #             },
         #         ]
+        #     }
+        #
+        #     {
+        #         order_date: '1603161798539254',
+        #         type: 'ask',
+        #         order_status: 'Cancel',
+        #         order_currency: 'BTC',
+        #         payment_currency: 'KRW',
+        #         watch_price: '0',
+        #         order_price: '13344000',
+        #         order_qty: '0.0125',
+        #         cancel_date: '1603161803809993',
+        #         cancel_type: '사용자취소',
+        #         contract: [
+        #             {
+        #                 transaction_date: '1603161799976383',
+        #                 price: '13344000',
+        #                 units: '0.0015',
+        #                 fee_currency: 'KRW',
+        #                 fee: '0',
+        #                 total: '20016'
+        #             }
+        #         ],
         #     }
         #
         # fetchOpenOrders
@@ -570,11 +597,8 @@ class bithumb(Exchange):
         if remaining is None:
             if status == 'closed':
                 remaining = 0
-            else:
+            elif status != 'canceled':
                 remaining = amount
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = amount - remaining
         symbol = None
         baseId = self.safe_string(order, 'order_currency')
         quoteId = self.safe_string(order, 'payment_currency')
@@ -584,16 +608,56 @@ class bithumb(Exchange):
             symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
+        filled = None
+        cost = None
+        average = None
+        id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract')
         trades = None
-        id = self.safe_string(order, 'order_id')
+        fee = None
+        fees = None
+        feesByCurrency = None
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {
                 'side': side,
                 'symbol': symbol,
                 'order': id,
             })
-        return {
+            filled = 0
+            feesByCurrency = {}
+            for i in range(0, len(trades)):
+                trade = trades[i]
+                filled = self.sum(filled, trade['amount'])
+                cost = self.sum(cost, trade['cost'])
+                tradeFee = trade['fee']
+                feeCurrency = tradeFee['currency']
+                if feeCurrency in feesByCurrency:
+                    feesByCurrency[feeCurrency] = {
+                        'currency': feeCurrency,
+                        'cost': self.sum(feesByCurrency[feeCurrency]['cost'], tradeFee['cost']),
+                    }
+                else:
+                    feesByCurrency[feeCurrency] = {
+                        'currency': feeCurrency,
+                        'cost': tradeFee['cost'],
+                    }
+            feeCurrencies = list(feesByCurrency.keys())
+            feeCurrenciesLength = len(feeCurrencies)
+            if feeCurrenciesLength > 1:
+                fees = []
+                for i in range(0, len(feeCurrencies)):
+                    feeCurrency = feeCurrencies[i]
+                    fees.append(feesByCurrency[feeCurrency])
+            else:
+                fee = self.safe_value(feesByCurrency, feeCurrencies[0])
+            if filled != 0:
+                average = cost / filled
+        if amount is not None:
+            if (filled is None) and (remaining is not None):
+                filled = max(0, amount - remaining)
+            if (remaining is None) and (filled is not None):
+                remaining = max(0, amount - filled)
+        result = {
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -602,17 +666,25 @@ class bithumb(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
-            'cost': None,
-            'average': None,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': trades,
         }
+        if fee is not None:
+            result['fee'] = fee
+        elif fees is not None:
+            result['fees'] = fees
+        return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -712,12 +784,12 @@ class bithumb(Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            signature64 = self.decode(base64.b64encode(self.encode(signature)))
+            signature64 = self.decode(self.string_to_base64(signature))
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': self.apiKey,
-                'Api-Sign': str(signature64),
+                'Api-Sign': signature64,
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

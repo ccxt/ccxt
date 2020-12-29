@@ -21,27 +21,32 @@ class hbtc extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchTime' => true,
+                'createOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchBidAsk' => true,
                 'fetchBidsAsks' => true,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchDepositAddress' => false,
-                'fetchOHLCV' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchTradingLimits' => true,
+                'fetchCurrencies' => false,
+                'fetchDepositAddress' => false,
+                'fetchDeposits' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'withdraw' => true,
-                'fetchCurrencies' => false,
-                'fetchDeposits' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
-                'fetchAccounts' => true,
-                'fetchLedger' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -1663,14 +1668,8 @@ class hbtc extends Exchange {
         //         "askQty" => "9.00000000"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
         $open = $this->safe_float($ticker, 'openPrice');
         $close = $this->safe_float($ticker, 'lastPrice');
@@ -1686,10 +1685,7 @@ class hbtc extends Exchange {
         }
         $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1816,7 +1812,7 @@ class hbtc extends Exchange {
         //         "origQty":"1000",
         //         "executedQty":"0",
         //         "$status":"NEW",
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "$type":"MARKET",
         //         "$side":"BUY"
         //     }
@@ -1836,10 +1832,10 @@ class hbtc extends Exchange {
         //         "cummulativeQuoteQty":"682.606",
         //         "avgPrice":"6826.06",
         //         "$status":"FILLED",
-        //         "timeInForce":"GTC",
+        //         "$timeInForce":"GTC",
         //         "$type":"MARKET",
         //         "$side":"SELL",
-        //         "stopPrice":"0.0",
+        //         "$stopPrice":"0.0",
         //         "icebergQty":"0.0",
         //         "time":"1588214701974",
         //         "updateTime":"0",
@@ -1863,7 +1859,7 @@ class hbtc extends Exchange {
         //         orderType => "LIMIT",
         //         $side => "SELL_OPEN",
         //         $fees => array(),
-        //         timeInForce => "GTC",
+        //         $timeInForce => "GTC",
         //         $status => "CANCELED",
         //         priceType => "INPUT"
         //     }
@@ -1875,16 +1871,8 @@ class hbtc extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'transactTime');
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
-            if ($marketId !== null) {
-                $marketId = strtoupper($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $price = $this->safe_float($order, 'price');
@@ -1921,9 +1909,8 @@ class hbtc extends Exchange {
             $average = null;
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         $result = array(
             'info' => $order,
             'id' => $id,
@@ -1933,8 +1920,10 @@ class hbtc extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,

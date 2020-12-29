@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,26 +17,37 @@ module.exports = class bitso extends Exchange {
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchDepositAddress': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
-                'fees': 'https://bitso.com/fees?l=es',
+                'fees': 'https://bitso.com/fees',
                 'referral': 'https://bitso.com/?ref=itej',
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'precision': {
-                    'XRP': 6,
-                    'MXN': 2,
-                    'TUSD': 2,
+                    'XRP': 0.000001,
+                    'MXN': 0.01,
+                    'TUSD': 0.01,
                 },
-                'defaultPrecision': 8,
+                'defaultPrecision': 0.00000001,
             },
             'api': {
                 'public': {
@@ -100,6 +112,38 @@ module.exports = class bitso extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAvailableBooks (params);
+        //
+        //     {
+        //         "success":true,
+        //         "payload":[
+        //             {
+        //                 "book":"btc_mxn",
+        //                 "minimum_price":"500",
+        //                 "maximum_price":"10000000",
+        //                 "minimum_amount":"0.00005",
+        //                 "maximum_amount":"500",
+        //                 "minimum_value":"5",
+        //                 "maximum_value":"10000000",
+        //                 "tick_size":"0.01",
+        //                 "fees":{
+        //                     "flat_rate":{"maker":"0.500","taker":"0.650"},
+        //                     "structure":[
+        //                         {"volume":"1500000","maker":"0.00500","taker":"0.00650"},
+        //                         {"volume":"2000000","maker":"0.00490","taker":"0.00637"},
+        //                         {"volume":"5000000","maker":"0.00480","taker":"0.00624"},
+        //                         {"volume":"7000000","maker":"0.00440","taker":"0.00572"},
+        //                         {"volume":"10000000","maker":"0.00420","taker":"0.00546"},
+        //                         {"volume":"15000000","maker":"0.00400","taker":"0.00520"},
+        //                         {"volume":"35000000","maker":"0.00370","taker":"0.00481"},
+        //                         {"volume":"50000000","maker":"0.00300","taker":"0.00390"},
+        //                         {"volume":"150000000","maker":"0.00200","taker":"0.00260"},
+        //                         {"volume":"250000000","maker":"0.00100","taker":"0.00130"},
+        //                         {"volume":"9999999999","maker":"0.00000","taker":"0.00130"},
+        //                     ]
+        //                 }
+        //             },
+        //         ]
+        //     }
         const markets = this.safeValue (response, 'payload');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -125,11 +169,43 @@ module.exports = class bitso extends Exchange {
                     'max': this.safeFloat (market, 'maximum_value'),
                 },
             };
+            const defaultPricePrecision = this.safeFloat (this.options['precision'], quote, this.options['defaultPrecision']);
+            const pricePrecision = this.safeFloat (market, 'tick_size', defaultPricePrecision);
             const precision = {
-                'amount': this.safeInteger (this.options['precision'], base, this.options['defaultPrecision']),
-                'price': this.safeInteger (this.options['precision'], quote, this.options['defaultPrecision']),
+                'amount': this.safeFloat (this.options['precision'], base, this.options['defaultPrecision']),
+                'price': pricePrecision,
             };
-            result.push ({
+            const fees = this.safeValue (market, 'fees', {});
+            const flatRate = this.safeValue (fees, 'flat_rate', {});
+            const maker = this.safeFloat (flatRate, 'maker');
+            const taker = this.safeFloat (flatRate, 'taker');
+            const feeTiers = this.safeValue (fees, 'structure', []);
+            const fee = {
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+            const takerFees = [];
+            const makerFees = [];
+            for (let i = 0; i < feeTiers.length; i++) {
+                const tier = feeTiers[i];
+                const volume = this.safeFloat (tier, 'volume');
+                const takerFee = this.safeFloat (tier, 'taker');
+                const makerFee = this.safeFloat (tier, 'maker');
+                takerFees.push ([ volume, takerFee ]);
+                makerFees.push ([ volume, makerFee ]);
+                if (i === 0) {
+                    fee['taker'] = taker;
+                    fee['maker'] = maker;
+                }
+            }
+            const tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            };
+            fee['tiers'] = tiers;
+            result.push (this.extend ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -140,7 +216,7 @@ module.exports = class bitso extends Exchange {
                 'limits': limits,
                 'precision': precision,
                 'active': undefined,
-            });
+            }, fee));
         }
         return result;
     }
@@ -216,16 +292,8 @@ module.exports = class bitso extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'book');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'book');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeString2 (trade, 'side', 'maker_side');
         let amount = this.safeFloat2 (trade, 'amount', 'major');
         if (amount !== undefined) {
@@ -342,23 +410,8 @@ module.exports = class bitso extends Exchange {
         const id = this.safeString (order, 'oid');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'book');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const orderType = this.safeString (order, 'type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
@@ -380,8 +433,11 @@ module.exports = class bitso extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'remaining': remaining,
@@ -456,10 +512,10 @@ module.exports = class bitso extends Exchange {
         const response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag = undefined;
-        if (code === 'XRP') {
+        if (address.indexOf ('?dt=') >= 0) {
             const parts = address.split ('?dt=');
-            address = parts[0];
-            tag = parts[1];
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
         }
         this.checkAddress (address);
         return {

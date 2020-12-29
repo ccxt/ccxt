@@ -19,26 +19,37 @@ class bitso extends Exchange {
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api' => 'https://api.bitso.com',
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
-                'fees' => 'https://bitso.com/fees?l=es',
+                'fees' => 'https://bitso.com/fees',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array(
                 'precision' => array(
-                    'XRP' => 6,
-                    'MXN' => 2,
-                    'TUSD' => 2,
+                    'XRP' => 0.000001,
+                    'MXN' => 0.01,
+                    'TUSD' => 0.01,
                 ),
-                'defaultPrecision' => 8,
+                'defaultPrecision' => 0.00000001,
             ),
             'api' => array(
                 'public' => array(
@@ -103,6 +114,38 @@ class bitso extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetAvailableBooks ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "payload":array(
+        //             {
+        //                 "book":"btc_mxn",
+        //                 "minimum_price":"500",
+        //                 "maximum_price":"10000000",
+        //                 "minimum_amount":"0.00005",
+        //                 "maximum_amount":"500",
+        //                 "minimum_value":"5",
+        //                 "maximum_value":"10000000",
+        //                 "tick_size":"0.01",
+        //                 "$fees":array(
+        //                     "flat_rate":array("$maker":"0.500","$taker":"0.650"),
+        //                     "structure":array(
+        //                         array("$volume":"1500000","$maker":"0.00500","$taker":"0.00650"),
+        //                         array("$volume":"2000000","$maker":"0.00490","$taker":"0.00637"),
+        //                         array("$volume":"5000000","$maker":"0.00480","$taker":"0.00624"),
+        //                         array("$volume":"7000000","$maker":"0.00440","$taker":"0.00572"),
+        //                         array("$volume":"10000000","$maker":"0.00420","$taker":"0.00546"),
+        //                         array("$volume":"15000000","$maker":"0.00400","$taker":"0.00520"),
+        //                         array("$volume":"35000000","$maker":"0.00370","$taker":"0.00481"),
+        //                         array("$volume":"50000000","$maker":"0.00300","$taker":"0.00390"),
+        //                         array("$volume":"150000000","$maker":"0.00200","$taker":"0.00260"),
+        //                         array("$volume":"250000000","$maker":"0.00100","$taker":"0.00130"),
+        //                         array("$volume":"9999999999","$maker":"0.00000","$taker":"0.00130"),
+        //                     )
+        //                 }
+        //             ),
+        //         )
+        //     }
         $markets = $this->safe_value($response, 'payload');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -128,11 +171,43 @@ class bitso extends Exchange {
                     'max' => $this->safe_float($market, 'maximum_value'),
                 ),
             );
+            $defaultPricePrecision = $this->safe_float($this->options['precision'], $quote, $this->options['defaultPrecision']);
+            $pricePrecision = $this->safe_float($market, 'tick_size', $defaultPricePrecision);
             $precision = array(
-                'amount' => $this->safe_integer($this->options['precision'], $base, $this->options['defaultPrecision']),
-                'price' => $this->safe_integer($this->options['precision'], $quote, $this->options['defaultPrecision']),
+                'amount' => $this->safe_float($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'price' => $pricePrecision,
             );
-            $result[] = array(
+            $fees = $this->safe_value($market, 'fees', array());
+            $flatRate = $this->safe_value($fees, 'flat_rate', array());
+            $maker = $this->safe_float($flatRate, 'maker');
+            $taker = $this->safe_float($flatRate, 'taker');
+            $feeTiers = $this->safe_value($fees, 'structure', array());
+            $fee = array(
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            $takerFees = array();
+            $makerFees = array();
+            for ($i = 0; $i < count($feeTiers); $i++) {
+                $tier = $feeTiers[$i];
+                $volume = $this->safe_float($tier, 'volume');
+                $takerFee = $this->safe_float($tier, 'taker');
+                $makerFee = $this->safe_float($tier, 'maker');
+                $takerFees[] = array( $volume, $takerFee );
+                $makerFees[] = array( $volume, $makerFee );
+                if ($i === 0) {
+                    $fee['taker'] = $taker;
+                    $fee['maker'] = $maker;
+                }
+            }
+            $tiers = array(
+                'taker' => $takerFees,
+                'maker' => $makerFees,
+            );
+            $fee['tiers'] = $tiers;
+            $result[] = array_merge(array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -143,7 +218,7 @@ class bitso extends Exchange {
                 'limits' => $limits,
                 'precision' => $precision,
                 'active' => null,
-            );
+            ), $fee);
         }
         return $result;
     }
@@ -219,16 +294,8 @@ class bitso extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'book');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'book');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $side = $this->safe_string_2($trade, 'side', 'maker_side');
         $amount = $this->safe_float_2($trade, 'amount', 'major');
         if ($amount !== null) {
@@ -293,7 +360,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(
@@ -345,23 +412,8 @@ class bitso extends Exchange {
         $id = $this->safe_string($order, 'oid');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'book');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
@@ -383,8 +435,11 @@ class bitso extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'remaining' => $remaining,
@@ -411,7 +466,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         if ($markerInParams) {
             $params = array_merge($params, array(
-                'marker' => intval ($params['marker']),
+                'marker' => intval($params['marker']),
             ));
         }
         $request = array(
@@ -459,10 +514,10 @@ class bitso extends Exchange {
         $response = $this->privateGetFundingDestination (array_merge($request, $params));
         $address = $this->safe_string($response['payload'], 'account_identifier');
         $tag = null;
-        if ($code === 'XRP') {
+        if (mb_strpos($address, '?dt=') !== false) {
             $parts = explode('?dt=', $address);
-            $address = $parts[0];
-            $tag = $parts[1];
+            $address = $this->safe_string($parts, 0);
+            $tag = $this->safe_string($parts, 1);
         }
         $this->check_address($address);
         return array(

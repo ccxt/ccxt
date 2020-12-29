@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -61,7 +62,7 @@ class kucoin(Exchange):
                 'fetchLedger': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
                 'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
@@ -139,7 +140,7 @@ class kucoin(Exchange):
                         'margin/lend/trade/settled',
                         'margin/lend/assets',
                         'margin/market',
-                        'margin/margin/trade/last',
+                        'margin/trade/last',
                     ],
                     'post': [
                         'accounts',
@@ -193,8 +194,9 @@ class kucoin(Exchange):
                     '404': NotSupported,
                     '405': NotSupported,
                     '429': RateLimitExceeded,
-                    '500': ExchangeError,
+                    '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
+                    '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
@@ -215,6 +217,7 @@ class kucoin(Exchange):
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
+                    'require more permission': PermissionDenied,
                 },
             },
             'fees': {
@@ -376,28 +379,39 @@ class kucoin(Exchange):
         response = self.publicGetCurrencies(params)
         #
         #     {
-        #         precision: 10,
-        #         name: 'KCS',
-        #         fullName: 'KCS shares',
-        #         currency: 'KCS'
+        #         "currency": "OMG",
+        #         "name": "OMG",
+        #         "fullName": "OmiseGO",
+        #         "precision": 8,
+        #         "confirms": 12,
+        #         "withdrawalMinSize": "4",
+        #         "withdrawalMinFee": "1.25",
+        #         "isWithdrawEnabled": False,
+        #         "isDepositEnabled": False,
+        #         "isMarginEnabled": False,
+        #         "isDebitEnabled": False
         #     }
         #
-        responseData = response['data']
+        data = self.safe_value(response, 'data', [])
         result = {}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
+        for i in range(0, len(data)):
+            entry = data[i]
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
+            isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
+            isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
+            fee = self.safe_float(entry, 'withdrawalMinFee')
+            active = (isWithdrawEnabled and isDepositEnabled)
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': precision,
                 'info': entry,
-                'active': None,
-                'fee': None,
+                'active': active,
+                'fee': fee,
                 'limits': self.limits,
             }
         return result
@@ -501,20 +515,11 @@ class kucoin(Exchange):
         if percentage is not None:
             percentage = percentage * 100
         last = self.safe_float_2(ticker, 'last', 'lastTradedPrice')
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
+        baseVolume = self.safe_float(ticker, 'vol')
+        quoteVolume = self.safe_float(ticker, 'volValue')
+        vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
@@ -526,7 +531,7 @@ class kucoin(Exchange):
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
-            'vwap': None,
+            'vwap': vwap,
             'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
@@ -534,8 +539,8 @@ class kucoin(Exchange):
             'change': self.safe_float(ticker, 'changePrice'),
             'percentage': percentage,
             'average': self.safe_float(ticker, 'averagePrice'),
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'volValue'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -570,7 +575,7 @@ class kucoin(Exchange):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -795,21 +800,26 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
+        id = self.safe_string(data, 'orderId')
         order = {
-            'id': self.safe_string(data, 'orderId'),
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'amount': None,
             'cost': None,
+            'average': None,
             'filled': None,
             'remaining': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'status': None,
             'fee': None,
-            'status': 'open',
-            'clientOrderId': clientOrderId,
-            'info': data,
+            'trades': None,
         }
         if not self.safe_value(params, 'quoteAmount'):
             order['amount'] = amount
@@ -889,6 +899,11 @@ class kucoin(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # a special case for None ids
+        # otherwise a wrong endpoint for all orders will be triggered
+        # https://github.com/ccxt/ccxt/issues/7234
+        if id is None:
+            raise InvalidOrder(self.id + ' fetchOrder requires an order id')
         request = {
             'orderId': id,
         }
@@ -896,7 +911,7 @@ class kucoin(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privateGetOrdersOrderId(self.extend(request, params))
-        responseData = response['data']
+        responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
     def parse_order(self, order, market=None):
@@ -935,21 +950,8 @@ class kucoin(Exchange):
         #         "createdAt": 1547026471000  # time
         #     }
         #
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            market = self.safe_value(self.markets_by_id, marketId)
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         orderId = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
@@ -964,8 +966,10 @@ class kucoin(Exchange):
         cost = self.safe_float(order, 'dealFunds')
         remaining = amount - filled
         # bool
-        status = 'open' if order['isActive'] else 'closed'
-        status = 'canceled' if order['cancelExist'] else status
+        isActive = self.safe_value(order, 'isActive', False)
+        cancelExist = self.safe_value(order, 'cancelExist', False)
+        status = 'open' if isActive else 'closed'
+        status = 'canceled' if cancelExist else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -976,14 +980,20 @@ class kucoin(Exchange):
                     if (cost > 0) and (filled > 0):
                         price = cost / filled
         clientOrderId = self.safe_string(order, 'clientOid')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'amount': amount,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
@@ -1180,20 +1190,8 @@ class kucoin(Exchange):
         #         "id":"5c4d389e4c8c60413f78e2e5",
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
@@ -1222,6 +1220,8 @@ class kucoin(Exchange):
                 'rate': self.safe_float(trade, 'feeRate'),
             }
         type = self.safe_string(trade, 'type')
+        if type == 'match':
+            type = None
         cost = self.safe_float_2(trade, 'funds', 'dealValue')
         if cost is None:
             if amount is not None:
@@ -1683,7 +1683,15 @@ class kucoin(Exchange):
             }, headers)
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['KC-API-SIGN'] = self.decode(signature)
+            headers['KC-API-SIGN'] = signature
+            partner = self.safe_value(self.options, 'partner', {})
+            partnerId = self.safe_string(partner, 'id')
+            partnerSecret = self.safe_string(partner, 'secret')
+            if (partnerId is not None) and (partnerSecret is not None):
+                partnerPayload = timestamp + partnerId + self.apiKey
+                partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
+                headers['KC-API-PARTNER-SIGN'] = partnerSignature
+                headers['KC-API-PARTNER'] = partnerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

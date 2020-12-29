@@ -19,24 +19,26 @@ class currencycom extends Exchange {
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
             'rateLimit' => 500,
-            'certified' => false,
+            'certified' => true,
+            'pro' => true,
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
                 'cancelOrder' => true,
+                'CORS' => false,
                 'createOrder' => true,
                 'fetchAccounts' => true,
+                'fetchBalance' => true,
                 'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTradingFees' => true,
-                'fetchOHLCV' => true,
                 'fetchTrades' => true,
-                'fetchMyTrades' => true,
-                'fetchBalance' => true,
-                'fetchOpenOrders' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -100,6 +102,7 @@ class currencycom extends Exchange {
                     'maker' => 0.002,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
@@ -138,6 +141,9 @@ class currencycom extends Exchange {
                     '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
                 ),
             ),
+            'commonCurrencies' => array(
+                'IQ' => 'iQIYI',
+            ),
         ));
     }
 
@@ -158,29 +164,27 @@ class currencycom extends Exchange {
     public function load_time_difference($params = array ()) {
         $response = $this->publicGetTime ($params);
         $after = $this->milliseconds();
-        $this->options['timeDifference'] = intval ($after - $response['serverTime']);
+        $this->options['timeDifference'] = intval($after - $response['serverTime']);
         return $this->options['timeDifference'];
     }
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetExchangeInfo ($params);
         //
-        // $spot
-        //
         //     {
         //         "timezone":"UTC",
-        //         "serverTime":1590998061253,
+        //         "serverTime":1603252990096,
         //         "rateLimits":array(
         //             array("rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200),
         //             array("rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10),
-        //             array("rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000)
+        //             array("rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000),
         //         ),
         //         "exchangeFilters":array(),
         //         "symbols":[
         //             array(
         //                 "$symbol":"EVK",
         //                 "name":"Evonik",
-        //                 "$status":"HALT",
+        //                 "$status":"BREAK",
         //                 "baseAsset":"EVK",
         //                 "baseAssetPrecision":3,
         //                 "quoteAsset":"EUR",
@@ -188,12 +192,19 @@ class currencycom extends Exchange {
         //                 "quotePrecision":3,
         //                 "orderTypes":["LIMIT","MARKET"],
         //                 "$filters":array(
-        //                     array("filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","$stepSize":"1"),
+        //                     array("filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"23")
         //                 ),
-        //                 "marketType":"SPOT"
+        //                 "marketType":"SPOT",
+        //                 "country":"DE",
+        //                 "sector":"Basic Materials",
+        //                 "industry":"Diversified Chemicals",
+        //                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
+        //                 "tickSize":0.005,
+        //                 "tickValue":0.11125,
+        //                 "$exchangeFee":0.05
         //             ),
-        //             {
+        //             array(
         //                 "$symbol":"BTC/USD_LEVERAGE",
         //                 "name":"Bitcoin / USD",
         //                 "$status":"TRADING",
@@ -204,11 +215,22 @@ class currencycom extends Exchange {
         //                 "quotePrecision":3,
         //                 "orderTypes":["LIMIT","MARKET","STOP"],
         //                 "$filters":array(
-        //                     array("filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","$stepSize":"0.001"),
-        //                     array("filterType":"MIN_NOTIONAL","minNotional":"11")
+        //                     array("filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"),
+        //                     array("filterType":"MIN_NOTIONAL","minNotional":"13")
         //                 ),
-        //                 "marketType":"LEVERAGE"
-        //             }
+        //                 "marketType":"LEVERAGE",
+        //                 "longRate":-0.01,
+        //                 "shortRate":0.01,
+        //                 "swapChargeInterval":480,
+        //                 "country":"",
+        //                 "sector":"",
+        //                 "industry":"",
+        //                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
+        //                 "tickSize":0.05,
+        //                 "tickValue":610.20875,
+        //                 "$makerFee":-0.025,
+        //                 "$takerFee":0.075
+        //             ),
         //         ]
         //     }
         //
@@ -231,8 +253,8 @@ class currencycom extends Exchange {
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $precision = array(
-                'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
-                'price' => $this->safe_integer($market, 'quotePrecision'),
+                'amount' => 1 / pow(1, $this->safe_integer($market, 'baseAssetPrecision')),
+                'price' => $this->safe_float($market, 'tickSize'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'TRADING');
@@ -270,8 +292,18 @@ class currencycom extends Exchange {
                     ),
                 ),
             );
+            $exchangeFee = $this->safe_float_2($market, 'exchangeFee', 'tradingFee');
+            $makerFee = $this->safe_float($market, 'makerFee', $exchangeFee);
+            $takerFee = $this->safe_float($market, 'takerFee', $exchangeFee);
+            if ($makerFee !== null) {
+                $entry['maker'] = $makerFee / 100;
+            }
+            if ($takerFee !== null) {
+                $entry['taker'] = $takerFee / 100;
+            }
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+                $entry['precision']['price'] = $this->safe_float($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -284,12 +316,10 @@ class currencycom extends Exchange {
                 if (($maxPrice !== null) && ($maxPrice > 0)) {
                     $entry['limits']['price']['max'] = $maxPrice;
                 }
-                $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $stepSize = $this->safe_string($filter, 'stepSize');
-                $entry['precision']['amount'] = $this->precision_from_string($stepSize);
+                $entry['precision']['amount'] = $this->safe_float($filter, 'stepSize');
                 $entry['limits']['amount'] = array(
                     'min' => $this->safe_float($filter, 'minQty'),
                     'max' => $this->safe_float($filter, 'maxQty'),
@@ -328,7 +358,7 @@ class currencycom extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
         );
     }
 
@@ -383,9 +413,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetAccount ($params);
+    public function parse_balance_response($response) {
         //
         //     {
         //         "makerCommission":0.20,
@@ -420,6 +448,34 @@ class currencycom extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccount ($params);
+        //
+        //     {
+        //         "makerCommission":0.20,
+        //         "takerCommission":0.20,
+        //         "buyerCommission":0.20,
+        //         "sellerCommission":0.20,
+        //         "canTrade":true,
+        //         "canWithdraw":true,
+        //         "canDeposit":true,
+        //         "updateTime":1591056268,
+        //         "balances":array(
+        //             array(
+        //                 "accountId":5470306579272968,
+        //                 "collateralCurrency":true,
+        //                 "asset":"ETH",
+        //                 "free":0.0,
+        //                 "locked":0.0,
+        //                 "default":false,
+        //             ),
+        //         )
+        //     }
+        //
+        return $this->parse_balance_response($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -489,20 +545,7 @@ class currencycom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $marketId;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else if (mb_strpos($marketId, '/') !== false) {
-                list($baseId, $quoteId) = explode('/', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_float($ticker, 'lastPrice');
         $open = $this->safe_float($ticker, 'openPrice');
         $average = null;
@@ -698,14 +741,8 @@ class currencycom extends Exchange {
         if (is_array($trade) && array_key_exists('isMaker', $trade)) {
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -772,7 +809,7 @@ class currencycom extends Exchange {
         //         "origQty" => "0.01",
         //         "executedQty" => "0.01",
         //         "$status" => "FILLED",
-        //         "timeInForce" => "FOK",
+        //         "$timeInForce" => "FOK",
         //         "$type" => "MARKET",
         //         "$side" => "BUY",
         //         "$fills" => array(
@@ -786,14 +823,8 @@ class currencycom extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
@@ -809,7 +840,7 @@ class currencycom extends Exchange {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
                 }
                 $remaining = max ($remaining, 0.0);
             }
@@ -855,9 +886,10 @@ class currencycom extends Exchange {
                 $average = $cost / $filled;
             }
             if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                $cost = floatval($this->cost_to_precision($symbol, $cost));
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
         return array(
             'info' => $order,
             'id' => $id,
@@ -866,8 +898,10 @@ class currencycom extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -946,7 +980,7 @@ class currencycom extends Exchange {
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
-            $fetchOpenOrdersRateLimit = intval ($numSymbols / 2);
+            $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetOpenOrders (array_merge($request, $params));
@@ -962,7 +996,7 @@ class currencycom extends Exchange {
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            // 'orderId' => intval ($id),
+            // 'orderId' => intval($id),
             // 'origClientOrderId' => $id,
         );
         if ($origClientOrderId === null) {

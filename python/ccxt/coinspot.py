@@ -19,8 +19,14 @@ class coinspot(Exchange):
             'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': False,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -52,6 +58,17 @@ class coinspot(Exchange):
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/balances/{cointype}',
+                        'ro/my/deposits',
+                        'ro/my/withdrawals',
+                        'ro/my/transactions',
+                        'ro/my/transactions/{cointype}',
+                        'ro/my/transactions/open',
+                        'ro/my/transactions/{cointype}/open',
+                        'ro/my/sendreceive',
+                        'ro/my/affiliatepayments',
+                        'ro/my/referralpayments',
                     ],
                 },
             },
@@ -126,8 +143,53 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         response = self.privatePostOrdersHistory(self.extend(request, params))
+        #
+        #     {
+        #         "status":"ok",
+        #         "orders":[
+        #             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        #         ],
+        #     }
+        #
         trades = self.safe_value(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "amount":0.00102091,
+        #         "rate":21549.09999991,
+        #         "total":21.99969168,
+        #         "coin":"BTC",
+        #         "solddate":1604890646143,
+        #         "market":"BTC/AUD"
+        #     }
+        #
+        price = self.safe_float(trade, 'rate')
+        amount = self.safe_float(trade, 'amount')
+        cost = self.safe_float(trade, 'total')
+        if (cost is None) and (price is not None) and (amount is not None):
+            cost = price * amount
+        timestamp = self.safe_integer(trade, 'solddate')
+        marketId = self.safe_string(trade, 'market')
+        symbol = self.safe_symbol(marketId, market, '/')
+        return {
+            'info': trade,
+            'id': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'order': None,
+            'type': None,
+            'side': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

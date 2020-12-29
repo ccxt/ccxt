@@ -43,7 +43,7 @@ class bitmax(Exchange):
                 'cancelAllOrders': True,
                 'fetchDepositAddress': True,
                 'fetchTransactions': True,
-                'fetchDeposts': True,
+                'fetchDeposits': True,
                 'fetchWithdrawals': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -97,9 +97,26 @@ class bitmax(Exchange):
                         'futures/funding-rates',
                     ],
                 },
+                'accountCategory': {
+                    'get': [
+                        'balance',
+                        'order/open',
+                        'order/status',
+                        'order/hist/current',
+                        'risk',
+                    ],
+                    'post': [
+                        'order',
+                        'order/batch',
+                    ],
+                    'delete': [
+                        'order',
+                        'order/all',
+                        'order/batch',
+                    ],
+                },
                 'accountGroup': {
                     'get': [
-                        '{account-category}/balance',
                         'cash/balance',
                         'margin/balance',
                         'margin/risk',
@@ -108,21 +125,11 @@ class bitmax(Exchange):
                         'futures/position',
                         'futures/risk',
                         'futures/funding-payments',
-                        '{account-category}/order/open',
-                        '{account-category}/order/status',
-                        '{account-category}/order/hist/current',
                         'order/hist',
                     ],
                     'post': [
                         'futures/transfer/deposit',
                         'futures/transfer/withdraw',
-                        '{account-category}/order',
-                        '{account-category}/order/batch',
-                    ],
-                    'delete': [
-                        '{account-category}/order',
-                        '{account-category}/order/all',
-                        '{account-category}/order/batch',
                     ],
                 },
                 'private': {
@@ -530,11 +537,11 @@ class bitmax(Exchange):
         request = {
             'account-group': accountGroup,
         }
-        method = 'accountGroupGetCashBalance'
-        if accountCategory == 'margin':
-            method = 'accountGroupGetMarginBalance'
-        elif accountCategory == 'futures':
+        method = 'accountCategoryGetBalance'
+        if accountCategory == 'futures':
             method = 'accountGroupGetFuturesCollateralBalance'
+        else:
+            request['account-category'] = accountCategory
         response = getattr(self, method)(self.extend(request, params))
         #
         # cash
@@ -643,7 +650,7 @@ class bitmax(Exchange):
         #
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = marketId
+        symbol = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         elif marketId is not None:
@@ -956,17 +963,7 @@ class bitmax(Exchange):
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         price = self.safe_float(order, 'price')
@@ -999,6 +996,7 @@ class bitmax(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'info': order,
             'id': id,
@@ -1008,8 +1006,11 @@ class bitmax(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1058,7 +1059,7 @@ class bitmax(Exchange):
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
-        response = self.accountGroupPostAccountCategoryOrder(self.extend(request, params))
+        response = self.accountCategoryPostOrder(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1096,7 +1097,7 @@ class bitmax(Exchange):
             'account-category': accountCategory,
             'orderId': id,
         }
-        response = self.accountGroupGetAccountCategoryOrderStatus(self.extend(request, params))
+        response = self.accountCategoryGetOrderStatus(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1144,7 +1145,7 @@ class bitmax(Exchange):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        response = self.accountGroupGetAccountCategoryOrderOpen(self.extend(request, params))
+        response = self.accountCategoryGetOrderOpen(self.extend(request, params))
         #
         #     {
         #         "ac": "CASH",
@@ -1222,7 +1223,7 @@ class bitmax(Exchange):
             request['pageSize'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #
-        # accountGroupGetAccountCategoryOrderHistCurrent
+        # accountCategoryGetOrderHistCurrent
         #
         #     {
         #         "code":0,
@@ -1317,7 +1318,7 @@ class bitmax(Exchange):
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = self.accountGroupDeleteAccountCategoryOrder(self.extend(request, params))
+        response = self.accountCategoryDeleteOrder(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1359,7 +1360,7 @@ class bitmax(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.accountGroupDeleteAccountCategoryOrderAll(self.extend(request, params))
+        response = self.accountCategoryDeleteOrderAll(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -1593,11 +1594,16 @@ class bitmax(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = ''
         query = params
-        if api == 'accountGroup':
+        accountCategory = (api == 'accountCategory')
+        if accountCategory or (api == 'accountGroup'):
             url += self.implode_params('/{account-group}', params)
             query = self.omit(params, 'account-group')
         request = self.implode_params(path, query)
-        url += '/api/pro/' + self.version + '/' + request
+        url += '/api/pro/' + self.version
+        if accountCategory:
+            url += self.implode_params('/{account-category}', query)
+            query = self.omit(query, 'account-category')
+        url += '/' + request
         query = self.omit(query, self.extract_params(path))
         if api == 'public':
             if query:
@@ -1605,12 +1611,12 @@ class bitmax(Exchange):
         else:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            auth = timestamp + '+' + request
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            payload = timestamp + '+' + request
+            hmac = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {
                 'x-auth-key': self.apiKey,
                 'x-auth-timestamp': timestamp,
-                'x-auth-signature': self.decode(signature),
+                'x-auth-signature': hmac,
             }
             if method == 'GET':
                 if query:

@@ -22,14 +22,21 @@ class rightbtc(Exchange):
             'name': 'RightBTC',
             'countries': ['AE'],
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
                 'privateAPI': False,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
-                'fetchOrder': 'emulated',
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -41,7 +48,7 @@ class rightbtc(Exchange):
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182092-1f372700-c2ec-11ea-8f9e-01b4d3ff8941.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
@@ -249,7 +256,7 @@ class rightbtc(Exchange):
             market = self.marketsById[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -298,13 +305,8 @@ class rightbtc(Exchange):
         amount = self.safe_float(trade, 'quantity', amount)
         if amount is not None:
             amount = amount / 1e8
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'trading_pair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'trading_pair')
+        symbol = self.safe_symbol(marketId, market)
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
         side = self.safe_string_lower(trade, 'side')
@@ -464,12 +466,7 @@ class rightbtc(Exchange):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'trading_pair')
-        if market is None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        symbol = marketId
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
@@ -515,8 +512,11 @@ class rightbtc(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'filled': filled,

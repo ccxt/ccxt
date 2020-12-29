@@ -36,23 +36,28 @@ class exmo(Exchange):
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchClosedOrders': 'emulated',
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
-                'fetchOrders': 'emulated',
-                'fetchOrderTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchMyTrades': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'withdraw': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchFundingFees': True,
-                'fetchCurrencies': True,
                 'fetchTransactions': True,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -93,11 +98,14 @@ class exmo(Exchange):
                 'public': {
                     'get': [
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ],
                 },
                 'private': {
@@ -111,13 +119,14 @@ class exmo(Exchange):
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ],
                 },
             },
@@ -481,6 +490,7 @@ class exmo(Exchange):
                     'API rate limit exceeded': RateLimitExceeded,  # {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
+            'orders': {},  # orders cache / emulation
         })
 
     async def fetch_trading_fees(self, params={}):
@@ -744,15 +754,17 @@ class exmo(Exchange):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
         result = {'info': response}
-        codes = list(self.currencies.keys())
+        free = self.safe_value(response, 'balances', {})
+        used = self.safe_value(response, 'reserved', {})
+        codes = list(free.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currencyId = self.currency_id(code)
             account = self.account()
-            if currencyId in response['balances']:
-                account['free'] = self.safe_float(response['balances'], currencyId)
-            if currencyId in response['reserved']:
-                account['used'] = self.safe_float(response['reserved'], currencyId)
+            if currencyId in free:
+                account['free'] = self.safe_float(free, currencyId)
+            if currencyId in used:
+                account['used'] = self.safe_float(used, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -837,7 +849,7 @@ class exmo(Exchange):
             symbol = market['symbol']
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -1017,7 +1029,7 @@ class exmo(Exchange):
         amount = float(amount)
         price = float(price)
         status = 'open'
-        order = {
+        return {
             'id': id,
             'info': response,
             'timestamp': timestamp,
@@ -1037,54 +1049,43 @@ class exmo(Exchange):
             'clientOrderId': None,
             'average': None,
         }
-        self.orders[id] = order
-        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {'order_id': id}
-        response = await self.privatePostOrderCancel(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        return response
+        return await self.privatePostOrderCancel(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        try:
-            request = {
-                'order_id': str(id),
-            }
-            response = await self.privatePostOrderTrades(self.extend(request, params))
-            #
-            #     {
-            #         "type": "buy",
-            #         "in_currency": "BTC",
-            #         "in_amount": "1",
-            #         "out_currency": "USD",
-            #         "out_amount": "100",
-            #         "trades": [
-            #             {
-            #                 "trade_id": 3,
-            #                 "date": 1435488248,
-            #                 "type": "buy",
-            #                 "pair": "BTC_USD",
-            #                 "order_id": 12345,
-            #                 "quantity": 1,
-            #                 "price": 100,
-            #                 "amount": 100
-            #             }
-            #         ]
-            #     }
-            #
-            order = self.parse_order(response)
-            return self.extend(order, {
-                'id': str(id),
-            })
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                if id in self.orders:
-                    return self.orders[id]
-        raise OrderNotFound(self.id + ' fetchOrder order id ' + str(id) + ' not found in cache.')
+        request = {
+            'order_id': str(id),
+        }
+        response = await self.privatePostOrderTrades(self.extend(request, params))
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100
+        #             }
+        #         ]
+        #     }
+        #
+        order = self.parse_order(response)
+        return self.extend(order, {
+            'id': str(id),
+        })
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         market = None
@@ -1122,40 +1123,7 @@ class exmo(Exchange):
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def update_cached_orders(self, openOrders, symbol):
-        # update local cache with open orders
-        for j in range(0, len(openOrders)):
-            id = openOrders[j]['id']
-            self.orders[id] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        for k in range(0, len(cachedOrderIds)):
-            # match each cached order to an order in the open orders array
-            # possible reasons why a cached order may be missing in the open orders array:
-            # - order was closed or canceled -> update cache
-            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            id = cachedOrderIds[k]
-            order = self.orders[id]
-            if not (id in openOrdersIndexedById):
-                # cached order is not in open orders array
-                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != order['symbol']:
-                    continue
-                # order is cached but not present in the list of open orders -> mark the cached order as closed
-                if order['status'] == 'open':
-                    order = self.extend(order, {
-                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
-                        'cost': None,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    })
-                    if order['cost'] is None:
-                        if order['filled'] is not None:
-                            order['cost'] = order['filled'] * order['price']
-                    self.orders[id] = order
-        return self.to_array(self.orders)
-
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privatePostUserOpenOrders(params)
         marketIds = list(response.keys())
@@ -1167,17 +1135,6 @@ class exmo(Exchange):
                 market = self.markets_by_id[marketId]
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
-        self.update_cached_orders(orders, symbol)
-        return self.filter_by_symbol_since_limit(self.to_array(self.orders), symbol, since, limit)
-
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        await self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_by(self.orders, 'status', 'open')
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
-
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        await self.fetch_orders(symbol, since, limit, params)
-        orders = self.filter_by(self.orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_order(self, order, market=None):
@@ -1294,8 +1251,11 @@ class exmo(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,

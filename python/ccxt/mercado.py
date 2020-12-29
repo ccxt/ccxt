@@ -20,15 +20,20 @@ class mercado(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': True,
-                'fetchOrder': True,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchOHLCV': True,
-                'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -312,12 +317,8 @@ class mercado(Exchange):
         if 'order_type' in order:
             side = 'buy' if (order['order_type'] == 1) else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'coin_pair')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'coin_pair')
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'created_timestamp')
         fee = {
             'cost': self.safe_float(order, 'fee'),
@@ -338,10 +339,13 @@ class mercado(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
