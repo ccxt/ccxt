@@ -90,18 +90,46 @@ class coinspot extends Exchange {
         $this->load_markets();
         $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
         $response = $this->$method ($params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "$balances":array(
+        //             {
+        //                 "LTC":array("$balance":0.1,"audbalance":16.59,"rate":165.95)
+        //             }
+        //         )
+        //     }
+        //
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
-            $balances = $balances[0];
-        }
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_float($balances, $currencyId);
-            $result[$code] = $account;
+            for ($i = 0; $i < count($balances); $i++) {
+                $currencies = $balances[$i];
+                $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
+                for ($j = 0; $j < count($currencyIds); $j++) {
+                    $currencyId = $currencyIds[$j];
+                    $balance = $currencies[$currencyId];
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['total'] = $this->safe_float($balance, 'balance');
+                    $result[$code] = $account;
+                }
+            }
+        } else {
+            $currencyIds = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_float($balances, $currencyId);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
