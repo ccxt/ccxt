@@ -936,6 +936,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         const balances = this.safeValue (response, 'result', {});
         const result = { 'info': balances };
