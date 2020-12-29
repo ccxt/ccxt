@@ -103,7 +103,7 @@ module.exports = class coinspot extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        let balances = this.safeValue2 (response, 'balance', 'balances');
+        const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
             for (let i = 0; i < balances.length; i++) {
                 const currencies = balances[i];
