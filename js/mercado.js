@@ -427,7 +427,7 @@ module.exports = class mercado extends Exchange {
         const remaining = amount - filled;
         const cost = filled * average;
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
-        const rawTrades = this.safeValue (order, 'operations', [])
+        const rawTrades = this.safeValue (order, 'operations', []);
         const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'side': side,
             'order': id,
