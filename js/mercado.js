@@ -26,7 +26,7 @@ module.exports = class mercado extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOpenOrders': 'emulated',
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
