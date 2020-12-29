@@ -89,6 +89,8 @@ module.exports = class coinspot extends Exchange {
         //
         // read-write api keys
         //
+        //     ...
+        //
         // read-only api keys
         //
         //     {
