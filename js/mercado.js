@@ -95,8 +95,8 @@ module.exports = class mercado extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.7 / 100,
+                    'maker': 0.003,
+                    'taker': 0.007,
                 },
             },
             'options': {
@@ -114,25 +114,25 @@ module.exports = class mercado extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetCoins (params);
         //
-        // [
-        //     "BCH",
-        //     "BTC",
-        //     "ETH",
-        //     "LTC",
-        //     "XRP",
-        //     "MBPRK01",
-        //     "MBPRK02",
-        //     "MBPRK03",
-        //     "MBPRK04",
-        //     "MBCONS01",
-        //     "USDC",
-        //     "WBX",
-        //     "CHZ",
-        //     "MBCONS02",
-        //     "PAXG",
-        //     "MBVASCO01",
-        //     "LINK"
-        // ]
+        //     [
+        //         "BCH",
+        //         "BTC",
+        //         "ETH",
+        //         "LTC",
+        //         "XRP",
+        //         "MBPRK01",
+        //         "MBPRK02",
+        //         "MBPRK03",
+        //         "MBPRK04",
+        //         "MBCONS01",
+        //         "USDC",
+        //         "WBX",
+        //         "CHZ",
+        //         "MBCONS02",
+        //         "PAXG",
+        //         "MBVASCO01",
+        //         "LINK"
+        //     ]
         //
         const result = [];
         const amountLimits = this.safeValue (this.options, 'limits', {});
