@@ -80,14 +80,21 @@ class coinspot extends Exchange {
             'commonCurrencies' => array(
                 'DRK' => 'DASH',
             ),
+            'options' => array(
+                'fetchBalance' => 'private_post_my_balances',
+            ),
         ));
     }
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostMyBalances ($params);
+        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $response = $this->$method ($params);
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'balance', array());
+        $balances = $this->safe_value_2($response, 'balance', 'balances');
+        if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
+            $balances = $balances[0];
+        }
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

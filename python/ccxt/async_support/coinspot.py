@@ -80,13 +80,19 @@ class coinspot(Exchange):
             'commonCurrencies': {
                 'DRK': 'DASH',
             },
+            'options': {
+                'fetchBalance': 'private_post_my_balances',
+            },
         })
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostMyBalances(params)
+        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        response = await getattr(self, method)(params)
         result = {'info': response}
-        balances = self.safe_value(response, 'balance', {})
+        balances = self.safe_value_2(response, 'balance', 'balances')
+        if isinstance(balances, list):
+            balances = balances[0]
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
