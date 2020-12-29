@@ -551,3 +551,5 @@ Thank you!
 ## Contact Us
 
 For business inquiries: info@ccxt.trade
+
+![crypto award](https://i.imgur.com/uqPQ0sB.jpg)
