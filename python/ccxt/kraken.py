@@ -368,11 +368,14 @@ class kraken(Exchange):
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
-    def safe_currency_code(self, currencyId, currency=None):
+    def safe_currency(self, currencyId, currency=None):
         if len(currencyId) > 3:
-            if ((currencyId.find('X') == 0) or (currencyId.find('Z') == 0)) and (currencyId.find('.') < 0):
-                currencyId = currencyId[1:]
-        return super(kraken, self).safe_currency_code(currencyId, currency)
+            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+                if currencyId.find('.') > 0:
+                    return super(kraken, self).safe_currency(currencyId, currency)
+                else:
+                    currencyId = currencyId[1:]
+        return super(kraken, self).safe_currency(currencyId, currency)
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
