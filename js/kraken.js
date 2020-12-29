@@ -350,13 +350,17 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    safeCurrencyCode (currencyId, currency = undefined) {
+    safeCurrency (currencyId, currency = undefined) {
         if (currencyId.length > 3) {
-            if (((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) && (currencyId.indexOf ('.') < 0)) {
-                currencyId = currencyId.slice (1);
+            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+                if (currencyId.indexOf ('.') > 0) {
+                    currencyId = currencyId; // do nothing
+                } else {
+                    currencyId = currencyId.slice (1);
+                }
             }
         }
-        return super.safeCurrencyCode (currencyId, currency);
+        return super.safeCurrency (currencyId, currency);
     }
 
     appendInactiveMarkets (result) {
