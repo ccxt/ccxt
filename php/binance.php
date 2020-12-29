@@ -1457,7 +1457,7 @@ class binance extends Exchange {
             'CANCELED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
-            'EXPIRED' => 'canceled',
+            'EXPIRED' => 'expired',
         );
         return $this->safe_string($statuses, $status, $status);
     }
