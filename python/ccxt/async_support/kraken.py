@@ -901,6 +901,7 @@ class kraken(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostBalance(params)
         balances = self.safe_value(response, 'result', {})
         result = {'info': balances}
