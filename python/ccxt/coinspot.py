@@ -89,17 +89,43 @@ class coinspot(Exchange):
         self.load_markets()
         method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
         response = getattr(self, method)(params)
+        #
+        # read-write api keys
+        #
+        #     ...
+        #
+        # read-only api keys
+        #
+        #     {
+        #         "status":"ok",
+        #         "balances":[
+        #             {
+        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        #             }
+        #         ]
+        #     }
+        #
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
-            balances = balances[0]
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_float(balances, currencyId)
-            result[code] = account
+            for i in range(0, len(balances)):
+                currencies = balances[i]
+                currencyIds = list(currencies.keys())
+                for j in range(0, len(currencyIds)):
+                    currencyId = currencyIds[j]
+                    balance = currencies[currencyId]
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['total'] = self.safe_float(balance, 'balance')
+                    result[code] = account
+        else:
+            currencyIds = list(balances.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_float(balances, currencyId)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
