@@ -78,7 +78,7 @@ class Exchange extends \ccxt\Exchange {
     public function load_markets($reload = false, $params = array()) {
         if (($reload && !$this->reloadingMarkets) || !$this->marketsLoading) {
             $this->reloadingMarkets = true;
-            $this->marketsLoading = static::wrap_promise($this->load_markets_helper($reload, $params))->then(function ($resolved) {
+            $this->marketsLoading = static::$kernel->execute($this->load_markets_helper($reload, $params))->promise()->then(function ($resolved) {
                 $this->reloadingMarkets = false;
                 return $resolved;
             }, function ($error) {
@@ -89,16 +89,19 @@ class Exchange extends \ccxt\Exchange {
         return $this->marketsLoading;
     }
 
-    public static function wrap_promise($generator) {
-        return new React\Promise\Promise(function ($resolve, $reject) use ($generator) {
-            static::$kernel->execute(function () use ($resolve, $reject, $generator) {
-                try {
-                    $result = yield $generator;
-                    $resolve($result);
-                } catch (Exception $e) {
-                    $reject($e);
-                }
-            });
-        });
+    public function fetch_markets($params = array()) {
+        return static::$kernel->execute($this->fetch_markets_generator($params))->promise();
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_order_book_generator($symbol, $limit, $params))->promise();
+    }
+
+    public function fetch_balance($params = array()) {
+        return static::$kernel->execute($this->fetch_balance_generator($params))->promise();
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_trades_generator($symbol, $since, $limit, $params))->promise();
     }
 }
