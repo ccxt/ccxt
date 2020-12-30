@@ -794,7 +794,7 @@ Examples:
     - bad: 0.05001, 0.05000, 0.06001
     ```
 
-2. `(market['limits']['price']['min'] == 0.0019) && (market['precision']['price'] == 5)`
+2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
 
   In the second example the **price** of any order placed on the market **must satisfy both conditions**:
 
