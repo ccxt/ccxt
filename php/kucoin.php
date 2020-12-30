@@ -1778,6 +1778,7 @@ class kucoin extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = array_merge(array(
+                'KC-API-KEY-VERSION' => '2',
                 'KC-API-KEY' => $this->apiKey,
                 'KC-API-TIMESTAMP' => $timestamp,
                 'KC-API-PASSPHRASE' => $this->password,

@@ -1677,6 +1677,7 @@ class kucoin(Exchange):
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
                 'KC-API-PASSPHRASE': self.password,
