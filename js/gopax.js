@@ -683,24 +683,11 @@ module.exports = class gopax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
-        //
-        //     [
-        //         {
-        //             "asset": "KRW",                   // asset name
-        //             "avail": 1759466.76,              // available amount to place order
-        //             "hold": 16500,                    // outstanding amount on order books
-        //             "pendingWithdrawal": 0,           // amount being withdrawan
-        //             "lastUpdatedAt": "1600684352032", // balance last update time
-        //         },
-        //     ]
-        //
+    parseBalanceResponse (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 'asset');
+            const currencyId = this.safeString2 (balance, 'asset', 'isoAlpha3');
             const code = this.safeCurrencyCode (currencyId);
             const hold = this.safeFloat (balance, 'hold');
             const pendingWithdrawal = this.safeFloat (balance, 'pendingWithdrawal');
@@ -710,6 +697,23 @@ module.exports = class gopax extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        //
+        //     [
+        //         {
+        //             "asset": "KRW",                   // asset name
+        //             "avail": 1759466.76,              // available amount to place order
+        //             "hold": 16500,                    // outstanding amount on order books
+        //             "pendingWithdrawal": 0,           // amount being withdrawn
+        //             "lastUpdatedAt": "1600684352032", // balance last update time
+        //         },
+        //     ]
+        //
+        return this.parseBalanceResponse (response);
     }
 
     parseOrderStatus (status) {
@@ -776,19 +780,22 @@ module.exports = class gopax extends Exchange {
         const marketId = this.safeString (order, 'tradingPairName');
         market = this.safeMarket (marketId, market, '-');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let filled = undefined;
-        let cost = undefined;
-        let updated = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-            if (filled > 0) {
-                updated = this.parse8601 (this.safeString (order, 'updatedAt'));
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const balanceChange = this.safeValue (order, 'balanceChange', {});
+        let filled = this.safeFloat (balanceChange, 'baseNet');
+        let cost = this.safeFloat (balanceChange, 'quoteNet');
+        if (cost !== undefined) {
+            cost = Math.abs (cost);
+        }
+        let updated = undefined;
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        if ((filled !== undefined) && (filled > 0)) {
+            updated = this.parse8601 (this.safeString (order, 'updatedAt'));
+        }
+        if ((cost === undefined) && (price !== undefined) && (filled !== undefined)) {
+            cost = filled * price;
+        }
         let fee = undefined;
         if (side === 'buy') {
             const baseFee = this.safeValue (balanceChange, 'baseFee', {});
@@ -825,7 +832,7 @@ module.exports = class gopax extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'average': price,
+            'average': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
