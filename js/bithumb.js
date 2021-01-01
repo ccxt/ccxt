@@ -100,8 +100,6 @@ module.exports = class bithumb extends Exchange {
                 '10m': '10m',
                 '30m': '30m',
                 '1h': '1h',
-                '3h': '1h',
-                '4h': '6h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '24h',
