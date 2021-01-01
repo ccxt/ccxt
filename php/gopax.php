@@ -686,24 +686,11 @@ class gopax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalances ($params);
-        //
-        //     array(
-        //         array(
-        //             "asset" => "KRW",                   // asset name
-        //             "avail" => 1759466.76,              // available amount to place order
-        //             "$hold" => 16500,                    // outstanding amount on order books
-        //             "$pendingWithdrawal" => 0,           // amount being withdrawan
-        //             "lastUpdatedAt" => "1600684352032", // $balance last update time
-        //         ),
-        //     )
-        //
+    public function parse_balance_response($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'asset');
+            $currencyId = $this->safe_string_2($balance, 'asset', 'isoAlpha3');
             $code = $this->safe_currency_code($currencyId);
             $hold = $this->safe_float($balance, 'hold');
             $pendingWithdrawal = $this->safe_float($balance, 'pendingWithdrawal');
@@ -713,6 +700,23 @@ class gopax extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalances ($params);
+        //
+        //     array(
+        //         array(
+        //             "asset" => "KRW",                   // asset name
+        //             "avail" => 1759466.76,              // available amount to place order
+        //             "hold" => 16500,                    // outstanding amount on order books
+        //             "pendingWithdrawal" => 0,           // amount being withdrawn
+        //             "lastUpdatedAt" => "1600684352032", // balance last update time
+        //         ),
+        //     )
+        //
+        return $this->parse_balance_response($response);
     }
 
     public function parse_order_status($status) {
@@ -779,19 +783,22 @@ class gopax extends Exchange {
         $marketId = $this->safe_string($order, 'tradingPairName');
         $market = $this->safe_market($marketId, $market, '-');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $filled = null;
-        $cost = null;
-        $updated = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-            if ($filled > 0) {
-                $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $balanceChange = $this->safe_value($order, 'balanceChange', array());
+        $filled = $this->safe_float($balanceChange, 'baseNet');
+        $cost = $this->safe_float($balanceChange, 'quoteNet');
+        if ($cost !== null) {
+            $cost = abs($cost);
+        }
+        $updated = null;
+        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
+            $filled = max (0, $amount - $remaining);
+        }
+        if (($filled !== null) && ($filled > 0)) {
+            $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
+        }
+        if (($cost === null) && ($price !== null) && ($filled !== null)) {
+            $cost = $filled * $price;
+        }
         $fee = null;
         if ($side === 'buy') {
             $baseFee = $this->safe_value($balanceChange, 'baseFee', array());
@@ -828,7 +835,7 @@ class gopax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'average' => $price,
+            'average' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
