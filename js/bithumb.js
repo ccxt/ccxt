@@ -353,12 +353,12 @@ module.exports = class bithumb extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
+        //         1591488000000
         //         "0.02501786",
         //         "0.02501786",
         //         "0.02501786",
         //         "0.02501786",
         //         "0.0000",
-        //         1591488000000
         //     ]
         //
         return [
