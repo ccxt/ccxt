@@ -257,7 +257,7 @@ module.exports = class coinspot extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side !== 'buy' && side !== 'sell') {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an side parameter, "buy" or "sell"');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
         params = this.omit (params, 'side');
         const method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
