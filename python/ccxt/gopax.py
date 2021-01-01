@@ -113,7 +113,7 @@ class gopax(Exchange):
                     'ERROR_INVALID_AMOUNT': InvalidOrder,
                     'ERROR_INVALID_TRADING_PAIR': BadSymbol,  # Unlikely to be triggered, due to ccxt.gopax.js implementation
                     'No such order ID': OrderNotFound,  # {"errorMessage":"No such order ID","errorCode":202,"errorData":"Order server error: 202"}
-                    'Not enough amount': InsufficientFunds,
+                    # 'Not enough amount': InsufficientFunds,  # {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
                     'Forbidden order type': InvalidOrder,
                     'the client order ID will be reusable which order has already been completed or canceled': InvalidOrder,
                     'ERROR_NO_SUCH_TRADING_PAIR': BadSymbol,  # Unlikely to be triggered, due to ccxt.gopax.js implementation
