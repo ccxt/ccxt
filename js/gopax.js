@@ -14,7 +14,7 @@ module.exports = class gopax extends ccxt.gopax {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                // 'watchTrades': true,
+                'watchMyTrades': true,
                 // 'watchTicker': true,
                 // 'watchOHLCV': true,
                 // 'watchOrders': true,
@@ -54,23 +54,60 @@ module.exports = class gopax extends ccxt.gopax {
         return url;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic ('trades', symbol, params);
+    async watchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const name = 'trades';
+        const messageHash = name + ':' + market['id'];
+        const url = this.getSignedUrl ();
+        const request = {
+            'n': 'SubscribeToTrades',
+            'o': {
+                'tradingPairName': market['id'],
+            },
+        };
+        const subscription = {
+            'messageHash': messageHash,
+            'name': name,
+            'symbol': symbol,
+            'marketId': market['id'],
+            'method': this.handleOrderBook,
+            'limit': limit,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const future = this.watch (url, messageHash, message, messageHash, subscription);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleMyTrades (client, message) {
+        console.dir (message, { depth: null });
+        //
+        // subscription response
+        //
+        //     { n: 'SubscribeToTrades', o: {} }
+        //
+        //  regular update
         //
         //     {
-        //         event: 'trade',
-        //         timestamp: 1590779594547,
-        //         market: 'ETH-EUR',
-        //         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
-        //         amount: '0.05026233',
-        //         price: '198.46',
-        //         side: 'buy'
+        //         "i": -1,
+        //         "n": "TradeEvent",
+        //         "o": {
+        //             "tradeId": 74072,            // trade ID
+        //             "orderId": 453529,           // order ID
+        //             "side": 2,                   // 1(bid), 2(ask)
+        //             "type": 1,                   // 1(limit), 2(market)
+        //             "baseAmount": 0.01,          // filled base asset amount (in ZEC for this case)
+        //             "quoteAmount": 1,            // filled quote asset amount (in KRW for this case)
+        //             "fee": 0.0004,               // fee
+        //             "price": 100,                // price
+        //             "isSelfTrade": false,        // whether both of matching orders are yours
+        //             "occurredAt": 1603932107,    // trade occurrence time
+        //             "tradingPairName": "ZEC-KRW" // order book
+        //         }
         //     }
         //
+        const o = this.safeValue (message, 'o', {});
         const marketId = this.safeString (message, 'market');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -371,7 +408,29 @@ module.exports = class gopax extends ccxt.gopax {
         client.resolve (array, messageHash);
     }
 
+    async pong (client, message) {
+        //
+        //     "primus::ping::1609504526621"
+        //
+        const messageString = JSON.parse (message);
+        const parts = messageString.split ('::');
+        const requestId = this.safeString (parts, 2);
+        const response = 'primus::pong::' + requestId;
+        await client.send (response);
+    }
+
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
+    }
+
+
     handleMessage (client, message) {
+        //
+        // ping string message
+        //
+        //     "primus::ping::1609504526621"
+        //
+        // regular json message
         //
         //     {
         //         n: 'SubscribeToOrderBook',
@@ -391,23 +450,23 @@ module.exports = class gopax extends ccxt.gopax {
         //         }
         //     }
         //
-        const methods = {
-        //     'subscribed': this.handleSubscriptionStatus,
-            'OrderBookEvent': this.handleOrderBook,
-            'SubscribeToOrderBook': this.handleOrderBook,
-        //     'trade': this.handleTrade,
-        //     'candle': this.handleOHLCV,
-        //     'ticker24h': this.handleTicker,
-        //     'authenticate': this.handleAuthenticationMessage,
-        //     'order': this.handleOrder,
-        //     'fill': this.handleMyTrade,
-        };
-        const n = this.safeString (message, 'n');
-        const method = this.safeValue (methods, n);
-        if (method === undefined) {
-            return message;
+        if (typeof message === 'string') {
+            this.handlePing (client, message);
         } else {
-            return method.call (this, client, message);
+            const methods = {
+                'OrderBookEvent': this.handleOrderBook,
+                'SubscribeToOrderBook': this.handleOrderBook,
+                // 'SubscribeToTrades': this.handleMyTrades,
+                'TradeEvent': this.handleMyTrades,
+            //     'order': this.handleOrder,
+            //     'fill': this.handleMyTrade,
+            };
+            const n = this.safeString (message, 'n');
+            const method = this.safeValue (methods, n);
+            if (method !== undefined) {
+                return method.call (this, client, message);
+            }
         }
+        return message;
     }
 };
