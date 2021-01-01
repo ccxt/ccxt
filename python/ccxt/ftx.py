@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -210,6 +211,7 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Size too small for provide': InvalidOrder,  # {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
@@ -225,6 +227,7 @@ class ftx(Exchange):
                     'No such market': BadRequest,
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,

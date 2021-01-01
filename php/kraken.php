@@ -216,6 +216,7 @@ class kraken extends Exchange {
             ),
             'commonCurrencies' => array(
                 'XBT' => 'BTC',
+                'XBT.M' => 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG' => 'DOGE',
                 'REPV2' => 'REP',
                 'REP' => 'REPV1',
@@ -359,13 +360,17 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function safe_currency_code($currencyId, $currency = null) {
+    public function safe_currency($currencyId, $currency = null) {
         if (strlen($currencyId) > 3) {
             if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                $currencyId = mb_substr($currencyId, 1);
+                if (mb_strpos($currencyId, '.') > 0) {
+                    return parent::safe_currency($currencyId, $currency);
+                } else {
+                    $currencyId = mb_substr($currencyId, 1);
+                }
             }
         }
-        return parent::safe_currency_code($currencyId, $currency);
+        return parent::safe_currency($currencyId, $currency);
     }
 
     public function append_inactive_markets($result) {
@@ -945,6 +950,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $balances );

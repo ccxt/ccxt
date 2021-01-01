@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.39.48';
+$version = '1.39.96';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.39.48';
+    const VERSION = '1.39.96';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -135,6 +135,7 @@ class Exchange {
         'ftx',
         'gateio',
         'gemini',
+        'gopax',
         'hbtc',
         'hitbtc',
         'hollaex',
@@ -2393,7 +2394,7 @@ class Exchange {
     }
 
     public function cost_to_precision($symbol, $cost) {
-        return self::decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return self::decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function costToPrecision($symbol, $cost) {

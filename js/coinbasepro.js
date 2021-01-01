@@ -679,6 +679,27 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price": "0.10000000",
+        //         "size": "0.01000000",
+        //         "product_id": "BTC-USD",
+        //         "side": "buy",
+        //         "stp": "dc",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "post_only": false,
+        //         "created_at": "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees": "0.0000000000000000",
+        //         "filled_size": "0.00000000",
+        //         "executed_value": "0.0000000000000000",
+        //         "status": "pending",
+        //         "settled": false
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const marketId = this.safeString (order, 'product_id');
         market = this.safeMarket (marketId, market, '-');
@@ -709,9 +730,13 @@ module.exports = class coinbasepro extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
+        const timeInForce = this.safeString (order, 'time_in_force');
+        const postOnly = this.safeValue (order, 'post_only');
+        const stopPrice = this.safeFloat (order, 'stop_price');
+        const clientOrderId = this.safeString (order, 'client_oid');
         return {
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -719,11 +744,11 @@ module.exports = class coinbasepro extends Exchange {
             'status': status,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -736,10 +761,18 @@ module.exports = class coinbasepro extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateGetOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateGetOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -787,27 +820,115 @@ module.exports = class coinbasepro extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // let oid = this.nonce ().toString ();
+        const market = this.market (symbol);
         const request = {
-            'product_id': this.marketId (symbol),
-            'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            // common params --------------------------------------------------
+            // 'client_oid': clientOrderId,
             'type': type,
+            'side': side,
+            'product_id': market['id'],
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'stp': 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop': 'loss', // "loss" = stop loss below price, "entry" = take profit above price
+            // 'stop_price': this.priceToPrecision (symbol, price),
+            // limit order params ---------------------------------------------
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'time_in_force': 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only': false, // invalid when time_in_force is IOC or FOK
+            // market order params --------------------------------------------
+            // 'size': this.amountToPrecision (symbol, amount),
+            // 'funds': this.costToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop_price');
+        if (stopPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
+        }
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+            params = this.omit (params, [ 'timeInForce', 'time_in_force' ]);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['size'] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            let cost = this.safeFloat2 (params, 'cost', 'funds');
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            } else {
+                params = this.omit (params, [ 'cost', 'funds' ]);
+            }
+            if (cost !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, cost);
+            } else {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response);
+        //
+        //     {
+        //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price": "0.10000000",
+        //         "size": "0.01000000",
+        //         "product_id": "BTC-USD",
+        //         "side": "buy",
+        //         "stp": "dc",
+        //         "type": "limit",
+        //         "time_in_force": "GTC",
+        //         "post_only": false,
+        //         "created_at": "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees": "0.0000000000000000",
+        //         "filled_size": "0.00000000",
+        //         "executed_value": "0.0000000000000000",
+        //         "status": "pending",
+        //         "settled": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersId ({ 'id': id });
+        const request = {
+            // 'product_id': market['id'], // the request will be more performant if you include it
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
+        let method = undefined;
+        if (clientOrderId === undefined) {
+            method = 'privateDeleteOrdersId';
+            request['id'] = id;
+        } else {
+            method = 'privateDeleteOrdersClientClientOid';
+            request['client_oid'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = market['symbol']; // the request will be more performant if you include it
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        return await this.privateDeleteOrders (params);
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['product_id'] = market['symbol']; // the request will be more performant if you include it
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

@@ -230,6 +230,7 @@ class kraken(Exchange):
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M',  # https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -367,11 +368,14 @@ class kraken(Exchange):
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
-    def safe_currency_code(self, currencyId, currency=None):
+    def safe_currency(self, currencyId, currency=None):
         if len(currencyId) > 3:
             if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                currencyId = currencyId[1:]
-        return super(kraken, self).safe_currency_code(currencyId, currency)
+                if currencyId.find('.') > 0:
+                    return super(kraken, self).safe_currency(currencyId, currency)
+                else:
+                    currencyId = currencyId[1:]
+        return super(kraken, self).safe_currency(currencyId, currency)
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
@@ -900,6 +904,7 @@ class kraken(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostBalance(params)
         balances = self.safe_value(response, 'result', {})
         result = {'info': balances}

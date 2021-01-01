@@ -1677,10 +1677,16 @@ class kucoin(Exchange):
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': self.password,
             }, headers)
+            apiKeyVersion = self.safe_string(headers, 'KC-API-KEY-VERSION')
+            if apiKeyVersion == '2':
+                passphrase = self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64')
+                headers['KC-API-PASSPHRASE'] = passphrase
+            else:
+                headers['KC-API-PASSPHRASE'] = self.password
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = signature

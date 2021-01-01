@@ -174,6 +174,7 @@ class binance(Exchange):
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         # lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -199,6 +200,11 @@ class binance(Exchange):
                         'bswap/liquidityOps',
                         'bswap/quote',
                         'bswap/swap',
+                        # leveraged token endpoints
+                        'blvt/tokenInfo',
+                        'blvt/subscribe/record',
+                        'blvt/redeem/record',
+                        'blvt/userLimit',
                     ],
                     'post': [
                         'asset/dust',
@@ -219,6 +225,7 @@ class binance(Exchange):
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -233,6 +240,9 @@ class binance(Exchange):
                         'bswap/liquidityAdd',
                         'bswap/liquidityRemove',
                         'bswap/swap',
+                        # leveraged token endpoints
+                        'blvt/subscribe',
+                        'blvt/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -1403,7 +1413,7 @@ class binance(Exchange):
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         }
         return self.safe_string(statuses, status, status)
 
@@ -2379,7 +2389,7 @@ class binance(Exchange):
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, params))
-            elif path == 'batchOrders':
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
                 query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,

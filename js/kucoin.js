@@ -1774,10 +1774,17 @@ module.exports = class kucoin extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': this.password,
             }, headers);
+            const apiKeyVersion = this.safeString (headers, 'KC-API-KEY-VERSION');
+            if (apiKeyVersion === '2') {
+                const passphrase = this.hmac (this.encode (this.password), this.encode (this.secret), 'sha256', 'base64');
+                headers['KC-API-PASSPHRASE'] = passphrase;
+            } else {
+                headers['KC-API-PASSPHRASE'] = this.password;
+            }
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers['KC-API-SIGN'] = signature;

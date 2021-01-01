@@ -197,6 +197,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
@@ -212,6 +213,7 @@ class ftx extends Exchange {
                     'No such market' => '\\ccxt\\BadRequest',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
+                    'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
                 ),
             ),
             'precisionMode' => TICK_SIZE,

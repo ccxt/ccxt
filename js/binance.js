@@ -154,6 +154,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -179,6 +180,11 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityOps',
                         'bswap/quote',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/tokenInfo',
+                        'blvt/subscribe/record',
+                        'blvt/redeem/record',
+                        'blvt/userLimit',
                     ],
                     'post': [
                         'asset/dust',
@@ -199,6 +205,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -213,6 +220,9 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityAdd',
                         'bswap/liquidityRemove',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/subscribe',
+                        'blvt/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -1561,7 +1571,7 @@ module.exports = class binance extends Exchange {
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2639,7 +2649,7 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
-            } else if (path === 'batchOrders') {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
                 query = this.rawencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,

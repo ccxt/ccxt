@@ -71,6 +71,7 @@ module.exports = class bibox extends Exchange {
                     'get': [
                         'cquery',
                         'mdata',
+                        'cdata',
                     ],
                 },
                 'private': {
@@ -125,6 +126,9 @@ module.exports = class bibox extends Exchange {
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
                 'TERN': 'Ternio-ERC20',
+            },
+            'options': {
+                'fetchCurrencies': 'fetch_currencies_public', // or 'fetch_currencies_private' with apiKey and secret
             },
         });
     }
@@ -424,6 +428,78 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        const method = this.safeString (this.options, 'fetchCurrencies', 'fetch_currencies_public');
+        return await this[method] (params);
+    }
+
+    async fetchCurrenciesPublic (params = {}) {
+        const request = {
+            'cmd': 'currencies',
+        };
+        const response = await this.publicGetCdata (this.extend (request, params));
+        //
+        // publicGetCdata
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "symbol":"BTC",
+        //                 "name":"BTC",
+        //                 "valid_decimals":8,
+        //                 "original_decimals":8,
+        //                 "is_erc20":0,
+        //                 "enable_withdraw":1,
+        //                 "enable_deposit":1,
+        //                 "withdraw_min":0.005,
+        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"},{\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\"}]"
+        //             }
+        //         ],
+        //         "cmd":"currencies"
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result');
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name'); // contains hieroglyphs causing python ASCII bug
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'valid_decimals');
+            const deposit = this.safeValue (currency, 'enable_deposit');
+            const withdraw = this.safeValue (currency, 'enable_withdraw');
+            const active = (deposit && withdraw);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'withdraw_min'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchCurrenciesPrivate (params = {}) {
         if (!this.apiKey || !this.secret) {
             throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
@@ -436,46 +512,42 @@ module.exports = class bibox extends Exchange {
         //     {
         //         "result":[
         //             {
-        //                 "result":[
-        //                     {
-        //                         "totalBalance":"14.57582269",
-        //                         "balance":"14.57582269",
-        //                         "freeze":"0.00000000",
-        //                         "id":60,
-        //                         "symbol":"USDT",
-        //                         "icon_url":"/appimg/USDT_icon.png",
-        //                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
-        //                         "name":"USDT",
-        //                         "enable_withdraw":1,
-        //                         "enable_deposit":1,
-        //                         "enable_transfer":1,
-        //                         "confirm_count":2,
-        //                         "is_erc20":1,
-        //                         "forbid_info":null,
-        //                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
-        //                         "total_amount":4776930644,
-        //                         "supply_amount":4642367414,
-        //                         "price":"--",
-        //                         "contract_father":"OMNI",
-        //                         "supply_time":"--",
-        //                         "comment":null,
-        //                         "contract":"31",
-        //                         "original_decimals":8,
-        //                         "deposit_type":0,
-        //                         "hasCobo":0,
-        //                         "BTCValue":"0.00126358",
-        //                         "CNYValue":"100.93381445",
-        //                         "USDValue":"14.57524654",
-        //                         "children":[
-        //                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
-        //                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
-        //                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
-        //                         ]
-        //                     },
-        //                 ],
-        //                 "cmd":"transfer/coinList"
-        //             }
-        //         ]
+        //                 "totalBalance":"14.57582269",
+        //                 "balance":"14.57582269",
+        //                 "freeze":"0.00000000",
+        //                 "id":60,
+        //                 "symbol":"USDT",
+        //                 "icon_url":"/appimg/USDT_icon.png",
+        //                 "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        //                 "name":"USDT",
+        //                 "enable_withdraw":1,
+        //                 "enable_deposit":1,
+        //                 "enable_transfer":1,
+        //                 "confirm_count":2,
+        //                 "is_erc20":1,
+        //                 "forbid_info":null,
+        //                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        //                 "total_amount":4776930644,
+        //                 "supply_amount":4642367414,
+        //                 "price":"--",
+        //                 "contract_father":"OMNI",
+        //                 "supply_time":"--",
+        //                 "comment":null,
+        //                 "contract":"31",
+        //                 "original_decimals":8,
+        //                 "deposit_type":0,
+        //                 "hasCobo":0,
+        //                 "BTCValue":"0.00126358",
+        //                 "CNYValue":"100.93381445",
+        //                 "USDValue":"14.57524654",
+        //                 "children":[
+        //                     {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        //                     {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        //                     {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
+        //                 ]
+        //             },
+        //         ],
+        //         "cmd":"transfer/coinList"
         //     }
         //
         const currencies = this.safeValue (response, 'result');

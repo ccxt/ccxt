@@ -683,6 +683,27 @@ class coinbasepro extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "$id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "$price" => "0.10000000",
+        //         "size" => "0.01000000",
+        //         "product_id" => "BTC-USD",
+        //         "$side" => "buy",
+        //         "stp" => "dc",
+        //         "$type" => "limit",
+        //         "time_in_force" => "GTC",
+        //         "post_only" => false,
+        //         "created_at" => "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees" => "0.0000000000000000",
+        //         "filled_size" => "0.00000000",
+        //         "executed_value" => "0.0000000000000000",
+        //         "$status" => "pending",
+        //         "settled" => false
+        //     }
+        //
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_market($marketId, $market, '-');
@@ -713,9 +734,13 @@ class coinbasepro extends Exchange {
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
+        $timeInForce = $this->safe_string($order, 'time_in_force');
+        $postOnly = $this->safe_value($order, 'post_only');
+        $stopPrice = $this->safe_float($order, 'stop_price');
+        $clientOrderId = $this->safe_string($order, 'client_oid');
         return array(
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -723,11 +748,11 @@ class coinbasepro extends Exchange {
             'status' => $status,
             'symbol' => $market['symbol'],
             'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -740,10 +765,18 @@ class coinbasepro extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = $this->privateGetOrdersId (array_merge($request, $params));
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        $method = null;
+        if ($clientOrderId === null) {
+            $method = 'privateGetOrdersId';
+            $request['id'] = $id;
+        } else {
+            $method = 'privateGetOrdersClientClientOid';
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
@@ -791,27 +824,115 @@ class coinbasepro extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        // $oid = (string) $this->nonce();
+        $market = $this->market($symbol);
         $request = array(
-            'product_id' => $this->market_id($symbol),
-            'side' => $side,
-            'size' => $this->amount_to_precision($symbol, $amount),
+            // common $params --------------------------------------------------
+            // 'client_oid' => $clientOrderId,
             'type' => $type,
+            'side' => $side,
+            'product_id' => $market['id'],
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'stp' => 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop' => 'loss', // "loss" = stop loss below $price, "entry" = take profit above $price
+            // 'stop_price' => $this->price_to_precision($symbol, $price),
+            // limit order $params ---------------------------------------------
+            // 'price' => $this->price_to_precision($symbol, $price),
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'time_in_force' => 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only' => false, // invalid when time_in_force is IOC or FOK
+            // $market order $params --------------------------------------------
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'funds' => $this->cost_to_precision($symbol, $amount),
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId !== null) {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop_price');
+        if ($stopPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+            $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
+        }
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            $request['time_in_force'] = $timeInForce;
+            $params = $this->omit($params, array( 'timeInForce', 'time_in_force' ));
+        }
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
+        } else if ($type === 'market') {
+            $cost = $this->safe_float_2($params, 'cost', 'funds');
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $amount * $price;
+                }
+            } else {
+                $params = $this->omit($params, array( 'cost', 'funds' ));
+            }
+            if ($cost !== null) {
+                $request['funds'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+            }
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
-        return $this->parse_order($response);
+        //
+        //     {
+        //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "$price" => "0.10000000",
+        //         "size" => "0.01000000",
+        //         "product_id" => "BTC-USD",
+        //         "$side" => "buy",
+        //         "stp" => "dc",
+        //         "$type" => "limit",
+        //         "time_in_force" => "GTC",
+        //         "post_only" => false,
+        //         "created_at" => "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees" => "0.0000000000000000",
+        //         "filled_size" => "0.00000000",
+        //         "executed_value" => "0.0000000000000000",
+        //         "status" => "pending",
+        //         "settled" => false
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrdersId (array( 'id' => $id ));
+        $request = array(
+            // 'product_id' => $market['id'], // the $request will be more performant if you include it
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        $method = null;
+        if ($clientOrderId === null) {
+            $method = 'privateDeleteOrdersId';
+            $request['id'] = $id;
+        } else {
+            $method = 'privateDeleteOrdersClientClientOid';
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
+        return $this->$method (array_merge($request, $params));
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        return $this->privateDeleteOrders ($params);
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
+        return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.39.48",
+  "version": "1.39.96",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -26,6 +26,7 @@
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
+    "update-links": "node build/update-links",
     "transpile": "node build/transpile",
     "vss": "node build/vss",
     "lint": "eslint",
@@ -541,7 +542,10 @@
     "cdax.io",
     "CDAX",
     "delta.exchange",
-    "Delta Exchange"
+    "Delta Exchange",
+    "gopax.co.kr",
+    "Gopax",
+    "GOPAX"
   ],
   "collective": {
     "type": "opencollective",

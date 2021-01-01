@@ -671,6 +671,27 @@ class coinbasepro(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        #         "price": "0.10000000",
+        #         "size": "0.01000000",
+        #         "product_id": "BTC-USD",
+        #         "side": "buy",
+        #         "stp": "dc",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "post_only": False,
+        #         "created_at": "2016-12-08T20:02:28.53864Z",
+        #         "fill_fees": "0.0000000000000000",
+        #         "filled_size": "0.00000000",
+        #         "executed_value": "0.0000000000000000",
+        #         "status": "pending",
+        #         "settled": False
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_market(marketId, market, '-')
@@ -697,9 +718,13 @@ class coinbasepro(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
+        timeInForce = self.safe_string(order, 'time_in_force')
+        postOnly = self.safe_value(order, 'post_only')
+        stopPrice = self.safe_float(order, 'stop_price')
+        clientOrderId = self.safe_string(order, 'client_oid')
         return {
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -707,11 +732,11 @@ class coinbasepro(Exchange):
             'status': status,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -723,10 +748,17 @@ class coinbasepro(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'id': id,
-        }
-        response = self.privateGetOrdersId(self.extend(request, params))
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        method = None
+        if clientOrderId is None:
+            method = 'privateGetOrdersId'
+            request['id'] = id
+        else:
+            method = 'privateGetOrdersClientClientOid'
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -766,24 +798,103 @@ class coinbasepro(Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        # oid = str(self.nonce())
+        market = self.market(symbol)
         request = {
-            'product_id': self.market_id(symbol),
-            'side': side,
-            'size': self.amount_to_precision(symbol, amount),
+            # common params --------------------------------------------------
+            # 'client_oid': clientOrderId,
             'type': type,
+            'side': side,
+            'product_id': market['id'],
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'stp': 'dc',  # self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            # 'stop': 'loss',  # "loss" = stop loss below price, "entry" = take profit above price
+            # 'stop_price': self.price_to_precision(symbol, price),
+            # limit order params ---------------------------------------------
+            # 'price': self.price_to_precision(symbol, price),
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'time_in_force': 'GTC',  # GTC, GTT, IOC, or FOK
+            # 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            # 'post_only': False,  # invalid when time_in_force is IOC or FOK
+            # market order params --------------------------------------------
+            # 'size': self.amount_to_precision(symbol, amount),
+            # 'funds': self.cost_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        if clientOrderId is not None:
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
+        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop_price')
+        if stopPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, ['stopPrice', 'stop_price'])
+        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
+            params = self.omit(params, ['timeInForce', 'time_in_force'])
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
+        elif type == 'market':
+            cost = self.safe_float_2(params, 'cost', 'funds')
+            if cost is None:
+                if price is not None:
+                    cost = amount * price
+            else:
+                params = self.omit(params, ['cost', 'funds'])
+            if cost is not None:
+                request['funds'] = self.cost_to_precision(symbol, cost)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
-        return self.parse_order(response)
+        #
+        #     {
+        #         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        #         "price": "0.10000000",
+        #         "size": "0.01000000",
+        #         "product_id": "BTC-USD",
+        #         "side": "buy",
+        #         "stp": "dc",
+        #         "type": "limit",
+        #         "time_in_force": "GTC",
+        #         "post_only": False,
+        #         "created_at": "2016-12-08T20:02:28.53864Z",
+        #         "fill_fees": "0.0000000000000000",
+        #         "filled_size": "0.00000000",
+        #         "executed_value": "0.0000000000000000",
+        #         "status": "pending",
+        #         "settled": False
+        #     }
+        #
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateDeleteOrdersId({'id': id})
+        request = {
+            # 'product_id': market['id'],  # the request will be more performant if you include it
+        }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
+        method = None
+        if clientOrderId is None:
+            method = 'privateDeleteOrdersId'
+            request['id'] = id
+        else:
+            method = 'privateDeleteOrdersClientClientOid'
+            request['client_oid'] = clientOrderId
+            params = self.omit(params, ['clientOrderId', 'client_oid'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['symbol']  # the request will be more performant if you include it
+        return getattr(self, method)(self.extend(request, params))
 
     def cancel_all_orders(self, symbol=None, params={}):
-        return self.privateDeleteOrders(params)
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['product_id'] = market['symbol']  # the request will be more performant if you include it
+        return self.privateDeleteOrders(self.extend(request, params))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

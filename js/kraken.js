@@ -206,6 +206,7 @@ module.exports = class kraken extends Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -349,13 +350,17 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    safeCurrencyCode (currencyId, currency = undefined) {
+    safeCurrency (currencyId, currency = undefined) {
         if (currencyId.length > 3) {
             if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                currencyId = currencyId.slice (1);
+                if (currencyId.indexOf ('.') > 0) {
+                    return super.safeCurrency (currencyId, currency);
+                } else {
+                    currencyId = currencyId.slice (1);
+                }
             }
         }
-        return super.safeCurrencyCode (currencyId, currency);
+        return super.safeCurrency (currencyId, currency);
     }
 
     appendInactiveMarkets (result) {
@@ -935,6 +940,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         const balances = this.safeValue (response, 'result', {});
         const result = { 'info': balances };
