@@ -198,7 +198,11 @@ module.exports = class gopax extends ccxt.gopax {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'orders';
-        const messageHash = name;
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
         const url = this.getSignedUrl ();
         const request = {
             'n': 'SubscribeToOrders',
@@ -213,7 +217,7 @@ module.exports = class gopax extends ccxt.gopax {
             'params': params,
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
+        const future = this.watch (url, messageHash, message, subscriptionHash, subscription);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
@@ -411,24 +415,38 @@ module.exports = class gopax extends ccxt.gopax {
         const messageHash = 'orders';
         if (data === undefined) {
             // single order delta update
-            this.handleOrder (client, message, data);
+            const order = this.handleOrder (client, message, data);
+            const symbol = order['symbol'];
             client.resolve (this.orders, messageHash);
+            client.resolve (this.orders, messageHash + ':' + symbol);
         } else {
             // initial subscription response with multiple orders
             const dataLength = data.length;
             if (dataLength > 0) {
+                const symbols = {};
                 for (let i = 0; i < dataLength; i++) {
-                    this.handleOrder (client, message, data[i]);
+                    const order = this.handleOrder (client, message, data[i]);
+                    const symbol = order['symbol'];
+                    symbols[symbol] = true;
                 }
                 client.resolve (this.orders, messageHash);
+                const keys = Object.keys (symbols);
+                for (let i = 0; i < keys.length; i++) {
+                    const symbol = keys[i];
+                    client.resolve (this.orders, messageHash + ':' + symbol);
+                }
             }
         }
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const name = 'trades';
-        const messageHash = name;
+        const name = 'myTrades';
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
         const url = this.getSignedUrl ();
         const request = {
             'n': 'SubscribeToTrades',
@@ -443,7 +461,7 @@ module.exports = class gopax extends ccxt.gopax {
             'params': params,
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
+        const future = this.watch (url, messageHash, message, subscriptionHash, subscription);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
@@ -474,12 +492,10 @@ module.exports = class gopax extends ccxt.gopax {
         //     }
         //
         const o = this.safeValue (message, 'o', {});
-        const marketId = this.safeString (message, 'market');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
-        const name = 'trades';
-        const messageHash = name + '@' + marketId;
-        const trade = this.parseTrade (message, market);
+        const name = 'myTrades';
+        const messageHash = name;
+        const trade = this.parseTrade (o);
+        const symbol = trade['symbol'];
         let array = this.safeValue (this.trades, symbol);
         if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -488,6 +504,7 @@ module.exports = class gopax extends ccxt.gopax {
         array.append (trade);
         this.trades[symbol] = array;
         client.resolve (array, messageHash);
+        client.resolve (array, messageHash + ':' + symbol);
     }
 
     async watchBalance (params = {}) {
@@ -539,10 +556,10 @@ module.exports = class gopax extends ccxt.gopax {
         const o = this.safeValue (message, 'o');
         const data = this.safeValue (o, 'data');
         if (data === undefined) {
-            this.balance = this.parseBalanceResponse (data);
-        } else {
             const balance = this.parseBalanceResponse ([ o ]);
             this.balance = this.parseBalance (this.extend (this.balance, balance));
+        } else {
+            this.balance = this.parseBalanceResponse (data);
         }
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
@@ -564,8 +581,6 @@ module.exports = class gopax extends ccxt.gopax {
     }
 
     handleMessage (client, message) {
-        //
-        console.dir (message, { depth: null });
         //
         // ping string message
         //
@@ -602,6 +617,7 @@ module.exports = class gopax extends ccxt.gopax {
                 'SubscribeToOrders': this.handleOrders,
                 'OrderEvent': this.handleOrders,
                 'SubscribeToBalances': this.handleBalance,
+                'BalanceEvent': this.handleBalance,
             };
             const n = this.safeString (message, 'n');
             const method = this.safeValue (methods, n);
