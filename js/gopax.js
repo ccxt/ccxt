@@ -490,6 +490,64 @@ module.exports = class gopax extends ccxt.gopax {
         client.resolve (array, messageHash);
     }
 
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        const name = 'balance';
+        const messageHash = name;
+        const url = this.getSignedUrl ();
+        const request = {
+            'n': 'SubscribeToBalances',
+            'o': {},
+        };
+        const subscription = {
+            'messageHash': messageHash,
+            'name': name,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleBalance (client, message) {
+        //
+        //     {
+        //         n: 'SubscribeToBalances',
+        //         o: {
+        //             result: true,
+        //             data: [
+        //                 { assetId: 1, avail: 30000.74103433, hold: 0, pendingWithdrawal: 0, blendedPrice: 1, lastUpdatedAt: 1609519939.412, isoAlpha3: 'KRW' },
+        //                 { assetId: 3, avail: 0, hold: 0, pendingWithdrawal: 0, blendedPrice: 0, lastUpdatedAt: 0, isoAlpha3: 'ETH' },
+        //                 { assetId: 4, avail: 0, hold: 0, pendingWithdrawal: 0, blendedPrice: 0, lastUpdatedAt: 0, isoAlpha3: 'BTC' },
+        //             ],
+        //         },
+        //     }
+        //
+        //     {
+        //         "i": -1,                             // always -1 in case of delta push
+        //         "n": "BalanceEvent",
+        //         "o": {
+        //             "assetId": 7,
+        //             "avail": 990.4998,               // +1 as you can use 1 ZEC more to place a new order
+        //             "hold": 1,                       // -1 as you take it back from an order book
+        //             "pendingWithdrawal": 0,
+        //             "blendedPrice": 429413.08986192,
+        //             "lastUpdatedAt": 1599098077.27,
+        //             "isoAlpha3": "ZEC"
+        //         }
+        //     }
+        //
+        const o = this.safeValue (message, 'o');
+        const data = this.safeValue (o, 'data');
+        if (data === undefined) {
+            this.balance = this.parseBalanceResponse (data);
+        } else {
+            const balance = this.parseBalanceResponse ([ o ]);
+            this.balance = this.parseBalance (this.extend (this.balance, balance));
+        }
+        const messageHash = 'balance';
+        client.resolve (this.balance, messageHash);
+    }
+
     async pong (client, message) {
         //
         //     "primus::ping::1609504526621"
@@ -543,6 +601,7 @@ module.exports = class gopax extends ccxt.gopax {
                 'TradeEvent': this.handleMyTrades,
                 'SubscribeToOrders': this.handleOrders,
                 'OrderEvent': this.handleOrders,
+                'SubscribeToBalances': this.handleBalance,
             };
             const n = this.safeString (message, 'n');
             const method = this.safeValue (methods, n);
