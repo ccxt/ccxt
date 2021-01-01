@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -255,12 +255,16 @@ module.exports = class coinspot extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const side = params['side']
+        const side = this.safeString (params, 'side');
         if (side !== 'buy' && side !== 'sell') {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires order side (buy or sell)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an side parameter, "buy" or "sell"');
         }
-        let method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
-        return await this[method] ({ 'id': id });
+        params = this.omit (params, 'side');
+        const method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
+        const request = {
+            'id': id,
+        };
+        return await this[method] (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
