@@ -214,6 +214,7 @@ class ftx extends Exchange {
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                     'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
+                    'Please try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please try again","success":false)
                 ),
             ),
             'precisionMode' => TICK_SIZE,
