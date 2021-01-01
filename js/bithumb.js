@@ -49,6 +49,7 @@ module.exports = class bithumb extends Exchange {
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ],
                 },
                 'private': {
@@ -347,6 +348,18 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['base'],
+            'interval': timeframe,
+        };
+        const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
+        const candlesticks = this.safeValue (response, 'data', []);
+        return candlesticks.map ((cl) => [cl[0], cl[1], cl[3], cl[4], cl[2], cl[5]]).map ((ns) => ns.map ((n) => +n)).slice (-limit, candlesticks.length);
     }
 
     parseTrade (trade, market = undefined) {
