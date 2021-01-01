@@ -51,6 +51,9 @@ module.exports = class binance extends ccxt.binance {
                 'watchTrades': {
                     'type': 'trade', // 'trade' or 'aggTrade'
                 },
+                'watchTicker': {
+                    'type': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                },
             },
         });
     }
@@ -525,7 +528,8 @@ module.exports = class binance extends ccxt.binance {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
-        const name = 'ticker';
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const name = this.safeString (options, 'type', 'ticker');
         const messageHash = marketId + '@' + name;
         return await this.watchPublic (messageHash, params);
     }
@@ -562,10 +566,13 @@ module.exports = class binance extends ccxt.binance {
         //         n: 163222,            // total number of trades
         //     }
         //
-        const event = 'ticker'; // message['e'] === 24hrTicker
+        let event = this.safeString (message, 'e', 'bookTicker');
+        if (event === '24hrTicker') {
+            event = 'ticker';
+        }
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
-        const timestamp = this.safeInteger (message, 'C');
+        const timestamp = this.safeInteger (message, 'C', this.milliseconds ());
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
         const last = this.safeFloat (message, 'c');
@@ -785,6 +792,7 @@ module.exports = class binance extends ccxt.binance {
             'aggTrade': this.handleTrade,
             'kline': this.handleOHLCV,
             '24hrTicker': this.handleTicker,
+            'bookTicker': this.handleTicker,
             'outboundAccountInfo': this.handleBalance,
             'executionReport': this.handleOrder,
         };
@@ -795,7 +803,20 @@ module.exports = class binance extends ccxt.binance {
             if (requestId !== undefined) {
                 return this.handleSubscriptionStatus (client, message);
             }
-            return message;
+            // special case for the real-time bookTicker, since it comes without an event identifier
+            //
+            //     {
+            //         u: 7488717758,
+            //         s: 'BTCUSDT',
+            //         b: '28621.74000000',
+            //         B: '1.43278800',
+            //         a: '28621.75000000',
+            //         A: '2.52500800'
+            //     }
+            //
+            if (event === undefined) {
+                this.handleTicker (client, message);
+            }
         } else {
             return method.call (this, client, message);
         }

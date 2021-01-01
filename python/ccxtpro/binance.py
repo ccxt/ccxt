@@ -53,6 +53,9 @@ class binance(Exchange, ccxt.binance):
                 'watchTrades': {
                     'type': 'trade',  # 'trade' or 'aggTrade'
                 },
+                'watchTicker': {
+                    'type': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                },
             },
         })
 
@@ -482,7 +485,8 @@ class binance(Exchange, ccxt.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
-        name = 'ticker'
+        options = self.safe_value(self.options, 'watchTicker', {})
+        name = self.safe_string(options, 'type', 'ticker')
         messageHash = marketId + '@' + name
         return await self.watch_public(messageHash, params)
 
@@ -518,10 +522,12 @@ class binance(Exchange, ccxt.binance):
         #         n: 163222,            # total number of trades
         #     }
         #
-        event = 'ticker'  # message['e'] == 24hrTicker
+        event = self.safe_string(message, 'e', 'bookTicker')
+        if event == '24hrTicker':
+            event = 'ticker'
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
-        timestamp = self.safe_integer(message, 'C')
+        timestamp = self.safe_integer(message, 'C', self.milliseconds())
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId)
         last = self.safe_float(message, 'c')
@@ -727,6 +733,7 @@ class binance(Exchange, ccxt.binance):
             'aggTrade': self.handle_trade,
             'kline': self.handle_ohlcv,
             '24hrTicker': self.handle_ticker,
+            'bookTicker': self.handle_ticker,
             'outboundAccountInfo': self.handle_balance,
             'executionReport': self.handle_order,
         }
@@ -736,6 +743,18 @@ class binance(Exchange, ccxt.binance):
             requestId = self.safe_string(message, 'id')
             if requestId is not None:
                 return self.handle_subscription_status(client, message)
-            return message
+            # special case for the real-time bookTicker, since it comes without an event identifier
+            #
+            #     {
+            #         u: 7488717758,
+            #         s: 'BTCUSDT',
+            #         b: '28621.74000000',
+            #         B: '1.43278800',
+            #         a: '28621.75000000',
+            #         A: '2.52500800'
+            #     }
+            #
+            if event is None:
+                self.handle_ticker(client, message)
         else:
             return method(client, message)

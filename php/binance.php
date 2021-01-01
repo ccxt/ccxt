@@ -54,6 +54,9 @@ class binance extends \ccxt\binance {
                 'watchTrades' => array(
                     'type' => 'trade', // 'trade' or 'aggTrade'
                 ),
+                'watchTicker' => array(
+                    'type' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                ),
             ),
         ));
     }
@@ -528,7 +531,8 @@ class binance extends \ccxt\binance {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['lowercaseId'];
-        $name = 'ticker';
+        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $name = $this->safe_string($options, 'type', 'ticker');
         $messageHash = $marketId . '@' . $name;
         return $this->watch_public($messageHash, $params);
     }
@@ -565,10 +569,13 @@ class binance extends \ccxt\binance {
         //         n => 163222,            // total number of trades
         //     }
         //
-        $event = 'ticker'; // $message['e'] === 24hrTicker
+        $event = $this->safe_string($message, 'e', 'bookTicker');
+        if ($event === '24hrTicker') {
+            $event = 'ticker';
+        }
         $wsMarketId = $this->safe_string_lower($message, 's');
         $messageHash = $wsMarketId . '@' . $event;
-        $timestamp = $this->safe_integer($message, 'C');
+        $timestamp = $this->safe_integer($message, 'C', $this->milliseconds());
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $last = $this->safe_float($message, 'c');
@@ -788,6 +795,7 @@ class binance extends \ccxt\binance {
             'aggTrade' => array($this, 'handle_trade'),
             'kline' => array($this, 'handle_ohlcv'),
             '24hrTicker' => array($this, 'handle_ticker'),
+            'bookTicker' => array($this, 'handle_ticker'),
             'outboundAccountInfo' => array($this, 'handle_balance'),
             'executionReport' => array($this, 'handle_order'),
         );
@@ -798,7 +806,20 @@ class binance extends \ccxt\binance {
             if ($requestId !== null) {
                 return $this->handle_subscription_status($client, $message);
             }
-            return $message;
+            // special case for the real-time bookTicker, since it comes without an $event identifier
+            //
+            //     {
+            //         u => 7488717758,
+            //         s => 'BTCUSDT',
+            //         b => '28621.74000000',
+            //         B => '1.43278800',
+            //         a => '28621.75000000',
+            //         A => '2.52500800'
+            //     }
+            //
+            if ($event === null) {
+                $this->handle_ticker($client, $message);
+            }
         } else {
             return $method($client, $message);
         }
