@@ -33,6 +33,7 @@ class bithumb(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -60,6 +61,7 @@ class bithumb(Exchange):
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ],
                 },
                 'private': {
@@ -102,6 +104,17 @@ class bithumb(Exchange):
                 '5600': ExchangeError,
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
             },
         })
 
@@ -339,6 +352,60 @@ class bithumb(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1576823400000,  # 기준 시간
+        #         '8284000',  # 시가
+        #         '8286000',  # 종가
+        #         '8289000',  # 고가
+        #         '8276000',  # 저가
+        #         '15.41503692'  # 거래량
+        #     ]
+        #
+        return [
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 5),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['base'],
+            'interval': self.timeframes[timeframe],
+        }
+        response = self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
+        #
+        #     {
+        #         'status': '0000',
+        #         'data': {
+        #             [
+        #                 1576823400000,  # 기준 시간
+        #                 '8284000',  # 시가
+        #                 '8286000',  # 종가
+        #                 '8289000',  # 고가
+        #                 '8276000',  # 저가
+        #                 '15.41503692'  # 거래량
+        #             ],
+        #             [
+        #                 1576824000000,  # 기준 시간
+        #                 '8284000',  # 시가
+        #                 '8281000',  # 종가
+        #                 '8289000',  # 고가
+        #                 '8275000',  # 저가
+        #                 '6.19584467'  # 거래량
+        #             ],
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
