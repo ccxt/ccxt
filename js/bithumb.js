@@ -364,12 +364,12 @@ module.exports = class bithumb extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
-        //         1591488000000
-        //         "0.02501786",
-        //         "0.02501786",
-        //         "0.02501786",
-        //         "0.02501786",
-        //         "0.0000",
+        //         1576823400000, // 기준 시간
+        //         '8284000', // 시가
+        //         '8286000', // 종가
+        //         '8289000', // 고가
+        //         '8276000', // 저가
+        //         '15.41503692' // 거래량
         //     ]
         //
         return [
@@ -390,8 +390,31 @@ module.exports = class bithumb extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
-        const ohlcv = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        //
+        //     {
+        //         'status': '0000',
+        //         'data': {
+        //             [
+        //                 1576823400000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8286000', // 종가
+        //                 '8289000', // 고가
+        //                 '8276000', // 저가
+        //                 '15.41503692' // 거래량
+        //             ],
+        //             [
+        //                 1576824000000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8281000', // 종가
+        //                 '8289000', // 고가
+        //                 '8275000', // 저가
+        //                 '6.19584467' // 거래량
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
