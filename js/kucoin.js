@@ -1774,7 +1774,7 @@ module.exports = class kucoin extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
-                'KC-API-KEY-VERSION': '2',
+                // 'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
                 'KC-API-PASSPHRASE': this.password,
