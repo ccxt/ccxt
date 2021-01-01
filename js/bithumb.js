@@ -22,6 +22,7 @@ module.exports = class bithumb extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
