@@ -1403,7 +1403,7 @@ class Exchange(object):
     def cancel_unified_order(self, order, params={}):
         return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    def fetch_bids_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols=None, params={}) -> dict:
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
@@ -1850,22 +1850,22 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def create_limit_order(self, symbol, *args):
+    def create_limit_order(self, symbol, *args) -> dict:
         return self.create_order(symbol, 'limit', *args)
 
-    def create_market_order(self, symbol, *args):
+    def create_market_order(self, symbol, *args) -> dict:
         return self.create_order(symbol, 'market', *args)
 
-    def create_limit_buy_order(self, symbol, *args):
+    def create_limit_buy_order(self, symbol, *args) -> dict:
         return self.create_order(symbol, 'limit', 'buy', *args)
 
-    def create_limit_sell_order(self, symbol, *args):
+    def create_limit_sell_order(self, symbol, *args) -> dict:
         return self.create_order(symbol, 'limit', 'sell', *args)
 
-    def create_market_buy_order(self, symbol, amount, params={}):
+    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
         return self.create_order(symbol, 'market', 'buy', amount, None, params)
 
-    def create_market_sell_order(self, symbol, amount, params={}):
+    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
