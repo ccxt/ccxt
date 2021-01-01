@@ -350,6 +350,27 @@ module.exports = class bithumb extends Exchange {
         return this.parseTicker (data, market);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.02501786",
+        //         "0.0000",
+        //         1591488000000
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 5),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -358,8 +379,8 @@ module.exports = class bithumb extends Exchange {
             'interval': timeframe,
         };
         const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
-        const candlesticks = this.safeValue (response, 'data', []);
-        return candlesticks.map ((cl) => [cl[0], cl[1], cl[3], cl[4], cl[2], cl[5]]).map ((ns) => ns.map ((n) => +n)).slice (-limit, candlesticks.length);
+        const ohlcv = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
