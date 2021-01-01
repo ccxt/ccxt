@@ -43,7 +43,7 @@ const print = function printToFile (... args) {
 
 const exchangeOptions = {
     agent,
-    verbose,
+    // verbose,
     enableRateLimit,
     timeout,
     // print,
@@ -206,6 +206,7 @@ async function testExchange (exchange) {
 async function test () {
 
     await exchange.loadMarkets ()
+    exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)
     console.log (new Date (), 'Done.')
     process.exit ()
