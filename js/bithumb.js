@@ -93,6 +93,19 @@ module.exports = class bithumb extends Exchange {
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '3h': '1h',
+                '4h': '6h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
+            },
         });
     }
 
@@ -376,7 +389,7 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': market['base'],
-            'interval': timeframe,
+            'interval': this.timeframes[timeframe],
         };
         const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
         const ohlcv = this.safeValue (response, 'data', []);
