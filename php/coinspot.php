@@ -8,7 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
-use \ccxt\NotSupported;
+use \ccxt\ArgumentsRequired;
 
 class coinspot extends Exchange {
 
@@ -74,8 +74,18 @@ class coinspot extends Exchange {
             ),
             'markets' => array(
                 'BTC/AUD' => array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud' ),
+                'ETH/AUD' => array( 'id' => 'eth', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'baseId' => 'eth', 'quoteId' => 'aud' ),
+                'XRP/AUD' => array( 'id' => 'xrp', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'baseId' => 'xrp', 'quoteId' => 'aud' ),
                 'LTC/AUD' => array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud' ),
                 'DOGE/AUD' => array( 'id' => 'doge', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD', 'baseId' => 'doge', 'quoteId' => 'aud' ),
+                'RFOX/AUD' => array( 'id' => 'rfox', 'symbol' => 'RFOX/AUD', 'base' => 'RFOX', 'quote' => 'AUD', 'baseId' => 'rfox', 'quoteId' => 'aud' ),
+                'POWR/AUD' => array( 'id' => 'powr', 'symbol' => 'POWR/AUD', 'base' => 'POWR', 'quote' => 'AUD', 'baseId' => 'powr', 'quoteId' => 'aud' ),
+                'NEO/AUD' => array( 'id' => 'neo', 'symbol' => 'NEO/AUD', 'base' => 'NEO', 'quote' => 'AUD', 'baseId' => 'neo', 'quoteId' => 'aud' ),
+                'TRX/AUD' => array( 'id' => 'trx', 'symbol' => 'TRX/AUD', 'base' => 'TRX', 'quote' => 'AUD', 'baseId' => 'trx', 'quoteId' => 'aud' ),
+                'EOS/AUD' => array( 'id' => 'eos', 'symbol' => 'EOS/AUD', 'base' => 'EOS', 'quote' => 'AUD', 'baseId' => 'eos', 'quoteId' => 'aud' ),
+                'XLM/AUD' => array( 'id' => 'xlm', 'symbol' => 'XLM/AUD', 'base' => 'XLM', 'quote' => 'AUD', 'baseId' => 'xlm', 'quoteId' => 'aud' ),
+                'RHOC/AUD' => array( 'id' => 'rhoc', 'symbol' => 'RHOC/AUD', 'base' => 'RHOC', 'quote' => 'AUD', 'baseId' => 'rhoc', 'quoteId' => 'aud' ),
+                'GAS/AUD' => array( 'id' => 'gas', 'symbol' => 'GAS/AUD', 'base' => 'GAS', 'quote' => 'AUD', 'baseId' => 'gas', 'quoteId' => 'aud' ),
             ),
             'commonCurrencies' => array(
                 'DRK' => 'DASH',
@@ -249,9 +259,16 @@ class coinspot extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' cancelOrder () is not fully implemented yet');
-        // $method = 'privatePostMyBuy';
-        // return $this->$method (array( 'id' => $id ));
+        $side = $this->safe_string($params, 'side');
+        if ($side !== 'buy' && $side !== 'sell') {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+        }
+        $params = $this->omit($params, 'side');
+        $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
+        $request = array(
+            'id' => $id,
+        );
+        return $this->$method (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

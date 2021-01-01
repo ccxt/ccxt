@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ArgumentsRequired
 
 
 class coinspot(Exchange):
@@ -74,8 +74,18 @@ class coinspot(Exchange):
             },
             'markets': {
                 'BTC/AUD': {'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud'},
+                'ETH/AUD': {'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud'},
+                'XRP/AUD': {'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud'},
                 'LTC/AUD': {'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud'},
                 'DOGE/AUD': {'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud'},
+                'RFOX/AUD': {'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud'},
+                'POWR/AUD': {'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud'},
+                'NEO/AUD': {'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud'},
+                'TRX/AUD': {'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud'},
+                'EOS/AUD': {'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud'},
+                'XLM/AUD': {'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud'},
+                'RHOC/AUD': {'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud'},
+                'GAS/AUD': {'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud'},
             },
             'commonCurrencies': {
                 'DRK': 'DASH',
@@ -236,9 +246,15 @@ class coinspot(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
-        # method = 'privatePostMyBuy'
-        # return getattr(self, method)({'id': id})
+        side = self.safe_string(params, 'side')
+        if side != 'buy' and side != 'sell':
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
+        params = self.omit(params, 'side')
+        method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
+        request = {
+            'id': id,
+        }
+        return getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:
