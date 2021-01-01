@@ -27,6 +27,7 @@ class gopax(Exchange):
             'rateLimit': 50,
             'hostname': 'gopax.co.kr',  # or 'gopax.com'
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelOrder': True,
                 'createMarketOrder': True,

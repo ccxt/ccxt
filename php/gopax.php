@@ -21,6 +21,7 @@ class gopax extends Exchange {
             'rateLimit' => 50,
             'hostname' => 'gopax.co.kr', // or 'gopax.com'
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
