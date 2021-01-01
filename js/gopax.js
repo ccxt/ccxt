@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
