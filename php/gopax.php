@@ -540,13 +540,39 @@ class gopax extends Exchange {
         //         "position" => "maker"                      // maker, taker
         //     }
         //
-        $id = $this->safe_string($trade, 'id');
+        //     {
+        //         "tradeId" => 74072,            // $trade ID
+        //         "$orderId" => 453529,           // order ID
+        //         "$side" => 2,                   // 1(bid), 2(ask)
+        //         "$type" => 1,                   // 1(limit), 2($market)
+        //         "baseAmount" => 0.01,          // filled base asset $amount (in ZEC for this case)
+        //         "quoteAmount" => 1,            // filled quote asset $amount (in KRW for this case)
+        //         "$fee" => 0.0004,               // $fee
+        //         "$price" => 100,                // $price
+        //         "isSelfTrade" => false,        // whether both of matching orders are yours
+        //         "occurredAt" => 1603932107,    // $trade occurrence time
+        //         "tradingPairName" => "ZEC-KRW" // order book
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $orderId = $this->safe_integer($trade, 'orderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'timestamp'));
+        $timestamp = $this->safe_timestamp($trade, 'occuredAt', $timestamp);
         $marketId = $this->safe_string($trade, 'tradingPairName');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'side');
+        if ($side === '1') {
+            $side = 'buy';
+        } else if ($side === '2') {
+            $side = 'sell';
+        }
+        $type = $this->safe_string($trade, 'type');
+        if ($type === '1') {
+            $type = 'limit';
+        } else if ($type === '2') {
+            $type = 'market';
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'amount', 'baseAmount');
         $cost = $this->safe_float($trade, 'quoteAmount');

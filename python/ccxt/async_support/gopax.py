@@ -528,13 +528,37 @@ class gopax(Exchange):
         #         "position": "maker"                      # maker, taker
         #     }
         #
-        id = self.safe_string(trade, 'id')
+        #     {
+        #         "tradeId": 74072,            # trade ID
+        #         "orderId": 453529,           # order ID
+        #         "side": 2,                   # 1(bid), 2(ask)
+        #         "type": 1,                   # 1(limit), 2(market)
+        #         "baseAmount": 0.01,          # filled base asset amount(in ZEC for self case)
+        #         "quoteAmount": 1,            # filled quote asset amount(in KRW for self case)
+        #         "fee": 0.0004,               # fee
+        #         "price": 100,                # price
+        #         "isSelfTrade": False,        # whether both of matching orders are yours
+        #         "occurredAt": 1603932107,    # trade occurrence time
+        #         "tradingPairName": "ZEC-KRW"  # order book
+        #     }
+        #
+        id = self.safe_string_2(trade, 'id', 'tradeId')
         orderId = self.safe_integer(trade, 'orderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'timestamp'))
+        timestamp = self.safe_timestamp(trade, 'occuredAt', timestamp)
         marketId = self.safe_string(trade, 'tradingPairName')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         side = self.safe_string(trade, 'side')
+        if side == '1':
+            side = 'buy'
+        elif side == '2':
+            side = 'sell'
+        type = self.safe_string(trade, 'type')
+        if type == '1':
+            type = 'limit'
+        elif type == '2':
+            type = 'market'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'amount', 'baseAmount')
         cost = self.safe_float(trade, 'quoteAmount')
