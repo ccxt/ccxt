@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,10 +15,8 @@ module.exports = class gopax extends ccxt.gopax {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchMyTrades': true,
-                // 'watchTicker': true,
-                // 'watchOHLCV': true,
-                // 'watchOrders': true,
-                // 'watchMyTrades': true,
+                'watchBalance': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
@@ -52,76 +50,6 @@ module.exports = class gopax extends ccxt.gopax {
         options['url'] = url;
         this.options['ws'] = options;
         return url;
-    }
-
-    async watchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const name = 'trades';
-        const messageHash = name + ':' + market['id'];
-        const url = this.getSignedUrl ();
-        const request = {
-            'n': 'SubscribeToTrades',
-            'o': {
-                'tradingPairName': market['id'],
-            },
-        };
-        const subscription = {
-            'messageHash': messageHash,
-            'name': name,
-            'symbol': symbol,
-            'marketId': market['id'],
-            'method': this.handleOrderBook,
-            'limit': limit,
-            'params': params,
-        };
-        const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
-    }
-
-    handleMyTrades (client, message) {
-        console.dir (message, { depth: null });
-        //
-        // subscription response
-        //
-        //     { n: 'SubscribeToTrades', o: {} }
-        //
-        //  regular update
-        //
-        //     {
-        //         "i": -1,
-        //         "n": "TradeEvent",
-        //         "o": {
-        //             "tradeId": 74072,            // trade ID
-        //             "orderId": 453529,           // order ID
-        //             "side": 2,                   // 1(bid), 2(ask)
-        //             "type": 1,                   // 1(limit), 2(market)
-        //             "baseAmount": 0.01,          // filled base asset amount (in ZEC for this case)
-        //             "quoteAmount": 1,            // filled quote asset amount (in KRW for this case)
-        //             "fee": 0.0004,               // fee
-        //             "price": 100,                // price
-        //             "isSelfTrade": false,        // whether both of matching orders are yours
-        //             "occurredAt": 1603932107,    // trade occurrence time
-        //             "tradingPairName": "ZEC-KRW" // order book
-        //         }
-        //     }
-        //
-        const o = this.safeValue (message, 'o', {});
-        const marketId = this.safeString (message, 'market');
-        const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
-        const name = 'trades';
-        const messageHash = name + '@' + marketId;
-        const trade = this.parseTrade (message, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-        }
-        array.append (trade);
-        this.trades[symbol] = array;
-        client.resolve (array, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -268,143 +196,297 @@ module.exports = class gopax extends ccxt.gopax {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const url = this.urls['api']['ws'];
-        const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'order';
+        const name = 'orders';
+        const messageHash = name;
+        const url = this.getSignedUrl ();
         const request = {
-            'action': 'subscribe',
-            'channels': [
-                {
-                    'name': name,
-                    'markets': [ marketId ],
-                },
-            ],
+            'n': 'SubscribeToOrders',
+            'o': {},
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
+        const subscription = {
+            'messageHash': messageHash,
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleOrderBook,
+            'limit': limit,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const future = this.watch (url, messageHash, message, messageHash, subscription);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses = {
+            '1': 'open',
+            '2': 'canceled',
+            '3': 'closed',
+            '4': 'open',
+            // '5': 'reserved',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWsOrderType (orderType) {
+        const types = {
+            '1': 'limit',
+            '2': 'market',
+        };
+        return this.safeString (types, orderType, orderType);
+    }
+
+    parseWsOrderSide (side) {
+        const sides = {
+            '1': 'buy',
+            '2': 'sell',
+        };
+        return this.safeString (sides, side, side);
+    }
+
+    parseWsTimeInForce (timeInForce) {
+        const timeInForces = {
+            '0': 'GTC',
+            '1': 'PO',
+            '2': 'IOC',
+            '3': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //     {
+        //         "orderId": 327347,           // order ID
+        //         "status": 1,                 // 1(not filled), 2(canceled), 3(completely filled), 4(partially filled), 5(reserved)
+        //         "side": 2,                   // 1(bid), 2(ask)
+        //         "type": 1,                   // 1(limit), 2(market)
+        //         "price": 5500000,            // price
+        //         "orgAmount": 1,              // initially placed amount
+        //         "remainAmount": 1,           // unfilled or remaining amount
+        //         "createdAt": 1597218137,     // placement time
+        //         "updatedAt": 1597218137,     // last update time
+        //         "tradedBaseAmount": 0,       // filled base asset amount (in ZEC for this case)
+        //         "tradedQuoteAmount": 0,      // filled quote asset amount (in KRW for this case)
+        //         "feeAmount": 0,              // fee amount
+        //         "rewardAmount": 0,           // reward amount
+        //         "timeInForce": 0,            // 0(gtc), 1(post only), 2(ioc), 3(fok)
+        //         "protection": 1,             // 1(not applied), 2(applied)
+        //         "forcedCompletionReason": 0, // 0(n/a), 1(timeInForce), 2(protection)
+        //         "stopPrice": 0,              // stop price (> 0 only for stop orders)
+        //         "takerFeeAmount": 0,         // fee amount paid as a taker position
+        //         "tradingPairName": "ZEC-KRW" // order book
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timestamp = this.safeTimestamp (order, 'createdAt');
+        const type = this.parseWsOrderType (this.safeString (order, 'type'));
+        const side = this.parseWsOrderSide (this.safeString (order, 'side'));
+        const timeInForce = this.parseWsTimeInForce (this.safeString (order, 'timeInForce'));
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'orgAmount');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
+        const remaining = this.safeFloat (order, 'remainAmount');
+        const marketId = this.safeString (order, 'tradingPairName');
+        market = this.safeMarket (marketId, market, '-');
+        const status = this.parseWsOrderStatus (this.safeString (order, 'status'));
+        let filled = this.safeFloat (order, 'tradedBaseAmount');
+        let cost = this.safeFloat (order, 'tradedQuoteAmount');
+        let updated = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+            if (filled > 0) {
+                updated = this.safeTimestamp (order, 'updatedAt');
+            }
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            postOnly = (timeInForce === 'PO');
+        }
+        const fee = undefined;
+        return {
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': updated,
+            'status': status,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'average': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': undefined,
+            'fee': fee,
+            'info': order,
+        };
+    }
+
+    handleOrder (client, message, order, market = undefined) {
+        const parsed = this.parseWsOrder (order);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        return parsed;
+    }
+
+    handleOrders (client, message) {
+        //
+        // subscription response
+        //
+        //
+        //     {
+        //         "n": "SubscribeToOrders",
+        //         "o": {
+        //             "data": [
+        //                 {
+        //                     "orderId": 327347,           // order ID
+        //                     "status": 1,                 // 1(not filled), 2(canceled), 3(completely filled), 4(partially filled), 5(reserved)
+        //                     "side": 2,                   // 1(bid), 2(ask)
+        //                     "type": 1,                   // 1(limit), 2(market)
+        //                     "price": 5500000,            // price
+        //                     "orgAmount": 1,              // initially placed amount
+        //                     "remainAmount": 1,           // unfilled or remaining amount
+        //                     "createdAt": 1597218137,     // placement time
+        //                     "updatedAt": 1597218137,     // last update time
+        //                     "tradedBaseAmount": 0,       // filled base asset amount (in ZEC for this case)
+        //                     "tradedQuoteAmount": 0,      // filled quote asset amount (in KRW for this case)
+        //                     "feeAmount": 0,              // fee amount
+        //                     "rewardAmount": 0,           // reward amount
+        //                     "timeInForce": 0,            // 0(gtc), 1(post only), 2(ioc), 3(fok)
+        //                     "protection": 1,             // 1(not applied), 2(applied)
+        //                     "forcedCompletionReason": 0, // 0(n/a), 1(timeInForce), 2(protection)
+        //                     "stopPrice": 0,              // stop price (> 0 only for stop orders)
+        //                     "takerFeeAmount": 0,         // fee amount paid as a taker position
+        //                     "tradingPairName": "ZEC-KRW" // order book
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // delta update
+        //
+        //     {
+        //         "i": -1,                         // always -1 in case of delta push
+        //         "n": "OrderEvent",
+        //         "o": {
+        //             "orderId": 327347,
+        //             "status": 4,                 // changed to 4(partially filled)
+        //             "side": 2,
+        //             "type": 1,
+        //             "price": 5500000,
+        //             "orgAmount": 1,
+        //             "remainAmount": 0.8,         // -0.2 as 0.2 ZEC is filled
+        //             "createdAt": 1597218137,
+        //             "updatedAt": 1599093631,     // updated
+        //             "tradedBaseAmount": 0.2,     // 0.2 ZEC goes out
+        //             "tradedQuoteAmount": 1100000,// 1,100,000 KRW comes in
+        //             "feeAmount": 440,            // fee amount (in KRW and 0.04% for this case)
+        //             "rewardAmount": 0,
+        //             "timeInForce": 0,
+        //             "protection": 1,
+        //             "forcedCompletionReason": 0,
+        //             "stopPrice": 0,
+        //             "takerFeeAmount": 0,
+        //             "tradingPairName": "ZEC-KRW"
+        //         }
+        //     }
+        //
+        const o = this.safeValue (message, 'o', []);
+        const data = this.safeValue (o, 'data');
+        const messageHash = 'orders';
+        if (data === undefined) {
+            // single order delta update
+            this.handleOrder (client, message, data);
+            client.resolve (this.orders, messageHash);
+        } else {
+            // initial subscription response with multiple orders
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                for (let i = 0; i < dataLength; i++) {
+                    this.handleOrder (client, message, data[i]);
+                }
+                client.resolve (this.orders, messageHash);
+            }
+        }
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        const url = this.urls['api']['ws'];
-        const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'fill';
+        const name = 'trades';
+        const messageHash = name;
+        const url = this.getSignedUrl ();
         const request = {
-            'action': 'subscribe',
-            'channels': [
-                {
-                    'name': name,
-                    'markets': [ marketId ],
-                },
-            ],
+            'n': 'SubscribeToTrades',
+            'o': {},
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const subscription = {
+            'messageHash': messageHash,
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleMyTrades,
+            'limit': limit,
+            'params': params,
+        };
+        const message = this.extend (request, params);
+        const future = this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client, message) {
+    handleMyTrades (client, message) {
+        //
+        // subscription response
+        //
+        //     { n: 'SubscribeToTrades', o: {} }
+        //
+        //  regular update
         //
         //     {
-        //         event: 'order',
-        //         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
-        //         market: 'ETH-EUR',
-        //         created: 1590948500319,
-        //         updated: 1590948500319,
-        //         status: 'new',
-        //         side: 'sell',
-        //         orderType: 'limit',
-        //         amount: '0.1',
-        //         amountRemaining: '0.1',
-        //         price: '300',
-        //         onHold: '0.1',
-        //         onHoldCurrency: 'ETH',
-        //         selfTradePrevention: 'decrementAndCancel',
-        //         visible: true,
-        //         timeInForce: 'GTC',
-        //         postOnly: false
+        //         "i": -1,
+        //         "n": "TradeEvent",
+        //         "o": {
+        //             "tradeId": 74072,            // trade ID
+        //             "orderId": 453529,           // order ID
+        //             "side": 2,                   // 1(bid), 2(ask)
+        //             "type": 1,                   // 1(limit), 2(market)
+        //             "baseAmount": 0.01,          // filled base asset amount (in ZEC for this case)
+        //             "quoteAmount": 1,            // filled quote asset amount (in KRW for this case)
+        //             "fee": 0.0004,               // fee
+        //             "price": 100,                // price
+        //             "isSelfTrade": false,        // whether both of matching orders are yours
+        //             "occurredAt": 1603932107,    // trade occurrence time
+        //             "tradingPairName": "ZEC-KRW" // order book
+        //         }
         //     }
         //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
+        const o = this.safeValue (message, 'o', {});
         const marketId = this.safeString (message, 'market');
-        const messageHash = name + '@' + marketId + '_' + event;
-        let symbol = marketId;
-        let market = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        const order = this.parseOrder (message, market);
-        const orderId = order['id'];
-        const defaultKey = this.safeValue (this.orders, symbol, {});
-        defaultKey[orderId] = order;
-        this.orders[symbol] = defaultKey;
-        let result = [];
-        const values = Object.values (this.orders);
-        for (let i = 0; i < values.length; i++) {
-            const orders = Object.values (values[i]);
-            result = this.arrayConcat (result, orders);
-        }
-        // delete older orders from our structure to prevent memory leaks
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        result = this.sortBy (result, 'timestamp');
-        const resultLength = result.length;
-        if (resultLength > limit) {
-            const toDelete = resultLength - limit;
-            for (let i = 0; i < toDelete; i++) {
-                const id = result[i]['id'];
-                const symbol = result[i]['symbol'];
-                delete this.orders[symbol][id];
-            }
-            result = result.slice (toDelete, resultLength);
-        }
-        client.resolve (result, messageHash);
-    }
-
-    handleMyTrade (client, message) {
-        //
-        //     {
-        //         event: 'fill',
-        //         timestamp: 1590964470132,
-        //         market: 'ETH-EUR',
-        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        //         side: 'sell',
-        //         amount: '0.1',
-        //         price: '211.46',
-        //         taker: true,
-        //         fee: '0.056',
-        //         feeCurrency: 'EUR'
-        //     }
-        //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
-        const marketId = this.safeString (message, 'market');
-        const messageHash = name + '@' + marketId + '_' + event;
         const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const name = 'trades';
+        const messageHash = name + '@' + marketId;
         const trade = this.parseTrade (message, market);
-        if (this.myTrades === undefined) {
+        let array = this.safeValue (this.trades, symbol);
+        if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
+            array = new ArrayCache (limit);
         }
-        const array = this.myTrades;
         array.append (trade);
-        this.myTrades = array;
+        this.trades[symbol] = array;
         client.resolve (array, messageHash);
     }
 
@@ -423,8 +505,9 @@ module.exports = class gopax extends ccxt.gopax {
         this.spawn (this.pong, client, message);
     }
 
-
     handleMessage (client, message) {
+        //
+        console.dir (message, { depth: null });
         //
         // ping string message
         //
@@ -458,8 +541,8 @@ module.exports = class gopax extends ccxt.gopax {
                 'SubscribeToOrderBook': this.handleOrderBook,
                 // 'SubscribeToTrades': this.handleMyTrades,
                 'TradeEvent': this.handleMyTrades,
-            //     'order': this.handleOrder,
-            //     'fill': this.handleMyTrade,
+                'SubscribeToOrders': this.handleOrders,
+                'OrderEvent': this.handleOrders,
             };
             const n = this.safeString (message, 'n');
             const method = this.safeValue (methods, n);
