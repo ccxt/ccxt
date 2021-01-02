@@ -498,13 +498,13 @@ class gopax extends \ccxt\gopax {
         $messageHash = $name;
         $trade = $this->parse_trade($o);
         $symbol = $trade['symbol'];
-        $array = $this->safe_value($this->trades, $symbol);
+        $array = $this->safe_value($this->myTrades, $symbol);
         if ($array === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $array = new ArrayCache ($limit);
         }
         $array->append ($trade);
-        $this->trades[$symbol] = $array;
+        $this->myTrades[$symbol] = $array;
         $client->resolve ($array, $messageHash);
         $client->resolve ($array, $messageHash . ':' . $symbol);
     }
