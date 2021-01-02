@@ -25,6 +25,7 @@ class bithumb extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchMarkets' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -52,6 +53,7 @@ class bithumb extends Exchange {
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ),
                 ),
                 'private' => array(
@@ -94,6 +96,17 @@ class bithumb extends Exchange {
                 '5600' => '\\ccxt\\ExchangeError',
                 'Unknown Error' => '\\ccxt\\ExchangeError',
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+            ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '10m' => '10m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '24h',
             ),
         ));
     }
@@ -350,6 +363,62 @@ class bithumb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ticker($data, $market);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1576823400000, // 기준 시간
+        //         '8284000', // 시가
+        //         '8286000', // 종가
+        //         '8289000', // 고가
+        //         '8276000', // 저가
+        //         '15.41503692' // 거래량
+        //     )
+        //
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 5),
+        );
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['base'],
+            'interval' => $this->timeframes[$timeframe],
+        );
+        $response = $this->publicGetCandlestickCurrencyInterval (array_merge($request, $params));
+        //
+        //     {
+        //         'status' => '0000',
+        //         'data' => {
+        //             array(
+        //                 1576823400000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8286000', // 종가
+        //                 '8289000', // 고가
+        //                 '8276000', // 저가
+        //                 '15.41503692' // 거래량
+        //             ),
+        //             array(
+        //                 1576824000000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8281000', // 종가
+        //                 '8289000', // 고가
+        //                 '8275000', // 저가
+        //                 '6.19584467' // 거래량
+        //             ),
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {

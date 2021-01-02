@@ -21,6 +21,7 @@ class gopax extends Exchange {
             'rateLimit' => 50,
             'hostname' => 'gopax.co.kr', // or 'gopax.com'
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
@@ -54,7 +55,7 @@ class gopax extends Exchange {
                     'public' => 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
                     'private' => 'https://api.{hostname}',
                 ),
-                'www' => 'https://gopax.co.kr',
+                'www' => 'https://www.gopax.co.kr',
                 'doc' => 'https://gopax.github.io/API/index.en.html',
                 'fees' => 'https://www.gopax.com/feeinfo',
             ),
@@ -107,7 +108,7 @@ class gopax extends Exchange {
                     'ERROR_INVALID_AMOUNT' => '\\ccxt\\InvalidOrder',
                     'ERROR_INVALID_TRADING_PAIR' => '\\ccxt\\BadSymbol', // Unlikely to be triggered, due to ccxt.gopax.js implementation
                     'No such order ID' => '\\ccxt\\OrderNotFound', // array("errorMessage":"No such order ID","errorCode":202,"errorData":"Order server error => 202")
-                    'Not enough amount' => '\\ccxt\\InsufficientFunds',
+                    // 'Not enough amount' => '\\ccxt\\InsufficientFunds', // array("errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":array())
                     'Forbidden order type' => '\\ccxt\\InvalidOrder',
                     'the client order ID will be reusable which order has already been completed or canceled' => '\\ccxt\\InvalidOrder',
                     'ERROR_NO_SUCH_TRADING_PAIR' => '\\ccxt\\BadSymbol', // Unlikely to be triggered, due to ccxt.gopax.js implementation
@@ -540,13 +541,39 @@ class gopax extends Exchange {
         //         "position" => "maker"                      // maker, taker
         //     }
         //
-        $id = $this->safe_string($trade, 'id');
+        //     {
+        //         "tradeId" => 74072,            // $trade ID
+        //         "$orderId" => 453529,           // order ID
+        //         "$side" => 2,                   // 1(bid), 2(ask)
+        //         "$type" => 1,                   // 1(limit), 2($market)
+        //         "baseAmount" => 0.01,          // filled base asset $amount (in ZEC for this case)
+        //         "quoteAmount" => 1,            // filled quote asset $amount (in KRW for this case)
+        //         "$fee" => 0.0004,               // $fee
+        //         "$price" => 100,                // $price
+        //         "isSelfTrade" => false,        // whether both of matching orders are yours
+        //         "occurredAt" => 1603932107,    // $trade occurrence time
+        //         "tradingPairName" => "ZEC-KRW" // order book
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $orderId = $this->safe_integer($trade, 'orderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'timestamp'));
+        $timestamp = $this->safe_timestamp($trade, 'occuredAt', $timestamp);
         $marketId = $this->safe_string($trade, 'tradingPairName');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'side');
+        if ($side === '1') {
+            $side = 'buy';
+        } else if ($side === '2') {
+            $side = 'sell';
+        }
+        $type = $this->safe_string($trade, 'type');
+        if ($type === '1') {
+            $type = 'limit';
+        } else if ($type === '2') {
+            $type = 'market';
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'amount', 'baseAmount');
         $cost = $this->safe_float($trade, 'quoteAmount');
@@ -660,24 +687,11 @@ class gopax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetBalances ($params);
-        //
-        //     array(
-        //         array(
-        //             "asset" => "KRW",                   // asset name
-        //             "avail" => 1759466.76,              // available amount to place order
-        //             "$hold" => 16500,                    // outstanding amount on order books
-        //             "$pendingWithdrawal" => 0,           // amount being withdrawan
-        //             "lastUpdatedAt" => "1600684352032", // $balance last update time
-        //         ),
-        //     )
-        //
+    public function parse_balance_response($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'asset');
+            $currencyId = $this->safe_string_2($balance, 'asset', 'isoAlpha3');
             $code = $this->safe_currency_code($currencyId);
             $hold = $this->safe_float($balance, 'hold');
             $pendingWithdrawal = $this->safe_float($balance, 'pendingWithdrawal');
@@ -687,6 +701,23 @@ class gopax extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetBalances ($params);
+        //
+        //     array(
+        //         array(
+        //             "asset" => "KRW",                   // asset name
+        //             "avail" => 1759466.76,              // available amount to place order
+        //             "hold" => 16500,                    // outstanding amount on order books
+        //             "pendingWithdrawal" => 0,           // amount being withdrawn
+        //             "lastUpdatedAt" => "1600684352032", // balance last update time
+        //         ),
+        //     )
+        //
+        return $this->parse_balance_response($response);
     }
 
     public function parse_order_status($status) {
@@ -753,19 +784,22 @@ class gopax extends Exchange {
         $marketId = $this->safe_string($order, 'tradingPairName');
         $market = $this->safe_market($marketId, $market, '-');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $filled = null;
-        $cost = null;
-        $updated = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-            if ($filled > 0) {
-                $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $balanceChange = $this->safe_value($order, 'balanceChange', array());
+        $filled = $this->safe_float($balanceChange, 'baseNet');
+        $cost = $this->safe_float($balanceChange, 'quoteNet');
+        if ($cost !== null) {
+            $cost = abs($cost);
+        }
+        $updated = null;
+        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
+            $filled = max (0, $amount - $remaining);
+        }
+        if (($filled !== null) && ($filled > 0)) {
+            $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
+        }
+        if (($cost === null) && ($price !== null) && ($filled !== null)) {
+            $cost = $filled * $price;
+        }
         $fee = null;
         if ($side === 'buy') {
             $baseFee = $this->safe_value($balanceChange, 'baseFee', array());
@@ -802,7 +836,7 @@ class gopax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'average' => $price,
+            'average' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

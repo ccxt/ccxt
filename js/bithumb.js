@@ -22,6 +22,7 @@ module.exports = class bithumb extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -49,6 +50,7 @@ module.exports = class bithumb extends Exchange {
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ],
                 },
                 'private': {
@@ -91,6 +93,17 @@ module.exports = class bithumb extends Exchange {
                 '5600': ExchangeError,
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
             },
         });
     }
@@ -347,6 +360,62 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1576823400000, // 기준 시간
+        //         '8284000', // 시가
+        //         '8286000', // 종가
+        //         '8289000', // 고가
+        //         '8276000', // 저가
+        //         '15.41503692' // 거래량
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 5),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['base'],
+            'interval': this.timeframes[timeframe],
+        };
+        const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
+        //
+        //     {
+        //         'status': '0000',
+        //         'data': {
+        //             [
+        //                 1576823400000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8286000', // 종가
+        //                 '8289000', // 고가
+        //                 '8276000', // 저가
+        //                 '15.41503692' // 거래량
+        //             ],
+        //             [
+        //                 1576824000000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8281000', // 종가
+        //                 '8289000', // 고가
+        //                 '8275000', // 저가
+        //                 '6.19584467' // 거래량
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.39.96';
+$version = '1.40.6';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.39.96';
+    const VERSION = '1.40.6';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -153,7 +153,6 @@ class Exchange {
         'latoken',
         'lbank',
         'liquid',
-        'livecoin',
         'luno',
         'lykke',
         'mercado',
@@ -639,7 +638,10 @@ class Exchange {
 
     public static function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return (int) ($sec . substr($msec, 2, 3));
+        // raspbian 32-bit integer workaround
+        // https://github.com/ccxt/ccxt/issues/5978
+        // return (int) ($sec . substr($msec, 2, 3));
+        return $sec . substr($msec, 2, 3);
     }
 
     public static function microseconds() {

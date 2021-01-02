@@ -228,6 +228,7 @@ class ftx(Exchange):
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
+                    'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,
