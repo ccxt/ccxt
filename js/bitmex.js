@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1219,6 +1219,43 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
+        //         "clOrdID":"",
+        //         "clOrdLinkID":"",
+        //         "account":1455728,
+        //         "symbol":"XBTUSD",
+        //         "side":"Sell",
+        //         "simpleOrderQty":null,
+        //         "orderQty":1,
+        //         "price":40000,
+        //         "displayQty":null,
+        //         "stopPx":null,
+        //         "pegOffsetValue":null,
+        //         "pegPriceType":"",
+        //         "currency":"USD",
+        //         "settlCurrency":"XBt",
+        //         "ordType":"Limit",
+        //         "timeInForce":"GoodTillCancel",
+        //         "execInst":"",
+        //         "contingencyType":"",
+        //         "exDestination":"XBME",
+        //         "ordStatus":"New",
+        //         "triggered":"",
+        //         "workingIndicator":true,
+        //         "ordRejReason":"",
+        //         "simpleLeavesQty":null,
+        //         "leavesQty":1,
+        //         "simpleCumQty":null,
+        //         "cumQty":0,
+        //         "avgPx":null,
+        //         "multiLegReportingType":"SingleSecurity",
+        //         "text":"Submitted via API.",
+        //         "transactTime":"2021-01-02T21:38:49.246Z",
+        //         "timestamp":"2021-01-02T21:38:49.246Z"
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1248,6 +1285,8 @@ module.exports = class bitmex extends Exchange {
         const clientOrderId = this.safeString (order, 'clOrdID');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.safeFloat (order, 'stopPx');
+        const execInst = this.safeString (order, 'execInst');
+        const postOnly = (execInst === 'ParticipateDoNotInitiate');
         return {
             'info': order,
             'id': id,
@@ -1258,7 +1297,7 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1327,17 +1366,20 @@ module.exports = class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': amount,
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)),
             'ordType': orderType,
         };
-        if (price !== undefined) {
-            if (orderType === 'Stop') {
-                const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
-                request['stopPx'] = stopPrice;
-                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
+            const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
             } else {
-                request['price'] = price;
+                request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
             }
+        }
+        if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {

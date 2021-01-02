@@ -1092,7 +1092,7 @@ module.exports = class coinbasepro extends Exchange {
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
-                    'code': code,
+                    'currency': code,
                 };
             }
         }
