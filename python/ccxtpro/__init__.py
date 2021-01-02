@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.5.10'
+__version__ = '0.5.11'
 
 # -----------------------------------------------------------------------------
 
@@ -127,7 +127,6 @@ from ccxt.async_support.lakebtc import lakebtc                            # noqa
 from ccxt.async_support.latoken import latoken                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
-from ccxt.async_support.livecoin import livecoin                          # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
 from ccxt.async_support.mercado import mercado                            # noqa: F401

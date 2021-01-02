@@ -80,26 +80,28 @@ class gopax extends \ccxt\gopax {
         return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta($orderbook, $bookside, $delta) {
         //
         //     {
-        //         entryId => 60949856,
+        //         $entryId => 60949856,
         //         $price => 31575000,
         //         volume => 0.3163,
         //         updatedAt => 1609420344.174
         //     }
         //
-        $price = $this->safe_float($delta, 'price');
-        $amount = $this->safe_float($delta, 'volume');
-        $nonce = $this->safe_integer($delta, 'entryId');
-        $bookside->store ($price, $amount);
-        return $nonce;
+        $entryId = $this->safe_integer($delta, 'entryId');
+        if (($orderbook['nonce'] !== null) && ($entryId >= $orderbook['nonce'])) {
+            $price = $this->safe_float($delta, 'price');
+            $amount = $this->safe_float($delta, 'volume');
+            $bookside->store ($price, $amount);
+        }
+        return $entryId;
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas($orderbook, $bookside, $deltas) {
         $nonce = 0;
         for ($i = 0; $i < count($deltas); $i++) {
-            $n = $this->handle_delta($bookside, $deltas[$i]);
+            $n = $this->handle_delta($orderbook, $bookside, $deltas[$i]);
             $nonce = max ($nonce, $n);
         }
         return $nonce;
@@ -120,8 +122,8 @@ class gopax extends \ccxt\gopax {
         //     }
         //
         $o = $this->safe_value($message, 'o', array());
-        $askNonce = $this->handle_deltas($orderbook['asks'], $this->safe_value($o, 'ask', array()));
-        $bidNonce = $this->handle_deltas($orderbook['bids'], $this->safe_value($o, 'bid', array()));
+        $askNonce = $this->handle_deltas($orderbook, $orderbook['asks'], $this->safe_value($o, 'ask', array()));
+        $bidNonce = $this->handle_deltas($orderbook, $orderbook['bids'], $this->safe_value($o, 'bid', array()));
         $nonce = max ($askNonce, $bidNonce);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
@@ -177,10 +179,8 @@ class gopax extends \ccxt\gopax {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        }
         if ($n === 'SubscribeToOrderBook') {
+            $orderbook['nonce'] = 0;
             $this->handle_order_book_message($client, $message, $orderbook);
             for ($i = 0; $i < count($orderbook->cache); $i++) {
                 $message = $orderbook->cache[$i];

@@ -84,7 +84,7 @@ class gopax(Exchange, ccxt.gopax):
         future = self.watch(url, messageHash, message, messageHash, subscription)
         return await self.after(future, self.limit_order_book, symbol, limit, params)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, orderbook, bookside, delta):
         #
         #     {
         #         entryId: 60949856,
@@ -93,16 +93,17 @@ class gopax(Exchange, ccxt.gopax):
         #         updatedAt: 1609420344.174
         #     }
         #
-        price = self.safe_float(delta, 'price')
-        amount = self.safe_float(delta, 'volume')
-        nonce = self.safe_integer(delta, 'entryId')
-        bookside.store(price, amount)
-        return nonce
+        entryId = self.safe_integer(delta, 'entryId')
+        if (orderbook['nonce'] is not None) and (entryId >= orderbook['nonce']):
+            price = self.safe_float(delta, 'price')
+            amount = self.safe_float(delta, 'volume')
+            bookside.store(price, amount)
+        return entryId
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, orderbook, bookside, deltas):
         nonce = 0
         for i in range(0, len(deltas)):
-            n = self.handle_delta(bookside, deltas[i])
+            n = self.handle_delta(orderbook, bookside, deltas[i])
             nonce = max(nonce, n)
         return nonce
 
@@ -121,8 +122,8 @@ class gopax(Exchange, ccxt.gopax):
         #     }
         #
         o = self.safe_value(message, 'o', {})
-        askNonce = self.handle_deltas(orderbook['asks'], self.safe_value(o, 'ask', []))
-        bidNonce = self.handle_deltas(orderbook['bids'], self.safe_value(o, 'bid', []))
+        askNonce = self.handle_deltas(orderbook, orderbook['asks'], self.safe_value(o, 'ask', []))
+        bidNonce = self.handle_deltas(orderbook, orderbook['bids'], self.safe_value(o, 'bid', []))
         nonce = max(askNonce, bidNonce)
         orderbook['nonce'] = nonce
         return orderbook
@@ -176,9 +177,8 @@ class gopax(Exchange, ccxt.gopax):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.safe_value(self.orderbooks, symbol)
-        if not (symbol in self.orderbooks):
-            self.orderbooks[symbol] = self.order_book({}, limit)
         if n == 'SubscribeToOrderBook':
+            orderbook['nonce'] = 0
             self.handle_order_book_message(client, message, orderbook)
             for i in range(0, len(orderbook.cache)):
                 message = orderbook.cache[i]
