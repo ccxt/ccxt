@@ -1035,7 +1035,7 @@ class coinbasepro(Exchange):
             if feeCost is not None:
                 fee = {
                     'cost': feeCost,
-                    'code': code,
+                    'currency': code,
                 }
         return {
             'info': transaction,

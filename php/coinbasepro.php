@@ -1096,7 +1096,7 @@ class coinbasepro extends Exchange {
             if ($feeCost !== null) {
                 $fee = array(
                     'cost' => $feeCost,
-                    'code' => $code,
+                    'currency' => $code,
                 );
             }
         }
