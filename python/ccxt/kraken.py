@@ -24,6 +24,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
@@ -229,6 +230,7 @@ class kraken(Exchange):
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M',  # https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -366,11 +368,14 @@ class kraken(Exchange):
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
-    def safe_currency_code(self, currencyId, currency=None):
+    def safe_currency(self, currencyId, currency=None):
         if len(currencyId) > 3:
             if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                currencyId = currencyId[1:]
-        return super(kraken, self).safe_currency_code(currencyId, currency)
+                if currencyId.find('.') > 0:
+                    return super(kraken, self).safe_currency(currencyId, currency)
+                else:
+                    currencyId = currencyId[1:]
+        return super(kraken, self).safe_currency(currencyId, currency)
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
@@ -899,6 +904,7 @@ class kraken(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privatePostBalance(params)
         balances = self.safe_value(response, 'result', {})
         result = {'info': balances}
@@ -1075,6 +1081,7 @@ class kraken(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1602,6 +1609,8 @@ class kraken(Exchange):
             raise CancelPending(self.id + ' ' + body)
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
+        if body.find('Rate limit exceeded') >= 0:
+            raise RateLimitExceeded(self.id + ' ' + body)
         if body[0] == '{':
             if not isinstance(response, basestring):
                 if 'error' in response:

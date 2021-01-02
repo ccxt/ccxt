@@ -354,6 +354,7 @@ class bitbank(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

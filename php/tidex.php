@@ -587,6 +587,7 @@ class tidex extends Exchange {
             'lastTradeTimestamp' => null,
             'type' => 'limit',
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $price,
             'stopPrice' => null,

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -206,6 +206,7 @@ module.exports = class kraken extends Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
+                'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
                 'REPV2': 'REP',
                 'REP': 'REPV1',
@@ -349,13 +350,17 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    safeCurrencyCode (currencyId, currency = undefined) {
+    safeCurrency (currencyId, currency = undefined) {
         if (currencyId.length > 3) {
             if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
-                currencyId = currencyId.slice (1);
+                if (currencyId.indexOf ('.') > 0) {
+                    return super.safeCurrency (currencyId, currency);
+                } else {
+                    currencyId = currencyId.slice (1);
+                }
             }
         }
-        return super.safeCurrencyCode (currencyId, currency);
+        return super.safeCurrency (currencyId, currency);
     }
 
     appendInactiveMarkets (result) {
@@ -935,6 +940,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         const balances = this.safeValue (response, 'result', {});
         const result = { 'info': balances };
@@ -1133,6 +1139,7 @@ module.exports = class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1716,6 +1723,9 @@ module.exports = class kraken extends Exchange {
         }
         if (body.indexOf ('Invalid arguments:volume') >= 0) {
             throw new InvalidOrder (this.id + ' ' + body);
+        }
+        if (body.indexOf ('Rate limit exceeded') >= 0) {
+            throw new RateLimitExceeded (this.id + ' ' + body);
         }
         if (body[0] === '{') {
             if (typeof response !== 'string') {

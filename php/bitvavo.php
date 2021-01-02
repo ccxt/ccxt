@@ -1131,7 +1131,7 @@ class bitvavo extends Exchange {
         //         "visible":false,
         //         "disableMarketProtection":false
         //         "$timeInForce" => "GTC",
-        //         "postOnly" => true,
+        //         "$postOnly" => true,
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -1185,6 +1185,7 @@ class bitvavo extends Exchange {
             }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1195,6 +1196,7 @@ class bitvavo extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,

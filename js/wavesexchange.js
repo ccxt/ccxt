@@ -52,7 +52,7 @@ module.exports = class wavesexchange extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api': {
                     'matcher': 'http://matcher.waves.exchange',
-                    'node': 'https://nodes.wavesnodes.com',
+                    'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
                     'forward': 'https://waves.exchange/api/v1/forward/matcher',
@@ -1269,6 +1269,7 @@ module.exports = class wavesexchange extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1575,7 +1576,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         let isErc20 = true;
         const noPrefix = this.remove0xPrefix (address);
-        const lower = noPrefix.lower ();
+        const lower = noPrefix.toLowerCase ();
         for (let i = 0; i < lower.length; i++) {
             const character = lower[i];
             if (!(character in set)) {

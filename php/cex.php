@@ -889,6 +889,7 @@ class cex extends Exchange {
             'symbol' => $symbol,
             'type' => ($price === null) ? 'market' : 'limit',
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -70,27 +70,72 @@ module.exports = class coinspot extends Exchange {
             },
             'markets': {
                 'BTC/AUD': { 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud' },
+                'ETH/AUD': { 'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud' },
+                'XRP/AUD': { 'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud' },
                 'LTC/AUD': { 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud' },
                 'DOGE/AUD': { 'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud' },
+                'RFOX/AUD': { 'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud' },
+                'POWR/AUD': { 'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud' },
+                'NEO/AUD': { 'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud' },
+                'TRX/AUD': { 'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud' },
+                'EOS/AUD': { 'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud' },
+                'XLM/AUD': { 'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud' },
+                'RHOC/AUD': { 'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud' },
+                'GAS/AUD': { 'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud' },
             },
             'commonCurrencies': {
                 'DRK': 'DASH',
+            },
+            'options': {
+                'fetchBalance': 'private_post_my_balances',
             },
         });
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostMyBalances (params);
+        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
+        const response = await this[method] (params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":[
+        //             {
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        //             }
+        //         ]
+        //     }
+        //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balance', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balances, currencyId);
-            result[code] = account;
+        const balances = this.safeValue2 (response, 'balance', 'balances');
+        if (Array.isArray (balances)) {
+            for (let i = 0; i < balances.length; i++) {
+                const currencies = balances[i];
+                const currencyIds = Object.keys (currencies);
+                for (let j = 0; j < currencyIds.length; j++) {
+                    const currencyId = currencyIds[j];
+                    const balance = currencies[currencyId];
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['total'] = this.safeFloat (balance, 'balance');
+                    result[code] = account;
+                }
+            }
+        } else {
+            const currencyIds = Object.keys (balances);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeFloat (balances, currencyId);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -210,9 +255,16 @@ module.exports = class coinspot extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
-        // let method = 'privatePostMyBuy';
-        // return await this[method] ({ 'id': id });
+        const side = this.safeString (params, 'side');
+        if (side !== 'buy' && side !== 'sell') {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
+        }
+        params = this.omit (params, 'side');
+        const method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
+        const request = {
+            'id': id,
+        };
+        return await this[method] (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

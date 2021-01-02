@@ -41,7 +41,11 @@ class luno extends Exchange {
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api' => 'https://api.luno.com/api',
+                'api' => array(
+                    'public' => 'https://api.luno.com/api',
+                    'private' => 'https://api.luno.com/api',
+                    'exchange' => 'https://api.luno.com/api/exchange',
+                ),
                 'www' => 'https://www.luno.com',
                 'doc' => array(
                     'https://www.luno.com/en/api',
@@ -50,6 +54,11 @@ class luno extends Exchange {
                 ),
             ),
             'api' => array(
+                'exchange' => array(
+                    'get' => array(
+                        'markets',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'orderbook',
@@ -100,16 +109,42 @@ class luno extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetTickers ($params);
+        $response = $this->exchangeGetMarkets ($params);
+        //
+        //     {
+        //         "$markets":array(
+        //             array(
+        //                 "market_id":"BCHXBT",
+        //                 "trading_status":"ACTIVE",
+        //                 "base_currency":"BCH",
+        //                 "counter_currency":"XBT",
+        //                 "min_volume":"0.01",
+        //                 "max_volume":"100.00",
+        //                 "volume_scale":2,
+        //                 "min_price":"0.0001",
+        //                 "max_price":"1.00",
+        //                 "price_scale":6,
+        //                 "fee_scale":8,
+        //             ),
+        //         )
+        //     }
+        //
         $result = array();
-        for ($i = 0; $i < count($response['tickers']); $i++) {
-            $market = $response['tickers'][$i];
-            $id = $market['pair'];
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
+        $markets = $this->safe_value($response, 'markets', array());
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'market_id');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $status = $this->safe_string($market, 'trading_status');
+            $active = ($status === 'ACTIVE');
+            $precision = array(
+                'amount' => $this->safe_integer($market, 'volume_scale'),
+                'price' => $this->safe_integer($market, 'price_scale'),
+            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -117,10 +152,23 @@ class luno extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->safe_float($market, 'min_volume'),
+                        'max' => $this->safe_float($market, 'max_volume'),
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_float($market, 'min_price'),
+                        'max' => $this->safe_float($market, 'max_price'),
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
-                'active' => null,
-                'precision' => $this->precision,
-                'limits' => $this->limits,
             );
         }
         return $result;
@@ -148,6 +196,16 @@ class luno extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ($params);
+        //
+        //     {
+        //         'balance' => [
+        //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
+        //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00','unconfirmed' => '0.00')]}
+        //         ]
+        //     }
+        //
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($wallets); $i++) {
@@ -157,10 +215,15 @@ class luno extends Exchange {
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
-            $account = $this->account();
-            $account['used'] = $this->sum($reserved, $unconfirmed);
-            $account['total'] = $this->sum($balance, $unconfirmed);
-            $result[$code] = $account;
+            if (is_array($result) && array_key_exists($code, $result)) {
+                $result[$code]['used'] = $this->sum($result[$code]['used'], $reserved, $unconfirmed);
+                $result[$code]['total'] = $this->sum($result[$code]['total'], $balance, $unconfirmed);
+            } else {
+                $account = $this->account();
+                $account['used'] = $this->sum($reserved, $unconfirmed);
+                $account['total'] = $this->sum($balance, $unconfirmed);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -248,6 +311,7 @@ class luno extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -632,7 +696,7 @@ class luno extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($query) {
             $url .= '?' . $this->urlencode($query);

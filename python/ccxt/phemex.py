@@ -845,13 +845,18 @@ class phemex(Exchange):
         #         48759063370,  # quote volume
         #     ]
         #
+        baseVolume = None
+        if (market is not None) and market['spot']:
+            baseVolume = self.from_ev(self.safe_float(ohlcv, 7), market)
+        else:
+            baseVolume = self.safe_integer(ohlcv, 7)
         return [
             self.safe_timestamp(ohlcv, 0),
             self.from_ep(self.safe_float(ohlcv, 3), market),
             self.from_ep(self.safe_float(ohlcv, 4), market),
             self.from_ep(self.safe_float(ohlcv, 5), market),
             self.from_ep(self.safe_float(ohlcv, 6), market),
-            self.from_ev(self.safe_float(ohlcv, 7), market),
+            baseVolume,
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1582,8 +1587,9 @@ class phemex(Exchange):
         if filled is None:
             if (amount is not None) and (remaining is not None):
                 filled = min(0, amount - remaining)
-        timeInForce = self.parse_time_in_force(self.safeStirng(order, 'timeInForce'))
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.from_ep(self.safe_float(order, 'stopPxEp', market))
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1594,6 +1600,7 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1663,6 +1670,7 @@ class phemex(Exchange):
             lastTradeTimestamp = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_float(order, 'stopPx')
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1673,6 +1681,7 @@ class phemex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

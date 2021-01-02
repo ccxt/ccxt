@@ -379,23 +379,23 @@ class kucoin(Exchange):
         response = self.publicGetCurrencies(params)
         #
         #     {
-        #       "currency": "OMG",
-        #       "name": "OMG",
-        #       "fullName": "OmiseGO",
-        #       "precision": 8,
-        #       "confirms": 12,
-        #       "withdrawalMinSize": "4",
-        #       "withdrawalMinFee": "1.25",
-        #       "isWithdrawEnabled": False,
-        #       "isDepositEnabled": False,
-        #       "isMarginEnabled": False,
-        #       "isDebitEnabled": False
+        #         "currency": "OMG",
+        #         "name": "OMG",
+        #         "fullName": "OmiseGO",
+        #         "precision": 8,
+        #         "confirms": 12,
+        #         "withdrawalMinSize": "4",
+        #         "withdrawalMinFee": "1.25",
+        #         "isWithdrawEnabled": False,
+        #         "isDepositEnabled": False,
+        #         "isMarginEnabled": False,
+        #         "isDebitEnabled": False
         #     }
         #
-        responseData = response['data']
+        data = self.safe_value(response, 'data', [])
         result = {}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
+        for i in range(0, len(data)):
+            entry = data[i]
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
@@ -982,12 +982,14 @@ class kucoin(Exchange):
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_float(order, 'stopPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'amount': amount,
             'price': price,
@@ -1675,10 +1677,16 @@ class kucoin(Exchange):
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': self.password,
             }, headers)
+            apiKeyVersion = self.safe_string(headers, 'KC-API-KEY-VERSION')
+            if apiKeyVersion == '2':
+                passphrase = self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64')
+                headers['KC-API-PASSPHRASE'] = passphrase
+            else:
+                headers['KC-API-PASSPHRASE'] = self.password
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['KC-API-SIGN'] = signature

@@ -174,6 +174,7 @@ class binance(Exchange):
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         # lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -199,6 +200,11 @@ class binance(Exchange):
                         'bswap/liquidityOps',
                         'bswap/quote',
                         'bswap/swap',
+                        # leveraged token endpoints
+                        'blvt/tokenInfo',
+                        'blvt/subscribe/record',
+                        'blvt/redeem/record',
+                        'blvt/userLimit',
                     ],
                     'post': [
                         'asset/dust',
@@ -219,6 +225,7 @@ class binance(Exchange):
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -233,6 +240,9 @@ class binance(Exchange):
                         'bswap/liquidityAdd',
                         'bswap/liquidityRemove',
                         'bswap/swap',
+                        # leveraged token endpoints
+                        'blvt/subscribe',
+                        'blvt/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -485,6 +495,7 @@ class binance(Exchange):
             'exceptions': {
                 'API key does not exist': AuthenticationError,
                 'Order would trigger immediately.': OrderImmediatelyFillable,
+                'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
                 'Order would immediately match and take.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Order would immediately match and take."}
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
@@ -1402,7 +1413,7 @@ class binance(Exchange):
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1509,6 +1520,7 @@ class binance(Exchange):
                 cost = float(self.cost_to_precision(symbol, cost))
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
         return {
             'info': order,
             'id': id,
@@ -1519,6 +1531,7 @@ class binance(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1673,7 +1686,7 @@ class binance(Exchange):
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
-            request['orderId'] = int(id)
+            request['orderId'] = id
         query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
@@ -1793,11 +1806,11 @@ class binance(Exchange):
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
-            # 'orderId': int(id),
+            # 'orderId': id,
             # 'origClientOrderId': id,
         }
         if origClientOrderId is None:
-            request['orderId'] = int(id)
+            request['orderId'] = id
         else:
             request['origClientOrderId'] = origClientOrderId
         method = 'privateDeleteOrder'
@@ -2376,7 +2389,7 @@ class binance(Exchange):
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, params))
-            elif path == 'batchOrders':
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
                 query = self.rawencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,

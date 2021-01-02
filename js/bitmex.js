@@ -1258,6 +1258,7 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

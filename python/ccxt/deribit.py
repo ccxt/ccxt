@@ -1074,6 +1074,7 @@ class deribit(Exchange):
             trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = None
+        postOnly = self.safe_value(order, 'post_only')
         return {
             'info': order,
             'id': id,
@@ -1084,6 +1085,7 @@ class deribit(Exchange):
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

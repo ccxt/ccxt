@@ -15,7 +15,6 @@ module.exports = class upbit extends Exchange {
             'countries': [ 'KR' ],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': true,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -1204,6 +1203,7 @@ module.exports = class upbit extends Exchange {
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,

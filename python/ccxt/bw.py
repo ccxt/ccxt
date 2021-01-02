@@ -734,6 +734,7 @@ class bw(Exchange):
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

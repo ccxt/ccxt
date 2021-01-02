@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -195,6 +195,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
@@ -208,7 +209,10 @@ module.exports = class ftx extends Exchange {
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
+                    'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
+                    'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -338,7 +342,7 @@ module.exports = class ftx extends Exchange {
                 'amount': sizeIncrement,
                 'price': priceIncrement,
             };
-            const entry = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -365,8 +369,7 @@ module.exports = class ftx extends Exchange {
                     },
                 },
                 'info': market,
-            };
-            result.push (entry);
+            });
         }
         return result;
     }
@@ -998,6 +1001,7 @@ module.exports = class ftx extends Exchange {
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
         const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -1008,6 +1012,7 @@ module.exports = class ftx extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

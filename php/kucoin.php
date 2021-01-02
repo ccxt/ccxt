@@ -375,23 +375,23 @@ class kucoin extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
-        //       "currency" => "OMG",
-        //       "$name" => "OMG",
-        //       "fullName" => "OmiseGO",
-        //       "$precision" => 8,
-        //       "confirms" => 12,
-        //       "withdrawalMinSize" => "4",
-        //       "withdrawalMinFee" => "1.25",
-        //       "$isWithdrawEnabled" => false,
-        //       "$isDepositEnabled" => false,
-        //       "isMarginEnabled" => false,
-        //       "isDebitEnabled" => false
+        //         "currency" => "OMG",
+        //         "$name" => "OMG",
+        //         "fullName" => "OmiseGO",
+        //         "$precision" => 8,
+        //         "confirms" => 12,
+        //         "withdrawalMinSize" => "4",
+        //         "withdrawalMinFee" => "1.25",
+        //         "$isWithdrawEnabled" => false,
+        //         "$isDepositEnabled" => false,
+        //         "isMarginEnabled" => false,
+        //         "isDebitEnabled" => false
         //     }
         //
-        $responseData = $response['data'];
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
-        for ($i = 0; $i < count($responseData); $i++) {
-            $entry = $responseData[$i];
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
             $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
@@ -970,7 +970,7 @@ class kucoin extends Exchange {
         //         "stopTriggered" => false,  // stop $order is triggered
         //         "$stopPrice" => "0",      // stop $price
         //         "$timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //         "postOnly" => false,     // postOnly
+        //         "$postOnly" => false,     // $postOnly
         //         "hidden" => false,       // hidden $order
         //         "iceberg" => false,      // iceberg $order
         //         "visibleSize" => "0",    // display quantity for iceberg $order
@@ -1020,12 +1020,14 @@ class kucoin extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_float($order, 'stopPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -1776,10 +1778,17 @@ class kucoin extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = array_merge(array(
+                'KC-API-KEY-VERSION' => '2',
                 'KC-API-KEY' => $this->apiKey,
                 'KC-API-TIMESTAMP' => $timestamp,
-                'KC-API-PASSPHRASE' => $this->password,
             ), $headers);
+            $apiKeyVersion = $this->safe_string($headers, 'KC-API-KEY-VERSION');
+            if ($apiKeyVersion === '2') {
+                $passphrase = $this->hmac($this->encode($this->password), $this->encode($this->secret), 'sha256', 'base64');
+                $headers['KC-API-PASSPHRASE'] = $passphrase;
+            } else {
+                $headers['KC-API-PASSPHRASE'] = $this->password;
+            }
             $payload = $timestamp . $method . $endpoint . $endpart;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $headers['KC-API-SIGN'] = $signature;

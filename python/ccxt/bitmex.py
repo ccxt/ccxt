@@ -1191,6 +1191,7 @@ class bitmex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

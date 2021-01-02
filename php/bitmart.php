@@ -53,7 +53,7 @@ class bitmart extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www' => 'https://www.bitmart.com/',
-                'doc' => 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'doc' => 'https://developer-pro.bitmart.com/',
                 'referral' => 'http://www.bitmart.com/?r=rQCFLh',
                 'fees' => 'https://www.bitmart.com/fee/en',
             ),
@@ -1254,7 +1254,7 @@ class bitmart extends Exchange {
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $request['offset'] = 1;
+            $request['offset'] = 1; // max offset * $limit < 500
             if ($limit === null) {
                 $limit = 100; // max 100
             }
@@ -1605,6 +1605,7 @@ class bitmart extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1738,6 +1739,15 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
+        // spot alternative
+        //
+        //     {
+        //         "code" => 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message" => "OK",
+        //         "$data" => true
+        //     }
+        //
         // contract
         //
         //     {
@@ -1753,6 +1763,9 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
+        if ($data === true) {
+            return $this->parse_order($id, $market);
+        }
         $succeeded = $this->safe_value($data, 'succeed');
         if ($succeeded !== null) {
             $id = $this->safe_string($succeeded, 0);

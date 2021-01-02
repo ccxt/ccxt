@@ -73,7 +73,7 @@ class bitmart(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api': 'https://api-cloud.{hostname}',  # bitmart.info for Hong Kong users
                 'www': 'https://www.bitmart.com/',
-                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'doc': 'https://developer-pro.bitmart.com/',
                 'referral': 'http://www.bitmart.com/?r=rQCFLh',
                 'fees': 'https://www.bitmart.com/fee/en',
             },
@@ -1229,7 +1229,7 @@ class bitmart(Exchange):
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
-            request['offset'] = 1
+            request['offset'] = 1  # max offset * limit < 500
             if limit is None:
                 limit = 100  # max 100
             request['limit'] = limit
@@ -1557,6 +1557,7 @@ class bitmart(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1678,6 +1679,15 @@ class bitmart(Exchange):
         #         }
         #     }
         #
+        # spot alternative
+        #
+        #     {
+        #         "code": 1000,
+        #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        #         "message": "OK",
+        #         "data": True
+        #     }
+        #
         # contract
         #
         #     {
@@ -1693,6 +1703,8 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
+        if data is True:
+            return self.parse_order(id, market)
         succeeded = self.safe_value(data, 'succeed')
         if succeeded is not None:
             id = self.safe_string(succeeded, 0)

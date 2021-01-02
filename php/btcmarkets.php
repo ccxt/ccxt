@@ -821,7 +821,7 @@ class btcmarkets extends Exchange {
         //         "$status" => "Accepted",
         //         "$clientOrderId" => "1234-5678",
         //         "$timeInForce" => "IOC",
-        //         "postOnly" => false,
+        //         "$postOnly" => false,
         //         "selfTrade" => "P",
         //         "triggerAmount" => "105",
         //         "targetAmount" => "1000"
@@ -868,6 +868,7 @@ class btcmarkets extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -878,6 +879,7 @@ class btcmarkets extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,

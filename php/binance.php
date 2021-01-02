@@ -161,6 +161,7 @@ class binance extends Exchange {
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -186,6 +187,11 @@ class binance extends Exchange {
                         'bswap/liquidityOps',
                         'bswap/quote',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/tokenInfo',
+                        'blvt/subscribe/record',
+                        'blvt/redeem/record',
+                        'blvt/userLimit',
                     ),
                     'post' => array(
                         'asset/dust',
@@ -206,6 +212,7 @@ class binance extends Exchange {
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -220,6 +227,9 @@ class binance extends Exchange {
                         'bswap/liquidityAdd',
                         'bswap/liquidityRemove',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/subscribe',
+                        'blvt/redeem',
                     ),
                     'put' => array(
                         'userDataStream',
@@ -472,6 +482,7 @@ class binance extends Exchange {
             'exceptions' => array(
                 'API key does not exist' => '\\ccxt\\AuthenticationError',
                 'Order would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable',
+                'Stop price would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2010,"msg":"Stop price would trigger immediately.")
                 'Order would immediately match and take.' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2010,"msg":"Order would immediately match and take.")
                 'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                 'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
@@ -1446,7 +1457,7 @@ class binance extends Exchange {
             'CANCELED' => 'canceled',
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
-            'EXPIRED' => 'canceled',
+            'EXPIRED' => 'expired',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1572,6 +1583,7 @@ class binance extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1582,6 +1594,7 @@ class binance extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -1758,7 +1771,7 @@ class binance extends Exchange {
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
-            $request['orderId'] = intval($id);
+            $request['orderId'] = $id;
         }
         $query = $this->omit($params, array( 'type', 'clientOrderId', 'origClientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
@@ -1890,11 +1903,11 @@ class binance extends Exchange {
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            // 'orderId' => intval($id),
+            // 'orderId' => $id,
             // 'origClientOrderId' => $id,
         );
         if ($origClientOrderId === null) {
-            $request['orderId'] = intval($id);
+            $request['orderId'] = $id;
         } else {
             $request['origClientOrderId'] = $origClientOrderId;
         }
@@ -2522,7 +2535,7 @@ class binance extends Exchange {
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $params));
-            } else if ($path === 'batchOrders') {
+            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false)) {
                 $query = $this->rawencode(array_merge(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,

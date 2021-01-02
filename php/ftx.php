@@ -197,6 +197,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
@@ -210,7 +211,10 @@ class ftx extends Exchange {
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
                     'No such market' => '\\ccxt\\BadRequest',
+                    'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
+                    'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
+                    'Please try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please try again","success":false)
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -340,7 +344,7 @@ class ftx extends Exchange {
                 'amount' => $sizeIncrement,
                 'price' => $priceIncrement,
             );
-            $entry = array(
+            $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -368,7 +372,6 @@ class ftx extends Exchange {
                 ),
                 'info' => $market,
             );
-            $result[] = $entry;
         }
         return $result;
     }
@@ -873,7 +876,7 @@ class ftx extends Exchange {
         //         "$type" => "limit",
         //         "reduceOnly" => false,
         //         "ioc" => false,
-        //         "postOnly" => false,
+        //         "$postOnly" => false,
         //         "clientId" => null,
         //     }
         //
@@ -888,7 +891,7 @@ class ftx extends Exchange {
         //         "$id" => 3109208514,
         //         "ioc" => True,
         //         "$market" => "BNBBULL/USD",
-        //         "postOnly" => False,
+        //         "$postOnly" => False,
         //         "$price" => None,
         //         "reduceOnly" => False,
         //         "remainingSize" => 0.0,
@@ -952,7 +955,7 @@ class ftx extends Exchange {
         //         "ioc":false,
         //         "liquidation":false,
         //         "$market":"XRP/USDT",
-        //         "postOnly":false,
+        //         "$postOnly":false,
         //         "$price":0.5,
         //         "reduceOnly":false,
         //         "remainingSize":0.0,
@@ -1000,6 +1003,7 @@ class ftx extends Exchange {
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         $clientOrderId = $this->safe_string($order, 'clientId');
         $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1010,6 +1014,7 @@ class ftx extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,

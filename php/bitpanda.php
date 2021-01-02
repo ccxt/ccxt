@@ -1328,6 +1328,7 @@ class bitpanda extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_float($order, 'trigger_price');
+        $postOnly = $this->safe_value($order, 'is_post_only');
         $result = array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1338,6 +1339,7 @@ class bitpanda extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,

@@ -14,6 +14,7 @@ except NameError:
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -236,6 +237,7 @@ class bitforex(Exchange):
             },
             'commonCurrencies': {
                 'CREDIT': 'TerraCredit',
+                'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
@@ -244,6 +246,7 @@ class bitforex(Exchange):
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
+                '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
                 '10204': DDoSProtection,
             },
@@ -492,6 +495,7 @@ class bitforex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

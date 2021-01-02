@@ -19,7 +19,6 @@ class upbit extends Exchange {
             'countries' => array( 'KR' ),
             'version' => 'v1',
             'rateLimit' => 1000,
-            'certified' => true,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -1208,6 +1207,7 @@ class upbit extends Exchange {
             'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,

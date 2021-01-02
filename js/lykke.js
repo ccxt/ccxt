@@ -499,6 +499,7 @@ module.exports = class lykke extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,

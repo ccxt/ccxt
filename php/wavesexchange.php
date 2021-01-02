@@ -58,7 +58,7 @@ class wavesexchange extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'api' => array(
                     'matcher' => 'http://matcher.waves.exchange',
-                    'node' => 'https://nodes.wavesnodes.com',
+                    'node' => 'https://nodes.waves.exchange',
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
                     'forward' => 'https://waves.exchange/api/v1/forward/matcher',
@@ -1275,6 +1275,7 @@ class wavesexchange extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1581,7 +1582,7 @@ class wavesexchange extends Exchange {
         }
         $isErc20 = true;
         $noPrefix = $this->remove0x_prefix($address);
-        $lower = $noPrefix->lower ();
+        $lower = strtolower($noPrefix);
         for ($i = 0; $i < count($lower); $i++) {
             $character = $lower[$i];
             if (!(is_array($set) && array_key_exists($character, $set))) {

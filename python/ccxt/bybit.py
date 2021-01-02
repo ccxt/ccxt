@@ -295,6 +295,7 @@ class bybit(Exchange):
             'options': {
                 'marketTypes': {
                     'BTC/USDT': 'linear',
+                    'BCH/USDT': 'linear',
                     'ETH/USDT': 'linear',
                     'LTC/USDT': 'linear',
                     'XTZ/USDT': 'linear',
@@ -1127,6 +1128,7 @@ class bybit(Exchange):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_float(order, 'stop_px')
+        postOnly = (timeInForce == 'PO')
         return {
             'info': order,
             'id': id,
@@ -1137,6 +1139,7 @@ class bybit(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1282,6 +1285,10 @@ class bybit(Exchange):
                 request['price'] = float(self.price_to_precision(symbol, price))
             else:
                 raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+        clientOrderId = self.safe_string_2(params, 'order_link_id', 'clientOrderId')
+        if clientOrderId is not None:
+            request['order_link_id'] = clientOrderId
+            params = self.omit(params, ['order_link_id', 'clientOrderId'])
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value(params, 'base_price')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})

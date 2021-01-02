@@ -34,7 +34,7 @@ def throttle(config=None):
                     elapsed = (now - cfg['lastTimestamp'])
                     cfg['lastTimestamp'] = now
                     cfg['numTokens'] = min(cfg['capacity'], cfg['numTokens'] + elapsed * cfg['refillRate'] * 1000)
-                    if cfg['numTokens'] > 0:
+                    if cfg['numTokens'] > 0 or cfg['refillRate'] == 0:
                         if not cfg['queue'].empty():
                             cost, future = cfg['queue'].get_nowait()
                             cfg['numTokens'] -= (cost if cost else cfg['defaultCost'])
@@ -54,7 +54,7 @@ def throttle(config=None):
 
     def throttle(rate_limit, cost=None):
         future = Future()
-        cfg['refillRate'] = 1 / rate_limit
+        cfg['refillRate'] = 0 if rate_limit == 0 else 1 / rate_limit
         cfg['queue'].put_nowait((cost, future))
         ensure_future(run())
         return future

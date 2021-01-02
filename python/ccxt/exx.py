@@ -314,6 +314,7 @@ class exx(Exchange):
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
+            'postOnly': None,
             'side': order['type'],
             'price': price,
             'stopPrice': None,

@@ -1183,6 +1183,7 @@ module.exports = class bitvavo extends Exchange {
             }
         }
         const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -1193,6 +1194,7 @@ module.exports = class bitvavo extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,

@@ -573,6 +573,7 @@ module.exports = class oceanex extends Exchange {
             'symbol': symbol,
             'type': this.safeValue (order, 'ord_type'),
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': this.safeValue (order, 'side'),
             'price': this.safeFloat (order, 'price'),
             'stopPrice': undefined,

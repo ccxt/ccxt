@@ -287,6 +287,7 @@ class bybit extends Exchange {
             'options' => array(
                 'marketTypes' => array(
                     'BTC/USDT' => 'linear',
+                    'BCH/USDT' => 'linear',
                     'ETH/USDT' => 'linear',
                     'LTC/USDT' => 'linear',
                     'XTZ/USDT' => 'linear',
@@ -1168,6 +1169,7 @@ class bybit extends Exchange {
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_float($order, 'stop_px');
+        $postOnly = ($timeInForce === 'PO');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1178,6 +1180,7 @@ class bybit extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1331,6 +1334,11 @@ class bybit extends Exchange {
             } else {
                 throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
+        }
+        $clientOrderId = $this->safe_string_2($params, 'order_link_id', 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['order_link_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'order_link_id', 'clientOrderId' ));
         }
         $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value($params, 'base_price');

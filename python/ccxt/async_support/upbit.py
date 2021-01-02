@@ -24,7 +24,6 @@ class upbit(Exchange):
             'countries': ['KR'],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': True,
             'pro': True,
             # new metainfo interface
             'has': {
@@ -1149,6 +1148,7 @@ class upbit(Exchange):
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': None,

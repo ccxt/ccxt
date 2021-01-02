@@ -154,6 +154,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/spotSummary',
                         'sub-account/status',
                         'sub-account/transfer/subUserHistory',
+                        'sub-account/universalTransfer',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -179,6 +180,11 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityOps',
                         'bswap/quote',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/tokenInfo',
+                        'blvt/subscribe/record',
+                        'blvt/redeem/record',
+                        'blvt/userLimit',
                     ],
                     'post': [
                         'asset/dust',
@@ -199,6 +205,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/futures/internalTransfer',
                         'sub-account/transfer/subToSub',
                         'sub-account/transfer/subToMaster',
+                        'sub-account/universalTransfer',
                         'userDataStream',
                         'userDataStream/isolated',
                         'futures/transfer',
@@ -213,6 +220,9 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityAdd',
                         'bswap/liquidityRemove',
                         'bswap/swap',
+                        // leveraged token endpoints
+                        'blvt/subscribe',
+                        'blvt/redeem',
                     ],
                     'put': [
                         'userDataStream',
@@ -465,6 +475,7 @@ module.exports = class binance extends Exchange {
             'exceptions': {
                 'API key does not exist': AuthenticationError,
                 'Order would trigger immediately.': OrderImmediatelyFillable,
+                'Stop price would trigger immediately.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
                 'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
@@ -1560,7 +1571,7 @@ module.exports = class binance extends Exchange {
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1686,6 +1697,7 @@ module.exports = class binance extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         return {
             'info': order,
             'id': id,
@@ -1696,6 +1708,7 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'amount': amount,
@@ -1872,7 +1885,7 @@ module.exports = class binance extends Exchange {
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         } else {
-            request['orderId'] = parseInt (id);
+            request['orderId'] = id;
         }
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
@@ -2004,11 +2017,11 @@ module.exports = class binance extends Exchange {
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
-            // 'orderId': parseInt (id),
+            // 'orderId': id,
             // 'origClientOrderId': id,
         };
         if (origClientOrderId === undefined) {
-            request['orderId'] = parseInt (id);
+            request['orderId'] = id;
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
@@ -2636,7 +2649,7 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
-            } else if (path === 'batchOrders') {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
                 query = this.rawencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,

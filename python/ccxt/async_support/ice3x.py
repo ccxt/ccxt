@@ -324,6 +324,7 @@ class ice3x(Exchange):
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
+            'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': price,
             'stopPrice': None,

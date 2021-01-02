@@ -18,6 +18,8 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -209,6 +211,7 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Size too small for provide': InvalidOrder,  # {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
@@ -222,7 +225,10 @@ class ftx(Exchange):
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
+                    'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
+                    'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -349,7 +355,7 @@ class ftx(Exchange):
                 'amount': sizeIncrement,
                 'price': priceIncrement,
             }
-            entry = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -376,8 +382,7 @@ class ftx(Exchange):
                     },
                 },
                 'info': market,
-            }
-            result.append(entry)
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -970,6 +975,7 @@ class ftx(Exchange):
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         clientOrderId = self.safe_string(order, 'clientId')
         stopPrice = self.safe_float(order, 'triggerPrice')
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
             'id': id,
@@ -980,6 +986,7 @@ class ftx(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,

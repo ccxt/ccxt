@@ -287,6 +287,7 @@ module.exports = class independentreserve extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,

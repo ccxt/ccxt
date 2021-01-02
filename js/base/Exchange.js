@@ -577,7 +577,7 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            const json = this.parseJson (responseBody)
+            const json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
 
             const responseHeaders = this.getResponseHeaders (response)
 
@@ -1285,7 +1285,7 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
+        return decimalToPrecision (cost, TRUNCATE, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
     priceToPrecision (symbol, price) {
