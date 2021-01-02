@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f37661774ff5257495e363db1506329",
+    "content-hash": "93e85bdfb0a6ff60c3b6668fc7879559",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.40.6",
+            "version": "1.40.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "2cac02569cee8734565945faae4fa0111645816b"
+                "reference": "2e4f52e7470c949ff574d405b8dfc285209473d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/2cac02569cee8734565945faae4fa0111645816b",
-                "reference": "2cac02569cee8734565945faae4fa0111645816b",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/2e4f52e7470c949ff574d405b8dfc285209473d6",
+                "reference": "2e4f52e7470c949ff574d405b8dfc285209473d6",
                 "shasum": ""
             },
             "require": {
@@ -275,7 +275,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-01-02T11:53:12+00:00"
+            "time": "2021-01-02T22:27:07+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -697,6 +697,16 @@
                 "promise",
                 "reactphp"
             ],
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
+            ],
             "time": "2020-09-18T12:12:35+00:00"
         },
         {
@@ -762,6 +772,16 @@
                 "dns",
                 "dns-resolver",
                 "reactphp"
+            ],
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
             ],
             "time": "2020-09-18T12:12:55+00:00"
         },
@@ -973,6 +993,16 @@
                 "async",
                 "reactphp",
                 "stream"
+            ],
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
             ],
             "time": "2020-08-28T12:49:05+00:00"
         },
