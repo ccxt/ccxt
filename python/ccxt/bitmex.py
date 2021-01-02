@@ -1256,16 +1256,16 @@ class bitmex(Exchange):
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'orderQty': amount,
+            'orderQty': float(self.amount_to_precision(symbol, amount)),
             'ordType': orderType,
         }
         if price is not None:
             if orderType == 'Stop':
                 stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
-                request['stopPx'] = stopPrice
+                request['stopPx'] = float(self.price_to_precision(symbol, stopPrice))
                 params = self.omit(params, ['stopPx', 'stopPrice'])
             else:
-                request['price'] = price
+                request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId

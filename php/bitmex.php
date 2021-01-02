@@ -1331,16 +1331,16 @@ class bitmex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
-            'orderQty' => $amount,
+            'orderQty' => floatval($this->amount_to_precision($symbol, $amount)),
             'ordType' => $orderType,
         );
         if ($price !== null) {
             if ($orderType === 'Stop') {
                 $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
-                $request['stopPx'] = $stopPrice;
+                $request['stopPx'] = floatval($this->price_to_precision($symbol, $stopPrice));
                 $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
             } else {
-                $request['price'] = $price;
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
             }
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
