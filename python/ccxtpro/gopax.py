@@ -472,12 +472,12 @@ class gopax(Exchange, ccxt.gopax):
         messageHash = name
         trade = self.parse_trade(o)
         symbol = trade['symbol']
-        array = self.safe_value(self.trades, symbol)
+        array = self.safe_value(self.myTrades, symbol)
         if array is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             array = ArrayCache(limit)
         array.append(trade)
-        self.trades[symbol] = array
+        self.myTrades[symbol] = array
         client.resolve(array, messageHash)
         client.resolve(array, messageHash + ':' + symbol)
 
