@@ -61,7 +61,7 @@ class gopax(Exchange):
                     'public': 'https://api.{hostname}',  # or 'https://api.gopax.co.kr'
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://gopax.co.kr',
+                'www': 'https://www.gopax.co.kr',
                 'doc': 'https://gopax.github.io/API/index.en.html',
                 'fees': 'https://www.gopax.com/feeinfo',
             },
