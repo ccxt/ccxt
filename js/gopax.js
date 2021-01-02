@@ -495,13 +495,13 @@ module.exports = class gopax extends ccxt.gopax {
         const messageHash = name;
         const trade = this.parseTrade (o);
         const symbol = trade['symbol'];
-        let array = this.safeValue (this.trades, symbol);
+        let array = this.safeValue (this.myTrades, symbol);
         if (array === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             array = new ArrayCache (limit);
         }
         array.append (trade);
-        this.trades[symbol] = array;
+        this.myTrades[symbol] = array;
         client.resolve (array, messageHash);
         client.resolve (array, messageHash + ':' + symbol);
     }
