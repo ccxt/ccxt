@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
@@ -1223,6 +1224,43 @@ class bitmex extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
+        //         "clOrdID":"",
+        //         "clOrdLinkID":"",
+        //         "account":1455728,
+        //         "$symbol":"XBTUSD",
+        //         "$side":"Sell",
+        //         "simpleOrderQty":null,
+        //         "orderQty":1,
+        //         "$price":40000,
+        //         "displayQty":null,
+        //         "stopPx":null,
+        //         "pegOffsetValue":null,
+        //         "pegPriceType":"",
+        //         "currency":"USD",
+        //         "settlCurrency":"XBt",
+        //         "ordType":"Limit",
+        //         "$timeInForce":"GoodTillCancel",
+        //         "$execInst":"",
+        //         "contingencyType":"",
+        //         "exDestination":"XBME",
+        //         "ordStatus":"New",
+        //         "triggered":"",
+        //         "workingIndicator":true,
+        //         "ordRejReason":"",
+        //         "simpleLeavesQty":null,
+        //         "leavesQty":1,
+        //         "simpleCumQty":null,
+        //         "cumQty":0,
+        //         "avgPx":null,
+        //         "multiLegReportingType":"SingleSecurity",
+        //         "text":"Submitted via API.",
+        //         "transactTime":"2021-01-02T21:38:49.246Z",
+        //         "$timestamp":"2021-01-02T21:38:49.246Z"
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1252,6 +1290,8 @@ class bitmex extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clOrdID');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_float($order, 'stopPx');
+        $execInst = $this->safe_string($order, 'execInst');
+        $postOnly = ($execInst === 'ParticipateDoNotInitiate');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1262,7 +1302,7 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
@@ -1334,14 +1374,17 @@ class bitmex extends Exchange {
             'orderQty' => floatval($this->amount_to_precision($symbol, $amount)),
             'ordType' => $orderType,
         );
-        if ($price !== null) {
-            if ($orderType === 'Stop') {
-                $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+        if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
+            $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder requires a stopPx or $stopPrice parameter for the ' . $orderType . ' order type');
+            } else {
                 $request['stopPx'] = floatval($this->price_to_precision($symbol, $stopPrice));
                 $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
-            } else {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
             }
+        }
+        if (($orderType === 'Limit') || ($orderType === 'StopLimit') || ($orderType === 'LimitIfTouched')) {
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
