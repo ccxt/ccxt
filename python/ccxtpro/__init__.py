@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.5.7'
+__version__ = '0.5.8'
 
 # -----------------------------------------------------------------------------
 
@@ -116,7 +116,6 @@ from ccxt.async_support.fcoinjp import fcoinjp                            # noqa
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
-from ccxt.async_support.gopax import gopax                                # noqa: F401
 from ccxt.async_support.hbtc import hbtc                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
@@ -174,6 +173,7 @@ from ccxtpro.coinbasepro import coinbasepro                               # noqa
 from ccxtpro.currencycom import currencycom                               # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
+from ccxtpro.gopax import gopax                                           # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
 from ccxtpro.huobijp import huobijp                                       # noqa: F401
 from ccxtpro.huobipro import huobipro                                     # noqa: F401
