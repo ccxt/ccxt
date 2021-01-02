@@ -1327,16 +1327,16 @@ module.exports = class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': amount,
+            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)),
             'ordType': orderType,
         };
         if (price !== undefined) {
             if (orderType === 'Stop') {
                 const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
-                request['stopPx'] = stopPrice;
+                request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
                 params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
             } else {
-                request['price'] = price;
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             }
         }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
