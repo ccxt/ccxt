@@ -77,7 +77,7 @@ module.exports = class gopax extends ccxt.gopax {
         return await this.after (future, this.limitOrderBook, symbol, limit, params);
     }
 
-    handleDelta (bookside, delta) {
+    handleDelta (orderbook, bookside, delta) {
         //
         //     {
         //         entryId: 60949856,
@@ -86,17 +86,19 @@ module.exports = class gopax extends ccxt.gopax {
         //         updatedAt: 1609420344.174
         //     }
         //
-        const price = this.safeFloat (delta, 'price');
-        const amount = this.safeFloat (delta, 'volume');
-        const nonce = this.safeInteger (delta, 'entryId');
-        bookside.store (price, amount);
-        return nonce;
+        const entryId = this.safeInteger (delta, 'entryId');
+        if ((orderbook['nonce'] !== undefined) && (entryId >= orderbook['nonce'])) {
+            const price = this.safeFloat (delta, 'price');
+            const amount = this.safeFloat (delta, 'volume');
+            bookside.store (price, amount);
+        }
+        return entryId;
     }
 
-    handleDeltas (bookside, deltas) {
+    handleDeltas (orderbook, bookside, deltas) {
         let nonce = 0;
         for (let i = 0; i < deltas.length; i++) {
-            const n = this.handleDelta (bookside, deltas[i]);
+            const n = this.handleDelta (orderbook, bookside, deltas[i]);
             nonce = Math.max (nonce, n);
         }
         return nonce;
@@ -117,8 +119,8 @@ module.exports = class gopax extends ccxt.gopax {
         //     }
         //
         const o = this.safeValue (message, 'o', {});
-        const askNonce = this.handleDeltas (orderbook['asks'], this.safeValue (o, 'ask', []));
-        const bidNonce = this.handleDeltas (orderbook['bids'], this.safeValue (o, 'bid', []));
+        const askNonce = this.handleDeltas (orderbook, orderbook['asks'], this.safeValue (o, 'ask', []));
+        const bidNonce = this.handleDeltas (orderbook, orderbook['bids'], this.safeValue (o, 'bid', []));
         const nonce = Math.max (askNonce, bidNonce);
         orderbook['nonce'] = nonce;
         return orderbook;
@@ -174,10 +176,8 @@ module.exports = class gopax extends ccxt.gopax {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        }
         if (n === 'SubscribeToOrderBook') {
+            orderbook['nonce'] = 0;
             this.handleOrderBookMessage (client, message, orderbook);
             for (let i = 0; i < orderbook.cache.length; i++) {
                 const message = orderbook.cache[i];
