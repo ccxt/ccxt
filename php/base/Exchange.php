@@ -639,7 +639,10 @@ class Exchange {
 
     public static function milliseconds() {
         list($msec, $sec) = explode(' ', microtime());
-        return (int) ($sec . substr($msec, 2, 3));
+        // raspbian 32-bit integer workaround
+        // https://github.com/ccxt/ccxt/issues/5978
+        // return (int) ($sec . substr($msec, 2, 3));
+        return $sec . substr($msec, 2, 3);
     }
 
     public static function microseconds() {
