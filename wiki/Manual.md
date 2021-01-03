@@ -3141,7 +3141,7 @@ Returns ordered array `[]` of trades (most recent trade last).
     'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
     'price':        0.06917684,                 // float price in quote currency
     'amount':       1.5,                        // amount of base currency
-    'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+    'cost':         0.10376526,                 // total cost, `price * amount`,
     'fee':          {                           // provided by exchange or calculated by ccxt
         'cost':  0.0015,                        // float
         'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
@@ -3153,6 +3153,7 @@ Returns ordered array `[]` of trades (most recent trade last).
 - The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `cost` of the trade means `amount * price`. It is the total *quote* volume of the trade (whereas `amount` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
+- The `cost` of the trade is a _"gross"_ value. That is the value pre-fee, and the fee has to be applied afterwards.
 
 ### Trades By Order Id
 
