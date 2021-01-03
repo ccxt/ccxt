@@ -188,14 +188,14 @@ module.exports = class bitso extends Exchange {
             };
             const takerFees = [];
             const makerFees = [];
-            for (let i = 0; i < feeTiers.length; i++) {
-                const tier = feeTiers[i];
+            for (let j = 0; j < feeTiers.length; j++) {
+                const tier = feeTiers[j];
                 const volume = this.safeFloat (tier, 'volume');
                 const takerFee = this.safeFloat (tier, 'taker');
                 const makerFee = this.safeFloat (tier, 'maker');
                 takerFees.push ([ volume, takerFee ]);
                 makerFees.push ([ volume, makerFee ]);
-                if (i === 0) {
+                if (j === 0) {
                     fee['taker'] = taker;
                     fee['maker'] = maker;
                 }
