@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -1156,6 +1157,43 @@ class bitmex(Exchange):
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
+        #         "clOrdID":"",
+        #         "clOrdLinkID":"",
+        #         "account":1455728,
+        #         "symbol":"XBTUSD",
+        #         "side":"Sell",
+        #         "simpleOrderQty":null,
+        #         "orderQty":1,
+        #         "price":40000,
+        #         "displayQty":null,
+        #         "stopPx":null,
+        #         "pegOffsetValue":null,
+        #         "pegPriceType":"",
+        #         "currency":"USD",
+        #         "settlCurrency":"XBt",
+        #         "ordType":"Limit",
+        #         "timeInForce":"GoodTillCancel",
+        #         "execInst":"",
+        #         "contingencyType":"",
+        #         "exDestination":"XBME",
+        #         "ordStatus":"New",
+        #         "triggered":"",
+        #         "workingIndicator":true,
+        #         "ordRejReason":"",
+        #         "simpleLeavesQty":null,
+        #         "leavesQty":1,
+        #         "simpleCumQty":null,
+        #         "cumQty":0,
+        #         "avgPx":null,
+        #         "multiLegReportingType":"SingleSecurity",
+        #         "text":"Submitted via API.",
+        #         "transactTime":"2021-01-02T21:38:49.246Z",
+        #         "timestamp":"2021-01-02T21:38:49.246Z"
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1181,6 +1219,8 @@ class bitmex(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdID')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_float(order, 'stopPx')
+        execInst = self.safe_string(order, 'execInst')
+        postOnly = (execInst == 'ParticipateDoNotInitiate')
         return {
             'info': order,
             'id': id,
@@ -1191,7 +1231,7 @@ class bitmex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1259,13 +1299,15 @@ class bitmex(Exchange):
             'orderQty': float(self.amount_to_precision(symbol, amount)),
             'ordType': orderType,
         }
-        if price is not None:
-            if orderType == 'Stop':
-                stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
+        if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
+            stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder requires a stopPx or stopPrice parameter for the ' + orderType + ' order type')
+            else:
                 request['stopPx'] = float(self.price_to_precision(symbol, stopPrice))
                 params = self.omit(params, ['stopPx', 'stopPrice'])
-            else:
-                request['price'] = float(self.price_to_precision(symbol, price))
+        if (orderType == 'Limit') or (orderType == 'StopLimit') or (orderType == 'LimitIfTouched'):
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
