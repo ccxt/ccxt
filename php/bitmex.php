@@ -21,6 +21,7 @@ class bitmex extends \ccxt\bitmex {
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
@@ -579,18 +580,227 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $authenticate = $this->authenticate();
-        $messageHash = 'execution';
+        $name = 'order';
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
             'args' => array(
-                $messageHash,
+                $subscriptionHash,
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $messageHash);
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_orders($client, $message) {
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'partial',
+        //         $keys => array( 'orderID' ),
+        //         types => array(
+        //             orderID => 'guid',
+        //             clOrdID => 'string',
+        //             clOrdLinkID => 'symbol',
+        //             account => 'long',
+        //             $symbol => 'symbol',
+        //             side => 'symbol',
+        //             simpleOrderQty => 'float',
+        //             orderQty => 'long',
+        //             price => 'float',
+        //             displayQty => 'long',
+        //             stopPx => 'float',
+        //             pegOffsetValue => 'float',
+        //             pegPriceType => 'symbol',
+        //             currency => 'symbol',
+        //             settlCurrency => 'symbol',
+        //             ordType => 'symbol',
+        //             timeInForce => 'symbol',
+        //             execInst => 'symbol',
+        //             contingencyType => 'symbol',
+        //             exDestination => 'symbol',
+        //             ordStatus => 'symbol',
+        //             triggered => 'symbol',
+        //             workingIndicator => 'boolean',
+        //             ordRejReason => 'symbol',
+        //             simpleLeavesQty => 'float',
+        //             leavesQty => 'long',
+        //             simpleCumQty => 'float',
+        //             cumQty => 'long',
+        //             avgPx => 'float',
+        //             multiLegReportingType => 'symbol',
+        //             text => 'string',
+        //             transactTime => 'timestamp',
+        //             timestamp => 'timestamp'
+        //         ),
+        //         foreignKeys => array( $symbol => 'instrument', side => 'side', ordStatus => 'ordStatus' ),
+        //         attributes => array(
+        //             orderID => 'grouped',
+        //             account => 'grouped',
+        //             ordStatus => 'grouped',
+        //             workingIndicator => 'grouped'
+        //         ),
+        //         filter => array( account => 1455728 ),
+        //         $data => array(
+        //             {
+        //                 orderID => '56222c7a-9956-413a-82cf-99f4812c214b',
+        //                 clOrdID => '',
+        //                 clOrdLinkID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Sell',
+        //                 simpleOrderQty => null,
+        //                 orderQty => 1,
+        //                 price => 40000,
+        //                 displayQty => null,
+        //                 stopPx => null,
+        //                 pegOffsetValue => null,
+        //                 pegPriceType => '',
+        //                 currency => 'USD',
+        //                 settlCurrency => 'XBt',
+        //                 ordType => 'Limit',
+        //                 timeInForce => 'GoodTillCancel',
+        //                 execInst => '',
+        //                 contingencyType => '',
+        //                 exDestination => 'XBME',
+        //                 ordStatus => 'New',
+        //                 triggered => '',
+        //                 workingIndicator => true,
+        //                 ordRejReason => '',
+        //                 simpleLeavesQty => null,
+        //                 leavesQty => 1,
+        //                 simpleCumQty => null,
+        //                 cumQty => 0,
+        //                 avgPx => null,
+        //                 multiLegReportingType => 'SingleSecurity',
+        //                 text => 'Submitted via API.',
+        //                 transactTime => '2021-01-02T21:38:49.246Z',
+        //                 timestamp => '2021-01-02T21:38:49.246Z'
+        //             }
+        //         )
+        //     }
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'insert',
+        //         $data => array(
+        //             {
+        //                 orderID => 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 clOrdID => '',
+        //                 clOrdLinkID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Sell',
+        //                 simpleOrderQty => null,
+        //                 orderQty => 1,
+        //                 price => 40000,
+        //                 displayQty => null,
+        //                 stopPx => null,
+        //                 pegOffsetValue => null,
+        //                 pegPriceType => '',
+        //                 currency => 'USD',
+        //                 settlCurrency => 'XBt',
+        //                 ordType => 'Limit',
+        //                 timeInForce => 'GoodTillCancel',
+        //                 execInst => '',
+        //                 contingencyType => '',
+        //                 exDestination => 'XBME',
+        //                 ordStatus => 'New',
+        //                 triggered => '',
+        //                 workingIndicator => true,
+        //                 ordRejReason => '',
+        //                 simpleLeavesQty => null,
+        //                 leavesQty => 1,
+        //                 simpleCumQty => null,
+        //                 cumQty => 0,
+        //                 avgPx => null,
+        //                 multiLegReportingType => 'SingleSecurity',
+        //                 text => 'Submitted via API.',
+        //                 transactTime => '2021-01-02T23:49:02.286Z',
+        //                 timestamp => '2021-01-02T23:49:02.286Z'
+        //             }
+        //         )
+        //     }
+        //
+        //
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'update',
+        //         $data => array(
+        //             {
+        //                 orderID => 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 ordStatus => 'Canceled',
+        //                 workingIndicator => false,
+        //                 leavesQty => 0,
+        //                 text => 'Canceled => Canceled via API.\nSubmitted via API.',
+        //                 timestamp => '2021-01-02T23:50:51.272Z',
+        //                 clOrdID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD'
+        //             }
+        //         )
+        //     }
+        //
+        // console.dir ($message, array( depth => null ));
+        $data = $this->safe_value($message, 'data', array());
+        $messageHash = 'order';
+        // initial subscription response with multiple orders
+        $dataLength = is_array($data) ? count($data) : 0;
+        if ($dataLength > 0) {
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheById ($limit);
+            }
+            $stored = $this->orders;
+            $symbols = array();
+            for ($i = 0; $i < $dataLength; $i++) {
+                $currentOrder = $data[$i];
+                $orderId = $this->safe_string($currentOrder, 'orderID');
+                $previousOrder = $this->safe_value($stored->index, $orderId);
+                $rawOrder = $currentOrder;
+                if ($previousOrder !== null) {
+                    $rawOrder = array_merge($previousOrder['info'], $currentOrder);
+                }
+                $order = $this->parse_order($rawOrder);
+                $this->orders.append ($order);
+                $symbol = $order['symbol'];
+                $symbols[$symbol] = true;
+            }
+            $client->resolve ($this->orders, $messageHash);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $symbol = $keys[$i];
+                $client->resolve ($this->orders, $messageHash . ':' . $symbol);
+            }
+        }
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $authenticate = $this->authenticate();
+        $name = 'execution';
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $subscriptionHash,
+            ),
+        );
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
         return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
@@ -606,7 +816,7 @@ class bitmex extends \ccxt\bitmex {
         //                 "clOrdID":"",
         //                 "clOrdLinkID":"",
         //                 "account":2,
-        //                 "symbol":"XBTUSD",
+        //                 "$symbol":"XBTUSD",
         //                 "side":"Sell",
         //                 "lastQty":1,
         //                 "lastPx":1134.37,
@@ -662,12 +872,20 @@ class bitmex extends \ccxt\bitmex {
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
         $stored = $this->myTrades;
+        $symbols = array();
         for ($j = 0; $j < count($trades); $j++) {
-            $stored->append ($trades[$j]);
+            $trade = $trades[$j];
+            $symbol = $trade['symbol'];
+            $stored->append ($trade);
+            $symbols[$symbol] = $trade;
         }
         $numTrades = is_array($trades) ? count($trades) : 0;
         if ($numTrades > 0) {
             $client->resolve ($stored, $messageHash);
+        }
+        $keys = is_array($symbols) ? array_keys($symbols) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $client->resolve ($stored, $messageHash . ':' . $keys[$i]);
         }
     }
 
@@ -1039,6 +1257,7 @@ class bitmex extends \ccxt\bitmex {
                 'tradeBin5m' => array($this, 'handle_ohlcv'),
                 'tradeBin1h' => array($this, 'handle_ohlcv'),
                 'tradeBin1d' => array($this, 'handle_ohlcv'),
+                'order' => array($this, 'handle_orders'),
                 'execution' => array($this, 'handle_my_trades'),
                 'margin' => array($this, 'handle_balance'),
             );

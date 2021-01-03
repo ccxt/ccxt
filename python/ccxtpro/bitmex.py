@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxtpro.base.cache import ArrayCache, ArrayCacheById, ArrayCacheBySymbolById
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import RateLimitExceeded
@@ -21,6 +21,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
@@ -561,18 +562,218 @@ class bitmex(Exchange, ccxt.bitmex):
             if event in client.subscriptions:
                 del client.subscriptions[event]
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         authenticate = self.authenticate()
-        messageHash = 'execution'
+        name = 'order'
+        subscriptionHash = name
+        messageHash = name
+        if symbol is not None:
+            messageHash += ':' + symbol
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
             'args': [
-                messageHash,
+                subscriptionHash,
             ],
         }
-        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, messageHash)
+        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_orders(self, client, message):
+        #
+        #     {
+        #         table: 'order',
+        #         action: 'partial',
+        #         keys: ['orderID'],
+        #         types: {
+        #             orderID: 'guid',
+        #             clOrdID: 'string',
+        #             clOrdLinkID: 'symbol',
+        #             account: 'long',
+        #             symbol: 'symbol',
+        #             side: 'symbol',
+        #             simpleOrderQty: 'float',
+        #             orderQty: 'long',
+        #             price: 'float',
+        #             displayQty: 'long',
+        #             stopPx: 'float',
+        #             pegOffsetValue: 'float',
+        #             pegPriceType: 'symbol',
+        #             currency: 'symbol',
+        #             settlCurrency: 'symbol',
+        #             ordType: 'symbol',
+        #             timeInForce: 'symbol',
+        #             execInst: 'symbol',
+        #             contingencyType: 'symbol',
+        #             exDestination: 'symbol',
+        #             ordStatus: 'symbol',
+        #             triggered: 'symbol',
+        #             workingIndicator: 'boolean',
+        #             ordRejReason: 'symbol',
+        #             simpleLeavesQty: 'float',
+        #             leavesQty: 'long',
+        #             simpleCumQty: 'float',
+        #             cumQty: 'long',
+        #             avgPx: 'float',
+        #             multiLegReportingType: 'symbol',
+        #             text: 'string',
+        #             transactTime: 'timestamp',
+        #             timestamp: 'timestamp'
+        #         },
+        #         foreignKeys: {symbol: 'instrument', side: 'side', ordStatus: 'ordStatus'},
+        #         attributes: {
+        #             orderID: 'grouped',
+        #             account: 'grouped',
+        #             ordStatus: 'grouped',
+        #             workingIndicator: 'grouped'
+        #         },
+        #         filter: {account: 1455728},
+        #         data: [
+        #             {
+        #                 orderID: '56222c7a-9956-413a-82cf-99f4812c214b',
+        #                 clOrdID: '',
+        #                 clOrdLinkID: '',
+        #                 account: 1455728,
+        #                 symbol: 'XBTUSD',
+        #                 side: 'Sell',
+        #                 simpleOrderQty: null,
+        #                 orderQty: 1,
+        #                 price: 40000,
+        #                 displayQty: null,
+        #                 stopPx: null,
+        #                 pegOffsetValue: null,
+        #                 pegPriceType: '',
+        #                 currency: 'USD',
+        #                 settlCurrency: 'XBt',
+        #                 ordType: 'Limit',
+        #                 timeInForce: 'GoodTillCancel',
+        #                 execInst: '',
+        #                 contingencyType: '',
+        #                 exDestination: 'XBME',
+        #                 ordStatus: 'New',
+        #                 triggered: '',
+        #                 workingIndicator: True,
+        #                 ordRejReason: '',
+        #                 simpleLeavesQty: null,
+        #                 leavesQty: 1,
+        #                 simpleCumQty: null,
+        #                 cumQty: 0,
+        #                 avgPx: null,
+        #                 multiLegReportingType: 'SingleSecurity',
+        #                 text: 'Submitted via API.',
+        #                 transactTime: '2021-01-02T21:38:49.246Z',
+        #                 timestamp: '2021-01-02T21:38:49.246Z'
+        #             }
+        #         ]
+        #     }
+        #
+        #     {
+        #         table: 'order',
+        #         action: 'insert',
+        #         data: [
+        #             {
+        #                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        #                 clOrdID: '',
+        #                 clOrdLinkID: '',
+        #                 account: 1455728,
+        #                 symbol: 'XBTUSD',
+        #                 side: 'Sell',
+        #                 simpleOrderQty: null,
+        #                 orderQty: 1,
+        #                 price: 40000,
+        #                 displayQty: null,
+        #                 stopPx: null,
+        #                 pegOffsetValue: null,
+        #                 pegPriceType: '',
+        #                 currency: 'USD',
+        #                 settlCurrency: 'XBt',
+        #                 ordType: 'Limit',
+        #                 timeInForce: 'GoodTillCancel',
+        #                 execInst: '',
+        #                 contingencyType: '',
+        #                 exDestination: 'XBME',
+        #                 ordStatus: 'New',
+        #                 triggered: '',
+        #                 workingIndicator: True,
+        #                 ordRejReason: '',
+        #                 simpleLeavesQty: null,
+        #                 leavesQty: 1,
+        #                 simpleCumQty: null,
+        #                 cumQty: 0,
+        #                 avgPx: null,
+        #                 multiLegReportingType: 'SingleSecurity',
+        #                 text: 'Submitted via API.',
+        #                 transactTime: '2021-01-02T23:49:02.286Z',
+        #                 timestamp: '2021-01-02T23:49:02.286Z'
+        #             }
+        #         ]
+        #     }
+        #
+        #
+        #
+        #     {
+        #         table: 'order',
+        #         action: 'update',
+        #         data: [
+        #             {
+        #                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        #                 ordStatus: 'Canceled',
+        #                 workingIndicator: False,
+        #                 leavesQty: 0,
+        #                 text: 'Canceled: Canceled via API.\nSubmitted via API.',
+        #                 timestamp: '2021-01-02T23:50:51.272Z',
+        #                 clOrdID: '',
+        #                 account: 1455728,
+        #                 symbol: 'XBTUSD'
+        #             }
+        #         ]
+        #     }
+        #
+        # console.dir(message, {depth: null})
+        data = self.safe_value(message, 'data', [])
+        messageHash = 'order'
+        # initial subscription response with multiple orders
+        dataLength = len(data)
+        if dataLength > 0:
+            if self.orders is None:
+                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+                self.orders = ArrayCacheById(limit)
+            stored = self.orders
+            symbols = {}
+            for i in range(0, dataLength):
+                currentOrder = data[i]
+                orderId = self.safe_string(currentOrder, 'orderID')
+                previousOrder = self.safe_value(stored.index, orderId)
+                rawOrder = currentOrder
+                if previousOrder is not None:
+                    rawOrder = self.extend(previousOrder['info'], currentOrder)
+                order = self.parse_order(rawOrder)
+                self.orders.append(order)
+                symbol = order['symbol']
+                symbols[symbol] = True
+            client.resolve(self.orders, messageHash)
+            keys = list(symbols.keys())
+            for i in range(0, len(keys)):
+                symbol = keys[i]
+                client.resolve(self.orders, messageHash + ':' + symbol)
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        authenticate = self.authenticate()
+        name = 'execution'
+        subscriptionHash = name
+        messageHash = name
+        if symbol is not None:
+            messageHash += ':' + symbol
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': [
+                subscriptionHash,
+            ],
+        }
+        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
     def handle_my_trades(self, client, message):
@@ -642,11 +843,18 @@ class bitmex(Exchange, ccxt.bitmex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         stored = self.myTrades
+        symbols = {}
         for j in range(0, len(trades)):
-            stored.append(trades[j])
+            trade = trades[j]
+            symbol = trade['symbol']
+            stored.append(trade)
+            symbols[symbol] = trade
         numTrades = len(trades)
         if numTrades > 0:
             client.resolve(stored, messageHash)
+        keys = list(symbols.keys())
+        for i in range(0, len(keys)):
+            client.resolve(stored, messageHash + ':' + keys[i])
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         table = None
@@ -994,6 +1202,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 'tradeBin5m': self.handle_ohlcv,
                 'tradeBin1h': self.handle_ohlcv,
                 'tradeBin1d': self.handle_ohlcv,
+                'order': self.handle_orders,
                 'execution': self.handle_my_trades,
                 'margin': self.handle_balance,
             }
