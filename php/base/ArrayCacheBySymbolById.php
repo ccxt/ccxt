@@ -2,17 +2,11 @@
 
 namespace ccxtpro;
 
-class ArrayCacheBySymbolById extends ArrayCache {
-    public $hashmap;
-
-    public function __construct($max_size = null) {
-        parent::__construct($max_size);
-        $this->hashmap = array();
-    }
+class ArrayCacheBySymbolById extends ArrayCacheById {
 
     public function append($item) {
-        if (array_key_exists($item['symbol'], $this->hashmap)) {
-            $by_id = $this->hashmap[$item['symbol']];
+        if (array_key_exists($item['symbol'], $this->index)) {
+            $by_id = $this->index[$item['symbol']];
         } else {
             $by_id = array();
         }
@@ -27,9 +21,9 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 unset($by_id[$delete_reference['id']]);
             }
             # this allows us to effectively pass by reference
-            parent::append(null);
+            $this->parent_append(null);
             $this->deque[$this->deque->count() - 1] = &$item;
         }
-        $this->hashmap[$item['symbol']] = $by_id;
+        $this->index[$item['symbol']] = $by_id;
     }
 }
