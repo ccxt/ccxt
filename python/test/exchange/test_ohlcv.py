@@ -19,11 +19,14 @@ def test_ohlcv(exchange, ohlcv, method, symbol):
     assert (ohlcv[4] is None) or isinstance(ohlcv[4], (int, float))  # close
     assert (ohlcv[5] is None) or isinstance(ohlcv[5], (int, float))  # volume
 
-    assert (ohlcv[1] is None) or (ohlcv[2] is None) or (ohlcv[1] <= ohlcv[2]), \
-        'open (' + str(ohlcv[1]) + ') > high (' + str(ohlcv[2]) + ')'
+    skipped_exchanges = [
+        'bitmex',
+    ]
 
-    assert (ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), \
-        'low (' + str(ohlcv[1]) + ') > high (' + str(ohlcv[2]) + ')'
-
-    assert (ohlcv[3] is None) or (ohlcv[4] is None) or (ohlcv[3] <= ohlcv[4]), \
-        'low (' + str(ohlcv[1]) + ') > close (' + str(ohlcv[2]) + ')'
+    if exchange.id not in skipped_exchanges:
+        assert (ohlcv[1] is None) or (ohlcv[2] is None) or (ohlcv[1] <= ohlcv[2]), \
+            'open (' + str(ohlcv[1]) + ') > high (' + str(ohlcv[2]) + ')'
+        assert (ohlcv[3] is None) or (ohlcv[2] is None) or (ohlcv[3] <= ohlcv[2]), \
+            'low (' + str(ohlcv[1]) + ') > high (' + str(ohlcv[2]) + ')'
+        assert (ohlcv[3] is None) or (ohlcv[4] is None) or (ohlcv[3] <= ohlcv[4]), \
+            'low (' + str(ohlcv[1]) + ') > close (' + str(ohlcv[2]) + ')'
