@@ -384,7 +384,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return message;
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const future = client.future ('authenticated');

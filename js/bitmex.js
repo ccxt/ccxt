@@ -528,7 +528,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');

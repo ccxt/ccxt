@@ -75,7 +75,7 @@ module.exports = class ftx extends ccxt.ftx {
         return await this.afterDropped (future, this.watch, url, messageHash, request, channel);
     }
 
-    authenticate () {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const authenticate = 'authenticate';

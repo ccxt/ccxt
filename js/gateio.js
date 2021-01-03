@@ -341,7 +341,7 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (stored, messageHash);
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');

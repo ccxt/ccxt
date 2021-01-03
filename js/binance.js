@@ -602,7 +602,7 @@ module.exports = class binance extends ccxt.binance {
         client.resolve (result, messageHash);
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const time = this.seconds ();
         const type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         const options = this.safeValue (this.options, type, {});

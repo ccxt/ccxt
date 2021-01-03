@@ -560,7 +560,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         return message;
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');
