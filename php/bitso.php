@@ -190,14 +190,14 @@ class bitso extends Exchange {
             );
             $takerFees = array();
             $makerFees = array();
-            for ($i = 0; $i < count($feeTiers); $i++) {
-                $tier = $feeTiers[$i];
+            for ($j = 0; $j < count($feeTiers); $j++) {
+                $tier = $feeTiers[$j];
                 $volume = $this->safe_float($tier, 'volume');
                 $takerFee = $this->safe_float($tier, 'taker');
                 $makerFee = $this->safe_float($tier, 'maker');
                 $takerFees[] = array( $volume, $takerFee );
                 $makerFees[] = array( $volume, $makerFee );
-                if ($i === 0) {
+                if ($j === 0) {
                     $fee['taker'] = $taker;
                     $fee['maker'] = $maker;
                 }
