@@ -7,7 +7,7 @@
 const fs = require ('fs')
     , log = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , { unCamelCase, precisionConstants, safeString } = require ('ccxt/js/base/functions.js')
+    , { unCamelCase, precisionConstants, safeString, unique } = require ('ccxt/js/base/functions.js')
     , {
         createFolderRecursively,
         overwriteFile,
@@ -73,24 +73,14 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPythonClassHeader (ccxtImports, bodyAsString) {
-        let imports = ccxtImports
-        const importArrayCache = bodyAsString.match (/\bArrayCache\b/i)
-        const importArrayCacheBySymbolById = bodyAsString.match (/\bArrayCacheBySymbolById\b/i)
-        if (importArrayCache && importArrayCacheBySymbolById) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById',
-            ]
-        } else if (importArrayCache) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCache',
-            ]
-        } else if (importArrayCacheBySymbolById) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCacheBySymbolById',
-            ]
+        const imports = [
+            ... ccxtImports,
+        ]
+        const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
+        if (arrayCacheClasses) {
+            const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
+            const arrayCacheImport = 'from ccxtpro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            imports.push (arrayCacheImport)
         }
         return [
             "# -*- coding: utf-8 -*-",
