@@ -75,7 +75,7 @@ class ftx(Exchange, ccxt.ftx):
         future = self.authenticate()
         return await self.after_dropped(future, self.watch, url, messageHash, request, channel)
 
-    def authenticate(self):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         authenticate = 'authenticate'

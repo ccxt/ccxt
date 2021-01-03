@@ -357,7 +357,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         client.subscriptions[channelId] = message
         return message
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         future = client.future('authenticated')

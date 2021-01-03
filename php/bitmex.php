@@ -532,7 +532,7 @@ class bitmex extends \ccxt\bitmex {
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');

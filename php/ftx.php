@@ -79,7 +79,7 @@ class ftx extends \ccxt\ftx {
         return $this->after_dropped($future, array($this, 'watch'), $url, $messageHash, $request, $channel);
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $authenticate = 'authenticate';

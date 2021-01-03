@@ -605,7 +605,7 @@ class binance extends \ccxt\binance {
         $client->resolve ($result, $messageHash);
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $time = $this->seconds();
         $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
         $options = $this->safe_value($this->options, $type, array());

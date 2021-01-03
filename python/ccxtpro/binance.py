@@ -556,7 +556,7 @@ class binance(Exchange, ccxt.binance):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         time = self.seconds()
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         options = self.safe_value(self.options, type, {})

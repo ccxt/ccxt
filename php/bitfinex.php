@@ -388,7 +388,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');

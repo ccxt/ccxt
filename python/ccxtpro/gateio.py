@@ -327,7 +327,7 @@ class gateio(Exchange, ccxt.gateio):
         messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         future = client.future('authenticated')

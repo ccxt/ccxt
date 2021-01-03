@@ -345,7 +345,7 @@ class gateio extends \ccxt\gateio {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');

@@ -521,7 +521,7 @@ class bitmex(Exchange, ccxt.bitmex):
         future = self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         future = client.future('authenticated')
