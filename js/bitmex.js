@@ -767,7 +767,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                     rawOrder = this.extend (previousOrder['info'], currentOrder);
                 }
                 const order = this.parseOrder (rawOrder);
-                this.orders.append (order);
+                stored.append (order);
                 const symbol = order['symbol'];
                 symbols[symbol] = true;
             }
