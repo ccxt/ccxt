@@ -1808,7 +1808,8 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_value(params, 'type', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
         method = None
         if type == 'spot':
             method = 'privateGetMyTrades'
