@@ -749,7 +749,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 if previousOrder is not None:
                     rawOrder = self.extend(previousOrder['info'], currentOrder)
                 order = self.parse_order(rawOrder)
-                self.orders.append(order)
+                stored.append(order)
                 symbol = order['symbol']
                 symbols[symbol] = True
             client.resolve(self.orders, messageHash)

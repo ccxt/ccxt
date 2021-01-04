@@ -771,7 +771,7 @@ class bitmex extends \ccxt\bitmex {
                     $rawOrder = array_merge($previousOrder['info'], $currentOrder);
                 }
                 $order = $this->parse_order($rawOrder);
-                $this->orders.append ($order);
+                $stored->append ($order);
                 $symbol = $order['symbol'];
                 $symbols[$symbol] = true;
             }
