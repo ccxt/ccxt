@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 // 'watchStatus': true,
                 // 'watchHeartbeat': true,
                 'watchOHLCV': true,
@@ -443,7 +444,268 @@ module.exports = class kraken extends ccxt.kraken {
         return message;
     }
 
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const authenticated = 'authenticated';
+        let subscription = this.safeValue (client.subscriptions, authenticated);
+        if (subscription === undefined) {
+            const response = await this.privatePostGetWebSocketsToken (params);
+            //
+            //     {
+            //         "error":[],
+            //         "result":{
+            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+            //             "expires":900
+            //         }
+            //     }
+            //
+            subscription = this.safeValue (response, 'result');
+            client.subscriptions[authenticated] = subscription;
+        }
+        return this.safeString (subscription, 'token');
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const name = 'openOrders';
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const subscribe = {
+            'event': 'subscribe',
+            'reqid': requestId,
+            'subscription': {
+                'name': name,
+                'token': token,
+            },
+        };
+        const request = this.deepExtend (subscribe, params);
+        const future = this.watch (url, messageHash, request, subscriptionHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleOrders (client, message, subscription = undefined) {
+        //
+        //     [
+        //         [
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX": {
+        //                     "cost": "0.00000",
+        //                     "descr": {
+        //                         "close": "",
+        //                         "leverage": "0:1",
+        //                         "order": "sell 10.00345345 XBT/EUR @ limit 34.50000 with 0:1 leverage",
+        //                         "ordertype": "limit",
+        //                         "pair": "XBT/EUR",
+        //                         "price": "34.50000",
+        //                         "price2": "0.00000",
+        //                         "type": "sell"
+        //                     },
+        //                     "expiretm": "0.000000",
+        //                     "fee": "0.00000",
+        //                     "limitprice": "34.50000",
+        //                     "misc": "",
+        //                     "oflags": "fcib",
+        //                     "opentm": "0.000000",
+        //                     "price": "34.50000",
+        //                     "refid": "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm": "0.000000",
+        //                     "status": "open",
+        //                     "stopprice": "0.000000",
+        //                     "userref": 0,
+        //                     "vol": "10.00345345",
+        //                     "vol_exec": "0.00000000"
+        //                 }
+        //             },
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX": {
+        //                     "cost": "0.00000",
+        //                     "descr": {
+        //                         "close": "",
+        //                         "leverage": "0:1",
+        //                         "order": "sell 0.00000010 XBT/EUR @ limit 5334.60000 with 0:1 leverage",
+        //                         "ordertype": "limit",
+        //                         "pair": "XBT/EUR",
+        //                         "price": "5334.60000",
+        //                         "price2": "0.00000",
+        //                         "type": "sell"
+        //                     },
+        //                     "expiretm": "0.000000",
+        //                     "fee": "0.00000",
+        //                     "limitprice": "5334.60000",
+        //                     "misc": "",
+        //                     "oflags": "fcib",
+        //                     "opentm": "0.000000",
+        //                     "price": "5334.60000",
+        //                     "refid": "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm": "0.000000",
+        //                     "status": "open",
+        //                     "stopprice": "0.000000",
+        //                     "userref": 0,
+        //                     "vol": "0.00000010",
+        //                     "vol_exec": "0.00000000"
+        //                 }
+        //             },
+        //         ],
+        //         "openOrders",
+        //         { "sequence": 234 }
+        //     ]
+        //
+        // status-change
+        //
+        //     [
+        //         [
+        //             { "OGTT3Y-C6I3P-XRI6HX": { "status": "closed" }},
+        //             { "OGTT3Y-C6I3P-XRI6HX": { "status": "closed" }},
+        //         ],
+        //         "openOrders",
+        //         { "sequence": 59342 }
+        //     ]
+        //
+        const allOrders = this.safeValue (message, 0, []);
+        const allOrdersLength = allOrders.length;
+        if (allOrdersLength > 0) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheById (limit);
+            }
+            const stored = this.orders;
+            const symbols = {};
+            for (let i = 0; i < allOrders.length; i++) {
+                const orders = this.safeValue (allOrders, i, {});
+                const orderIds = Object.keys (orders);
+                for (let j = 0; j < orderIds.length; j++) {
+                    const id = orderIds[j];
+                    let order = orders[id];
+                    const previousOrder = this.safeValue (stored.index, id);
+                    if (previousOrder !== undefined) {
+                        order = this.extend (previousOrder['info'], order);
+                    }
+                    const parsedOrder = this.parseWsOrder (this.extend ({ 'id': id }, order));
+                    stored.append (parsedOrder);
+                    const symbol = parsedOrder['symbol'];
+                    symbols[symbol] = true;
+                }
+            }
+            const name = 'openOrders';
+            client.resolve (this.orders, name);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = name + ':' + keys[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //     }
+        //
+        const description = this.safeValue (order, 'descr', {});
+        const orderDescription = this.safeString (description, 'order');
+        let side = undefined;
+        let type = undefined;
+        let wsName = undefined;
+        let price = undefined;
+        let amount = undefined;
+        if (orderDescription !== undefined) {
+            const parts = orderDescription.split (' ');
+            side = this.safeString (parts, 0);
+            amount = this.safeFloat (parts, 1);
+            wsName = this.safeString (parts, 2);
+            type = this.safeString (parts, 4);
+            price = this.safeFloat (parts, 5);
+        }
+        side = this.safeString (description, 'type', side);
+        type = this.safeString (description, 'ordertype', type);
+        wsName = this.safeString (description, 'pair', wsName);
+        market = this.safeValue (this.options['marketsByWsName'], wsName, market);
+        let symbol = undefined;
+        const timestamp = this.safeTimestamp (order, 'opentm');
+        amount = this.safeFloat (order, 'vol', amount);
+        const filled = this.safeFloat (order, 'vol_exec');
+        let remaining = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = amount - filled;
+        }
+        let fee = undefined;
+        const cost = this.safeFloat (order, 'cost');
+        price = this.safeFloat (description, 'price', price);
+        if ((price === undefined) || (price === 0.0)) {
+            price = this.safeFloat (description, 'price2');
+        }
+        if ((price === undefined) || (price === 0.0)) {
+            price = this.safeFloat (order, 'price', price);
+        }
+        const average = this.safeFloat (order, 'price');
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            if ('fee' in order) {
+                const flags = order['oflags'];
+                const feeCost = this.safeFloat (order, 'fee');
+                fee = {
+                    'cost': feeCost,
+                    'rate': undefined,
+                };
+                if (flags.indexOf ('fciq') >= 0) {
+                    fee['currency'] = market['quote'];
+                } else if (flags.indexOf ('fcib') >= 0) {
+                    fee['currency'] = market['base'];
+                }
+            }
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let id = this.safeString (order, 'id');
+        if (id === undefined) {
+            const txid = this.safeValue (order, 'txid');
+            id = this.safeString (txid, 0);
+        }
+        const clientOrderId = this.safeString (order, 'userref');
+        const rawTrades = this.safeValue (order, 'trades');
+        let trades = undefined;
+        if (rawTrades !== undefined) {
+            trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
+        }
+        const stopPrice = this.safeFloat (order, 'stopprice');
+        return {
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'average': average,
+            'remaining': remaining,
+            'fee': fee,
+            'trades': trades,
+        };
+    }
+
     handleSubscriptionStatus (client, message) {
+        //
+        // public
         //
         //     {
         //         channelID: 210,
@@ -455,8 +717,20 @@ module.exports = class kraken extends ccxt.kraken {
         //         subscription: { depth: 10, name: 'book' }
         //     }
         //
+        // private
+        //
+        //     {
+        //         channelName: 'openOrders',
+        //         event: 'subscriptionStatus',
+        //         reqid: 1,
+        //         status: 'subscribed',
+        //         subscription: { maxratecount: 125, name: 'openOrders' }
+        //     }
+        //
         const channelId = this.safeString (message, 'channelID');
-        client.subscriptions[channelId] = message;
+        if (channelId !== undefined) {
+            client.subscriptions[channelId] = message;
+        }
         // const requestId = this.safeString (message, 'reqid');
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
@@ -495,17 +769,22 @@ module.exports = class kraken extends ccxt.kraken {
 
     handleMessage (client, message) {
         if (Array.isArray (message)) {
-            const channelId = message[0].toString ();
+            const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const info = this.safeValue (subscription, 'subscription', {});
+            const messageLength = message.length;
+            const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');
             const methods = {
+                // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrades,
+                // private
+                'openOrders': this.handleOrders,
             };
-            const method = this.safeValue (methods, name);
+            const method = this.safeValue2 (methods, name, channelName);
             if (method === undefined) {
                 return message;
             } else {
