@@ -78,7 +78,7 @@ module.exports = class bkex extends Exchange {
         const data = this.safeValue (response, 'data');
         const numMarkets = data.length;
         if (numMarkets < 1) {
-            throw new ExchangeError (this.id + ' publicGetExchangeInfo returned empty response: ' + this.json (markets));
+            throw new ExchangeError (this.id + ' publicGetExchangeInfo returned empty response: ' + this.json (data));
         }
         const result = [];
         for (let i = 0; i < data.length; i++) {
