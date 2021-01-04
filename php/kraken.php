@@ -835,7 +835,7 @@ class kraken extends Exchange {
         $amount = null;
         $cost = null;
         $id = null;
-        $order = null;
+        $orderId = null;
         $fee = null;
         $symbol = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
@@ -859,7 +859,7 @@ class kraken extends Exchange {
                 // delisted $market ids go here
                 $market = $this->get_delisted_market_by_id($marketId);
             }
-            $order = $trade['ordertxid'];
+            $orderId = $this->safe_string($trade, 'ordertxid');
             $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $this->safe_string($trade, 'type');
@@ -887,7 +887,7 @@ class kraken extends Exchange {
         }
         return array(
             'id' => $id,
-            'order' => $order,
+            'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

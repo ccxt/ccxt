@@ -803,7 +803,7 @@ class kraken(Exchange):
         amount = None
         cost = None
         id = None
-        order = None
+        orderId = None
         fee = None
         symbol = None
         if isinstance(trade, list):
@@ -825,7 +825,7 @@ class kraken(Exchange):
             elif marketId is not None:
                 # delisted market ids go here
                 market = self.get_delisted_market_by_id(marketId)
-            order = trade['ordertxid']
+            orderId = self.safe_string(trade, 'ordertxid')
             id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = self.safe_timestamp(trade, 'time')
             side = self.safe_string(trade, 'type')
@@ -847,7 +847,7 @@ class kraken(Exchange):
                 cost = price * amount
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
