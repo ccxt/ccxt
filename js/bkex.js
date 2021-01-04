@@ -119,7 +119,6 @@ module.exports = class bkex extends Exchange {
                 'info': market,
             });
         }
-        // console.log('result', result);
         return result;
     }
 
