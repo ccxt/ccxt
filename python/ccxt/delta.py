@@ -13,6 +13,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -174,6 +175,7 @@ class delta(Exchange):
                     'invalid_api_key': AuthenticationError,  # {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError,  # {"success":false,"error":{"code":"invalid_signature"}}
                     'open_order_not_found': OrderNotFound,  # {"error":{"code":"open_order_not_found"},"success":false}
+                    'unavailable': ExchangeNotAvailable,  # {"error":{"code":"unavailable"},"success":false}
                 },
                 'broad': {
                 },
