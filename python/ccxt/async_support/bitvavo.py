@@ -973,21 +973,12 @@ class bitvavo(Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
-            # 'market': market['id'],
-            # 'limit': 500,
-            # 'start': since,
-            # 'end': self.milliseconds(),
-            # 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            # 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        if since is not None:
-            request['start'] = since
-        if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
         response = await self.privateGetOrdersOpen(self.extend(request, params))
         #
         #     [
