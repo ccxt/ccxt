@@ -965,18 +965,50 @@ module.exports = class kraken extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        const query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
         }
-        const priceIsDefined = (price !== undefined);
-        const marketOrder = (type === 'market');
-        const limitOrder = (type === 'limit');
-        const shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
-        if (shouldIncludePrice) {
+        //
+        //     market
+        //     limit (price = limit price)
+        //     stop-loss (price = stop loss price)
+        //     take-profit (price = take profit price)
+        //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
+        //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
+        //     settle-position
+        //
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else if ((type === 'stop-loss') || (type === 'take-profit')) {
+            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice', price);
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
+            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice');
+            const limitPrice = this.safeFloat (params, 'price2');
+            const stopPriceDefined = (stopPrice !== undefined);
+            const limitPriceDefined = (limitPrice !== undefined);
+            if (stopPriceDefined && limitPriceDefined) {
+                request['price'] = this.priceToPrecision (symbol, stopPrice);
+                request['price2'] = this.priceToPrecision (symbol, limitPrice);
+            } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
+            } else {
+                if (stopPriceDefined) {
+                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['price2'] = this.priceToPrecision (symbol, price);
+                } else if (limitPriceDefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                    request['price2'] = this.priceToPrecision (symbol, limitPrice);
+                }
+            }
         }
-        const response = await this.privatePostAddOrder (this.extend (request, query));
+        params = this.omit (params, [ 'price', 'stopPrice', 'price2' ]);
+        const response = await this.privatePostAddOrder (this.extend (request, params));
         //
         //     {
         //         error: [],
