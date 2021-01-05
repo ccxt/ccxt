@@ -21,6 +21,7 @@ class kraken extends \ccxt\kraken {
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 // 'watchStatus' => true,
                 // 'watchHeartbeat' => true,
                 'watchOHLCV' => true,
@@ -447,7 +448,268 @@ class kraken extends \ccxt\kraken {
         return $message;
     }
 
+    public function authenticate($params = array ()) {
+        $url = $this->urls['api']['ws']['private'];
+        $client = $this->client($url);
+        $authenticated = 'authenticated';
+        $subscription = $this->safe_value($client->subscriptions, $authenticated);
+        if ($subscription === null) {
+            $response = $this->privatePostGetWebSocketsToken ($params);
+            //
+            //     {
+            //         "error":array(),
+            //         "result":{
+            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+            //             "expires":900
+            //         }
+            //     }
+            //
+            $subscription = $this->safe_value($response, 'result');
+            $client->subscriptions[$authenticated] = $subscription;
+        }
+        return $this->safe_string($subscription, 'token');
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $token = $this->authenticate();
+        $name = 'openOrders';
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->urls['api']['ws']['private'];
+        $requestId = $this->request_id();
+        $subscribe = array(
+            'event' => 'subscribe',
+            'reqid' => $requestId,
+            'subscription' => array(
+                'name' => $name,
+                'token' => $token,
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $future = $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_orders($client, $message, $subscription = null) {
+        //
+        //     array(
+        //         array(
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX" => array(
+        //                     "cost" => "0.00000",
+        //                     "descr" => array(
+        //                         "close" => "",
+        //                         "leverage" => "0:1",
+        //                         "$order" => "sell 10.00345345 XBT/EUR @ $limit 34.50000 with 0:1 leverage",
+        //                         "ordertype" => "$limit",
+        //                         "pair" => "XBT/EUR",
+        //                         "price" => "34.50000",
+        //                         "price2" => "0.00000",
+        //                         "type" => "sell"
+        //                     ),
+        //                     "expiretm" => "0.000000",
+        //                     "fee" => "0.00000",
+        //                     "limitprice" => "34.50000",
+        //                     "misc" => "",
+        //                     "oflags" => "fcib",
+        //                     "opentm" => "0.000000",
+        //                     "price" => "34.50000",
+        //                     "refid" => "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm" => "0.000000",
+        //                     "status" => "open",
+        //                     "stopprice" => "0.000000",
+        //                     "userref" => 0,
+        //                     "vol" => "10.00345345",
+        //                     "vol_exec" => "0.00000000"
+        //                 }
+        //             ),
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX" => array(
+        //                     "cost" => "0.00000",
+        //                     "descr" => array(
+        //                         "close" => "",
+        //                         "leverage" => "0:1",
+        //                         "$order" => "sell 0.00000010 XBT/EUR @ $limit 5334.60000 with 0:1 leverage",
+        //                         "ordertype" => "$limit",
+        //                         "pair" => "XBT/EUR",
+        //                         "price" => "5334.60000",
+        //                         "price2" => "0.00000",
+        //                         "type" => "sell"
+        //                     ),
+        //                     "expiretm" => "0.000000",
+        //                     "fee" => "0.00000",
+        //                     "limitprice" => "5334.60000",
+        //                     "misc" => "",
+        //                     "oflags" => "fcib",
+        //                     "opentm" => "0.000000",
+        //                     "price" => "5334.60000",
+        //                     "refid" => "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm" => "0.000000",
+        //                     "status" => "open",
+        //                     "stopprice" => "0.000000",
+        //                     "userref" => 0,
+        //                     "vol" => "0.00000010",
+        //                     "vol_exec" => "0.00000000"
+        //                 }
+        //             ),
+        //         ),
+        //         "openOrders",
+        //         array( "sequence" => 234 )
+        //     )
+        //
+        // status-change
+        //
+        //     array(
+        //         array(
+        //             array( "OGTT3Y-C6I3P-XRI6HX" => array( "status" => "closed" )),
+        //             array( "OGTT3Y-C6I3P-XRI6HX" => array( "status" => "closed" )),
+        //         ),
+        //         "openOrders",
+        //         array( "sequence" => 59342 )
+        //     )
+        //
+        $allOrders = $this->safe_value($message, 0, array());
+        $allOrdersLength = is_array($allOrders) ? count($allOrders) : 0;
+        if ($allOrdersLength > 0) {
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheById ($limit);
+            }
+            $stored = $this->orders;
+            $symbols = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $orders = $this->safe_value($allOrders, $i, array());
+                $orderIds = is_array($orders) ? array_keys($orders) : array();
+                for ($j = 0; $j < count($orderIds); $j++) {
+                    $id = $orderIds[$j];
+                    $order = $orders[$id];
+                    $previousOrder = $this->safe_value($stored->index, $id);
+                    if ($previousOrder !== null) {
+                        $order = array_merge($previousOrder['info'], $order);
+                    }
+                    $parsedOrder = $this->parse_ws_order(array_merge(array( 'id' => $id ), $order));
+                    $stored->append ($parsedOrder);
+                    $symbol = $parsedOrder['symbol'];
+                    $symbols[$symbol] = true;
+                }
+            }
+            $name = 'openOrders';
+            $client->resolve ($this->orders, $name);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $messageHash = $name . ':' . $keys[$i];
+                $client->resolve ($this->orders, $messageHash);
+            }
+        }
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //     }
+        //
+        $description = $this->safe_value($order, 'descr', array());
+        $orderDescription = $this->safe_string($description, 'order');
+        $side = null;
+        $type = null;
+        $wsName = null;
+        $price = null;
+        $amount = null;
+        if ($orderDescription !== null) {
+            $parts = explode(' ', $orderDescription);
+            $side = $this->safe_string($parts, 0);
+            $amount = $this->safe_float($parts, 1);
+            $wsName = $this->safe_string($parts, 2);
+            $type = $this->safe_string($parts, 4);
+            $price = $this->safe_float($parts, 5);
+        }
+        $side = $this->safe_string($description, 'type', $side);
+        $type = $this->safe_string($description, 'ordertype', $type);
+        $wsName = $this->safe_string($description, 'pair', $wsName);
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName, $market);
+        $symbol = null;
+        $timestamp = $this->safe_timestamp($order, 'opentm');
+        $amount = $this->safe_float($order, 'vol', $amount);
+        $filled = $this->safe_float($order, 'vol_exec');
+        $remaining = null;
+        if (($amount !== null) && ($filled !== null)) {
+            $remaining = $amount - $filled;
+        }
+        $fee = null;
+        $cost = $this->safe_float($order, 'cost');
+        $price = $this->safe_float($description, 'price', $price);
+        if (($price === null) || ($price === 0.0)) {
+            $price = $this->safe_float($description, 'price2');
+        }
+        if (($price === null) || ($price === 0.0)) {
+            $price = $this->safe_float($order, 'price', $price);
+        }
+        $average = $this->safe_float($order, 'price');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if (is_array($order) && array_key_exists('fee', $order)) {
+                $flags = $order['oflags'];
+                $feeCost = $this->safe_float($order, 'fee');
+                $fee = array(
+                    'cost' => $feeCost,
+                    'rate' => null,
+                );
+                if (mb_strpos($flags, 'fciq') !== false) {
+                    $fee['currency'] = $market['quote'];
+                } else if (mb_strpos($flags, 'fcib') !== false) {
+                    $fee['currency'] = $market['base'];
+                }
+            }
+        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $id = $this->safe_string($order, 'id');
+        if ($id === null) {
+            $txid = $this->safe_value($order, 'txid');
+            $id = $this->safe_string($txid, 0);
+        }
+        $clientOrderId = $this->safe_string($order, 'userref');
+        $rawTrades = $this->safe_value($order, 'trades');
+        $trades = null;
+        if ($rawTrades !== null) {
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
+        }
+        $stopPrice = $this->safe_float($order, 'stopprice');
+        return array(
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => $stopPrice,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'average' => $average,
+            'remaining' => $remaining,
+            'fee' => $fee,
+            'trades' => $trades,
+        );
+    }
+
     public function handle_subscription_status($client, $message) {
+        //
+        // public
         //
         //     {
         //         channelID => 210,
@@ -459,8 +721,20 @@ class kraken extends \ccxt\kraken {
         //         subscription => array( depth => 10, name => 'book' )
         //     }
         //
+        // private
+        //
+        //     {
+        //         channelName => 'openOrders',
+        //         event => 'subscriptionStatus',
+        //         reqid => 1,
+        //         status => 'subscribed',
+        //         subscription => array( maxratecount => 125, name => 'openOrders' )
+        //     }
+        //
         $channelId = $this->safe_string($message, 'channelID');
-        $client->subscriptions[$channelId] = $message;
+        if ($channelId !== null) {
+            $client->subscriptions[$channelId] = $message;
+        }
         // $requestId = $this->safe_string($message, 'reqid');
         // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
         //     unset($client->futures[$requestId]);
@@ -499,17 +773,22 @@ class kraken extends \ccxt\kraken {
 
     public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
-            $channelId = (string) $message[0];
+            $channelId = $this->safe_string($message, 0);
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $info = $this->safe_value($subscription, 'subscription', array());
+            $messageLength = is_array($message) ? count($message) : 0;
+            $channelName = $this->safe_string($message, $messageLength - 2);
             $name = $this->safe_string($info, 'name');
             $methods = array(
+                // public
                 'book' => array($this, 'handle_order_book'),
                 'ohlc' => array($this, 'handle_ohlcv'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
+                // private
+                'openOrders' => array($this, 'handle_orders'),
             );
-            $method = $this->safe_value($methods, $name);
+            $method = $this->safe_value_2($methods, $name, $channelName);
             if ($method === null) {
                 return $message;
             } else {
