@@ -825,7 +825,7 @@ module.exports = class kraken extends Exchange {
         let amount = undefined;
         let cost = undefined;
         let id = undefined;
-        let order = undefined;
+        let orderId = undefined;
         let fee = undefined;
         let symbol = undefined;
         if (Array.isArray (trade)) {
@@ -849,7 +849,7 @@ module.exports = class kraken extends Exchange {
                 // delisted market ids go here
                 market = this.getDelistedMarketById (marketId);
             }
-            order = trade['ordertxid'];
+            orderId = this.safeString (trade, 'ordertxid');
             id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
@@ -877,7 +877,7 @@ module.exports = class kraken extends Exchange {
         }
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

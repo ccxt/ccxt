@@ -1012,23 +1012,12 @@ class bitvavo extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            // 'market' => $market['id'],
-            // 'limit' => 500,
-            // 'start' => $since,
-            // 'end' => $this->milliseconds(),
-            // 'orderIdFrom' => 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            // 'orderIdTo' => 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // 'market' => $market['id'], // rate $limit 25 without a $market, 1 with $market specified
         );
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['start'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 500, max 1000
         }
         $response = $this->privateGetOrdersOpen (array_merge($request, $params));
         //
