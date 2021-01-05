@@ -13,14 +13,16 @@ module.exports = class kraken extends ccxt.kraken {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchBalance': false, // no such type of subscription as of 2021-01-05
+                'watchMyTrades': true,
+                'watchOHLCV': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
-                'watchOrderBook': true,
-                'watchOrders': true,
-                // 'watchStatus': true,
                 // 'watchHeartbeat': true,
-                'watchOHLCV': true,
+                // 'watchStatus': true,
             },
             'urls': {
                 'api': {
@@ -111,11 +113,6 @@ module.exports = class kraken extends ccxt.kraken {
         // trigger correct watchTickers calls upon receiving any of symbols
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
-    }
-
-    async watchBalance (params = {}) {
-        await this.loadMarkets ();
-        throw new NotSupported (this.id + ' watchBalance() not implemented yet');
     }
 
     handleTrades (client, message, subscription) {
@@ -466,10 +463,9 @@ module.exports = class kraken extends ccxt.kraken {
         return this.safeString (subscription, 'token');
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchPrivate (name, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const name = 'openOrders';
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
@@ -488,6 +484,164 @@ module.exports = class kraken extends ccxt.kraken {
         const request = this.deepExtend (subscribe, params);
         const future = this.watch (url, messageHash, request, subscriptionHash);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
+    }
+
+    handleMyTrades (client, message, subscription = undefined) {
+        //
+        //     [
+        //         [
+        //             {
+        //                 'TT5UC3-GOIRW-6AZZ6R': {
+        //                     cost: '1493.90107',
+        //                     fee: '3.88415',
+        //                     margin: '0.00000',
+        //                     ordertxid: 'OTLAS3-RRHUF-NDWH5A',
+        //                     ordertype: 'market',
+        //                     pair: 'XBT/USDT',
+        //                     postxid: 'TKH2SE-M7IF5-CFI7LT',
+        //                     price: '6851.50005',
+        //                     time: '1586822919.335498',
+        //                     type: 'sell',
+        //                     vol: '0.21804000'
+        //                 }
+        //             },
+        //             {
+        //                 'TIY6G4-LKLAI-Y3GD4A': {
+        //                     cost: '22.17134',
+        //                     fee: '0.05765',
+        //                     margin: '0.00000',
+        //                     ordertxid: 'ODQXS7-MOLK6-ICXKAA',
+        //                     ordertype: 'market',
+        //                     pair: 'ETH/USD',
+        //                     postxid: 'TKH2SE-M7IF5-CFI7LT',
+        //                     price: '169.97999',
+        //                     time: '1586340530.895739',
+        //                     type: 'buy',
+        //                     vol: '0.13043500'
+        //                 }
+        //             },
+        //         ],
+        //         'ownTrades',
+        //         { sequence: 1 }
+        //     ]
+        //
+        const allTrades = this.safeValue (message, 0, []);
+        const allTradesLength = allTrades.length;
+        if (allTradesLength > 0) {
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCache (limit);
+            }
+            const stored = this.myTrades;
+            const symbols = {};
+            for (let i = 0; i < allTrades.length; i++) {
+                const trades = this.safeValue (allTrades, i, {});
+                const ids = Object.keys (trades);
+                for (let j = 0; j < ids.length; j++) {
+                    const id = ids[j];
+                    const trade = trades[id];
+                    const parsed = this.parseWsTrade (this.extend ({ 'id': id }, trade));
+                    stored.append (parsed);
+                    const symbol = parsed['symbol'];
+                    symbols[symbol] = true;
+                }
+            }
+            const name = 'ownTrades';
+            client.resolve (this.myTrades, name);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = name + ':' + keys[i];
+                client.resolve (this.myTrades, messageHash);
+            }
+        }
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         id: 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
+        //         postxid: 'TKH2SE-M7IF5-CFI7LT',
+        //         pair: 'USDCUSDT',
+        //         time: 1586340086.457,
+        //         type: 'sell',
+        //         ordertype: 'market',
+        //         price: '0.99860000',
+        //         cost: '22.16892001',
+        //         fee: '0.04433784',
+        //         vol: '22.20000000',
+        //         margin: '0.00000000',
+        //         misc: ''
+        //     }
+        //
+        //     {
+        //         id: 'TIY6G4-LKLAI-Y3GD4A',
+        //         cost: '22.17134',
+        //         fee: '0.05765',
+        //         margin: '0.00000',
+        //         ordertxid: 'ODQXS7-MOLK6-ICXKAA',
+        //         ordertype: 'market',
+        //         pair: 'ETH/USD',
+        //         postxid: 'TKH2SE-M7IF5-CFI7LT',
+        //         price: '169.97999',
+        //         time: '1586340530.895739',
+        //         type: 'buy',
+        //         vol: '0.13043500'
+        //     }
+        //
+        const wsName = this.safeString (trade, 'pair');
+        market = this.safeValue (this.options['marketsByWsName'], wsName, market);
+        let symbol = undefined;
+        const orderId = this.safeString (trade, 'ordertxid');
+        const id = this.safeString2 (trade, 'id', 'postxid');
+        const timestamp = this.safeTimestamp (trade, 'time');
+        const side = this.safeString (trade, 'type');
+        const type = this.safeString (trade, 'ordertype');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'vol');
+        let cost = undefined;
+        let fee = undefined;
+        if ('fee' in trade) {
+            let currency = undefined;
+            if (market !== undefined) {
+                currency = market['quote'];
+            }
+            fee = {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': currency,
+            };
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'order': orderId,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }
 
     handleOrders (client, message, subscription = undefined) {
@@ -579,17 +733,17 @@ module.exports = class kraken extends ccxt.kraken {
             const symbols = {};
             for (let i = 0; i < allOrders.length; i++) {
                 const orders = this.safeValue (allOrders, i, {});
-                const orderIds = Object.keys (orders);
-                for (let j = 0; j < orderIds.length; j++) {
-                    const id = orderIds[j];
+                const ids = Object.keys (orders);
+                for (let j = 0; j < ids.length; j++) {
+                    const id = ids[j];
                     let order = orders[id];
                     const previousOrder = this.safeValue (stored.index, id);
                     if (previousOrder !== undefined) {
                         order = this.extend (previousOrder['info'], order);
                     }
-                    const parsedOrder = this.parseWsOrder (this.extend ({ 'id': id }, order));
-                    stored.append (parsedOrder);
-                    const symbol = parsedOrder['symbol'];
+                    const parsed = this.parseWsOrder (this.extend ({ 'id': id }, order));
+                    stored.append (parsed);
+                    const symbol = parsed['symbol'];
                     symbols[symbol] = true;
                 }
             }
@@ -783,6 +937,7 @@ module.exports = class kraken extends ccxt.kraken {
                 'trade': this.handleTrades,
                 // private
                 'openOrders': this.handleOrders,
+                'ownTrades': this.handleMyTrades,
             };
             const method = this.safeValue2 (methods, name, channelName);
             if (method === undefined) {
