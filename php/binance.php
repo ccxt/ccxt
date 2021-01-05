@@ -2007,7 +2007,9 @@ class binance extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $this->safe_value($params, 'type', $market['type']);
+        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
         $method = null;
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
@@ -2016,7 +2018,6 @@ class binance extends Exchange {
         } else if ($type === 'delivery') {
             $method = 'dapiPrivateGetUserTrades';
         }
-        $params = $this->omit($params, 'type');
         $request = array(
             'symbol' => $market['id'],
         );
