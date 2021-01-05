@@ -676,10 +676,9 @@ module.exports = class cex extends Exchange {
         let cost = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            cost = this.safeFloat (order, 'ta:' + market['quote']);
-            if (cost === undefined) {
-                cost = this.safeFloat (order, 'tta:' + market['quote']);
-            }
+            const taCost = this.safeFloat (order, 'ta:' + market['quote']);
+            const ttaCost = this.safeFloat (order, 'tta:' + market['quote']);
+            cost = this.sum (taCost, ttaCost);
             const baseFee = 'fa:' + market['base'];
             const baseTakerFee = 'tfa:' + market['base'];
             const quoteFee = 'fa:' + market['quote'];
