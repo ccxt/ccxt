@@ -927,16 +927,45 @@ class kraken(Exchange):
             'volume': self.amount_to_precision(symbol, amount),
         }
         clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
-        query = self.omit(params, ['userref', 'clientOrderId'])
+        params = self.omit(params, ['userref', 'clientOrderId'])
         if clientOrderId is not None:
             request['userref'] = clientOrderId
-        priceIsDefined = (price is not None)
-        marketOrder = (type == 'market')
-        limitOrder = (type == 'limit')
-        shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
-        if shouldIncludePrice:
+        #
+        #     market
+        #     limit(price = limit price)
+        #     stop-loss(price = stop loss price)
+        #     take-profit(price = take profit price)
+        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
+        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
+        #     settle-position
+        #
+        if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostAddOrder(self.extend(request, query))
+        elif (type == 'stop-loss') or (type == 'take-profit'):
+            stopPrice = self.safe_float_2(params, 'price', 'stopPrice', price)
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
+            else:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
+            stopPrice = self.safe_float_2(params, 'price', 'stopPrice')
+            limitPrice = self.safe_float(params, 'price2')
+            stopPriceDefined = (stopPrice is not None)
+            limitPriceDefined = (limitPrice is not None)
+            if stopPriceDefined and limitPriceDefined:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+                request['price2'] = self.price_to_precision(symbol, limitPrice)
+            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
+                raise ArgumentsRequired(self.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
+            else:
+                if stopPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price2'] = self.price_to_precision(symbol, price)
+                elif limitPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price2'] = self.price_to_precision(symbol, limitPrice)
+        params = self.omit(params, ['price', 'stopPrice', 'price2'])
+        response = self.privatePostAddOrder(self.extend(request, params))
         #
         #     {
         #         error: [],
