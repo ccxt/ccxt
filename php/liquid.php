@@ -191,6 +191,7 @@ class liquid extends Exchange {
                 'must_be_positive' => '\\ccxt\\InvalidOrder',
                 'less_than_order_size' => '\\ccxt\\InvalidOrder',
                 'price_too_high' => '\\ccxt\\InvalidOrder',
+                'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
             ),
             'commonCurrencies' => array(
                 'WIN' => 'WCOIN',

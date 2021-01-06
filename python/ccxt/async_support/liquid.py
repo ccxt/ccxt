@@ -196,6 +196,7 @@ class liquid(Exchange):
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
+                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
