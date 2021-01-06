@@ -670,7 +670,6 @@ class aax(Exchange):
             'symbol': market['id'],
             'orderQty': self.amount_to_precision(symbol, amount),
             'side': side.upper(),
-            'clOrdID': 'quadency',
         }
         if (type == 'LIMIT') or (type == 'STOP-LIMIT'):
             if price is None:

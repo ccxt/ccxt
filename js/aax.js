@@ -711,7 +711,6 @@ module.exports = class aax extends Exchange {
             'symbol': market['id'],
             'orderQty': this.amountToPrecision (symbol, amount),
             'side': side.toUpperCase (),
-            'clOrdID': 'quadency',
         };
         if ((type === 'LIMIT') || (type === 'STOP-LIMIT')) {
             if (price === undefined) {
