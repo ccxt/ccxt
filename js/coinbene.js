@@ -250,8 +250,9 @@ module.exports = class coinbene extends Exchange {
         return result;
     }
 
-    async fetchBalance (asset, params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const asset = this.safeString (params, 'asset');
         const request = {
             'asset': asset,
         };
