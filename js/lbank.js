@@ -13,12 +13,13 @@ module.exports = class lbank extends Exchange {
             'id': 'lbank',
             'name': 'LBank',
             'countries': [ 'CN' ],
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDesposits': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false, // status 0 API doesn't work
@@ -46,10 +47,10 @@ module.exports = class lbank extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
+                'api': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
-                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
+                'doc': 'https://docs.lbkex.net/en/',
+                'fees': 'https://www.lbank.me/fees.html',
                 'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
@@ -68,8 +69,12 @@ module.exports = class lbank extends Exchange {
                         'user_info',
                         'create_order',
                         'cancel_order',
+                        'get_deposit_address',
+                        'deposit_history',
                         'orders_info',
                         'orders_info_history',
+                        'transaction_history',
+                        'orders_info_no_deal',
                         'withdraw',
                         'withdrawCancel',
                         'withdraws',
@@ -121,9 +126,10 @@ module.exports = class lbank extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAccuracy (params);
+        const markets = this.safeValue (response, 'data');
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const id = market['symbol'];
             const parts = id.split ('_');
             let baseId = undefined;
@@ -198,11 +204,12 @@ module.exports = class lbank extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const info = ticker;
+        const singleTicker = ticker[0].ticker;
+        const timestamp = this.safeInteger (ticker[0], 'timestamp');
+        const info = ticker[0];
         ticker = info['ticker'];
-        const last = this.safeFloat (ticker, 'latest');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeFloat (singleTicker, 'latest');
+        const percentage = this.safeFloat (singleTicker, 'change');
         let open = undefined;
         if (percentage !== undefined) {
             const relativeChange = this.sum (1, percentage / 100);
@@ -250,7 +257,8 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const data = this.safeValue (response, 'data');
+        return this.parseTicker (data, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -279,7 +287,7 @@ module.exports = class lbank extends Exchange {
             'size': size,
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response['data']);
     }
 
     parseTrade (trade, market = undefined) {
@@ -357,18 +365,21 @@ module.exports = class lbank extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `since` argument');
-        }
         if (limit === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a `limit` argument');
         }
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.seconds ();
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
             'size': limit,
-            'time': parseInt (since / 1000),
         };
+        if (since === undefined) {
+            request['time'] = now - limit * duration;
+        } else {
+            request['time'] = parseInt (since);
+        }
         const response = await this.publicGetKline (this.extend (request, params));
         //
         //     [
@@ -377,33 +388,59 @@ module.exports = class lbank extends Exchange {
         //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'assetCode': code,
+        };
+        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        // {
+        //     "result": true,
+        //     "data": {
+        //     "assetCode": "usdt",
+        //         "address": "0x7def0e05ef0aef27b0f75c483e0a17f36a44d069",
+        //         "memo": null,
+        //         "netWork": "erc20"
+        // },
+        //     "error_code": 0,
+        //     "ts": 1594104068736
+        // }
+        const cryptoWallet = this.safeValue (response, 'data');
+        const address = this.safeString (cryptoWallet, 'address');
+        const tag = undefined;
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostUserInfo (params);
-        //
-        //     {
-        //         "result":"true",
-        //         "info":{
-        //             "freeze":{
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             },
-        //             "asset":{
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             },
-        //             "free":{
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             },
-        //         }
-        //     }
+        const request = {
+            'api_key': this.apiKey,
+        };
+        const response = await this.privatePostUserInfo (this.extend (request, params));
+        // {
+        //     "freeze":{
+        //     "btc":1.0000,
+        //         "zec":0.0000,
+        //         "cny":80000.00
+        // },
+        //     "asset":{
+        //     "net":95678.25
+        // },
+        //     "free":{
+        //     "btc":2.0000,
+        //         "zec":0.0000,
+        //         "cny":34.00
+        // }
+        // }
         //
         const result = { 'info': response };
         const info = this.safeValue (response, 'info', {});
@@ -508,6 +545,7 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
             'type': side,
             'amount': amount,
+            'price': price,
         };
         if (type === 'market') {
             order['type'] += '_market';
@@ -625,6 +663,9 @@ module.exports = class lbank extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
+                'timestamp': this.milliseconds (),
+                'signature_method': 'RSA',
+                'echostr': 'P3LHfw6tUIYWc8R2VQNy0ilKmdg5pjhbxC7',
             }, params));
             const queryString = this.rawencode (query);
             const message = this.hash (this.encode (queryString)).toUpperCase ();
