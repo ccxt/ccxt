@@ -319,7 +319,7 @@ limit = 2
 await exchange.watchTrades (symbol, since, limit)
 ```
 
-If you want to always get just the most recent trade, **you should set a cache limit to 1, instead of using the `limit=1` parameter**.
+If you want to always get just the most recent trade, **you should set a cache limit to 1, instead of using the `limit=1` argument**.
 
 ```Python
 # this loop will properly print the most recent trade when it happens
