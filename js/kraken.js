@@ -1238,7 +1238,10 @@ module.exports = class kraken extends Exchange {
         //         }
         //     }
         //
-        const orders = this.safeValue (response, 'result', []);
+        const result = this.safeValue (response, 'result', []);
+        if (!(id in result)) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
+        }
         const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
     }
