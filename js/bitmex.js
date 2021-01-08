@@ -761,7 +761,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             for (let i = 0; i < dataLength; i++) {
                 const currentOrder = data[i];
                 const orderId = this.safeString (currentOrder, 'orderID');
-                const previousOrder = this.safeValue (stored.index, orderId);
+                const previousOrder = this.safeValue (stored.hashmap, orderId);
                 let rawOrder = currentOrder;
                 if (previousOrder !== undefined) {
                     rawOrder = this.extend (previousOrder['info'], currentOrder);
