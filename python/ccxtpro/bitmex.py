@@ -744,7 +744,7 @@ class bitmex(Exchange, ccxt.bitmex):
             for i in range(0, dataLength):
                 currentOrder = data[i]
                 orderId = self.safe_string(currentOrder, 'orderID')
-                previousOrder = self.safe_value(stored.index, orderId)
+                previousOrder = self.safe_value(stored.hashmap, orderId)
                 rawOrder = currentOrder
                 if previousOrder is not None:
                     rawOrder = self.extend(previousOrder['info'], currentOrder)

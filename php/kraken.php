@@ -741,7 +741,7 @@ class kraken extends \ccxt\kraken {
                 for ($j = 0; $j < count($ids); $j++) {
                     $id = $ids[$j];
                     $order = $orders[$id];
-                    $previousOrder = $this->safe_value($stored->index, $id);
+                    $previousOrder = $this->safe_value($stored->hashmap, $id);
                     if ($previousOrder !== null) {
                         $order = array_merge($previousOrder['info'], $order);
                     }

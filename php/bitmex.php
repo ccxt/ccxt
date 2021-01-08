@@ -765,7 +765,7 @@ class bitmex extends \ccxt\bitmex {
             for ($i = 0; $i < $dataLength; $i++) {
                 $currentOrder = $data[$i];
                 $orderId = $this->safe_string($currentOrder, 'orderID');
-                $previousOrder = $this->safe_value($stored->index, $orderId);
+                $previousOrder = $this->safe_value($stored->hashmap, $orderId);
                 $rawOrder = $currentOrder;
                 if ($previousOrder !== null) {
                     $rawOrder = array_merge($previousOrder['info'], $currentOrder);

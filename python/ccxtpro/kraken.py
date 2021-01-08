@@ -689,7 +689,7 @@ class kraken(Exchange, ccxt.kraken):
                 for j in range(0, len(ids)):
                     id = ids[j]
                     order = orders[id]
-                    previousOrder = self.safe_value(stored.index, id)
+                    previousOrder = self.safe_value(stored.hashmap, id)
                     if previousOrder is not None:
                         order = self.extend(previousOrder['info'], order)
                     parsed = self.parse_ws_order(self.extend({'id': id}, order))
