@@ -50,7 +50,7 @@ class ArrayCache(list):
 class ArrayCacheById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheById, self).__init__(max_size)
-        self._index = {}
+        self.hashmap = {}
 
     def __getattribute__(self, item):
         methods = ArrayCacheById.__dict__
@@ -63,15 +63,15 @@ class ArrayCacheById(ArrayCache):
         return super(ArrayCacheById, self).__getattribute__(item)
 
     def append(self, item):
-        if item['id'] in self._index:
-            reference = self._index[item['id']]
+        if item['id'] in self.hashmap:
+            reference = self.hashmap[item['id']]
             reference.clear()
             reference.update(item)
         else:
-            self._index[item['id']] = item
+            self.hashmap[item['id']] = item
             if len(self._deque) == self._deque.maxlen:
                 delete_reference = self._deque.popleft()
-                del self._index[delete_reference['id']]
+                del self.hashmap[delete_reference['id']]
             self._deque.append(item)
 
 

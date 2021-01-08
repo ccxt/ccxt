@@ -28,7 +28,7 @@ class ArrayCacheById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
-        Object.defineProperty (this, 'index', {
+        Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
             writable: true,
@@ -36,8 +36,8 @@ class ArrayCacheById extends ArrayCache {
     }
 
     append (item) {
-        if (item.id in this.index) {
-            const reference = this.index[item.id]
+        if (item.id in this.hashmap) {
+            const reference = this.hashmap[item.id]
             for (const prop in reference) {
                 delete reference[prop]
             }
@@ -45,10 +45,10 @@ class ArrayCacheById extends ArrayCache {
                 reference[prop] = item[prop]
             }
         } else {
-            this.index[item.id] = item
+            this.hashmap[item.id] = item
             if (this.maxSize && (this.length === this.maxSize)) {
                 const deleteReference = this.shift ()
-                delete this.index[deleteReference.id]
+                delete this.hashmap[deleteReference.id]
             }
             this.push (item)
         }
@@ -59,7 +59,7 @@ class ArrayCacheById extends ArrayCache {
 class ArrayCacheBySymbolById extends ArrayCacheById {
 
     append (item) {
-        const byId = this.index[item.symbol] = this.index[item.symbol] || {}
+        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
             for (const prop in reference) {

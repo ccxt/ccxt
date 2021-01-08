@@ -5,8 +5,8 @@ namespace ccxtpro;
 class ArrayCacheBySymbolById extends ArrayCacheById {
 
     public function append($item) {
-        if (array_key_exists($item['symbol'], $this->index)) {
-            $by_id = $this->index[$item['symbol']];
+        if (array_key_exists($item['symbol'], $this->hashmap)) {
+            $by_id = $this->hashmap[$item['symbol']];
         } else {
             $by_id = array();
         }
@@ -24,6 +24,6 @@ class ArrayCacheBySymbolById extends ArrayCacheById {
             $this->parent_append(null);
             $this->deque[$this->deque->count() - 1] = &$item;
         }
-        $this->index[$item['symbol']] = $by_id;
+        $this->hashmap[$item['symbol']] = $by_id;
     }
 }
