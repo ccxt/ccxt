@@ -339,7 +339,7 @@ module.exports = class lbank extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
