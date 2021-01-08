@@ -737,7 +737,7 @@ module.exports = class kraken extends ccxt.kraken {
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];
                     let order = orders[id];
-                    const previousOrder = this.safeValue (stored.index, id);
+                    const previousOrder = this.safeValue (stored.hashmap, id);
                     if (previousOrder !== undefined) {
                         order = this.extend (previousOrder['info'], order);
                     }
