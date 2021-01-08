@@ -18,6 +18,7 @@ module.exports = class lbank extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
                 'fetchDesposits': true,
                 'fetchMarkets': true,
@@ -62,6 +63,7 @@ module.exports = class lbank extends Exchange {
                         'trades',
                         'kline',
                         'accuracy',
+                        'withdrawConfigs',
                     ],
                 },
                 'private': {
@@ -78,7 +80,6 @@ module.exports = class lbank extends Exchange {
                         'withdraw',
                         'withdrawCancel',
                         'withdraws',
-                        'withdrawConfigs',
                     ],
                 },
             },
@@ -536,6 +537,58 @@ module.exports = class lbank extends Exchange {
             'info': this.safeValue (order, 'info', order),
             'average': undefined,
         };
+    }
+
+    async fetchCurrencies (params = {}) {
+        const assetCode = this.safeString (params, 'assetCode');
+        const request = {
+            'assetCode': assetCode,
+        };
+        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        // {
+        //     "amountScale":4,
+        //     "transferAmtScale":4,
+        //     "assetCode":"eth",
+        //     "canWithDraw":"true",
+        //     "fee":0.01,
+        //     "type":1,
+        //     "min":0.01,
+        //     "minTransfer":0.01,
+        //     "chain":1
+        // }
+        const result = {};
+        const data = this.safeValue (response, 'data', {});
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'assetCode');
+            const code = this.safeCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const name = this.safeString (currency, 'name');
+            const canWithdraw = this.safeString (currency, 'canWithDraw');
+            const fee = this.safeString (currency, 'fee');
+            const type = this.safeString (currency, 'type');
+            const active = canWithdraw === 'true' ? true : false;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': type,
+                'name': name,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minTransfer'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
