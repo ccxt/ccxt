@@ -1175,8 +1175,10 @@ class kraken(Exchange):
         #         }
         #     }
         #
-        orders = self.safe_value(response, 'result', [])
-        order = self.parse_order(self.extend({'id': id}, orders[id]))
+        result = self.safe_value(response, 'result', [])
+        if not (id in result):
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
+        order = self.parse_order(self.extend({'id': id}, result[id]))
         return self.extend({'info': response}, order)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):

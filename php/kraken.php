@@ -1214,7 +1214,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "result":{
+        //         "$result":{
         //             "OTLAS3-RRHUF-NDWH5A":{
         //                 "refid":null,
         //                 "userref":null,
@@ -1248,8 +1248,11 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $orders = $this->safe_value($response, 'result', array());
-        $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
+        $result = $this->safe_value($response, 'result', array());
+        if (!(is_array($result) && array_key_exists($id, $result))) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+        }
+        $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
         return array_merge(array( 'info' => $response ), $order);
     }
 
