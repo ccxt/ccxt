@@ -145,9 +145,8 @@ module.exports = class coinbene extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const time = this.parse8601 (ohlcv[0]);
         return [
-            this.timeInSeconds (time), // t
+            this.parse8601 (ohlcv[0]), // t
             parseFloat (ohlcv[1]), // o
             parseFloat (ohlcv[2]), // c
             parseFloat (ohlcv[3]), // h
