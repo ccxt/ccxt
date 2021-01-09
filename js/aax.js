@@ -69,7 +69,6 @@ module.exports = class aax extends Exchange {
                     //     'trades/{market}',
                     //     'tickers', // Get ticker of all markets
                     //     'tickers/{market}', // Get ticker of specific market
-                    //     'timestamp', // Get server current time, in seconds since Unix epoch
                     // ],
                     'get': [
                         'announcement/maintenance', // System Maintenance Notice
