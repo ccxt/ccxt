@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound, BadResponse, BadRequest } = require ('./base/errors');
+const { ArgumentsRequired, InsufficientFunds, OrderNotFound, BadResponse, BadRequest, BadSymbol } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchOrderBook': true,
                 // 'fetchOrders': true,
                 // 'fetchOrderTrades': false,
-                // 'fetchTicker': true,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 // 'fetchTrades': true,
             },
@@ -295,20 +295,35 @@ module.exports = class aax extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['at'];
-        const obj = this.safeValue (this.marketsById, this.safeString (ticker, 's'));
-        let symbol = obj ? this.safeString (obj, 'symbol') : null;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
+        //
+        //     {
+        //         "t":1610162685342, // timestamp
+        //         "a":"0.00000000", // trading volume in USD in the last 24 hours, futures only
+        //         "c":"435.20000000", // close
+        //         "d":"4.22953489", // change
+        //         "h":"455.04000000", // high
+        //         "l":"412.78000000", // low
+        //         "o":"417.54000000", // open
+        //         "s":"BCHUSDTFP", // market id
+        //         "v":"2031068.00000000", // trading volume in quote currency of last 24 hours
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 't');
+        const marketId = this.safeString (ticker, 's');
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'c');
         const open = this.safeFloat (ticker, 'o');
-        const change = this.dealDecimal ('sub', last, open);
-        const percentage = (open && change) ? this.dealDecimal ('mul', this.dealDecimal ('div', change, open), 100) : undefined;
-        const average = this.dealDecimal ('div', this.dealDecimal ('add', last, open), 2);
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (last, open) / 2;
+        }
+        const quoteVolume = this.safeFloat (ticker, 'v');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -328,19 +343,17 @@ module.exports = class aax extends Exchange {
             'percentage': percentage,
             'average': average,
             'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const value = market['id'];
-        const response = await this.publicGetMarketTickers ();
-        const ticket = this.extend (this.filterBy (response['tickers'], 's', value)[0], { 'at': response['t'] });
-        return this.parseTicker (ticket, market);
+        const tickers = await this.fetchTickers (undefined, params);
+        if (symbol in tickers) {
+            return tickers[symbol];
+        }
+        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -366,8 +379,9 @@ module.exports = class aax extends Exchange {
         //
         const tickers = this.safeValue (response, 'tickers', []);
         const result = [];
+        const timestamp = this.safeInteger (response, 't');
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
+            const ticker = this.parseTicker (this.extend (tickers[i], { 't': timestamp }));
             result.push (ticker);
         }
         return this.filterByArray (result, 'symbol', symbols);
