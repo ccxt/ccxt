@@ -39,6 +39,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'options': {
                 'tradesLimit': 1000,
                 'hub': 'c3',
+                'I': this.milliseconds (),
             },
         });
     }
@@ -77,9 +78,16 @@ module.exports = class bittrex extends ccxt.bittrex {
         return this.makeRequest (requestId, method, args);
     }
 
+    requestId () {
+        // their support said that reqid must be an int32, not documented
+        const reqid = this.sum (this.safeInteger (this.options, 'I', 0), 1);
+        this.options['I'] = reqid;
+        return reqid;
+    }
+
     async sendRequestToSubscribe (negotiation, messageHash, subscription, params = {}) {
         const args = [ messageHash ];
-        const requestId = this.milliseconds ().toString ();
+        const requestId = this.requestId ().toString ();
         const request = this.makeRequestToSubscribe (requestId, [ args ]);
         subscription = this.extend ({
             'id': requestId,
@@ -103,7 +111,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         if ((future === undefined) || expired) {
             future = client.future (messageHash);
             client.subscriptions[messageHash] = future;
-            const requestId = this.milliseconds ().toString ();
+            const requestId = this.requestId ().toString ();
             const request = this.makeRequestToAuthenticate (requestId);
             const subscription = {
                 'id': requestId,
@@ -609,8 +617,9 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         const marketId = this.safeString (message, 'marketSymbol');
         const symbol = this.safeSymbol (marketId, undefined, '-');
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook['nonce'] !== undefined) {
+        const orderbook = this.safeValue (this.orderbooks, symbol, {});
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
         } else {
             orderbook.cache.push (message);
