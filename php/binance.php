@@ -52,10 +52,10 @@ class binance extends \ccxt\binance {
                 'requestId' => array(),
                 'watchOrderBookLimit' => 1000, // default limit
                 'watchTrades' => array(
-                    'type' => 'trade', // 'trade' or 'aggTrade'
+                    'name' => 'trade', // 'trade' or 'aggTrade'
                 ),
                 'watchTicker' => array(
-                    'type' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                    'name' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 ),
             ),
         ));
@@ -343,9 +343,25 @@ class binance extends \ccxt\binance {
         $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchTrades', array());
-        $name = $this->safe_string($options, 'type', 'trade');
+        $name = $this->safe_string($options, 'name', 'trade');
         $messageHash = $market['lowercaseId'] . '@' . $name;
-        $future = $this->watch_public($messageHash, $params);
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $watchTradesType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+        $type = $this->safe_string($params, 'type', $watchTradesType);
+        $query = $this->omit($params, 'type');
+        $url = $this->urls['api']['ws'][$type];
+        $requestId = $this->request_id($url);
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+                $messageHash,
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
@@ -444,7 +460,24 @@ class binance extends \ccxt\binance {
         $interval = $this->timeframes[$timeframe];
         $name = 'kline';
         $messageHash = $marketId . '@' . $name . '_' . $interval;
-        $future = $this->watch_public($messageHash, $params);
+        $options = $this->safe_value($this->options, 'watchOHLCV', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        $watchOHLCVType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+        $type = $this->safe_string($params, 'type', $watchOHLCVType);
+        $query = $this->omit($params, 'type');
+        $url = $this->urls['api']['ws'][$type];
+        $requestId = $this->request_id($url);
+        $request = array(
+            'method' => 'SUBSCRIBE',
+            'params' => array(
+                $messageHash,
+            ),
+            'id' => $requestId,
+        );
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
         return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
@@ -508,9 +541,16 @@ class binance extends \ccxt\binance {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_public($messageHash, $params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
+    public function watch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marketId = $market['lowercaseId'];
+        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $name = $this->safe_string($options, 'name', 'ticker');
+        $messageHash = $marketId . '@' . $name;
+        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'spot');
+        $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
+        $type = $this->safe_string($params, 'type', $watchTickerType);
         $query = $this->omit($params, 'type');
         $url = $this->urls['api']['ws'][$type];
         $requestId = $this->request_id($url);
@@ -525,16 +565,6 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         return $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-    }
-
-    public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $marketId = $market['lowercaseId'];
-        $options = $this->safe_value($this->options, 'watchTicker', array());
-        $name = $this->safe_string($options, 'type', 'ticker');
-        $messageHash = $marketId . '@' . $name;
-        return $this->watch_public($messageHash, $params);
     }
 
     public function handle_ticker($client, $message) {

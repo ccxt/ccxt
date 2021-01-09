@@ -510,7 +510,8 @@ class huobipro(Exchange, ccxt.huobipro):
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
                     client.reject(e, id)
-                    del client.subscriptions[id]
+                    if id in client.subscriptions:
+                        del client.subscriptions[id]
             return False
         return message
 

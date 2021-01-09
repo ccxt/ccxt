@@ -51,10 +51,10 @@ class binance(Exchange, ccxt.binance):
                 'requestId': {},
                 'watchOrderBookLimit': 1000,  # default limit
                 'watchTrades': {
-                    'type': 'trade',  # 'trade' or 'aggTrade'
+                    'name': 'trade',  # 'trade' or 'aggTrade'
                 },
                 'watchTicker': {
-                    'type': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                    'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
             },
         })
@@ -309,9 +309,25 @@ class binance(Exchange, ccxt.binance):
         await self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'watchTrades', {})
-        name = self.safe_string(options, 'type', 'trade')
+        name = self.safe_string(options, 'name', 'trade')
         messageHash = market['lowercaseId'] + '@' + name
-        future = self.watch_public(messageHash, params)
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        watchTradesType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchTradesType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type]
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
@@ -403,7 +419,24 @@ class binance(Exchange, ccxt.binance):
         interval = self.timeframes[timeframe]
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
-        future = self.watch_public(messageHash, params)
+        options = self.safe_value(self.options, 'watchOHLCV', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        watchOHLCVType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchOHLCVType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type]
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
@@ -463,9 +496,16 @@ class binance(Exchange, ccxt.binance):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_public(self, messageHash, params={}):
-        defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['lowercaseId']
+        options = self.safe_value(self.options, 'watchTicker', {})
+        name = self.safe_string(options, 'name', 'ticker')
+        messageHash = marketId + '@' + name
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'spot')
+        watchTickerType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchTickerType)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type]
         requestId = self.request_id(url)
@@ -480,15 +520,6 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         return await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-
-    async def watch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        marketId = market['lowercaseId']
-        options = self.safe_value(self.options, 'watchTicker', {})
-        name = self.safe_string(options, 'type', 'ticker')
-        messageHash = marketId + '@' + name
-        return await self.watch_public(messageHash, params)
 
     def handle_ticker(self, client, message):
         #
