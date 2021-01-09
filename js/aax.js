@@ -18,26 +18,26 @@ module.exports = class aax extends Exchange {
             'version': 'v2',
             'v1': 'marketdata/v1',
             'has': {
-                'cancelAllOrders': true,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'cancelOrder': true,
-                'createOrder': true,
-                'editOrder': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': true,
-                'fetchDepositAddress': false,
+                // 'cancelAllOrders': true,
+                // 'cancelOrder': true,
+                // 'createLimitOrder': false,
+                // 'createMarketOrder': false,
+                // 'createOrder': true,
+                // 'editOrder': true,
+                // 'fetchBalance': true,
+                // 'fetchClosedOrders': true,
+                // 'fetchDepositAddress': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOrderBook': true,
-                'fetchOrderTrades': false,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTrades': true,
+                // 'fetchMyTrades': true,
+                // 'fetchOHLCV': true,
+                // 'fetchOpenOrders': true,
+                // 'fetchOrder': true,
+                // 'fetchOrderBook': true,
+                // 'fetchOrders': true,
+                // 'fetchOrderTrades': false,
+                // 'fetchTicker': true,
+                // 'fetchTickers': true,
+                // 'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -151,52 +151,99 @@ module.exports = class aax extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstruments (params);
-        // const response = { 'code': 1,
-        //     'message': 'success',
-        //     'ts': 1603264508726,
-        //     'data': [
-        //         {
-        //             'tickSize': '0.01',
-        //             'lotSize': '1',
-        //             'base': 'BTC',
-        //             'quote': 'USDT',
-        //             'minQuantity': '1.0000000000',
-        //             'maxQuantity': '30000',
-        //             'minPrice': '0.0100000000',
-        //             'maxPrice': '999999.0000000000',
-        //             'status': 'enable',
-        //             'symbol': 'BTCUSDT',
-        //             'code': '',
-        //             'takerFee': '0.00040',
-        //             'makerFee': '0.00020',
-        //             'multiplier': '0.001000000000',
-        //             'mmRate': '0.00500',
-        //             'imRate': '0.01000',
-        //             'type': 'futures',
-        //             'settleType': 'Vanilla',
-        //             'settleCurrency': 'USDT',
-        //         }] };
-        const markets = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "code":1,
+        //         "message":"success",
+        //         "ts":1610159448962,
+        //         "data":[
+        //             {
+        //                 "tickSize":"0.01",
+        //                 "lotSize":"1",
+        //                 "base":"BTC",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"1.0000000000",
+        //                 "maxQuantity":"30000",
+        //                 "minPrice":"0.0100000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDTFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"0.001000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Vanilla",
+        //                 "settleCurrency":"USDT"
+        //             },
+        //             {
+        //                 "tickSize":"0.5",
+        //                 "lotSize":"10",
+        //                 "base":"BTC",
+        //                 "quote":"USD",
+        //                 "minQuantity":"10.0000000000",
+        //                 "maxQuantity":"300000",
+        //                 "minPrice":"0.5000000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"1.000000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Inverse",
+        //                 "settleCurrency":"BTC"
+        //             },
+        //             {
+        //                 "tickSize":"0.0001",
+        //                 "lotSize":"0.01",
+        //                 "base":"AAB",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"5.0000000000",
+        //                 "maxQuantity":"50000.0000000000",
+        //                 "minPrice":"0.0001000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"AABUSDT",
+        //                 "code":null,
+        //                 "takerFee":"0.00100",
+        //                 "makerFee":"0.00100",
+        //                 "multiplier":"1.000000000000",
+        //                 "mmRate":"0.02500",
+        //                 "imRate":"0.05000",
+        //                 "type":"spot",
+        //                 "settleType":null,
+        //                 "settleCurrency":null
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
             const id = this.safeString (market, 'symbol');
-            const base = this.safeString (market, 'base').toUpperCase ();
-            const quote = this.safeString (market, 'quote').toUpperCase ();
-            const baseId = base.toLowerCase ();
-            const quoteId = quote.toLowerCase ();
-            const active = this.safeString (market, 'status') === 'enable';
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const status = this.safeString (market, 'status');
+            const active = (status === 'enable');
             const taker = this.safeFloat (market, 'takerFee');
             const maker = this.safeFloat (market, 'makerFee');
-            let symbol = base + '/' + quote;
-            if (this.safeString (market, 'code')) {
-                symbol = symbol + this.safeString (market, 'code');
+            const type = this.safeString (market, 'type');
+            let symbol = id;
+            if (type === 'spot') {
+                symbol = base + '/' + quote;
             }
-            // todo: find out their undocumented precision and limits
             const precision = {
-                'amount': undefined,
-                'price': undefined,
-                'cost': undefined,
+                'amount': this.safeFloat (market, 'lotSize'),
+                'price': this.safeFloat (market, 'tickSize'),
             };
             result.push ({
                 'id': id,
@@ -205,6 +252,7 @@ module.exports = class aax extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
                 'precision': precision,
                 'info': market,
                 'active': active,
