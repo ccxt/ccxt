@@ -36,7 +36,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchOrders': true,
                 // 'fetchOrderTrades': false,
                 // 'fetchTicker': true,
-                // 'fetchTickers': true,
+                'fetchTickers': true,
                 // 'fetchTrades': true,
             },
             'timeframes': {
@@ -236,6 +236,17 @@ module.exports = class aax extends Exchange {
             const taker = this.safeFloat (market, 'takerFee');
             const maker = this.safeFloat (market, 'makerFee');
             const type = this.safeString (market, 'type');
+            let inverse = undefined;
+            let linear = undefined;
+            let quanto = undefined;
+            const spot = (type === 'spot');
+            const futures = (type === 'futures');
+            const settleType = this.safeStringLower (market, 'settleType');
+            if (settleType !== undefined) {
+                inverse = (settleType === 'inverse');
+                linear = (settleType === 'vanilla');
+                quanto = (settleType === 'quanto');
+            }
             let symbol = id;
             if (type === 'spot') {
                 symbol = base + '/' + quote;
@@ -252,6 +263,11 @@ module.exports = class aax extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'type': type,
+                'spot': spot,
+                'futures': futures,
+                'inverse': inverse,
+                'linear': linear,
+                'quanto': quanto,
                 'precision': precision,
                 'info': market,
                 'active': active,
@@ -276,6 +292,85 @@ module.exports = class aax extends Exchange {
             });
         }
         return result;
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const timestamp = ticker['at'];
+        const obj = this.safeValue (this.marketsById, this.safeString (ticker, 's'));
+        let symbol = obj ? this.safeString (obj, 'symbol') : null;
+        if (market) {
+            symbol = market['symbol'];
+        }
+        if (symbol && symbol.slice (-2) === 'FP') {
+            symbol = symbol.slice (0, -2);
+        }
+        const last = this.safeFloat (ticker, 'c');
+        const open = this.safeFloat (ticker, 'o');
+        const change = this.dealDecimal ('sub', last, open);
+        const percentage = (open && change) ? this.dealDecimal ('mul', this.dealDecimal ('div', change, open), 100) : undefined;
+        const average = this.dealDecimal ('div', this.dealDecimal ('add', last, open), 2);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        symbol = this.dealSymbol (symbol, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const value = market['id'];
+        const response = await this.publicGetMarketTickers ();
+        const ticket = this.extend (this.filterBy (response['tickers'], 's', value)[0], { 'at': response['t'] });
+        return this.parseTicker (ticket, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketTickers (params);
+        //
+        //     {
+        //         "e":"tickers",
+        //         "t":1610162685342,
+        //         "tickers":[
+        //             {
+        //                 "a":"0.00000000",
+        //                 "c":"435.20000000",
+        //                 "d":"4.22953489",
+        //                 "h":"455.04000000",
+        //                 "l":"412.78000000",
+        //                 "o":"417.54000000",
+        //                 "s":"BCHUSDTFP",
+        //                 "v":"2031068.00000000",
+        //             },
+        //         ],
+        //     }
+        //
+        const tickers = this.safeValue (response, 'tickers', []);
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            result.push (ticker);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -850,58 +945,6 @@ module.exports = class aax extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const value = market['id'];
-        const response = await this.publicGetMarketTickers ();
-        const ticket = this.extend (this.filterBy (response['tickers'], 's', value)[0], { 'at': response['t'] });
-        return this.parseTicker (ticket, market);
-    }
-
-    async fetchTickers (symbols = [], params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetMarketTickers ();
-        // const response = {
-        //     'e': 'tickers',
-        //     't': 1592568022678,
-        //     'tickers':
-        //     [
-        //         {
-        //             'a': '0.00000000',
-        //             'c': '52.50000000',
-        //             'd': '-0.94339623',
-        //             'h': '53.00000000',
-        //             'l': '50.80000000',
-        //             'o': '53.00000000',
-        //             's': 'ZECUSDT',
-        //             'v': '42525.11699994',
-        //         },
-        //         {
-        //             'a': '0.00000000',
-        //             'c': '0.00000222',
-        //             'd': '-5.53191489',
-        //             'h': '0.00000236',
-        //             'l': '0.00000216',
-        //             'o': '0.00000235',
-        //             's': 'ZILBTC',
-        //             'v': '5.84912230',
-        //         },
-        //     ],
-        // };
-        const tickers = response['tickers'];
-        const result = [];
-        if (tickers && Array.isArray (tickers)) {
-            for (let index = 0; index < tickers.length; index++) {
-                let ticker = tickers[index];
-                ticker = this.extend (ticker, { 'at': response['t'] });
-                result.push (this.parseTicker (ticker));
-            }
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         symbol = this.dealSymbol (symbol, params);
         await this.loadMarkets ();
@@ -912,45 +955,6 @@ module.exports = class aax extends Exchange {
         };
         const response = await this.publicGetMarketTrades (request);
         return this.parseTrades (response['trades'], market, since, limit);
-    }
-
-    parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['at'];
-        const obj = this.safeValue (this.marketsById, this.safeString (ticker, 's'));
-        let symbol = obj ? this.safeString (obj, 'symbol') : null;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
-        const last = this.safeFloat (ticker, 'c');
-        const open = this.safeFloat (ticker, 'o');
-        const change = this.dealDecimal ('sub', last, open);
-        const percentage = (open && change) ? this.dealDecimal ('mul', this.dealDecimal ('div', change, open), 100) : undefined;
-        const average = this.dealDecimal ('div', this.dealDecimal ('add', last, open), 2);
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'h'),
-            'low': this.safeFloat (ticker, 'l'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
-            'info': ticker,
-        };
     }
 
     parseTrade (trade, market = undefined) {
