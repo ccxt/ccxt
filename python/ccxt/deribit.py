@@ -997,7 +997,7 @@ class deribit(Exchange):
             'cancelled': 'canceled',
             'filled': 'closed',
             'rejected': 'rejected',
-            # 'untriggered': 'open',
+            'untriggered': 'open',
         }
         return self.safe_string(statuses, status, status)
 
