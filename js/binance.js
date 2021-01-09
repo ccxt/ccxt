@@ -49,10 +49,10 @@ module.exports = class binance extends ccxt.binance {
                 'requestId': {},
                 'watchOrderBookLimit': 1000, // default limit
                 'watchTrades': {
-                    'type': 'trade', // 'trade' or 'aggTrade'
+                    'name': 'trade', // 'trade' or 'aggTrade'
                 },
                 'watchTicker': {
-                    'type': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                    'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
             },
         });
@@ -340,9 +340,25 @@ module.exports = class binance extends ccxt.binance {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'watchTrades', {});
-        const name = this.safeString (options, 'type', 'trade');
+        const name = this.safeString (options, 'name', 'trade');
         const messageHash = market['lowercaseId'] + '@' + name;
-        const future = this.watchPublic (messageHash, params);
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const watchTradesType = this.safeString (options, 'type', 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', watchTradesType);
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type];
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const future = this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
         return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
     }
 
@@ -441,7 +457,24 @@ module.exports = class binance extends ccxt.binance {
         const interval = this.timeframes[timeframe];
         const name = 'kline';
         const messageHash = marketId + '@' + name + '_' + interval;
-        const future = this.watchPublic (messageHash, params);
+        const options = this.safeValue (this.options, 'watchOHLCV', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const watchOHLCVType = this.safeString2 (options, 'type', 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', watchOHLCVType);
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type];
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const future = this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
         return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
     }
 
@@ -505,9 +538,16 @@ module.exports = class binance extends ccxt.binance {
         client.resolve (stored, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchOrderBook', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['lowercaseId'];
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const name = this.safeString (options, 'name', 'ticker');
+        const messageHash = marketId + '@' + name;
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'spot');
+        const watchTickerType = this.safeString (options, 'type', 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', watchTickerType);
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type];
         const requestId = this.requestId (url);
@@ -522,16 +562,6 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-    }
-
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['lowercaseId'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const name = this.safeString (options, 'type', 'ticker');
-        const messageHash = marketId + '@' + name;
-        return await this.watchPublic (messageHash, params);
     }
 
     handleTicker (client, message) {
