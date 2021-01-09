@@ -1011,7 +1011,7 @@ module.exports = class deribit extends Exchange {
             'cancelled': 'canceled',
             'filled': 'closed',
             'rejected': 'rejected',
-            // 'untriggered': 'open',
+            'untriggered': 'open',
         };
         return this.safeString (statuses, status, status);
     }
