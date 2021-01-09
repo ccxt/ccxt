@@ -544,7 +544,9 @@ module.exports = class huobipro extends ccxt.huobipro {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
                     client.reject (e, id);
-                    delete client.subscriptions[id];
+                    if (id in client.subscriptions) {
+                        delete client.subscriptions[id];
+                    }
                 }
             }
             return false;
