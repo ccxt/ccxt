@@ -1218,69 +1218,41 @@ module.exports = class aax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api];
         if (api === 'v1') {
-            url += request;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'public') {
-            url += '/' + this.version + request;
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            // Authentication
-            // To authenticate using your API key, use this code:
-            // AAX offers SecretAPIKey for authentication. Never share your keys. Keep SecretAPIKey secured. When you are logged in, please follow the link to manage your active keys.
-            // Authentication is done by sending the following HTTP headers:
-            // X-ACCESS-KEY: Your public API key.
-            // X-ACCESS-NONCE: A UNIX timestamp in milliseconds after which the request is no longer valid. This is to prevent replay attacks.
-
-            // UNIX timestamps are in milliseconds. For example, 2019-11-06T09:30:30.423Z is 1573032630423.
-            // This timestamp is compared against our system time before reaching the trading engine. It cannot be used as a mechanism to cancel submission of an order that is waiting in queue to be processed.
-            // X-ACCESS-SIGN: Signature for your API request. It is calculated as follows: HEX(HMAC_SHA256(apiSecret, str(nonce) + ':' + verb + path + data)). The data part of the HMAC construction should be exactly equal to the raw message body you wish to send to the server and needs to be a JSON-encoded.
-            let data = '';
-            const payload = {
-                'nonce': nonce,
-                'verb': method,
-                'path': request,
-                'data': data,
-            };
-            const privateHeader = {
-                'X-ACCESS-KEY': this.apiKey,
-                'X-ACCESS-NONCE': nonce,
-            };
-            const suffix = this.urlencode (query);
-            if (method === 'GET') {
-                url = suffix ? (url + '?' + suffix) : url;
-                request = suffix ? (request + '?' + suffix) : request;
-                const payload = {
-                    'nonce': nonce,
-                    'verb': method,
-                    'path': request,
-                    'data': '',
+        } else {
+            url = '/' + this.version + url;
+            if (api === 'public') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (api === 'private') {
+                this.checkRequiredCredentials ();
+                const nonce = this.nonce ().toString ();
+                headers = {
+                    'X-ACCESS-KEY': this.apiKey,
+                    'X-ACCESS-NONCE': nonce,
                 };
-                const sign = this.getSignFromSecret (payload);
-                privateHeader['X-ACCESS-SIGN'] = sign;
-                headers = this.extend ({ 'accept': 'application/json;charset=UTF-8' }, privateHeader);
-            } else {
-                const payload = {
-                    'nonce': nonce,
-                    'verb': method,
-                    'path': request,
-                    'data': this.json (query, { 'convertArraysToObjects': true }),
-                };
-                const sign = this.getSignFromSecret (payload);
-                privateHeader['X-ACCESS-SIGN'] = sign;
-                body = this.json (query, { 'convertArraysToObjects': true });
-                headers = this.extend ({ 'Content-Type': 'application/json' }, privateHeader);
+                let auth = nonce + ':' + method;
+                if (method === 'GET') {
+                    if (Object.keys (query).length) {
+                        url += '?' + this.urlencode (query);
+                    }
+                    auth += url;
+                } else {
+                    headers['Content-Type'] = 'application/json';
+                    body = this.json (query);
+                    auth += url + body;
+                }
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+                headers['X-ACCESS-SIGN'] = signature;
             }
         }
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1295,15 +1267,6 @@ module.exports = class aax extends Exchange {
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
         }
-    }
-
-    getSignFromSecret (params) {
-        const nonce = this.safeString (params, 'nonce');
-        const verb = this.safeString (params, 'verb');
-        const path = this.safeString (params, 'path');
-        const data = this.safeString (params, 'data');
-        const message = nonce + ':' + verb + path + data;
-        return this.hmac (this.encode (message), this.encode (this.secret));
     }
 
     checkParams (params, arr = []) {
