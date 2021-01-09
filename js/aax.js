@@ -24,7 +24,7 @@ module.exports = class aax extends Exchange {
                 // 'createMarketOrder': false,
                 // 'createOrder': true,
                 // 'editOrder': true,
-                // 'fetchBalance': true,
+                'fetchBalance': true,
                 // 'fetchClosedOrders': true,
                 // 'fetchDepositAddress': false,
                 'fetchMarkets': true,
@@ -398,15 +398,17 @@ module.exports = class aax extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
+        if (limit === undefined) {
+            limit = 20;
+        } else {
             if ((limit !== 20) && (limit !== 50)) {
                 throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 20 or 50');
             }
-            request['level'] = limit;
         }
+        const request = {
+            'symbol': market['id'],
+            'level': limit, // required
+        };
         //
         const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         //
@@ -555,11 +557,18 @@ module.exports = class aax extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const type = this.safeString (params, 'type') ? this.safeString (params, 'type') : this.options['defaultType'];
-        this.checkParams (params, ['spot', 'future', 'otc', 'saving']);
-        const purseType = this.purseType ();
-        const request = {};
-        // { 'purseType': purseType[type] }
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const types = {
+            'spot': 'SPTP',
+            'future': 'FUTP',
+            'otc': 'F2CP',
+            'saving': 'VLTP',
+        };
+        const purseType = this.safeString (types, type, type);
+        const request = {
+            'purseType': purseType,
+        };
         const response = await this.privateGetAccountBalances (this.extend (request, params));
         // const response = {
         //     'code': 1,
@@ -602,7 +611,6 @@ module.exports = class aax extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'unavailable');
-            account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'unavailable');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1226,6 +1234,23 @@ module.exports = class aax extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
+            // Authentication
+            // To authenticate using your API key, use this code:
+            // AAX offers SecretAPIKey for authentication. Never share your keys. Keep SecretAPIKey secured. When you are logged in, please follow the link to manage your active keys.
+            // Authentication is done by sending the following HTTP headers:
+            // X-ACCESS-KEY: Your public API key.
+            // X-ACCESS-NONCE: A UNIX timestamp in milliseconds after which the request is no longer valid. This is to prevent replay attacks.
+
+            // UNIX timestamps are in milliseconds. For example, 2019-11-06T09:30:30.423Z is 1573032630423.
+            // This timestamp is compared against our system time before reaching the trading engine. It cannot be used as a mechanism to cancel submission of an order that is waiting in queue to be processed.
+            // X-ACCESS-SIGN: Signature for your API request. It is calculated as follows: HEX(HMAC_SHA256(apiSecret, str(nonce) + ':' + verb + path + data)). The data part of the HMAC construction should be exactly equal to the raw message body you wish to send to the server and needs to be a JSON-encoded.
+            let data = '';
+            const payload = {
+                'nonce': nonce,
+                'verb': method,
+                'path': request,
+                'data': data,
+            };
             const privateHeader = {
                 'X-ACCESS-KEY': this.apiKey,
                 'X-ACCESS-NONCE': nonce,
