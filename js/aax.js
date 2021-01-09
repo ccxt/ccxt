@@ -32,7 +32,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchOHLCV': true,
                 // 'fetchOpenOrders': true,
                 // 'fetchOrder': true,
-                // 'fetchOrderBook': true,
+                'fetchOrderBook': true,
                 // 'fetchOrders': true,
                 // 'fetchOrderTrades': false,
                 'fetchTicker': 'emulated',
@@ -385,6 +385,40 @@ module.exports = class aax extends Exchange {
             result.push (ticker);
         }
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 50)) {
+                throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be undefined, 20 or 50');
+            }
+            request['level'] = limit;
+        }
+        //
+        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "asks":[
+        //             ["10823.00000000","0.004000"],
+        //             ["10823.10000000","0.100000"],
+        //             ["10823.20000000","0.010000"]
+        //         ],
+        //         "bids":[
+        //             ["10821.20000000","0.002000"],
+        //             ["10821.10000000","0.005000"],
+        //             ["10820.40000000","0.013000"]
+        //         ],
+        //         "e":"BTCUSDT@book_50",
+        //         "t":1561543614756
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 't'); // need unix type
+        return this.parseOrderBook (response, timestamp);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -941,22 +975,6 @@ module.exports = class aax extends Exchange {
             result.push (this.parseOrder (order));
         }
         return result;
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit && !this.inArray (limit, [20, '20', 50, '50'])) {
-            throw new BadRequest ('limit must be 20 or 50 ');
-        }
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        request['level'] = limit ? limit : 20; // Support 20, 50
-        const orderbook = await this.publicGetMarketOrderbook (this.extend (request, params));
-        const timestamp = this.safeTimestamp (orderbook, 't') / 1000; // need unix type
-        return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
