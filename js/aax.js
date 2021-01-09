@@ -12,9 +12,9 @@ module.exports = class aax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aax',
             'name': 'AAX',
-            'countries': ['MT'],
+            'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
-            'rateLimit': 1000,
+            'rateLimit': 500,
             'version': 'v2',
             'v1': 'marketdata/v1',
             'has': {
@@ -60,48 +60,66 @@ module.exports = class aax extends Exchange {
             },
             'api': {
                 'public': {
+                    // these endpoints are not documented
+                    // 'get': [
+                    //     'getHistMarketData', // Get OHLC(k line) of specific market v1
+                    //     'order_book', // Get the order book of specified market
+                    //     'order_book/{market}',
+                    //     'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
+                    //     'trades/{market}',
+                    //     'tickers', // Get ticker of all markets
+                    //     'tickers/{market}', // Get ticker of specific market
+                    //     'timestamp', // Get server current time, in seconds since Unix epoch
+                    // ],
                     'get': [
-                        'instruments', // This endpoint is used to retrieve all instruments information.
-                        'market/candles', // Get OHLC(k line) of specific market
-                        'getHistMarketData', // Get OHLC(k line) of specific market v1
-                        'market/orderbook', // This endpoint allows you to retrieve the current order book for a specific symbol.
-                        'market/tickers', // This endpoint allows you to retrieve the trading summary for all symbol in the last 24 hours
+                        'announcement/maintenance', // System Maintenance Notice
+                        'instruments', // Retrieve all trading pairs information
+                        'market/orderbook', // Order Book
+                        'futures/position/openInterest', // Open Interest
+                        'market/tickers', // Get the Last 24h Market Summary
+                        'market/candles', // Get Current Candlestick
                         'market/trades', // Get the Most Recent Trades
-                        'order_book', // Get the order book of specified market
-                        'order_book/{market}',
-                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'trades/{market}',
-                        'tickers', // Get ticker of all markets
-                        'tickers/{market}', // Get ticker of specific market
-                        'timestamp', // Get server current time, in seconds since Unix epoch
+                        'market/markPrice', // Get Current Mark Price
+                        'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
+                        'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
+                        'market/candles/index', // Get Current Index Candlestick
                     ],
                 },
                 'private': {
                     'get': [
-                        'account/balances', // Retrieve user wallet balances.
-                        'account/deposit/address',
-                        'futures/openOrders', // Retrieve future open orders
-                        'futures/trades', // This endpoint is used to retrieve your orders execution details
-                        'futures/orders', // Retrieve historical futures orders
+                        'user/info', // Retrieve user information
+                        'account/balances', // Get Account Balances
+                        'account/deposit/address', // undocumented
+                        'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
-                        'spot/trades', // This endpoint is used to retrieve your orders execution details
+                        'futures/position', // Get positions for all contracts
+                        'futures/position/closed', // Get closed positions
+                        'futures/trades', // Retrieve trade details for a futures order
+                        'futures/openOrders', // Retrieve futures open orders
+                        'futures/orders', // Retrieve historical futures orders
+                        'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
                     ],
                     'post': [
-                        'futures/openOrders', // This endpoint is used to retrieve future open orders
-                        'futures/orders', // This endpoint is used for placing future orders
-                        'spot/openOrders', // This endpoint is used to retrieve spot open orders
-                        'spot/orders', // This endpoint is used for placing spot orders
-                    ],
-                    'delete': [
-                        'futures/orders/cancel/all', // Cancle all future Order
-                        'futures/orders/cancel/{orderID}', // Cancel future Order
-                        'spot/orders/cancel/all', // Cancle all spot Orders
-                        'spot/orders/cancel/{orderID}', // Cancel Spot Order
+                        'account/transfer', // Asset Transfer
+                        'spot/orders', // Create a new spot order
+                        'spot/orders/cancelAllOnTimeout', // Automatically cancel all your spot orders after a specified timeout.
+                        'futures/orders', // Create a new futures order
+                        'futures/orders/cancelAllOnTimeout', // Automatically cancel all your futures orders after a specified timeout.
+                        'futures/position/sltp', // Set take profit and stop loss orders for an opening position
+                        'futures/position/close', // Close position
+                        'futures/position/leverage', // Update leverage for position
+                        'futures/position/margin', // Modify Isolated Position Margin
                     ],
                     'put': [
-                        'futures/orders', // This endpoint is used to amend the quantity or price of an open order.
-                        'spot/orders', // This endpoint is used to amend the quantity or price of an open order.
+                        'spot/orders', // Amend spot order
+                        'futures/orders', // Amend the quantity of an open futures order
+                    ],
+                    'delete': [
+                        'spot/orders/cancel/{orderID}', // Cancel a spot order
+                        'spot/orders/cancel/all', // Batch cancel spot orders
+                        'futures/orders/cancel/{orderID}', // Cancel a futures order
+                        'futures/orders/cancel/all', // Batch cancel futures orders
                     ],
                 },
             },
@@ -129,6 +147,88 @@ module.exports = class aax extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future'
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetInstruments (params);
+        // const response = { 'code': 1,
+        //     'message': 'success',
+        //     'ts': 1603264508726,
+        //     'data': [
+        //         {
+        //             'tickSize': '0.01',
+        //             'lotSize': '1',
+        //             'base': 'BTC',
+        //             'quote': 'USDT',
+        //             'minQuantity': '1.0000000000',
+        //             'maxQuantity': '30000',
+        //             'minPrice': '0.0100000000',
+        //             'maxPrice': '999999.0000000000',
+        //             'status': 'enable',
+        //             'symbol': 'BTCUSDT',
+        //             'code': '',
+        //             'takerFee': '0.00040',
+        //             'makerFee': '0.00020',
+        //             'multiplier': '0.001000000000',
+        //             'mmRate': '0.00500',
+        //             'imRate': '0.01000',
+        //             'type': 'futures',
+        //             'settleType': 'Vanilla',
+        //             'settleCurrency': 'USDT',
+        //         }] };
+        const markets = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const base = this.safeString (market, 'base').toUpperCase ();
+            const quote = this.safeString (market, 'quote').toUpperCase ();
+            const baseId = base.toLowerCase ();
+            const quoteId = quote.toLowerCase ();
+            const active = this.safeString (market, 'status') === 'enable';
+            const taker = this.safeFloat (market, 'takerFee');
+            const maker = this.safeFloat (market, 'makerFee');
+            let symbol = base + '/' + quote;
+            if (this.safeString (market, 'code')) {
+                symbol = symbol + this.safeString (market, 'code');
+            }
+            // todo: find out their undocumented precision and limits
+            const precision = {
+                'amount': undefined,
+                'price': undefined,
+                'cost': undefined,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'info': market,
+                'active': active,
+                'taker': taker,
+                'maker': maker,
+                'percentage': false,
+                'tierBased': true,
+                'limits': {
+                    'amount': {
+                        'min': this.safeString (market, 'minQuantity'),
+                        'max': this.safeString (market, 'maxQuantity'),
+                    },
+                    'price': {
+                        'min': this.safeString (market, 'minPrice'),
+                        'max': this.safeString (market, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -397,88 +497,6 @@ module.exports = class aax extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
-    }
-
-    async fetchMarkets (params = {}) {
-        const response = await this.publicGetInstruments (params);
-        // const response = { 'code': 1,
-        //     'message': 'success',
-        //     'ts': 1603264508726,
-        //     'data': [
-        //         {
-        //             'tickSize': '0.01',
-        //             'lotSize': '1',
-        //             'base': 'BTC',
-        //             'quote': 'USDT',
-        //             'minQuantity': '1.0000000000',
-        //             'maxQuantity': '30000',
-        //             'minPrice': '0.0100000000',
-        //             'maxPrice': '999999.0000000000',
-        //             'status': 'enable',
-        //             'symbol': 'BTCUSDT',
-        //             'code': '',
-        //             'takerFee': '0.00040',
-        //             'makerFee': '0.00020',
-        //             'multiplier': '0.001000000000',
-        //             'mmRate': '0.00500',
-        //             'imRate': '0.01000',
-        //             'type': 'futures',
-        //             'settleType': 'Vanilla',
-        //             'settleCurrency': 'USDT',
-        //         }] };
-        const markets = this.safeValue (response, 'data');
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const base = this.safeString (market, 'base').toUpperCase ();
-            const quote = this.safeString (market, 'quote').toUpperCase ();
-            const baseId = base.toLowerCase ();
-            const quoteId = quote.toLowerCase ();
-            const active = this.safeString (market, 'status') === 'enable';
-            const taker = this.safeFloat (market, 'takerFee');
-            const maker = this.safeFloat (market, 'makerFee');
-            let symbol = base + '/' + quote;
-            if (this.safeString (market, 'code')) {
-                symbol = symbol + this.safeString (market, 'code');
-            }
-            // todo: find out their undocumented precision and limits
-            const precision = {
-                'amount': undefined,
-                'price': undefined,
-                'cost': undefined,
-            };
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'precision': precision,
-                'info': market,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'percentage': false,
-                'tierBased': true,
-                'limits': {
-                    'amount': {
-                        'min': this.safeString (market, 'minQuantity'),
-                        'max': this.safeString (market, 'maxQuantity'),
-                    },
-                    'price': {
-                        'min': this.safeString (market, 'minPrice'),
-                        'max': this.safeString (market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
-        }
-        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
