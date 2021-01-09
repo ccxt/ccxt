@@ -544,6 +544,70 @@ module.exports = class aax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    purseType () {
+        return {
+            'spot': 'SPTP',
+            'future': 'FUTP',
+            'otc': 'F2CP',
+            'saving': 'VLTP',
+        };
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const type = this.safeString (params, 'type') ? this.safeString (params, 'type') : this.options['defaultType'];
+        this.checkParams (params, ['spot', 'future', 'otc', 'saving']);
+        const purseType = this.purseType ();
+        const request = {};
+        // { 'purseType': purseType[type] }
+        const response = await this.privateGetAccountBalances (this.extend (request, params));
+        // const response = {
+        //     'code': 1,
+        //     'message': 'success',
+        //     'ts': 1603187218565,
+        //     'data': [
+        //         {
+        //             'purseType': 'SPTP',
+        //             'currency': 'USDT',
+        //             'available': '9402.93025232',
+        //             'unavailable': '47.92316768',
+        //         },
+        //         {
+        //             'purseType': 'SPTP',
+        //             'currency': 'BTC',
+        //             'available': '0.14995000',
+        //             'unavailable': '0.00000000',
+        //         },
+        //         {
+        //             'purseType': 'RWDP',
+        //             'currency': 'BTC',
+        //             'available': '0.00030000',
+        //             'unavailable': '0.00200000',
+        //         },
+        //         {
+        //             'purseType': 'FUTP',
+        //             'currency': 'BTC',
+        //             'available': '0.02000000',
+        //             'unavailable': '0.20030000',
+        //         },
+        //     ],
+        // };
+        // RWDP
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'unavailable');
+            account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'unavailable');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -748,68 +812,6 @@ module.exports = class aax extends Exchange {
         //     "message":"success",
         //     "ts":1573530401494
         // }
-    }
-
-    purseType () {
-        return {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        };
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const type = this.safeString (params, 'type') ? this.safeString (params, 'type') : this.options['defaultType'];
-        this.checkParams (params, ['spot', 'future', 'otc', 'saving']);
-        const purseType = this.purseType ();
-        const response = await this.privateGetAccountBalances ({ 'purseType': purseType[type] });
-        // const response = {
-        //     'code': 1,
-        //     'message': 'success',
-        //     'ts': 1603187218565,
-        //     'data': [
-        //         {
-        //             'purseType': 'SPTP',
-        //             'currency': 'USDT',
-        //             'available': '9402.93025232',
-        //             'unavailable': '47.92316768',
-        //         },
-        //         {
-        //             'purseType': 'SPTP',
-        //             'currency': 'BTC',
-        //             'available': '0.14995000',
-        //             'unavailable': '0.00000000',
-        //         },
-        //         {
-        //             'purseType': 'RWDP',
-        //             'currency': 'BTC',
-        //             'available': '0.00030000',
-        //             'unavailable': '0.00200000',
-        //         },
-        //         {
-        //             'purseType': 'FUTP',
-        //             'currency': 'BTC',
-        //             'available': '0.02000000',
-        //             'unavailable': '0.20030000',
-        //         },
-        //     ],
-        // };
-        // RWDP
-        const balances = this.safeValue (response, 'data');
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'unavailable');
-            account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'unavailable');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
