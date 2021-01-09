@@ -37,7 +37,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchOrderTrades': false,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
-                // 'fetchTrades': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -419,6 +419,66 @@ module.exports = class aax extends Exchange {
         //
         const timestamp = this.safeInteger (response, 't'); // need unix type
         return this.parseOrderBook (response, timestamp);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeFloat (trade, 't');
+        const id = this.safeString (trade, 'tid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        if (symbol && symbol.slice (-2) === 'FP') {
+            symbol = symbol.slice (0, -2);
+        }
+        const price = this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'q');
+        const side = price > 0 ? 'buy' : 'sell';
+        const cost = this.dealDecimal ('mul', price, amount);
+        const currency = symbol ? symbol.split ('/')[1] : 'currency';
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': Math.abs (price),
+            'amount': amount,
+            'cost': Math.abs (cost),
+            'fee': {
+                'cost': undefined,
+                'currency': currency,
+                'rate': undefined,
+            },
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'limit': 2, // max 2000
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetMarketTrades (request);
+        //
+        //     {
+        //         "e":"BTCUSDFP@trades",
+        //         "trades": [
+        //             {"p":"9395.50000000","q":"50.000000","t":1592563996718},
+        //             {"p":"9395.50000000","q":"50.000000","t":1592563993577},
+        //         ],
+        //     }
+        //
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -975,54 +1035,6 @@ module.exports = class aax extends Exchange {
             result.push (this.parseOrder (order));
         }
         return result;
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'limit': 2, // max 2000
-        };
-        const response = await this.publicGetMarketTrades (request);
-        return this.parseTrades (response['trades'], market, since, limit);
-    }
-
-    parseTrade (trade, market = undefined) {
-        const timestamp = this.safeFloat (trade, 't');
-        const id = this.safeString (trade, 'tid');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const side = price > 0 ? 'buy' : 'sell';
-        const cost = this.dealDecimal ('mul', price, amount);
-        const currency = symbol ? symbol.split ('/')[1] : 'currency';
-        return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'price': Math.abs (price),
-            'amount': amount,
-            'cost': Math.abs (cost),
-            'fee': {
-                'cost': undefined,
-                'currency': currency,
-                'rate': undefined,
-            },
-        };
     }
 
     parseMyTrade (trade) {
