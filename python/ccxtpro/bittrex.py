@@ -44,6 +44,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'options': {
                 'tradesLimit': 1000,
                 'hub': 'c3',
+                'I': self.milliseconds(),
             },
         })
 
@@ -77,9 +78,15 @@ class bittrex(Exchange, ccxt.bittrex):
         method = 'Authenticate'
         return self.make_request(requestId, method, args)
 
+    def request_id(self):
+        # their support said that reqid must be an int32, not documented
+        reqid = self.sum(self.safe_integer(self.options, 'I', 0), 1)
+        self.options['I'] = reqid
+        return reqid
+
     async def send_request_to_subscribe(self, negotiation, messageHash, subscription, params={}):
         args = [messageHash]
-        requestId = str(self.milliseconds())
+        requestId = str(self.request_id())
         request = self.make_request_to_subscribe(requestId, [args])
         subscription = self.extend({
             'id': requestId,
@@ -101,7 +108,7 @@ class bittrex(Exchange, ccxt.bittrex):
         if (future is None) or expired:
             future = client.future(messageHash)
             client.subscriptions[messageHash] = future
-            requestId = str(self.milliseconds())
+            requestId = str(self.request_id())
             request = self.make_request_to_authenticate(requestId)
             subscription = {
                 'id': requestId,
@@ -560,8 +567,9 @@ class bittrex(Exchange, ccxt.bittrex):
         #
         marketId = self.safe_string(message, 'marketSymbol')
         symbol = self.safe_symbol(marketId, None, '-')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook['nonce'] is not None:
+        orderbook = self.safe_value(self.orderbooks, symbol, {})
+        nonce = self.safe_integer(orderbook, 'nonce')
+        if nonce is not None:
             self.handle_order_book_message(client, message, orderbook)
         else:
             orderbook.cache.append(message)

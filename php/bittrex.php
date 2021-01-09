@@ -43,6 +43,7 @@ class bittrex extends \ccxt\bittrex {
             'options' => array(
                 'tradesLimit' => 1000,
                 'hub' => 'c3',
+                'I' => $this->milliseconds(),
             ),
         ));
     }
@@ -81,9 +82,16 @@ class bittrex extends \ccxt\bittrex {
         return $this->make_request($requestId, $method, $args);
     }
 
+    public function request_id() {
+        // their support said that $reqid must be an int32, not documented
+        $reqid = $this->sum($this->safe_integer($this->options, 'I', 0), 1);
+        $this->options['I'] = $reqid;
+        return $reqid;
+    }
+
     public function send_request_to_subscribe($negotiation, $messageHash, $subscription, $params = array ()) {
         $args = array( $messageHash );
-        $requestId = (string) $this->milliseconds();
+        $requestId = (string) $this->request_id();
         $request = $this->make_request_to_subscribe($requestId, array( $args ));
         $subscription = array_merge(array(
             'id' => $requestId,
@@ -107,7 +115,7 @@ class bittrex extends \ccxt\bittrex {
         if (($future === null) || $expired) {
             $future = $client->future ($messageHash);
             $client->subscriptions[$messageHash] = $future;
-            $requestId = (string) $this->milliseconds();
+            $requestId = (string) $this->request_id();
             $request = $this->make_request_to_authenticate($requestId);
             $subscription = array(
                 'id' => $requestId,
@@ -613,8 +621,9 @@ class bittrex extends \ccxt\bittrex {
         //
         $marketId = $this->safe_string($message, 'marketSymbol');
         $symbol = $this->safe_symbol($marketId, null, '-');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook['nonce'] !== null) {
+        $orderbook = $this->safe_value($this->orderbooks, $symbol, array());
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if ($nonce !== null) {
             $this->handle_order_book_message($client, $message, $orderbook);
         } else {
             $orderbook->cache[] = $message;
