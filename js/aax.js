@@ -15,8 +15,8 @@ module.exports = class aax extends Exchange {
             'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
+            'timeout': 60000,
             'version': 'v2',
-            'v1': 'marketdata/v1',
             'has': {
                 // 'cancelAllOrders': true,
                 // 'cancelOrder': true,
@@ -29,7 +29,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchDepositAddress': false,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
-                // 'fetchOHLCV': true,
+                'fetchOHLCV': true,
                 // 'fetchOpenOrders': true,
                 // 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -54,15 +54,23 @@ module.exports = class aax extends Exchange {
             },
             'urls': {
                 'logo': 'http://cdn.aaxvip.com/res/images/logo/AAX-25B.jpg',
-                'api': 'https://api.aaxpro.com',
+                'api': {
+                    'v1': 'https://api.aaxpro.com/marketdata/v1',
+                    'public': 'https://api.aaxpro.com',
+                    'private': 'https://api.aaxpro.com',
+                },
                 'www': 'https://www.aaxpro.com', // string website URL
                 'doc': 'https://www.aaxpro.com/apidoc/index.html',
             },
             'api': {
+                'v1': {
+                    'get': [
+                        'getHistMarketData', // Get OHLC k line of specific market
+                    ],
+                },
                 'public': {
                     // these endpoints are not documented
                     // 'get': [
-                    //     'getHistMarketData', // Get OHLC(k line) of specific market v1
                     //     'order_book', // Get the order book of specified market
                     //     'order_book/{market}',
                     //     'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
@@ -227,8 +235,8 @@ module.exports = class aax extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
+            const baseId = this.safeStringLower (market, 'base');
+            const quoteId = this.safeStringLower (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
@@ -479,6 +487,61 @@ module.exports = class aax extends Exchange {
         //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "1567123200",
+        //         "0.01780", // open
+        //         "0.01785", // high
+        //         "0.01750", // low
+        //         "0.01758", // close
+        //         "0", // volume
+        //         "-0.0002200", // change
+        //         "-1.2360", // percent change?
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            // 'limit': limit, // if set counts from now into the past
+            'base': market['baseId'],
+            'quote': market['quoteId'],
+            'format': 'array',
+            'date_scale': this.timeframes[timeframe],
+        };
+        limit = (limit === undefined) ? 500 : limit;
+        const duration = this.parseTimeframe (timeframe);
+        if (since === undefined) {
+            const end = this.seconds ();
+            request['from'] = end - duration * limit;
+            request['to'] = end;
+        } else {
+            const start = parseInt (since / 1000);
+            request['from'] = start;
+            request['to'] = this.sum (start, duration * limit);
+        }
+        const response = await this.v1GetGetHistMarketData (this.extend (request, params));
+        //
+        //     [
+        //         ["1567036800","0.01779","0.01796","0.01748","0.01780","0","0","0"],
+        //         ["1567123200","0.01780","0.01785","0.01750","0.01758","0","-0.0002200","-1.2360"],
+        //         ["1567209600","0.01758","0.01809","0.01739","0.01789","0","0.0003100","1.7634"],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -804,41 +867,6 @@ module.exports = class aax extends Exchange {
         // }
         const trades = response['data']['list'];
         return this.parseMyTrades (trades);
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const dateScale = this.dealTimeFrame (timeframe);
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const [base, quote] = symbol.split ('/');
-        limit = limit ? limit : 500;
-        const request = {
-            'limit': limit,
-            'base': base,
-            'quote': quote,
-            'format': 'array',
-            'useV1': true,
-            'date_scale': dateScale,
-        };
-        if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
-        }
-        const response = await this.publicGetGetHistMarketData (this.extend (request, params));
-        if (response && Array.isArray (response)) {
-            for (let i = 0; i < response.length; i++) {
-                if (response[i] && Array.isArray (response[i])) {
-                    for (let index = 0; index < response[i].length; index++) {
-                        const arr = response[i];
-                        if (index === 0) {
-                            arr[index] = this.dealDecimal ('mul', this.safeFloat (arr, index), 1000);
-                        } else {
-                            arr[index] = parseFloat (arr[index]);
-                        }
-                    }
-                }
-            }
-            return this.parseOHLCVs (response);
-        }
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1180,18 +1208,20 @@ module.exports = class aax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let version = this.version;
-        if (this.safeString (params, 'useV1')) {
-            version = this.v1;
-        }
-        let request = '/' + version + '/' + this.implodeParams (path, params);
+        let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
-        if (api === 'public') {
+        let url = this.urls['api'][api];
+        if (api === 'v1') {
+            url += request;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else {
+        } else if (api === 'public') {
+            url += '/' + this.version + request;
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const privateHeader = {
@@ -1274,16 +1304,6 @@ module.exports = class aax extends Exchange {
             result['pageSize'] = limit;
         }
         return result;
-    }
-
-    dealTimeFrame (timeframe) {
-        const dateScale = this.timeframes[timeframe];
-        if (!dateScale) {
-            const keys = Object.keys (this.timeframes);
-            const error = keys.join (',');
-            throw new BadRequest ('timeframes must be ' + error);
-        }
-        return dateScale;
     }
 
     dealSymbol (symbol, params) {
