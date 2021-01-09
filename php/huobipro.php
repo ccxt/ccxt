@@ -547,7 +547,9 @@ class huobipro extends \ccxt\huobipro {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject ($e, $messageHash);
                     $client->reject ($e, $id);
-                    unset($client->subscriptions[$id]);
+                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                        unset($client->subscriptions[$id]);
+                    }
                 }
             }
             return false;
