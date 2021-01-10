@@ -92,7 +92,6 @@ module.exports = class aax extends Exchange {
                     'get': [
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
-                        'account/deposit/address', // undocumented
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -608,15 +607,6 @@ module.exports = class aax extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    purseType () {
-        return {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        };
     }
 
     async fetchBalance (params = {}) {
@@ -1195,80 +1185,17 @@ module.exports = class aax extends Exchange {
         return result;
     }
 
-    parseMyTrade (trade) {
-        const id = this.safeString (trade, 'id');
-        const orderId = this.safeString (trade, 'orderID');
-        const createTime = this.safeString (trade, 'createTime');
-        const timestamp = createTime ? createTime : undefined;
-        let symbol = this.safeString (trade, 'symbol');
-        symbol = symbol ? this.marketsById[symbol]['symbol'] : symbol;
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
-        const price = this.safeFloat (trade, 'price');
-        const type = this.parseOrderType (this.safeString (trade, 'orderType'));
-        const side = this.safeString (trade, 'side') === 1 ? 'Buy' : 'Sell';
-        const amount = this.safeFloat (trade, 'filledQty');
-        return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'order': orderId,
-            'takerOrMaker': 'taker',
-            'price': price,
-            'amount': amount,
-            'cost': this.dealDecimal ('mul', price, amount),
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
-        };
-    }
-
-    parseMyTrades (trades) {
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i];
-            trade = this.parseMyTrade (trade);
-            result.push (trade);
-        }
-        return result;
-    }
-
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const lists = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            lists.push (this.parseTrade (trade, market));
-        }
-        trades = lists;
-        const result = this.sortBy (trades, 'timestamp');
-        let symbol = undefined;
-        if (market && this.safeString (market, 'symbol')) {
-            symbol = this.safeString (market, 'symbol');
-            if (symbol.slice (-2) === 'FP') {
-                symbol = symbol.slice (0, -2);
-            }
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseOrderStatus (status) {
         const statuses = {
-            '0': 'open', // open
-            '1': 'open', // open
-            '2': 'closed', // closed
-            '3': 'closed', // closed
-            '4': 'cancled', // cancled
-            '5': 'cancled', // cancled
-            '6': 'rejected', // Rejected
-            '10': 'cancled', // cancled
-            '11': 'rejected', // Rejected
+            '0': 'open', // pending new
+            '1': 'open', // new
+            '2': 'open', // partially-filled
+            '3': 'closed', // filled
+            '4': 'canceled', // cancel-reject
+            '5': 'canceled', // canceled
+            '6': 'rejected', // rejected
+            '10': 'expired', // expired
+            '11': 'rejected', // business-reject
         };
         return this.safeString (statuses, status, status);
     }
