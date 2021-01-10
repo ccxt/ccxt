@@ -761,12 +761,12 @@ module.exports = class aax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const orderType = type.toUpperCase ();
+        let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'orderType': orderType, // MARKET, LIMIT, STOP, STOP-LIMIT
+            // 'orderType': orderType, // MARKET, LIMIT, STOP, STOP-LIMIT
             'symbol': market['id'],
             'orderQty': this.amountToPrecision (symbol, amount),
             'side': orderSide,
@@ -775,12 +775,34 @@ module.exports = class aax extends Exchange {
             // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
             // 'execInst': 'Post-Only', // the only value supported by the exchange, futures-only
         };
-        if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
-            if (!price) {
-                throw new ArgumentsRequired (this.id + ' createOrder LIMIT or STOP-LIMIT need price argument');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+            params = this.omit (params, 'timeInForce');
+        }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
+        const stopPrice = this.safeFloat (params, 'stopPrice');
+        if (stopPrice === undefined) {
+            if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
             }
+        } else {
+            if (orderType === 'LIMIT') {
+                orderType = 'STOP-LIMIT';
+            } else if (orderType === 'MARKET') {
+                orderType = 'STOP';
+            }
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, 'stopPrice');
+        }
+        if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
+        request['orderType'] = orderType;
         let method = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
@@ -789,85 +811,87 @@ module.exports = class aax extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "avgPrice":"0",
-        //        "base":"BTC",
-        //        "clOrdID":"aax_futures",
-        //        "code":"FP",
-        //        "commission":"0",
-        //        "createTime":null,
-        //        "cumQty":"0",
-        //        "id":"114375893764395008",
-        //        "isTriggered":null,
-        //        "lastPrice":"0",
-        //        "lastQty":null,
-        //        "leavesQty":"100",
-        //        "leverage":"1",
-        //        "liqType":0,
-        //        "marketPrice":"8760.7500000000",
-        //        "orderID":"wJTewQc81",
-        //        "orderQty":"100",
-        //        "orderStatus":0,
-        //        "orderType":2,
-        //        "price":"8000",
-        //        "quote":"USD",
-        //        "rejectCode":null,
-        //        "rejectReason":null,
-        //        "settleType":"INVERSE",
-        //        "side":1,
-        //        "stopPrice":null,
-        //        "symbol":"BTCUSDFP",
-        //        "transactTime":null,
-        //        "updateTime":null,
-        //        "timeInForce":1,
-        //        "execInst": "",
-        //        "userID":"216214"
-        //     },
-        //     "message":"success",
-        //     "ts":1573541338074
-        //  }
-        const order = this.extend (response['data'], { 'ts': response['ts'] });
-        return this.parseOrder (order);
-    }
-
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
-        await this.cancelOrder (id, symbol, params);
-        return this.createOrder (symbol, type, side, amount, price, params);
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "avgPrice":"0",
-        //        "base":"BTC",
-        //        "clOrdID":"aax",
-        //        "commission":"0",
-        //        "createTime":"2019-11-12T03:46:41Z",
-        //        "cumQty":"0",
-        //        "id":"114330021504606208",
-        //        "isTriggered":false,
-        //        "lastPrice":"0",
-        //        "lastQty":"0",
-        //        "leavesQty":"0.05",
-        //        "orderID":"wJ4L366KB",
-        //        "orderQty":"0.05",
-        //        "orderStatus":1,
-        //        "orderType":2,
-        //        "price":"8000",
-        //        "quote":"USDT",
-        //        "rejectCode":0,
-        //        "rejectReason":null,
-        //        "side":1,
-        //        "stopPrice":"0",
-        //        "symbol":"BTCUSDT",
-        //        "transactTime":null,
-        //        "updateTime":"2019-11-12T03:46:41Z",
-        //        "timeInForce":1,
-        //        "userID":"216214"
-        //     },
-        //     "message":"success",
-        //     "ts":1573530401494
-        // }
+        // spot
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "symbol":"ETHUSDT",
+        //             "orderType":2,
+        //             "avgPrice":"0",
+        //             "execInst":null,
+        //             "orderStatus":0,
+        //             "userID":"1362494",
+        //             "quote":"USDT",
+        //             "rejectReason":null,
+        //             "rejectCode":null,
+        //             "price":"1500",
+        //             "orderQty":"1",
+        //             "commission":"0",
+        //             "id":"268323430253735936",
+        //             "timeInForce":1,
+        //             "isTriggered":false,
+        //             "side":2,
+        //             "orderID":"1eO51MDSpQ",
+        //             "leavesQty":"0",
+        //             "cumQty":"0",
+        //             "updateTime":null,
+        //             "lastQty":"0",
+        //             "clOrdID":null,
+        //             "stopPrice":null,
+        //             "createTime":null,
+        //             "transactTime":null,
+        //             "base":"ETH",
+        //             "lastPrice":"0"
+        //         },
+        //         "message":"success",
+        //         "ts":1610245290980
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "liqType":0,
+        //             "symbol":"ETHUSDTFP",
+        //             "orderType":2,
+        //             "leverage":"1",
+        //             "marketPrice":"1318.3150000000",
+        //             "code":"FP",
+        //             "avgPrice":"0",
+        //             "execInst":null,
+        //             "orderStatus":0,
+        //             "userID":"1362494",
+        //             "quote":"USDT",
+        //             "rejectReason":null,
+        //             "rejectCode":null,
+        //             "price":"500",
+        //             "orderQty":"1",
+        //             "commission":"0",
+        //             "id":"268346885133053953",
+        //             "timeInForce":1,
+        //             "isTriggered":false,
+        //             "side":1,
+        //             "orderID":"1eOuPUAAkq",
+        //             "leavesQty":"1",
+        //             "cumQty":"0",
+        //             "updateTime":null,
+        //             "lastQty":null,
+        //             "clOrdID":null,
+        //             "stopPrice":null,
+        //             "createTime":null,
+        //             "transactTime":null,
+        //             "settleType":"VANILLA",
+        //             "base":"ETH",
+        //             "lastPrice":"0"
+        //         },
+        //         "message":"success",
+        //         "ts":1610250883059
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
