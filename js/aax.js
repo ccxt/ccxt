@@ -18,6 +18,7 @@ module.exports = class aax extends Exchange {
             'rateLimit': 500,
             'timeout': 120000,
             'version': 'v2',
+            'hostname': 'aax.com',
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -54,14 +55,14 @@ module.exports = class aax extends Exchange {
             'urls': {
                 'logo': 'http://cdn.aaxvip.com/res/images/logo/AAX-25B.jpg',
                 'test': {
-                    'v1': 'https://api.testnet.aax.com/marketdata/v1',
-                    'public': 'https://api.testnet.aax.com',
-                    'private': 'https://api.testnet.aax.com',
+                    'v1': 'https://api.testnet.{hostname}/marketdata/v1',
+                    'public': 'https://api.testnet.{hostname}',
+                    'private': 'https://api.testnet.{hostname}',
                 },
                 'api': {
-                    'v1': 'https://api.aaxpro.com/marketdata/v1',
-                    'public': 'https://api.aaxpro.com',
-                    'private': 'https://api.aaxpro.com',
+                    'v1': 'https://api.{hostname}/marketdata/v1',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.aaxpro.com', // string website URL
                 'doc': 'https://www.aaxpro.com/apidoc/index.html',
@@ -1380,13 +1381,23 @@ module.exports = class aax extends Exchange {
         const statuses = {
             '1': 'market',
             '2': 'limit',
-            '3': 'Stop Order',
-            '4': 'Stop-Limit Order',
-            '7': 'Stop Loss',
-            '8': 'Take Profit',
+            '3': 'stop',
+            '4': 'stop-limit',
+            '7': 'stop-loss',
+            '8': 'take-profit',
         };
         return this.safeString (statuses, status, status);
     }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            '1': 'GTC',
+            '3': 'IOC',
+            '4': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
 
     parseOrder (order, market = undefined) {
         //
@@ -1444,6 +1455,10 @@ module.exports = class aax extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeFloat (order, 'price');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const execInst = this.safeString (order, 'execInst');
+        const postOnly = (execInst === 'Post-Only');
         const average = this.safeFloat (order, 'avgPrice');
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'cumQty');
@@ -1479,8 +1494,11 @@ module.exports = class aax extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
@@ -1710,7 +1728,7 @@ module.exports = class aax extends Exchange {
                 headers['X-ACCESS-SIGN'] = signature;
             }
         }
-        url = this.urls['api'][api] + url;
+        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
