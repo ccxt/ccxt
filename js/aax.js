@@ -602,12 +602,15 @@ module.exports = class aax extends Exchange {
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'unavailable');
-            result[code] = account;
+            const balanceType = this.safeString (balance, 'purseType');
+            if (balanceType === purseType) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'unavailable');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
