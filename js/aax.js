@@ -1,11 +1,11 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
-//  ---------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
 
 module.exports = class aax extends Exchange {
     describe () {
@@ -800,7 +800,118 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'orderID': id,
+            // 'orderQty': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
+        };
+        const stopPrice = this.safeFloat (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            params = this.omit (params, 'stopPrice');
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privatePostSpotOrders';
+        } else if (market['futures']) {
+            method = 'privatePostFuturesOrders';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "symbol":"ETHUSDT",
+        //             "orderType":2,
+        //             "avgPrice":"0",
+        //             "execInst":null,
+        //             "orderStatus":0,
+        //             "userID":"1362494",
+        //             "quote":"USDT",
+        //             "rejectReason":null,
+        //             "rejectCode":null,
+        //             "price":"1500",
+        //             "orderQty":"1",
+        //             "commission":"0",
+        //             "id":"268323430253735936",
+        //             "timeInForce":1,
+        //             "isTriggered":false,
+        //             "side":2,
+        //             "orderID":"1eO51MDSpQ",
+        //             "leavesQty":"0",
+        //             "cumQty":"0",
+        //             "updateTime":null,
+        //             "lastQty":"0",
+        //             "clOrdID":null,
+        //             "stopPrice":null,
+        //             "createTime":null,
+        //             "transactTime":null,
+        //             "base":"ETH",
+        //             "lastPrice":"0"
+        //         },
+        //         "message":"success",
+        //         "ts":1610245290980
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "liqType":0,
+        //             "symbol":"ETHUSDTFP",
+        //             "orderType":2,
+        //             "leverage":"1",
+        //             "marketPrice":"1318.3150000000",
+        //             "code":"FP",
+        //             "avgPrice":"0",
+        //             "execInst":null,
+        //             "orderStatus":0,
+        //             "userID":"1362494",
+        //             "quote":"USDT",
+        //             "rejectReason":null,
+        //             "rejectCode":null,
+        //             "price":"500",
+        //             "orderQty":"1",
+        //             "commission":"0",
+        //             "id":"268346885133053953",
+        //             "timeInForce":1,
+        //             "isTriggered":false,
+        //             "side":1,
+        //             "orderID":"1eOuPUAAkq",
+        //             "leavesQty":"1",
+        //             "cumQty":"0",
+        //             "updateTime":null,
+        //             "lastQty":null,
+        //             "clOrdID":null,
+        //             "stopPrice":null,
+        //             "createTime":null,
+        //             "transactTime":null,
+        //             "settleType":"VANILLA",
+        //             "base":"ETH",
+        //             "lastPrice":"0"
+        //         },
+        //         "message":"success",
+        //         "ts":1610250883059
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
