@@ -18,7 +18,7 @@ module.exports = class aax extends Exchange {
             'timeout': 60000,
             'version': 'v2',
             'has': {
-                // 'cancelAllOrders': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 // 'editOrder': true,
@@ -672,27 +672,6 @@ module.exports = class aax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
-        symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privateDeleteSpotOrdersCancelAll (this.extend (request, params));
-        } else {
-            response = await this.privateDeleteFuturesOrdersCancelAll (this.extend (request, params));
-        }
-        return { 'info': response };
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         symbol = this.dealSymbol (symbol, params);
         return this.fetchOrders (symbol, since, limit, this.extend ({ 'orderStatus': 2 }, params));
@@ -931,6 +910,36 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['futures']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             "vBC9rXsEE",
+        //             "vBCc46OI0"
+        //             ],
+        //         "message":"success",
+        //         "ts":1572597435470
+        //     }
+        //
+        return response;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
