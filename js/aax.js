@@ -27,7 +27,7 @@ module.exports = class aax extends Exchange {
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                // 'fetchOpenOrders': true,
+                'fetchOpenOrders': true,
                 // 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -802,7 +802,9 @@ module.exports = class aax extends Exchange {
             'orderID': id,
         };
         let method = undefined;
-        let type = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -934,66 +936,129 @@ module.exports = class aax extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = this.dealSinceLimit (since, limit);
-        symbol = this.dealSymbol (symbol, params);
-        if (symbol) {
-            request['symbol'] = this.marketId (symbol);
+        const request = {
+            // 'pageNum': '1',
+            // 'pageSize': '10',
+            // 'symbol': market['id'],
+            // 'orderID': id,
+            // 'side': 'undefined', // BUY, SELL
+            // 'clOrdID': clientOrderId,
+        };
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            type = market['type'];
         }
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privateGetSpotOpenOrders (this.extend (request, params));
-        } else {
-            response = await this.privateGetFuturesOpenOrders (this.extend (request, params));
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'privateGetSpotOpenOrders';
+        } else if (type === 'futures') {
+            method = 'privateGetFuturesOpenOrders';
         }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "list":[
-        //           {
-        //              "avgPrice":"0",
-        //              "base":"BTC",
-        //              "clOrdID":"aax",
-        //              "commission":"0",
-        //              "createTime":"2019-11-12T03:41:52Z",
-        //              "cumQty":"0",
-        //              "id":"114328808516083712",
-        //              "isTriggered":false,
-        //              "lastPrice":"0",
-        //              "lastQty":"0",
-        //              "leavesQty":"0",
-        //              "orderID":"wJ3qitASB",
-        //              "orderQty":"0.02",
-        //              "orderStatus":1,
-        //              "orderType":2,
-        //              "price":"8000",
-        //              "quote":"USDT",
-        //              "rejectCode":0,
-        //              "rejectReason":null,
-        //              "side":1,
-        //              "stopPrice":"0",
-        //              "symbol":"BTCUSDT",
-        //              "transactTime":null,
-        //              "updateTime":"2019-11-12T03:41:52Z",
-        //              "timeInForce":1,
-        //              "userID":"216214"
-        //           }
-        //        ],
-        //        "pageNum":1,
-        //        "pageSize":2,
-        //        "total":2
-        //     },
-        //     "message":"success",
-        //     "ts":1573553718212
-        //  }
-        const orders = response['data']['list'];
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.extend (orders[i]);
-            result.push (this.parseOrder (order));
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 10
         }
-        return result;
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "total":19,
+        //             "pageSize":10,
+        //             "list":[
+        //                 {
+        //                     "orderType":2,
+        //                     "symbol":"BTCUSDT",
+        //                     "avgPrice":"0",
+        //                     "orderStatus":0,
+        //                     "userID":"7225",
+        //                     "quote":"USDT",
+        //                     "rejectReason":null,
+        //                     "rejectCode":null,
+        //                     "price":"0",
+        //                     "orderQty":"0.002",
+        //                     "commission":"0",
+        //                     "id":"110419975166304256",
+        //                     "isTriggered":null,
+        //                     "side":1,
+        //                     "orderID":"vBGlDcLwk",
+        //                     "cumQty":"0",
+        //                     "leavesQty":"0",
+        //                     "updateTime":null,
+        //                     "clOrdID":"0001",
+        //                     "lastQty":"0",
+        //                     "stopPrice":"0",
+        //                     "createTime":"2019-11-01T08:49:33Z",
+        //                     "transactTime":null,
+        //                     "timeInForce":1,
+        //                     "base":"BTC",
+        //                     "lastPrice":"0"
+        //                 }
+        //             ],
+        //             "pageNum":1
+        //         },
+        //         "message":"success",
+        //         "ts":1572598173682
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "list":[
+        //                 {
+        //                     "avgPrice":"8768.99999999484997",
+        //                     "base":"BTC",
+        //                     "clOrdID":null,
+        //                     "code":"FP",
+        //                     "commission":"0.00000913",
+        //                     "createTime":"2019-11-12T07:05:52.000Z,
+        //                     "cumQty":"100",
+        //                     "id":"114380149603028993",
+        //                     "isTriggered":false,
+        //                     "lastPrice":"8769",
+        //                     "lastQty":"100",
+        //                     "leavesQty":"0",
+        //                     "leverage":"1",
+        //                     "liqType":1,
+        //                     "marketPrice":"8769.75",
+        //                     "orderID":"wJXURIFBT",
+        //                     "orderQty":"100",
+        //                     "orderStatus":3,
+        //                     "orderType":1,
+        //                     "price":"8769.75",
+        //                     "quote":"USD",
+        //                     "rejectCode":0,
+        //                     "rejectReason":null,
+        //                     "settleType":"INVERSE",
+        //                     "side":2,
+        //                     "stopPrice":"0",
+        //                     "symbol":"BTCUSDFP",
+        //                     "transactTime":"2019-11-12T07:05:52.000Z,
+        //                     "updateTime":"2019-11-12T07:05:52.000Z,
+        //                     "timeInForce":1,
+        //                     "execInst": "",
+        //                     "userID":"216214"
+        //                 },
+        //             ],
+        //             "pageNum":1,
+        //             "pageSize":10,
+        //             "total":21
+        //         },
+        //         "message":"success",
+        //         "ts":1573546960172
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'list', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOrder (id = undefined, symbol = undefined, params = {}) {
@@ -1081,7 +1146,9 @@ module.exports = class aax extends Exchange {
             // 'clOrdID': clientOrderId,
         };
         let method = undefined;
-        let type = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
