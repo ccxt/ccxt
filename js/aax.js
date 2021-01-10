@@ -30,7 +30,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchOpenOrders': true,
                 // 'fetchOrder': true,
                 'fetchOrderBook': true,
-                // 'fetchOrders': true,
+                'fetchOrders': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -662,11 +662,6 @@ module.exports = class aax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'orderStatus': 2 }, params));
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
@@ -932,61 +927,9 @@ module.exports = class aax extends Exchange {
         return response;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         symbol = this.dealSymbol (symbol, params);
-        await this.loadMarkets ();
-        const request = this.dealSinceLimit (since, limit);
-        this.checkParams (params);
-        const optionType = this.safeString (params, 'type') ? this.safeString (params, 'type') : this.options['defaultType'];
-        let response = undefined;
-        if (optionType === 'spot') {
-            response = await this.privateGetSpotTrades (this.extend (request, params));
-        } else {
-            response = await this.privateGetFuturesTrades (this.extend (request, params));
-        }
-        if (response && response['code'] !== 1) {
-            throw new BadResponse (response['message']);
-        }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "list":[
-        //           {
-        //              "avgPrice":"8000",
-        //              "base":"BTC",
-        //              "commission":"0.00000888",
-        //              "createTime":"2019-11-12T03:18:35Z",
-        //              "cumQty":"0.0148",
-        //              "filledPrice":"8000",
-        //              "filledQty":"0.0148",
-        //              "id":"114322949580906499",
-        //              "leavesQty":"0.0052",
-        //              "orderID":"wFo9ZPxAJ",
-        //              "orderQty":"0.02",
-        //              "orderStatus":2,
-        //              "orderType":2,
-        //              "price":"8000",
-        //              "quote":"USDT",
-        //              "rejectCode":0,
-        //              "rejectReason":null,
-        //              "side":1,
-        //              "stopPrice":"0",
-        //              "symbol":"BTCUSDT",
-        //              "taker":false,
-        //              "transactTime":"2019-11-12T03:16:16Z",
-        //              "updateTime":null,
-        //              "userID":"216214"
-        //           }
-        //        ],
-        //        "pageNum":1,
-        //        "pageSize":1,
-        //        "total":10
-        //     },
-        //     "message":"success",
-        //     "ts":1573532934832
-        // }
-        const trades = response['data']['list'];
-        return this.parseMyTrades (trades);
+        return this.fetchOrders (symbol, since, limit, this.extend ({ 'orderStatus': 2 }, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1122,67 +1065,137 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
         await this.loadMarkets ();
-        const request = this.dealSinceLimit (since, limit);
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        if (symbol) {
-            request['symbol'] = this.marketId (symbol);
+        const request = {
+            // 'pageNum': '1',
+            // 'pageSize': '10',
+            // 'symbol': market['id'],
+            // 'orderID': id,
+            // 'base': market['baseId'],
+            // 'quote': market['quoteId'],
+            // 'orderStatus': undefined, // 1 new, 2 filled, 3 canceled
+            // 'startDate': this.ymd (since),
+            // 'endDate': this.ymd (this.milliseconds()),
+            // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
+            // 'side': 'undefined', // BUY, SELL
+            // 'clOrdID': clientOrderId,
+        };
+        let method = undefined;
+        let type = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            type = market['type'];
         }
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
-        } else {
-            response = await this.privateGetFuturesOrders (this.extend (request, params));
+        if (type === 'spot') {
+            method = 'privateGetSpotOrders';
+        } else if (type === 'futures') {
+            method = 'privateGetFuturesOrders';
         }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "total":19,
-        //        "pageSize":10,
-        //        "list":[
-        //           {
-        //              "orderType":2,
-        //              "symbol":"BTCUSDT",
-        //              "avgPrice":"0",
-        //              "orderStatus":0,
-        //              "userID":"7225",
-        //              "quote":"USDT",
-        //              "rejectReason":null,
-        //              "rejectCode":null,
-        //              "price":"0",
-        //              "orderQty":"0.002",
-        //              "commission":"0",
-        //              "id":"110419975166304256",
-        //              "isTriggered":null,
-        //              "side":1,
-        //              "orderID":"vBGlDcLwk",
-        //              "cumQty":"0",
-        //              "leavesQty":"0",
-        //              "updateTime":null,
-        //              "clOrdID":"0001",
-        //              "lastQty":"0",
-        //              "stopPrice":"0",
-        //              "createTime":"2019-11-01T08:49:33Z",
-        //              "transactTime":null,
-        //              "timeInForce":1,
-        //              "base":"BTC",
-        //              "lastPrice":"0"
-        //           }
-        //        ],
-        //        "pageNum":1
-        //     },
-        //     "message":"success",
-        //     "ts":1572598173682
-        //  }
-        const orders = response['data']['list'];
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.extend (orders[i]);
-            result.push (this.parseOrder (order));
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 10
         }
-        return result;
+        if (since !== undefined) {
+            request['startDate'] = this.ymd (since);
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "total":19,
+        //             "pageSize":10,
+        //             "list":[
+        //                 {
+        //                     "orderType":2,
+        //                     "symbol":"BTCUSDT",
+        //                     "avgPrice":"0",
+        //                     "orderStatus":0,
+        //                     "userID":"7225",
+        //                     "quote":"USDT",
+        //                     "rejectReason":null,
+        //                     "rejectCode":null,
+        //                     "price":"0",
+        //                     "orderQty":"0.002",
+        //                     "commission":"0",
+        //                     "id":"110419975166304256",
+        //                     "isTriggered":null,
+        //                     "side":1,
+        //                     "orderID":"vBGlDcLwk",
+        //                     "cumQty":"0",
+        //                     "leavesQty":"0",
+        //                     "updateTime":null,
+        //                     "clOrdID":"0001",
+        //                     "lastQty":"0",
+        //                     "stopPrice":"0",
+        //                     "createTime":"2019-11-01T08:49:33Z",
+        //                     "transactTime":null,
+        //                     "timeInForce":1,
+        //                     "base":"BTC",
+        //                     "lastPrice":"0"
+        //                 }
+        //             ],
+        //             "pageNum":1
+        //         },
+        //         "message":"success",
+        //         "ts":1572598173682
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "list":[
+        //                 {
+        //                     "avgPrice":"8768.99999999484997",
+        //                     "base":"BTC",
+        //                     "clOrdID":null,
+        //                     "code":"FP",
+        //                     "commission":"0.00000913",
+        //                     "createTime":"2019-11-12T07:05:52.000Z,
+        //                     "cumQty":"100",
+        //                     "id":"114380149603028993",
+        //                     "isTriggered":false,
+        //                     "lastPrice":"8769",
+        //                     "lastQty":"100",
+        //                     "leavesQty":"0",
+        //                     "leverage":"1",
+        //                     "liqType":1,
+        //                     "marketPrice":"8769.75",
+        //                     "orderID":"wJXURIFBT",
+        //                     "orderQty":"100",
+        //                     "orderStatus":3,
+        //                     "orderType":1,
+        //                     "price":"8769.75",
+        //                     "quote":"USD",
+        //                     "rejectCode":0,
+        //                     "rejectReason":null,
+        //                     "settleType":"INVERSE",
+        //                     "side":2,
+        //                     "stopPrice":"0",
+        //                     "symbol":"BTCUSDFP",
+        //                     "transactTime":"2019-11-12T07:05:52.000Z,
+        //                     "updateTime":"2019-11-12T07:05:52.000Z,
+        //                     "timeInForce":1,
+        //                     "execInst": "",
+        //                     "userID":"216214"
+        //                 },
+        //             ],
+        //             "pageNum":1,
+        //             "pageSize":10,
+        //             "total":21
+        //         },
+        //         "message":"success",
+        //         "ts":1573546960172
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'list', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -1258,6 +1271,63 @@ module.exports = class aax extends Exchange {
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        symbol = this.dealSymbol (symbol, params);
+        await this.loadMarkets ();
+        const request = this.dealSinceLimit (since, limit);
+        this.checkParams (params);
+        const optionType = this.safeString (params, 'type') ? this.safeString (params, 'type') : this.options['defaultType'];
+        let response = undefined;
+        if (optionType === 'spot') {
+            response = await this.privateGetSpotTrades (this.extend (request, params));
+        } else {
+            response = await this.privateGetFuturesTrades (this.extend (request, params));
+        }
+        if (response && response['code'] !== 1) {
+            throw new BadResponse (response['message']);
+        }
+        // const response={
+        //     "code":1,
+        //     "data":{
+        //        "list":[
+        //           {
+        //              "avgPrice":"8000",
+        //              "base":"BTC",
+        //              "commission":"0.00000888",
+        //              "createTime":"2019-11-12T03:18:35Z",
+        //              "cumQty":"0.0148",
+        //              "filledPrice":"8000",
+        //              "filledQty":"0.0148",
+        //              "id":"114322949580906499",
+        //              "leavesQty":"0.0052",
+        //              "orderID":"wFo9ZPxAJ",
+        //              "orderQty":"0.02",
+        //              "orderStatus":2,
+        //              "orderType":2,
+        //              "price":"8000",
+        //              "quote":"USDT",
+        //              "rejectCode":0,
+        //              "rejectReason":null,
+        //              "side":1,
+        //              "stopPrice":"0",
+        //              "symbol":"BTCUSDT",
+        //              "taker":false,
+        //              "transactTime":"2019-11-12T03:16:16Z",
+        //              "updateTime":null,
+        //              "userID":"216214"
+        //           }
+        //        ],
+        //        "pageNum":1,
+        //        "pageSize":1,
+        //        "total":10
+        //     },
+        //     "message":"success",
+        //     "ts":1573532934832
+        // }
+        const trades = response['data']['list'];
+        return this.parseMyTrades (trades);
     }
 
     nonce () {
