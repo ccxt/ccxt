@@ -15,7 +15,6 @@ module.exports = class aax extends Exchange {
             'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
-            'timeout': 60000,
             'version': 'v2',
             'has': {
                 'cancelAllOrders': true,
@@ -29,7 +28,7 @@ module.exports = class aax extends Exchange {
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                // 'fetchOrder': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': 'emulated',
@@ -930,72 +929,28 @@ module.exports = class aax extends Exchange {
         return response;
     }
 
-    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
+        params['type'] = this.safeString (params, 'type', defaultType);
         const request = {};
-        if (!id) {
-            throw new ArgumentsRequired (this.id + ' editOrder need orderId argument');
-        }
-        request['orderID'] = id;
-        symbol = this.dealSymbol (symbol, params);
-        if (symbol) {
-            request['symbol'] = this.marketId (symbol);
-        }
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderID'] = id;
         } else {
-            response = await this.privateGetFuturesOrders (this.extend (request, params));
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "total":19,
-        //        "pageSize":10,
-        //        "list":[
-        //           {
-        //              "orderType":2,
-        //              "symbol":"BTCUSDT",
-        //              "avgPrice":"0",
-        //              "orderStatus":0,
-        //              "userID":"7225",
-        //              "quote":"USDT",
-        //              "rejectReason":null,
-        //              "rejectCode":null,
-        //              "price":"0",
-        //              "orderQty":"0.002",
-        //              "commission":"0",
-        //              "id":"110419975166304256",
-        //              "isTriggered":null,
-        //              "side":1,
-        //              "orderID":"vBGlDcLwk",
-        //              "cumQty":"0",
-        //              "leavesQty":"0",
-        //              "updateTime":null,
-        //              "clOrdID":"0001",
-        //              "lastQty":"0",
-        //              "stopPrice":"0",
-        //              "createTime":"2019-11-01T08:49:33Z",
-        //              "transactTime":null,
-        //              "timeInForce":1,
-        //              "base":"BTC",
-        //              "lastPrice":"0"
-        //           }
-        //        ],
-        //        "pageNum":1
-        //     },
-        //     "message":"success",
-        //     "ts":1572598173682
-        //  }
-        const orders = response['data']['list'];
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.extend (orders[i]);
-            result.push (this.parseOrder (order));
+        const orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const order = this.safeValue (orders, 0);
+        if (order === undefined) {
+            if (clientOrderId === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
+            } else {
+                throw new OrderNotFound (this.id + ' fetchOrder() could not find order clientOrderID ' + clientOrderId);
+            }
         }
-        return result;
+        return order;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1016,6 +971,11 @@ module.exports = class aax extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             type = market['type'];
+        }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         let method = undefined;
         if (type === 'spot') {
@@ -1169,6 +1129,11 @@ module.exports = class aax extends Exchange {
             method = 'privateGetSpotOrders';
         } else if (type === 'futures') {
             method = 'privateGetFuturesOrders';
+        }
+        const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
