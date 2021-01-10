@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -15,12 +16,13 @@ module.exports = class aax extends Exchange {
             'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
+            'timeout': 120000,
             'version': 'v2',
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
-                // 'editOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -57,9 +59,9 @@ module.exports = class aax extends Exchange {
                     'private': 'https://api.testnet.aax.com',
                 },
                 'api': {
-                    'v1': 'https://api.aax.com/marketdata/v1',
-                    'public': 'https://api.aax.com',
-                    'private': 'https://api.aax.com',
+                    'v1': 'https://api.aaxpro.com/marketdata/v1',
+                    'public': 'https://api.aaxpro.com',
+                    'private': 'https://api.aaxpro.com',
                 },
                 'www': 'https://www.aaxpro.com', // string website URL
                 'doc': 'https://www.aaxpro.com/apidoc/index.html',
@@ -220,6 +222,7 @@ module.exports = class aax extends Exchange {
                 },
                 'broad': {},
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
             },
@@ -825,9 +828,9 @@ module.exports = class aax extends Exchange {
         }
         let method = undefined;
         if (market['spot']) {
-            method = 'privatePostSpotOrders';
+            method = 'privatePutSpotOrders';
         } else if (market['futures']) {
-            method = 'privatePostFuturesOrders';
+            method = 'privatePutFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1385,32 +1388,93 @@ module.exports = class aax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order) {
-        const createTime = this.safeString (order, 'createTime');
-        const timestamp = createTime ? createTime : this.safeFloat (order, 'ts');
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "avgPrice":"8768.99999999484997",
+        //         "base":"BTC",
+        //         "clOrdID":null,
+        //         "code":"FP", // futures only
+        //         "commission":"0.00000913",
+        //         "createTime":"2019-11-12T07:05:52.000Z,
+        //         "cumQty":"100",
+        //         "id":"114380149603028993", // futures only
+        //         "isTriggered":false,
+        //         "lastPrice":"8769",
+        //         "lastQty":"100",
+        //         "leavesQty":"0",
+        //         "leverage":"1", // futures only
+        //         "liqType":1, // futures only
+        //         "marketPrice":"8769.75", // futures only
+        //         "orderID":"wJXURIFBT",
+        //         "orderQty":"100",
+        //         "orderStatus":3,
+        //         "orderType":1,
+        //         "price":"8769.75",
+        //         "quote":"USD",
+        //         "rejectCode":0,
+        //         "rejectReason":null,
+        //         "settleType":"INVERSE", // futures only
+        //         "side":2,
+        //         "stopPrice":"0",
+        //         "symbol":"BTCUSDFP",
+        //         "transactTime":"2019-11-12T07:05:52.000Z,
+        //         "updateTime":"2019-11-12T07:05:52.000Z,
+        //         "timeInForce":1,
+        //         "execInst": "",
+        //         "userID":"216214"
+        //     }
+        //
+        // sometimes the timestamp is returned in milliseconds
+        let timestamp = this.safeValue (order, 'createTime');
+        if (typeof timestamp === 'string') {
+            timestamp = this.parse8601 (timestamp);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
-        const side = this.safeString (order, 'side') === 1 ? 'buy' : 'sell';
+        let side = this.safeString (order, 'side');
+        if (side === '1') {
+            side = 'buy';
+        } else if (side === '2') {
+            side = 'sell';
+        }
         const id = this.safeString (order, 'orderID');
         const clientOrderId = this.safeString (order, 'clOrdID');
-        let symbol = this.safeString (order, 'symbol');
-        symbol = symbol ? this.marketsById[symbol]['symbol'] : symbol;
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'avgPrice');
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'cumQty');
         const remaining = this.safeString (order, 'leavesQty');
-        const transactTime = this.safeString (order, 'transactTime');
-        const lastTradeTimestamp = transactTime ? transactTime : undefined;
-        const currency = undefined;
+        let cost = undefined;
+        let lastTradeTimestamp = undefined;
+        if (filled !== undefined) {
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+            if (filled > 0) {
+                lastTradeTimestamp = this.safeValue (order, 'transactTime');
+                if (typeof lastTradeTimestamp === 'string') {
+                    lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
+                }
+            }
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'commission');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': undefined,
+                'cost': feeCost,
+            };
+        }
         return {
             'id': id,
+            'info': order,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
-            'datetime': this.parseDate (timestamp),
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
@@ -1421,15 +1485,9 @@ module.exports = class aax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'rejectReason': this.safeString (order, 'rejectReason'),
-            'cost': this.dealDecimal ('mul', filled, price),
-            'trades': [],
-            'info': order,
-            'fee': {
-                'currency': currency,
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'cost': cost,
+            'trades': undefined,
+            'fee': fee,
         };
     }
 
