@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadResponse, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -24,8 +24,9 @@ module.exports = class aax extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
                 'fetchMarkets': true,
-                // 'fetchMyTrades': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -50,10 +51,15 @@ module.exports = class aax extends Exchange {
             },
             'urls': {
                 'logo': 'http://cdn.aaxvip.com/res/images/logo/AAX-25B.jpg',
+                'test': {
+                    'v1': 'https://api.testnet.aax.com/marketdata/v1',
+                    'public': 'https://api.testnet.aax.com',
+                    'private': 'https://api.testnet.aax.com',
+                },
                 'api': {
-                    'v1': 'https://api.aaxpro.com/marketdata/v1',
-                    'public': 'https://api.aaxpro.com',
-                    'private': 'https://api.aaxpro.com',
+                    'v1': 'https://api.aax.com/marketdata/v1',
+                    'public': 'https://api.aax.com',
+                    'private': 'https://api.aax.com',
                 },
                 'www': 'https://www.aaxpro.com', // string website URL
                 'doc': 'https://www.aaxpro.com/apidoc/index.html',
@@ -92,6 +98,7 @@ module.exports = class aax extends Exchange {
                     'get': [
                         'user/info', // Retrieve user information
                         'account/balances', // Get Account Balances
+                        'account/deposit/address', // undocumented
                         'spot/trades', // Retrieve trades details for a spot order
                         'spot/openOrders', // Retrieve spot open orders
                         'spot/orders', // Retrieve historical spot orders
@@ -298,8 +305,8 @@ module.exports = class aax extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
-            const baseId = this.safeStringLower (market, 'base');
-            const quoteId = this.safeStringLower (market, 'quote');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
@@ -1447,6 +1454,52 @@ module.exports = class aax extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            // 'network': undefined, // 'ERC20
+        };
+        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
+        //             "tag":null,
+        //             "currency":"USDT",
+        //             "network":"ERC20"
+        //         },
+        //         "message":"success",
+        //         "ts":1610270465132
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address":"0x080c5c667381404cca9be0be9a04b2e47691ff86",
+        //         "tag":null,
+        //         "currency":"USDT",
+        //         "network":"ERC20"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        return {
+            'info': depositAddress,
+            'code': code,
+            'address': address,
+            'tag': tag,
+        };
     }
 
     nonce () {
