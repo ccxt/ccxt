@@ -566,42 +566,31 @@ module.exports = class aax extends Exchange {
             'purseType': purseType,
         };
         const response = await this.privateGetAccountBalances (this.extend (request, params));
-        // const response = {
-        //     'code': 1,
-        //     'message': 'success',
-        //     'ts': 1603187218565,
-        //     'data': [
-        //         {
-        //             'purseType': 'SPTP',
-        //             'currency': 'USDT',
-        //             'available': '9402.93025232',
-        //             'unavailable': '47.92316768',
-        //         },
-        //         {
-        //             'purseType': 'SPTP',
-        //             'currency': 'BTC',
-        //             'available': '0.14995000',
-        //             'unavailable': '0.00000000',
-        //         },
-        //         {
-        //             'purseType': 'RWDP',
-        //             'currency': 'BTC',
-        //             'available': '0.00030000',
-        //             'unavailable': '0.00200000',
-        //         },
-        //         {
-        //             'purseType': 'FUTP',
-        //             'currency': 'BTC',
-        //             'available': '0.02000000',
-        //             'unavailable': '0.20030000',
-        //         },
-        //     ],
-        // };
-        // RWDP
-        const balances = this.safeValue (response, 'data');
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             },
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         ]
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = { 'info': response };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
             const balanceType = this.safeString (balance, 'purseType');
             if (balanceType === purseType) {
                 const currencyId = this.safeString (balance, 'currency');
