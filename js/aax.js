@@ -152,6 +152,7 @@ module.exports = class aax extends Exchange {
                     '11007': AuthenticationError, // Invalid key format
                     '20001': InsufficientFunds, // Insufficient balance. Please deposit to trade.
                     '20009': InvalidOrder, // Order amount must be positive
+                    '30000': OrderNotFound, // {"code":30000,"data":null,"message":"The order does not exist","ts":1610259732263}
                     '30001': InvalidOrder, // The order is being submitted, please try again later
                     '30004': InvalidOrder, // Minimum quantity is {0}
                     '30005': InvalidOrder, // Quantity maximum precision is {0} decimal places
@@ -697,69 +698,6 @@ module.exports = class aax extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend ({ 'orderStatus': 2 }, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!id) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const request = {
-            'orderID': id,
-        };
-        symbol = this.dealSymbol (symbol, params);
-        this.market (symbol);
-        this.checkParams (params);
-        let response = undefined;
-        // spot or future
-        try {
-            response = await this.privateDeleteSpotOrdersCancelOrderID (request);
-        } catch (error) {
-            response = await this.privateDeleteFuturesOrdersCancelOrderID (request);
-        }
-        if (response && response['code'] !== 1) {
-            throw new BadResponse (response['message']);
-        }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "avgPrice":"0",
-        //        "base":"BTC",
-        //        "clOrdID":"aax",
-        //        "commission":"0",
-        //        "createTime":"2019-11-12T03:46:41Z",
-        //        "cumQty":"0",
-        //        "id":"114330021504606208",
-        //        "isTriggered":false,
-        //        "lastPrice":"0",
-        //        "lastQty":"0",
-        //        "leavesQty":"0",
-        //        "orderID":"wJ4L366KB",
-        //        "orderQty":"0.05",
-        //        "orderStatus":1,
-        //        "orderType":2,
-        //        "price":"8000",
-        //        "quote":"USDT",
-        //        "rejectCode":0,
-        //        "rejectReason":null,
-        //        "side":1,
-        //        "stopPrice":"0",
-        //        "symbol":"BTCUSDT",
-        //        "transactTime":null,
-        //        "updateTime":"2019-11-12T03:46:41Z",
-        //        "timeInForce":1,
-        //        "userID":"216214"
-        //     },
-        //     "message":"success",
-        //     "ts":1573530402029
-        //  }
-        let order = this.extend (response['data'], { 'ts': response['ts'] });
-        order = this.parseOrder (order);
-        const status = this.safeString (order, 'status');
-        if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
-        return order;
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
@@ -892,6 +830,66 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderID': id,
+        };
+        let method = undefined;
+        let type = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            type = market['type'];
+        }
+        if (type === 'spot') {
+            method = 'privateDeleteSpotOrdersCancelOrderID';
+        } else if (type === 'futures') {
+            method = 'privateDeleteFuturesOrdersCancelOrderID';
+        }
+        const response = await this[method] (this.extend (request, params));
+        // const response={
+        //     "code":1,
+        //     "data":{
+        //        "avgPrice":"0",
+        //        "base":"BTC",
+        //        "clOrdID":"aax",
+        //        "commission":"0",
+        //        "createTime":"2019-11-12T03:46:41Z",
+        //        "cumQty":"0",
+        //        "id":"114330021504606208",
+        //        "isTriggered":false,
+        //        "lastPrice":"0",
+        //        "lastQty":"0",
+        //        "leavesQty":"0",
+        //        "orderID":"wJ4L366KB",
+        //        "orderQty":"0.05",
+        //        "orderStatus":1,
+        //        "orderType":2,
+        //        "price":"8000",
+        //        "quote":"USDT",
+        //        "rejectCode":0,
+        //        "rejectReason":null,
+        //        "side":1,
+        //        "stopPrice":"0",
+        //        "symbol":"BTCUSDT",
+        //        "transactTime":null,
+        //        "updateTime":"2019-11-12T03:46:41Z",
+        //        "timeInForce":1,
+        //        "userID":"216214"
+        //     },
+        //     "message":"success",
+        //     "ts":1573530402029
+        //  }
+        let order = this.extend (response['data'], { 'ts': response['ts'] });
+        order = this.parseOrder (order);
+        const status = this.safeString (order, 'status');
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
