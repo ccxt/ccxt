@@ -542,7 +542,7 @@ class bithumb extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'order_currency' => $market['id'],
-            'Payment_currency' => $market['quote'],
+            'payment_currency' => $market['quote'],
             'units' => $amount,
         );
         $method = 'privatePostTradePlace';

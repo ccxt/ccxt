@@ -539,7 +539,7 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_currency': market['id'],
-            'Payment_currency': market['quote'],
+            'payment_currency': market['quote'],
             'units': amount,
         };
         let method = 'privatePostTradePlace';
