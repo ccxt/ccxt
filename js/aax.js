@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InsufficientFunds, OrderNotFound, BadResponse, BadRequest, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadResponse, BadRequest, BadSymbol } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -143,8 +143,74 @@ module.exports = class aax extends Exchange {
                 'PLA': 'Plair',
             },
             'exceptions': {
-                '2002': InsufficientFunds,
-                '2003': OrderNotFound,
+                'exact': {
+                    '2002': InsufficientFunds,
+                    '2003': OrderNotFound,
+                    '10003': BadRequest, // Parameter validation error
+                    '10006': AuthenticationError, // Session expired, please relogin
+                    '10007': AuthenticationError, // Invalid authentication key or token
+                    '11007': AuthenticationError, // Invalid key format
+                    '20001': InsufficientFunds, // Insufficient balance. Please deposit to trade.
+                    '20009': InvalidOrder, // Order amount must be positive
+                    '30001': InvalidOrder, // The order is being submitted, please try again later
+                    '30004': InvalidOrder, // Minimum quantity is {0}
+                    '30005': InvalidOrder, // Quantity maximum precision is {0} decimal places
+                    '30006': InvalidOrder, // Price maximum precision is {0} decimal places
+                    '30007': InvalidOrder, // Minimum price is {0}
+                    '30008': InvalidOrder, // Stop price maximum precision is {0} decimal places
+                    '30009': InvalidOrder, // Stop Price cannot be less than {0}
+                    '30010': InvalidOrder, // Market price cannot be empty
+                    '30011': CancelPending, // The order is being cancelled, please wait.
+                    '30012': BadRequest, // Unknown currency
+                    '30013': BadSymbol, // Unknown symbol
+                    '30014': OrderNotFound, // Futures order cannot be found
+                    '30015': InvalidOrder, // This is not an open order and cannot modified
+                    '30016': ExchangeError, // No position found
+                    '30017': InvalidOrder, // The current close position is 0. It is recommended that you cancel the current order closing order.
+                    '30018': InvalidOrder, // Order price cannot be greater than {0}
+                    '30019': InvalidOrder, // Order quantity cannot be greater than {0}
+                    '30020': InvalidOrder, // Order price must be a multiple of {0}
+                    '30021': InvalidOrder, // Margin adjustement must be greater than 0
+                    '30022': InvalidOrder, // New quantity must be greater than filled quantity
+                    '30023': InvalidOrder, // Order failed, please try again
+                    '30024': InvalidOrder, // TimeInForce error, only GTC or IOC are allowed
+                    '30025': InvalidOrder, // TimeInForce error, only GTC is allowed
+                    '30026': InvalidOrder, // Quantity is not a multiple of {0}
+                    '30027': InvalidOrder, // Close position failed, it is recommended that you cancel the current order and then close the position.
+                    '30028': BadSymbol, // Symbol cannot be traded at this time
+                    '30029': InvalidOrder, // Modified quantity or price cannot be empty
+                    '30030': InvalidOrder, // Price cannot be specified for market orders
+                    '30031': InvalidOrder, // Liquidation orders cannot be modified
+                    '30032': InvalidOrder, // Leverage cannot be greater than {0}
+                    '30033': InvalidOrder, // Leverage cannot be smaller than {0}
+                    '30034': RateLimitExceeded, // The max number of open orders is {0}. To place a new order, please cancel a previous one
+                    '30035': RateLimitExceeded, // The max number of {0} open orders is {1}. To place a new order, please cancel a previous one
+                    '30036': ExchangeNotAvailable, // Liquidation is in progress, please try again later
+                    '30037': InvalidOrder, // Once stop limit order triggered, stop price cannot be amended
+                    '30038': ExchangeError, // The total value of your orders has exceeded the current risk limit. Please adjust the risk limit
+                    '30039': InsufficientFunds, // Your risk limit has now been changed to {0}, your maximum leverage less than 1, please readjust accordingly
+                    '30040': InvalidOrder, // Order status has changed, please try again later
+                    '30041': InvalidOrder, // Liquidation orders cannot be cancelled
+                    '30042': InvalidOrder, // Order cannot be placed as you will be breaching you max limit value of {1} BTC for {0}
+                    '30043': InvalidOrder, // The risk limit cannot be less than 0
+                    '30044': BadRequest, // Timeout cannot be greater than 60 minutes
+                    '30045': InvalidOrder, // Side is not valid, it should be BUY or SELL
+                    '30046': InvalidOrder, // Order type is not valid, it should be MARKET or LIMIT or STOP-LIMIT or STOP
+                    '30047': InvalidOrder, // The order is closed. Can't cancel
+                    '30048': InvalidOrder, // Market orders cannot be modified
+                    '30049': InvalidOrder, // The order is being modified, please wait
+                    '30050': InvalidOrder, // Maximum 10 orders
+                    '40004': BadRequest, // Requested resource doesn't exist
+                    '40009': RateLimitExceeded, // Too many requests
+                    '40102': AuthenticationError, // {"code":40102,"message":"Unauthorized(invalid key)"}
+                    '40103': AuthenticationError, // {"code":40103,"message":"Unauthorized(invalid sign)"}
+                    '41001': BadRequest, // Incorrect HTTP request
+                    '41002': BadRequest, // Unsupported HTTP request method
+                    '42001': ExchangeNotAvailable, // Duplicated data entry, please check and try again
+                    '50001': ExchangeError, // Server side exception, please try again later
+                    '50002': ExchangeError, // Server is busy, please try again later
+                },
+                'broad': {},
             },
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
@@ -1246,14 +1312,16 @@ module.exports = class aax extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return; // fallback to default error handler
         }
-        if (code === 400) {
-            const error = this.safeValue (response, 'error');
-            const errorCode = this.safeString (error, 'code');
+        //
+        //     {"code":40102,"message":"Unauthorized(invalid key)"}
+        //
+        const errorCode = this.safeString (response, 'code');
+        if ((errorCode !== undefined) && (errorCode !== '1')) {
             const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
-            // fallback to default error handler
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
         }
     }
 
