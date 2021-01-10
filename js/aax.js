@@ -23,7 +23,8 @@ module.exports = class aax extends Exchange {
                 'createOrder': true,
                 // 'editOrder': true,
                 'fetchBalance': true,
-                // 'fetchClosedOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -929,9 +930,72 @@ module.exports = class aax extends Exchange {
         return response;
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (!id) {
+            throw new ArgumentsRequired (this.id + ' editOrder need orderId argument');
+        }
+        request['orderID'] = id;
         symbol = this.dealSymbol (symbol, params);
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'orderStatus': 2 }, params));
+        if (symbol) {
+            request['symbol'] = this.marketId (symbol);
+        }
+        this.checkParams (params);
+        const isSpot = this.isSpot (symbol, params);
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privateGetSpotOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetFuturesOrders (this.extend (request, params));
+        }
+        // const response={
+        //     "code":1,
+        //     "data":{
+        //        "total":19,
+        //        "pageSize":10,
+        //        "list":[
+        //           {
+        //              "orderType":2,
+        //              "symbol":"BTCUSDT",
+        //              "avgPrice":"0",
+        //              "orderStatus":0,
+        //              "userID":"7225",
+        //              "quote":"USDT",
+        //              "rejectReason":null,
+        //              "rejectCode":null,
+        //              "price":"0",
+        //              "orderQty":"0.002",
+        //              "commission":"0",
+        //              "id":"110419975166304256",
+        //              "isTriggered":null,
+        //              "side":1,
+        //              "orderID":"vBGlDcLwk",
+        //              "cumQty":"0",
+        //              "leavesQty":"0",
+        //              "updateTime":null,
+        //              "clOrdID":"0001",
+        //              "lastQty":"0",
+        //              "stopPrice":"0",
+        //              "createTime":"2019-11-01T08:49:33Z",
+        //              "transactTime":null,
+        //              "timeInForce":1,
+        //              "base":"BTC",
+        //              "lastPrice":"0"
+        //           }
+        //        ],
+        //        "pageNum":1
+        //     },
+        //     "message":"success",
+        //     "ts":1572598173682
+        //  }
+        const orders = response['data']['list'];
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.extend (orders[i]);
+            result.push (this.parseOrder (order));
+        }
+        return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1061,72 +1125,18 @@ module.exports = class aax extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (!id) {
-            throw new ArgumentsRequired (this.id + ' editOrder need orderId argument');
-        }
-        request['orderID'] = id;
-        symbol = this.dealSymbol (symbol, params);
-        if (symbol) {
-            request['symbol'] = this.marketId (symbol);
-        }
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
-        } else {
-            response = await this.privateGetFuturesOrders (this.extend (request, params));
-        }
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "total":19,
-        //        "pageSize":10,
-        //        "list":[
-        //           {
-        //              "orderType":2,
-        //              "symbol":"BTCUSDT",
-        //              "avgPrice":"0",
-        //              "orderStatus":0,
-        //              "userID":"7225",
-        //              "quote":"USDT",
-        //              "rejectReason":null,
-        //              "rejectCode":null,
-        //              "price":"0",
-        //              "orderQty":"0.002",
-        //              "commission":"0",
-        //              "id":"110419975166304256",
-        //              "isTriggered":null,
-        //              "side":1,
-        //              "orderID":"vBGlDcLwk",
-        //              "cumQty":"0",
-        //              "leavesQty":"0",
-        //              "updateTime":null,
-        //              "clOrdID":"0001",
-        //              "lastQty":"0",
-        //              "stopPrice":"0",
-        //              "createTime":"2019-11-01T08:49:33Z",
-        //              "transactTime":null,
-        //              "timeInForce":1,
-        //              "base":"BTC",
-        //              "lastPrice":"0"
-        //           }
-        //        ],
-        //        "pageNum":1
-        //     },
-        //     "message":"success",
-        //     "ts":1572598173682
-        //  }
-        const orders = response['data']['list'];
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.extend (orders[i]);
-            result.push (this.parseOrder (order));
-        }
-        return result;
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'orderStatus': '2', // 1 new, 2 filled, 3 canceled
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'orderStatus': '3', // 1 new, 2 filled, 3 canceled
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
