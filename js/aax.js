@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadResponse, BadRequest, BadSymbol } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadResponse, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ module.exports = class aax extends Exchange {
             'has': {
                 // 'cancelAllOrders': true,
                 // 'cancelOrder': true,
-                // 'createOrder': true,
+                'createOrder': true,
                 // 'editOrder': true,
                 'fetchBalance': true,
                 // 'fetchClosedOrders': true,
@@ -204,6 +204,7 @@ module.exports = class aax extends Exchange {
                     '40009': RateLimitExceeded, // Too many requests
                     '40102': AuthenticationError, // {"code":40102,"message":"Unauthorized(invalid key)"}
                     '40103': AuthenticationError, // {"code":40103,"message":"Unauthorized(invalid sign)"}
+                    '40303': PermissionDenied, // {"code":40303,"message":"Forbidden(invalid scopes)"}
                     '41001': BadRequest, // Incorrect HTTP request
                     '41002': BadRequest, // Unsupported HTTP request method
                     '42001': ExchangeNotAvailable, // Duplicated data entry, please check and try again
@@ -760,41 +761,34 @@ module.exports = class aax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        symbol = this.dealSymbol (symbol, params);
-        if (!(symbol && type && side && amount)) {
-            throw new ArgumentsRequired (this.id + ' createOrder  lack of arguments');
-        }
-        type = type.toUpperCase ();
-        side = side.toUpperCase ();
-        if (!this.inArray (type, ['MARKET', 'LIMIT', 'SPOT', 'STOP-LIMIT'])) {
-            throw new BadRequest ('type must be MARKET, LIMIT, SPOT or STOP-LIMIT');
-        }
+        const orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'orderType': type,
-            'symbol': this.marketId (symbol),
-            'orderQty': amount,
-            'stopPrice': this.safeString (params, 'stopPrice'),
-            'timeInForce': this.safeString (params, 'timeInForce') ? this.safeString (params, 'timeInForce') : 'GTC',
-            'side': side,
+            'orderType': orderType, // MARKET, LIMIT, STOP, STOP-LIMIT
+            'symbol': market['id'],
+            'orderQty': this.amountToPrecision (symbol, amount),
+            'side': orderSide,
+            // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
+            // 'clOrdID': clientOrderId, // up to 20 chars, lowercase and uppercase letters only
+            // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
+            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures-only
         };
-        if (type === 'LIMIT' || type === 'STOP-LIMIT') {
+        if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             if (!price) {
                 throw new ArgumentsRequired (this.id + ' createOrder LIMIT or STOP-LIMIT need price argument');
             }
-            request['price'] = price.toString ();
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        this.checkParams (params);
-        const isSpot = this.isSpot (symbol, params);
-        let response = undefined;
-        if (isSpot) {
-            response = await this.privatePostSpotOrders (this.extend (request, params));
-        } else {
-            response = await this.privatePostFuturesOrders (this.extend (request, params));
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privatePostSpotOrders';
+        } else if (market['futures']) {
+            method = 'privatePostFuturesOrders';
         }
-        if (response && response['code'] !== 1) {
-            throw new BadResponse (response['message']);
-        }
+        const response = await this[method] (this.extend (request, params));
+        //
         // const response={
         //     "code":1,
         //     "data":{
