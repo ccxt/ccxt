@@ -19,7 +19,7 @@ module.exports = class aax extends Exchange {
             'version': 'v2',
             'has': {
                 // 'cancelAllOrders': true,
-                // 'cancelOrder': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 // 'editOrder': true,
                 'fetchBalance': true,
@@ -850,46 +850,87 @@ module.exports = class aax extends Exchange {
             method = 'privateDeleteFuturesOrdersCancelOrderID';
         }
         const response = await this[method] (this.extend (request, params));
-        // const response={
-        //     "code":1,
-        //     "data":{
-        //        "avgPrice":"0",
-        //        "base":"BTC",
-        //        "clOrdID":"aax",
-        //        "commission":"0",
-        //        "createTime":"2019-11-12T03:46:41Z",
-        //        "cumQty":"0",
-        //        "id":"114330021504606208",
-        //        "isTriggered":false,
-        //        "lastPrice":"0",
-        //        "lastQty":"0",
-        //        "leavesQty":"0",
-        //        "orderID":"wJ4L366KB",
-        //        "orderQty":"0.05",
-        //        "orderStatus":1,
-        //        "orderType":2,
-        //        "price":"8000",
-        //        "quote":"USDT",
-        //        "rejectCode":0,
-        //        "rejectReason":null,
-        //        "side":1,
-        //        "stopPrice":"0",
-        //        "symbol":"BTCUSDT",
-        //        "transactTime":null,
-        //        "updateTime":"2019-11-12T03:46:41Z",
-        //        "timeInForce":1,
-        //        "userID":"216214"
-        //     },
-        //     "message":"success",
-        //     "ts":1573530402029
-        //  }
-        let order = this.extend (response['data'], { 'ts': response['ts'] });
-        order = this.parseOrder (order);
-        const status = this.safeString (order, 'status');
-        if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
-        return order;
+        //
+        // spot
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "avgPrice":"0",
+        //             "base":"BTC",
+        //             "clOrdID":"aax",
+        //             "commission":"0",
+        //             "createTime":"2019-11-12T03:46:41Z",
+        //             "cumQty":"0",
+        //             "id":"114330021504606208",
+        //             "isTriggered":false,
+        //             "lastPrice":"0",
+        //             "lastQty":"0",
+        //             "leavesQty":"0",
+        //             "orderID":"wJ4L366KB",
+        //             "orderQty":"0.05",
+        //             "orderStatus":1,
+        //             "orderType":2,
+        //             "price":"8000",
+        //             "quote":"USDT",
+        //             "rejectCode":0,
+        //             "rejectReason":null,
+        //             "side":1,
+        //             "stopPrice":"0",
+        //             "symbol":"BTCUSDT",
+        //             "transactTime":null,
+        //             "updateTime":"2019-11-12T03:46:41Z",
+        //             "timeInForce":1,
+        //             "userID":"216214"
+        //         },
+        //         "message":"success",
+        //         "ts":1573530402029
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "code":1,
+        //         "data":{
+        //             "avgPrice":"0",
+        //             "base":"BTC",
+        //             "clOrdID":"aax_futures",
+        //             "code":"FP",
+        //             "commission":"0",
+        //             "createTime":"2019-11-12T06:48:58Z",
+        //             "cumQty":"0",
+        //             "id":"114375893764395008",
+        //             "isTriggered":false,
+        //             "lastPrice":"0",
+        //             "lastQty":null,
+        //             "leavesQty":"300",
+        //             "leverage":"1",
+        //             "liqType":0,
+        //             "marketPrice":"8760.75",
+        //             "orderID":"wJTewQc81",
+        //             "orderQty":"300",
+        //             "orderStatus":1,
+        //             "orderType":2,
+        //             "price":"8000",
+        //             "quote":"USD",
+        //             "rejectCode":0,
+        //             "rejectReason":null,
+        //             "settleType":"INVERSE",
+        //             "side":1,
+        //             "stopPrice":"0",
+        //             "symbol":"BTCUSDFP",
+        //             "transactTime":"2019-11-12T06:48:58Z",
+        //             "updateTime":"2019-11-12T06:48:58Z",
+        //             "timeInForce":1,
+        //             "execInst": "",
+        //             "userID":"216214"
+        //         },
+        //         "message":"success",
+        //         "ts":1573541642970
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
