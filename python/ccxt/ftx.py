@@ -221,6 +221,7 @@ class ftx(Exchange):
                     'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
                 },
                 'broad': {
+                    'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
