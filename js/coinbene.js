@@ -332,7 +332,7 @@ module.exports = class coinbene extends Exchange {
         };
         const response = await this.publicGetMarketOrderBook (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data, data.timestamp, 'bids', 'asks');
+        return this.parseOrderBook (data, data['timestamp'], 'bids', 'asks');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
