@@ -517,33 +517,97 @@ module.exports = class aax extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "avgPrice":"1199.8",
+        //         "base":"ETH",
+        //         "clOrdID":null,
+        //         "commission":"0.00002",
+        //         "createTime":"2021-01-11T02:47:51.512Z",
+        //         "cumQty":"0.02",
+        //         "filledOrderID":"1eUD4F5rwK",
+        //         "filledPrice":"1199.8",
+        //         "filledQty":"0.02",
+        //         "leavesQty":"0",
+        //         "oCreateTime":"2021-01-11T02:47:51.377Z",
+        //         "orderID":"1eUD4EHfdU",
+        //         "orderQty":"0.02",
+        //         "orderStatus":3,
+        //         "orderType":1,
+        //         "price":"1198.25",
+        //         "quote":"USDT",
+        //         "rejectCode":null,
+        //         "rejectReason":null,
+        //         "side":1,
+        //         "stopPrice":"0",
+        //         "symbol":"ETHUSDT",
+        //         "taker":true,
+        //         "tradeID":"E04WTIgfmULU",
+        //         "transactTime":"2021-01-11T02:47:51.389Z",
+        //         "updateTime":null,
+        //         "userID":"1362494"
+        //     }
         //
-        const timestamp = this.safeInteger (trade, 't');
-        const id = this.safeString (trade, 'tid');
+        let timestamp = this.safeInteger (trade, 't');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'createTime'));
+        }
+        const id = this.safeString2 (trade, 'tid', 'tradeID');
         let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const side = (price > 0) ? 'buy' : 'sell';
+        let price = this.safeFloat2 (trade, 'p', 'filledPrice');
+        const amount = this.safeFloat2 (trade, 'q', 'filledQty');
+        const orderId = this.safeString (trade, 'orderID');
+        const isTaker = this.safeValue (trade, 'taker');
+        let takerOrMaker = undefined;
+        if (isTaker !== undefined) {
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+        }
+        let side = this.safeString (trade, 'side');
+        if (side === '1') {
+            side = 'buy';
+        } else if (side === '2') {
+            side = 'sell';
+        }
+        if (side === undefined) {
+            side = (price > 0) ? 'buy' : 'sell';
+        }
+        side = (price > 0) ? 'buy' : 'sell';
         price = Math.abs (price);
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        const fee = undefined;
+        const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                if (side === 'buy') {
+                    feeCurrency = market['base'];
+                } else if (side === 'sell') {
+                    feeCurrency = market['quote'];
+                }
+            }
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
+        }
         return {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': orderType,
             'side': side,
-            'order': undefined,
-            'takerOrMaker': undefined,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1487,8 +1551,16 @@ module.exports = class aax extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (order, 'commission');
         if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                if (side === 'buy') {
+                    feeCurrency = market['base'];
+                } else if (side === 'sell') {
+                    feeCurrency = market['quote'];
+                }
+            }
             fee = {
-                'currency': undefined,
+                'currency': feeCurrency,
                 'cost': feeCost,
             };
         }
@@ -1554,96 +1626,46 @@ module.exports = class aax extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // spot
-        //
-        //     {
-        //         "code":1,
-        //         "data":{
-        //             "total":19,
-        //             "pageSize":10,
-        //             "list":[
-        //                 {
-        //                     "orderType":2,
-        //                     "symbol":"BTCUSDT",
-        //                     "avgPrice":"0",
-        //                     "orderStatus":0,
-        //                     "userID":"7225",
-        //                     "quote":"USDT",
-        //                     "rejectReason":null,
-        //                     "rejectCode":null,
-        //                     "price":"0",
-        //                     "orderQty":"0.002",
-        //                     "commission":"0",
-        //                     "id":"110419975166304256",
-        //                     "isTriggered":null,
-        //                     "side":1,
-        //                     "orderID":"vBGlDcLwk",
-        //                     "cumQty":"0",
-        //                     "leavesQty":"0",
-        //                     "updateTime":null,
-        //                     "clOrdID":"0001",
-        //                     "lastQty":"0",
-        //                     "stopPrice":"0",
-        //                     "createTime":"2019-11-01T08:49:33Z",
-        //                     "transactTime":null,
-        //                     "timeInForce":1,
-        //                     "base":"BTC",
-        //                     "lastPrice":"0"
-        //                 }
-        //             ],
-        //             "pageNum":1
-        //         },
-        //         "message":"success",
-        //         "ts":1572598173682
-        //     }
-        //
-        // futures
-        //
         //     {
         //         "code":1,
         //         "data":{
         //             "list":[
         //                 {
-        //                     "avgPrice":"8768.99999999484997",
-        //                     "base":"BTC",
+        //                     "avgPrice":"1199.8",
+        //                     "base":"ETH",
         //                     "clOrdID":null,
-        //                     "code":"FP",
-        //                     "commission":"0.00000913",
-        //                     "createTime":"2019-11-12T07:05:52.000Z,
-        //                     "cumQty":"100",
-        //                     "id":"114380149603028993",
-        //                     "isTriggered":false,
-        //                     "lastPrice":"8769",
-        //                     "lastQty":"100",
+        //                     "commission":"0.00002",
+        //                     "createTime":"2021-01-11T02:47:51.512Z",
+        //                     "cumQty":"0.02",
+        //                     "filledOrderID":"1eUD4F5rwK",
+        //                     "filledPrice":"1199.8",
+        //                     "filledQty":"0.02",
         //                     "leavesQty":"0",
-        //                     "leverage":"1",
-        //                     "liqType":1,
-        //                     "marketPrice":"8769.75",
-        //                     "orderID":"wJXURIFBT",
-        //                     "orderQty":"100",
+        //                     "oCreateTime":"2021-01-11T02:47:51.377Z",
+        //                     "orderID":"1eUD4EHfdU",
+        //                     "orderQty":"0.02",
         //                     "orderStatus":3,
         //                     "orderType":1,
-        //                     "price":"8769.75",
-        //                     "quote":"USD",
-        //                     "rejectCode":0,
+        //                     "price":"1198.25",
+        //                     "quote":"USDT",
+        //                     "rejectCode":null,
         //                     "rejectReason":null,
-        //                     "settleType":"INVERSE",
-        //                     "side":2,
+        //                     "side":1,
         //                     "stopPrice":"0",
-        //                     "symbol":"BTCUSDFP",
-        //                     "transactTime":"2019-11-12T07:05:52.000Z,
-        //                     "updateTime":"2019-11-12T07:05:52.000Z,
-        //                     "timeInForce":1,
-        //                     "execInst": "",
-        //                     "userID":"216214"
-        //                 },
+        //                     "symbol":"ETHUSDT",
+        //                     "taker":true,
+        //                     "tradeID":"E04WTIgfmULU",
+        //                     "transactTime":"2021-01-11T02:47:51.389Z",
+        //                     "updateTime":null,
+        //                     "userID":"1362494"
+        //                 }
         //             ],
         //             "pageNum":1,
         //             "pageSize":10,
-        //             "total":21
+        //             "total":1
         //         },
         //         "message":"success",
-        //         "ts":1573546960172
+        //         "ts":1610333278042
         //     }
         //
         const data = this.safeValue (response, 'data', {});
