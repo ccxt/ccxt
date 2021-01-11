@@ -170,7 +170,8 @@ module.exports = class coinbene extends Exchange {
         //     close closing price
         //     volume
         //     ]
-        return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, undefined, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
