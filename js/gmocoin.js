@@ -221,8 +221,6 @@ module.exports = class gmocoin extends Exchange {
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
-                // eslint-disable-next-line no-console
-                console.log ('trade: ' + this.json (trade) + '\n price: ' + price.toString () + ' ,amount: ' + amount.toString ());
                 cost = parseFloat (this.costToPrecision (symbol, price * amount));
             }
         }
@@ -484,10 +482,6 @@ module.exports = class gmocoin extends Exchange {
             if (ErrorClass !== undefined) {
                 throw new ErrorClass (message);
             } else {
-                // eslint-disable-next-line no-console
-                console.log ('data: ' + data);
-                // eslint-disable-next-line no-console
-                console.log ('success: ' + success);
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
