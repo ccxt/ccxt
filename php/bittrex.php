@@ -76,7 +76,7 @@ class bittrex extends \ccxt\bittrex {
         $timestamp = $this->milliseconds();
         $uuid = $this->uuid();
         $auth = (string) $timestamp . $uuid;
-        $signature = $this->hmac($this->encode($auth), $this->secret, 'sha512');
+        $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
         $args = array( $this->apiKey, $timestamp, $uuid, $signature );
         $method = 'Authenticate';
         return $this->make_request($requestId, $method, $args);
