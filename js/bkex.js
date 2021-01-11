@@ -384,7 +384,8 @@ module.exports = class bkex extends Exchange {
             if (method === 'POST') {
                 body = query;
             }
-            const sortedQuery = query.split ('&').sort ((a, b) => a.localeCompare (b)).join ('&');
+            const queryArray = query.split ('&');
+            const sortedQuery = this.sortBy (queryArray, 0).join ('&');
             const secret = this.encode (this.secret);
             const signature = this.hmac (sortedQuery, secret, 'sha256');
             headers = {
