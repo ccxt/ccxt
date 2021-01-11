@@ -610,29 +610,22 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'outboundAccountInfo'
+        messageHash = 'outboundAccountPosition'
         return await self.watch(url, messageHash)
 
     def handle_balance(self, client, message):
         # sent upon creating or filling an order
         #
         #     {
-        #         "e": "outboundAccountInfo",   # Event type
-        #         "E": 1499405658849,           # Event time
-        #         "m": 0,                       # Maker commission rate(bips)
-        #         "t": 0,                       # Taker commission rate(bips)
-        #         "b": 0,                       # Buyer commission rate(bips)
-        #         "s": 0,                       # Seller commission rate(bips)
-        #         "T": True,                    # Can trade?
-        #         "W": True,                    # Can withdraw?
-        #         "D": True,                    # Can deposit?
-        #         "u": 1499405658848,           # Time of last account update
-        #         "B": [                       # Balances array
+        #         "e": "outboundAccountPosition",  # Event type
+        #         "E": 1564034571105,             # Event Time
+        #         "u": 1564034571073,             # Time of last account update
+        #         "B": [                         # Balances Array
         #             {
-        #                 "a": "LTC",               # Asset
-        #                 "f": "17366.18538083",    # Free amount
-        #                 "l": "0.00000000"         # Locked amount
-        #             },
+        #                 "a": "ETH",                 # Asset
+        #                 "f": "10000.000000",        # Free
+        #                 "l": "0.000000"             # Locked
+        #             }
         #         ]
         #     }
         #
@@ -765,7 +758,7 @@ class binance(Exchange, ccxt.binance):
             'kline': self.handle_ohlcv,
             '24hrTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
-            'outboundAccountInfo': self.handle_balance,
+            'outboundAccountPosition': self.handle_balance,
             'executionReport': self.handle_order,
         }
         event = self.safe_string(message, 'e')
