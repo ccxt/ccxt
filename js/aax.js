@@ -507,20 +507,33 @@ module.exports = class aax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeFloat (trade, 't');
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "p":"9395.50000000",
+        //         "q":"50.000000",
+        //         "t":1592563996718
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        const timestamp = this.safeInteger (trade, 't');
         const id = this.safeString (trade, 'tid');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if (symbol && symbol.slice (-2) === 'FP') {
-            symbol = symbol.slice (0, -2);
-        }
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
         const side = price > 0 ? 'buy' : 'sell';
-        const cost = this.dealDecimal ('mul', price, amount);
-        const currency = symbol ? symbol.split ('/')[1] : 'currency';
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const fee = undefined;
         return {
             'info': trade,
             'id': id,
@@ -531,14 +544,10 @@ module.exports = class aax extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': Math.abs (price),
+            'price': price,
             'amount': amount,
-            'cost': Math.abs (cost),
-            'fee': {
-                'cost': undefined,
-                'currency': currency,
-                'rate': undefined,
-            },
+            'cost': cost,
+            'fee': fee,
         };
     }
 
