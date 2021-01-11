@@ -1147,11 +1147,14 @@ class bittrex(Exchange):
             'currencySymbol': currency['id'],
         }
         response = self.privatePostAddressesCurrencySymbol(self.extend(request, params))
-        # {
-        #     "status": "PROVISIONED",
-        #     "currencySymbol": "BTC",
-        #     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        # }
+        #
+        #     {
+        #         "status":"PROVISIONED",
+        #         "currencySymbol":"XRP",
+        #         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        #         "cryptoAddressTag":"392034158"
+        #     }
+        #
         address = self.safe_string(response, 'cryptoAddress')
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
@@ -1175,11 +1178,14 @@ class bittrex(Exchange):
             'currencySymbol': currency['id'],
         }
         response = self.privateGetAddressesCurrencySymbol(self.extend(request, params))
-        # {
-        #     "status": "PROVISIONED",
-        #     "currencySymbol": "BTC",
-        #     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        # }
+        #
+        #     {
+        #         "status":"PROVISIONED",
+        #         "currencySymbol":"XRP",
+        #         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        #         "cryptoAddressTag":"392034158"
+        #     }
+        #
         address = self.safe_string(response, 'cryptoAddress')
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
