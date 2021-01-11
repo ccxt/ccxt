@@ -149,6 +149,9 @@ module.exports = class aax extends Exchange {
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'commonCurrencies': {
+                'XBT': 'XBT',
+            },
             'exceptions': {
                 'exact': {
                     '2002': InsufficientFunds,
