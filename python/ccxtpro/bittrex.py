@@ -73,7 +73,7 @@ class bittrex(Exchange, ccxt.bittrex):
         timestamp = self.milliseconds()
         uuid = self.uuid()
         auth = str(timestamp) + uuid
-        signature = self.hmac(self.encode(auth), self.secret, hashlib.sha512)
+        signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
         args = [self.apiKey, timestamp, uuid, signature]
         method = 'Authenticate'
         return self.make_request(requestId, method, args)
