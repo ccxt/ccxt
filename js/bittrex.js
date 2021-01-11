@@ -1201,11 +1201,14 @@ module.exports = class bittrex extends Exchange {
             'currencySymbol': currency['id'],
         };
         const response = await this.privatePostAddressesCurrencySymbol (this.extend (request, params));
-        // {
-        //     "status": "PROVISIONED",
-        //     "currencySymbol": "BTC",
-        //     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         let address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
@@ -1232,11 +1235,14 @@ module.exports = class bittrex extends Exchange {
             'currencySymbol': currency['id'],
         };
         const response = await this.privateGetAddressesCurrencySymbol (this.extend (request, params));
-        // {
-        //     "status": "PROVISIONED",
-        //     "currencySymbol": "BTC",
-        //     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         let address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
