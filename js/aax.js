@@ -16,7 +16,6 @@ module.exports = class aax extends Exchange {
             'countries': [ 'MT' ], // Malta
             'enableRateLimit': true,
             'rateLimit': 500,
-            'timeout': 120000,
             'version': 'v2',
             'hostname': 'aax.com',
             'has': {
@@ -526,9 +525,10 @@ module.exports = class aax extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 'p');
+        let price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
-        const side = price > 0 ? 'buy' : 'sell';
+        const side = (price > 0) ? 'buy' : 'sell';
+        price = Math.abs (price);
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -554,13 +554,12 @@ module.exports = class aax extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        limit = (limit === undefined) ? 2000 : limit;
+        limit = Math.min (limit, 2000);
         const request = {
             'symbol': market['id'],
-            // 'limit': 2, // max 2000
+            'limit': limit,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         const response = await this.publicGetMarketTrades (request);
         //
         //     {
