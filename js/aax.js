@@ -53,7 +53,7 @@ module.exports = class aax extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'http://cdn.aaxvip.com/res/images/logo/AAX-25B.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg',
                 'test': {
                     'v1': 'https://api.testnet.{hostname}/marketdata/v1',
                     'public': 'https://api.testnet.{hostname}',
@@ -64,8 +64,9 @@ module.exports = class aax extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com', // string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
+                'www': 'https://www.aax.com', // string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/fees/',
             },
             'api': {
                 'v1': {
@@ -139,17 +140,14 @@ module.exports = class aax extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': 0.06 / 100,
+                    'taker': 0.10 / 100,
                 },
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
-            },
-            'commonCurrencies': {
-                'PLA': 'Plair',
             },
             'exceptions': {
                 'exact': {
@@ -1397,7 +1395,6 @@ module.exports = class aax extends Exchange {
         };
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
-
 
     parseOrder (order, market = undefined) {
         //
