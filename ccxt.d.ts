@@ -56,16 +56,21 @@ declare module 'ccxt' {
         symbol: string;
         base: string;
         quote: string;
-        baseId: string,
-        quoteId: string,
+        baseId: string;
+        quoteId: string;
+        type?: string;
+        spot?: boolean;
+        margin?: boolean;
+        swap?: boolean;
+        future?: boolean;
         active: boolean;
         precision: { base: number, quote: number, amount: number, price: number };
         limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        tierBased: boolean,
-        percentage: boolean,
-        taker: number,
-        maker: number,
-        info: any,
+        tierBased: boolean;
+        percentage: boolean;
+        taker: number;
+        maker: number;
+        info: any;
     }
 
     export interface Order {
