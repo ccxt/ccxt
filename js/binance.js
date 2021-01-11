@@ -658,7 +658,7 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'outboundAccountInfo';
+        const messageHash = 'outboundAccountPosition';
         return await this.watch (url, messageHash);
     }
 
@@ -666,22 +666,15 @@ module.exports = class binance extends ccxt.binance {
         // sent upon creating or filling an order
         //
         //     {
-        //         "e": "outboundAccountInfo",   // Event type
-        //         "E": 1499405658849,           // Event time
-        //         "m": 0,                       // Maker commission rate (bips)
-        //         "t": 0,                       // Taker commission rate (bips)
-        //         "b": 0,                       // Buyer commission rate (bips)
-        //         "s": 0,                       // Seller commission rate (bips)
-        //         "T": true,                    // Can trade?
-        //         "W": true,                    // Can withdraw?
-        //         "D": true,                    // Can deposit?
-        //         "u": 1499405658848,           // Time of last account update
-        //         "B": [                        // Balances array
+        //         "e": "outboundAccountPosition", // Event type
+        //         "E": 1564034571105,             // Event Time
+        //         "u": 1564034571073,             // Time of last account update
+        //         "B": [                          // Balances Array
         //             {
-        //                 "a": "LTC",               // Asset
-        //                 "f": "17366.18538083",    // Free amount
-        //                 "l": "0.00000000"         // Locked amount
-        //             },
+        //                 "a": "ETH",                 // Asset
+        //                 "f": "10000.000000",        // Free
+        //                 "l": "0.000000"             // Locked
+        //             }
         //         ]
         //     }
         //
@@ -823,7 +816,7 @@ module.exports = class binance extends ccxt.binance {
             'kline': this.handleOHLCV,
             '24hrTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
-            'outboundAccountInfo': this.handleBalance,
+            'outboundAccountPosition': this.handleBalance,
             'executionReport': this.handleOrder,
         };
         const event = this.safeString (message, 'e');
