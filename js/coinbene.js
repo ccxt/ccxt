@@ -173,6 +173,49 @@ module.exports = class coinbene extends Exchange {
         return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
     }
 
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        // [ 'BTC/USDT', '38330.25', '1.4135', 'buy', '2021-01-10T18:22:31.000Z' ]
+        //
+        let timestamp = undefined;
+        let side = undefined;
+        const type = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let id = undefined;
+        const order = undefined;
+        const fee = undefined;
+        let symbol = undefined;
+        let cost = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
+        if (Array.isArray (trade)) {
+            timestamp = trade[4].toString ();
+            price = parseFloat (trade[1]);
+            amount = parseFloat (trade[2]);
+            cost = price * amount;
+            side = trade[3];
+            id = trade[0].toString ();
+        }
+        return {
+            'id': id,
+            'order': order,
+            'info': trade,
+            'timestamp': this.parse8601 (timestamp),
+            'datetime': timestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -181,7 +224,7 @@ module.exports = class coinbene extends Exchange {
         };
         const response = await this.publicGetMarketTrades (this.extend (request, params));
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrade (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTicker (symbol, params = {}) {
