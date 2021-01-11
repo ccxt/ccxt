@@ -1209,11 +1209,14 @@ class bittrex extends Exchange {
             'currencySymbol' => $currency['id'],
         );
         $response = $this->privatePostAddressesCurrencySymbol (array_merge($request, $params));
-        // {
-        //     "status" => "PROVISIONED",
-        //     "currencySymbol" => "BTC",
-        //     "cryptoAddress" => "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         $address = $this->safe_string($response, 'cryptoAddress');
         $message = $this->safe_string($response, 'status');
         if (!$address || $message === 'REQUESTED') {
@@ -1240,11 +1243,14 @@ class bittrex extends Exchange {
             'currencySymbol' => $currency['id'],
         );
         $response = $this->privateGetAddressesCurrencySymbol (array_merge($request, $params));
-        // {
-        //     "status" => "PROVISIONED",
-        //     "currencySymbol" => "BTC",
-        //     "cryptoAddress" => "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         $address = $this->safe_string($response, 'cryptoAddress');
         $message = $this->safe_string($response, 'status');
         if (!$address || $message === 'REQUESTED') {
