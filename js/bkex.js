@@ -20,7 +20,7 @@ module.exports = class bkex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchTickers': false,
                 'fetchTicker': true,
                 'fetchOHLCV': true,
@@ -216,6 +216,43 @@ module.exports = class bkex extends Exchange {
         // }
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, undefined, timeframe, since, limit);
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCommonCurrencys (params);
+        const items = response['data'];
+        const result = {};
+        for (let i = 0; i < items.length; i++) {
+            //    {
+            //       "currency": "ETH",
+            //       "maxWithdrawOneDay": 2000,
+            //       "maxWithdrawSingle": 2000,
+            //       "minWithdrawSingle": 0.1,
+            //       "supportDeposit": true,
+            //       "supportTrade": true,
+            //       "supportWithdraw": true,
+            //       "withdrawFee": 0.008
+            //     },
+            const item = items[i];
+            const id = this.safeString (item, 'currency');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': this.safeString (item, 'currency'),
+                'active': this.safeValue (item, 'supportTrade') && this.safeValue (item, 'supportDeposit'),
+                'fee': this.safeFloat (item, 'withdrawFee'),
+                'precision': undefined,
+                'info': item,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': this.safeFloat (item, 'minWithdrawSingle'), 'max': this.safeFloat (item, 'maxWithdrawSingle') },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
