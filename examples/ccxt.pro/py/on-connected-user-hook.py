@@ -12,7 +12,7 @@ print('CCXT Pro Version:', ccxtpro.__version__)
 # therefore on_connected() may be called more than once
 
 class MyBinance(ccxtpro.binance):
-    def on_connected(self, client, message):
+    def on_connected(self, client, message=None):
         print('Connected to', client.url)
         ensure_future(create_order(self))
 
