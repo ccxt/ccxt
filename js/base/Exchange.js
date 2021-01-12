@@ -41,6 +41,7 @@ module.exports = class Exchange extends ccxt.Exchange {
             const onMessage = this.handleMessage.bind (this)
             const onError = this.onError.bind (this)
             const onClose = this.onClose.bind (this)
+            const onConnected = this.onConnected.bind (this)
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {})
             const options = this.extend (this.streaming, {
@@ -49,7 +50,7 @@ module.exports = class Exchange extends ccxt.Exchange {
                 'verbose': this.verbose,
                 'throttle': ccxt.throttle (this.tokenBucket),
             }, wsOptions)
-            this.clients[url] = new WsClient (url, onMessage, onError, onClose, options)
+            this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options)
         }
         return this.clients[url]
     }
@@ -126,7 +127,6 @@ module.exports = class Exchange extends ccxt.Exchange {
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
-            this.onConnected (client, message)
             if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
@@ -153,6 +153,7 @@ module.exports = class Exchange extends ccxt.Exchange {
 
     onConnected (client, message = undefined) {
         // for user hooks
+        // console.log ('Connected to', client.url)
     }
 
     onError (client, error) {

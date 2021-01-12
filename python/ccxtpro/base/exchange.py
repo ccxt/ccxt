@@ -62,6 +62,7 @@ class Exchange(BaseExchange):
             on_message = self.handle_message
             on_error = self.on_error
             on_close = self.on_close
+            on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
@@ -73,7 +74,7 @@ class Exchange(BaseExchange):
                 }, self.tokenBucket)),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, options)
+            self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
@@ -131,7 +132,6 @@ class Exchange(BaseExchange):
                 # future will already have this exception set to it in self.reset
                 # so we don't set it again here to avoid an InvalidState error
                 return
-            self.on_connected(client, message)
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit:
@@ -154,6 +154,7 @@ class Exchange(BaseExchange):
 
     def on_connected(self, client, message=None):
         # for user hooks
+        # print('Connected to', client.url)
         pass
 
     def on_error(self, client, error):

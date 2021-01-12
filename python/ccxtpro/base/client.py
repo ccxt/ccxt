@@ -15,6 +15,7 @@ class Client(object):
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
+    on_connected_callback = None
     connectionStarted = None
     connectionEstablished = None
     connectionTimeout = 10000  # ms, false to disable
@@ -32,7 +33,7 @@ class Client(object):
     throttle = None
     connecting = False
 
-    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
+    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
             'url': url,
             'futures': {},
@@ -40,6 +41,7 @@ class Client(object):
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
+            'on_connected_callback': on_connected_callback,
         }
         settings = {}
         settings.update(defaults)
@@ -122,6 +124,7 @@ class Client(object):
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
+            self.on_connected_callback(self)
             # run both loops forever
             await gather(self.ping_loop(), self.receive_loop())
         except TimeoutError:

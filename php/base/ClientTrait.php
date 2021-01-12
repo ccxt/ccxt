@@ -45,13 +45,14 @@ trait ClientTrait {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
+            $on_connected = array($this, 'on_connected');
             $ws_options = $this->safe_value($this->options, 'ws', array());
             $options = array_replace_recursive(array(
                 'print' => array($this, 'print'),
                 'verbose' => $this->verbose,
                 'loop' => $this->loop, // reactphp-specific
             ), $this->streaming, $ws_options);
-            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $options);
+            $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
         return $this->clients[$url];
     }
@@ -113,7 +114,6 @@ trait ClientTrait {
         $connected = $client->connect($backoff_delay);
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
-                $this->on_connected($client, $message);
                 if (!isset($client->subscriptions[$subscribe_hash])) {
                     $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: add PHP async rate-limiting
@@ -138,6 +138,7 @@ trait ClientTrait {
 
     public function on_connected($client, $message = null) {
         // for user hooks
+        // echo "Connected to " . $client->url . "\n";
     }
 
     public function on_error($client, $error) {

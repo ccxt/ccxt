@@ -16,12 +16,13 @@ const ccxt = require ('ccxt')
 
 module.exports = class Client {
 
-    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
+    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
             onMessageCallback,
             onErrorCallback,
             onCloseCallback,
+            onConnectedCallback,
             verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
@@ -187,6 +188,7 @@ module.exports = class Client {
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()
         this.setPingInterval ()
+        this.onConnectedCallback (this)
     }
 
     // this method is not used at this time, because in JS the ws client will
