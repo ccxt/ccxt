@@ -152,7 +152,7 @@ class Exchange(BaseExchange):
 
         return future
 
-    def on_connected(self, client, message):
+    def on_connected(self, client, message=None):
         # for user hooks
         pass
 

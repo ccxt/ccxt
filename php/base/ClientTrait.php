@@ -136,7 +136,7 @@ trait ClientTrait {
         return $future;
     }
 
-    public function on_connected($client, $message) {
+    public function on_connected($client, $message = null) {
         // for user hooks
     }
 

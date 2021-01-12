@@ -151,7 +151,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         return future
     }
 
-    onConnected (client, message) {
+    onConnected (client, message = undefined) {
         // for user hooks
     }
 
