@@ -661,7 +661,7 @@ class binance extends \ccxt\binance {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $messageHash = 'outboundAccountInfo';
+        $messageHash = 'outboundAccountPosition';
         return $this->watch($url, $messageHash);
     }
 
@@ -669,22 +669,15 @@ class binance extends \ccxt\binance {
         // sent upon creating or filling an order
         //
         //     {
-        //         "e" => "outboundAccountInfo",   // Event type
-        //         "E" => 1499405658849,           // Event time
-        //         "m" => 0,                       // Maker commission rate (bips)
-        //         "t" => 0,                       // Taker commission rate (bips)
-        //         "b" => 0,                       // Buyer commission rate (bips)
-        //         "s" => 0,                       // Seller commission rate (bips)
-        //         "T" => true,                    // Can trade?
-        //         "W" => true,                    // Can withdraw?
-        //         "D" => true,                    // Can deposit?
-        //         "u" => 1499405658848,           // Time of last $account update
-        //         "B" => array(                        // Balances array
-        //             array(
-        //                 "a" => "LTC",               // Asset
-        //                 "f" => "17366.18538083",    // Free amount
-        //                 "l" => "0.00000000"         // Locked amount
-        //             ),
+        //         "e" => "outboundAccountPosition", // Event type
+        //         "E" => 1564034571105,             // Event Time
+        //         "u" => 1564034571073,             // Time of last $account update
+        //         "B" => array(                          // Balances Array
+        //             {
+        //                 "a" => "ETH",                 // Asset
+        //                 "f" => "10000.000000",        // Free
+        //                 "l" => "0.000000"             // Locked
+        //             }
         //         )
         //     }
         //
@@ -826,7 +819,7 @@ class binance extends \ccxt\binance {
             'kline' => array($this, 'handle_ohlcv'),
             '24hrTicker' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_ticker'),
-            'outboundAccountInfo' => array($this, 'handle_balance'),
+            'outboundAccountPosition' => array($this, 'handle_balance'),
             'executionReport' => array($this, 'handle_order'),
         );
         $event = $this->safe_string($message, 'e');
