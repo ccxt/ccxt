@@ -169,17 +169,6 @@ module.exports = class bkex extends Exchange {
         return this.parseOrderBook (data, undefined, 'bid', 'ask');
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
-        return [
-            this.timeInSeconds (ohlcv[0]),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
-        ];
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
