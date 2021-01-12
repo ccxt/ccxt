@@ -21,8 +21,8 @@ module.exports = class bkex extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchCurrencies': false,
-                'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTicker': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTrades': false,
@@ -125,8 +125,9 @@ module.exports = class bkex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const timestamp = this.milliseconds ();
+        const market = this.market (symbol);
         const request = this.extend ({
-            'symbol': symbol,
+            'symbol': market['id'],
         }, params);
         const response = await this.publicGetQTickers (request);
         const ticker = this.safeValue (response, 'data');
