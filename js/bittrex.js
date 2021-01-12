@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -23,6 +23,7 @@ module.exports = class bittrex extends Exchange {
                 'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -1193,6 +1194,40 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currencySymbol': currency['id'],
+        };
+        const response = await this.privatePostAddressesCurrencySymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
+        let address = this.safeString (response, 'cryptoAddress');
+        const message = this.safeString (response, 'status');
+        if (!address || message === 'REQUESTED') {
+            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
+        }
+        let tag = this.safeString (response, 'cryptoAddressTag');
+        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
+            tag = address;
+            address = currency['address'];
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1200,18 +1235,21 @@ module.exports = class bittrex extends Exchange {
             'currencySymbol': currency['id'],
         };
         const response = await this.privateGetAddressesCurrencySymbol (this.extend (request, params));
-        // {
-        //     "status": "PROVISIONED",
-        //     "currencySymbol": "BTC",
-        //     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         let address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
         }
-        let tag = undefined;
-        if (currency['type'] in this.options['tag']) {
+        let tag = this.safeString (response, 'cryptoAddressTag');
+        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
             tag = address;
             address = currency['address'];
         }
@@ -1310,6 +1348,9 @@ module.exports = class bittrex extends Exchange {
                 if (code !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                     this.throwBroadlyMatchedException (this.exceptions['broad'], code, feedback);
+                }
+                if ((code === 'NOT_FOUND') && (url.indexOf ('addresses') >= 0)) {
+                    throw new InvalidAddress (feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
                 return;

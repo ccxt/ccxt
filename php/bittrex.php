@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\BadRequest;
+use \ccxt\InvalidAddress;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -30,6 +31,7 @@ class bittrex extends Exchange {
                 'CORS' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -1200,6 +1202,40 @@ class bittrex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function create_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currencySymbol' => $currency['id'],
+        );
+        $response = $this->privatePostAddressesCurrencySymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
+        $address = $this->safe_string($response, 'cryptoAddress');
+        $message = $this->safe_string($response, 'status');
+        if (!$address || $message === 'REQUESTED') {
+            throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
+        }
+        $tag = $this->safe_string($response, 'cryptoAddressTag');
+        if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
+            $tag = $address;
+            $address = $currency['address'];
+        }
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1207,18 +1243,21 @@ class bittrex extends Exchange {
             'currencySymbol' => $currency['id'],
         );
         $response = $this->privateGetAddressesCurrencySymbol (array_merge($request, $params));
-        // {
-        //     "status" => "PROVISIONED",
-        //     "currencySymbol" => "BTC",
-        //     "cryptoAddress" => "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        // }
+        //
+        //     {
+        //         "status":"PROVISIONED",
+        //         "currencySymbol":"XRP",
+        //         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        //         "cryptoAddressTag":"392034158"
+        //     }
+        //
         $address = $this->safe_string($response, 'cryptoAddress');
         $message = $this->safe_string($response, 'status');
         if (!$address || $message === 'REQUESTED') {
             throw new AddressPending($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         }
-        $tag = null;
-        if (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag'])) {
+        $tag = $this->safe_string($response, 'cryptoAddressTag');
+        if (($tag === null) && (is_array($this->options['tag']) && array_key_exists($currency['type'], $this->options['tag']))) {
             $tag = $address;
             $address = $currency['address'];
         }
@@ -1317,6 +1356,9 @@ class bittrex extends Exchange {
                 if ($code !== null) {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $code, $feedback);
+                }
+                if (($code === 'NOT_FOUND') && (mb_strpos($url, 'addresses') !== false)) {
+                    throw new InvalidAddress($feedback);
                 }
                 // throw new ExchangeError($this->id . ' malformed $response ' . $this->json($response));
                 return;
