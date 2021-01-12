@@ -1672,7 +1672,7 @@ module.exports = class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetGetPositions (this.extend (request, params));
+        const response = await this.privateGetPositions (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
