@@ -126,6 +126,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
+            this.onConnected (client, message)
             if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
                 const options = this.safeValue (this.options, 'ws');
@@ -148,6 +149,10 @@ module.exports = class Exchange extends ccxt.Exchange {
             // upon connection failure
         })
         return future
+    }
+
+    onConnected (client, message) {
+        // for user hooks
     }
 
     onError (client, error) {

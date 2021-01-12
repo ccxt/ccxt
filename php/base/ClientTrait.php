@@ -113,6 +113,7 @@ trait ClientTrait {
         $connected = $client->connect($backoff_delay);
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
+                $this->on_connected($client, $message);
                 if (!isset($client->subscriptions[$subscribe_hash])) {
                     $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: add PHP async rate-limiting
@@ -133,6 +134,10 @@ trait ClientTrait {
                 // upon connection failure
             });
         return $future;
+    }
+
+    public function on_connected($client, $message) {
+        // for user hooks
     }
 
     public function on_error($client, $error) {

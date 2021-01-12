@@ -131,7 +131,7 @@ class Exchange(BaseExchange):
                 # future will already have this exception set to it in self.reset
                 # so we don't set it again here to avoid an InvalidState error
                 return
-
+            self.on_connected(client, message)
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit:
@@ -151,6 +151,10 @@ class Exchange(BaseExchange):
         connected.add_done_callback(after)
 
         return future
+
+    def on_connected(self, client, message):
+        # for user hooks
+        pass
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
