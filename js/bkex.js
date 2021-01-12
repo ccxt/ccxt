@@ -157,8 +157,9 @@ module.exports = class bkex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -180,8 +181,10 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['id'],
             'size': limit,
         };
         if (limit !== undefined) {
