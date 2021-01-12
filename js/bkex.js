@@ -145,7 +145,7 @@ module.exports = class bkex extends Exchange {
             'previousClose': undefined,
             'open': this.safeFloat (ticker[0], 'open'),
             'close': this.safeFloat (ticker[0], 'close'),
-            'last': undefined,
+            'last': this.safeFloat (ticker[0], 'close'),
             'percentage': undefined,
             'change': this.safeFloat (ticker[0], 'change'),
             'average': undefined,
