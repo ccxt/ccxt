@@ -825,6 +825,9 @@ class phemex extends Exchange {
     }
 
     public function from_en($en, $scale, $precision, $precisionMode = null) {
+        if ($en === null) {
+            return $en;
+        }
         $precisionMode = ($precisionMode === null) ? $this->precisionMode : $precisionMode;
         return floatval($this->decimal_to_precision($en * pow(10, -$scale), ROUND, $precision, $precisionMode));
     }

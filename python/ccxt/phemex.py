@@ -810,6 +810,8 @@ class phemex(Exchange):
         return self.to_en(price, market['priceScale'], 0)
 
     def from_en(self, en, scale, precision, precisionMode=None):
+        if en is None:
+            return en
         precisionMode = self.precisionMode if (precisionMode is None) else precisionMode
         return float(self.decimal_to_precision(en * math.pow(10, -scale), ROUND, precision, precisionMode))
 
