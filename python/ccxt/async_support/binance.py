@@ -1901,7 +1901,9 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        type = self.safe_value(params, 'type', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', market['type'])
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
         method = None
         if type == 'spot':
             method = 'privateGetMyTrades'
@@ -1909,7 +1911,6 @@ class binance(Exchange):
             method = 'fapiPrivateGetUserTrades'
         elif type == 'delivery':
             method = 'dapiPrivateGetUserTrades'
-        params = self.omit(params, 'type')
         request = {
             'symbol': market['id'],
         }

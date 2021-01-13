@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.40.17';
+$version = '1.40.45';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.40.17';
+    const VERSION = '1.40.45';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1446,7 +1446,7 @@ class Exchange {
             curl_setopt_array($this->curl, $this->curl_options);
         }
 
-        $result = curl_exec($this->curl);
+        $result = trim(curl_exec($this->curl));
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 

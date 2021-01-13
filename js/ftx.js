@@ -205,6 +205,7 @@ module.exports = class ftx extends Exchange {
                     'Order already closed': InvalidOrder, // {"error":"Order already closed","success":false}
                 },
                 'broad': {
+                    'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
@@ -1254,11 +1255,17 @@ module.exports = class ftx extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const conditionalOrdersOnly = this.safeValue (params, 'conditionalOrdersOnly');
         const request = {
             // 'market': market['id'], // optional
-            'conditionalOrdersOnly': false, // cancel conditional orders only
-            'limitOrdersOnly': false, // cancel existing limit orders (non-conditional orders) only
+            // 'conditionalOrdersOnly': false, // cancel conditional orders only
+            // 'limitOrdersOnly': false, // cancel existing limit orders (non-conditional orders) only
         };
+        if (conditionalOrdersOnly) {
+            request['conditionalOrdersOnly'] = conditionalOrdersOnly;
+        } else {
+            request['limitOrdersOnly'] = true;
+        }
         const marketId = this.getMarketId (symbol, 'market', params);
         if (marketId !== undefined) {
             request['market'] = marketId;

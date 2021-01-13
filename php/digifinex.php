@@ -1290,7 +1290,7 @@ class digifinex extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'addressTag');
         $currencyId = $this->safe_string_upper($depositAddress, 'currency');
-        $code = $this->safeCurrencCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         return array(
             'info' => $depositAddress,
             'code' => $code,

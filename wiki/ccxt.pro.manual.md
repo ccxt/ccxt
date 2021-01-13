@@ -248,7 +248,94 @@ The incremental structures returned from the unified methods of CCXT Pro are oft
 1. JSON-decoded object (`object` in JavaScript, `dict` in Python, `array()` in PHP). This type may be returned from public and private methods like `watchTicker`, `watchBalance`, `watchOrder`, etc.
 2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, etc.
 
-In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects stored in memory. The allowed maximum can be configured by the user upon instantiation or later.
+The unified methods returning arrays like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, are based on the caching layer. The user has to understand the inner workings of the caching layer to work with it efficiently.
+
+The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro library has a reasonable limit on the number of objects stored in memory. By default the caching array structures will store up to 1000 entries of each type (1000 most recent trades, 1000 most recent candles, 1000 most recent orders). The allowed maximum number can be configured by the user upon instantiation or later:
+
+```Python
+ccxtpro.ftx({
+    'enableRateLimit': True,
+    'options': {
+        'tradesLimit': 1000,
+        'OHLCVLimit': 1000,
+        'ordersLimit': 1000,
+    },
+})
+
+# or
+
+exchange.options['tradesLimit'] = 1000
+exchange.options['OHLCVLimit'] = 1000
+exchange.options['ordersLimit'] = 1000
+```
+
+The cache limits have to be set prior to calling any watch-methods and cannot change during a program run.
+
+When there is space left in the cache, new elements are simply appended to the end of it. If there's not enough room to fit a new element, the oldest element is deleted from the beginning of the cache to free some space. Thus, for example, the cache grows from 0 to 1000 most recent trades and then stays at 1000 most recent trades max, constantly renewing the stored data with each new update incoming from the exchange. It reminds a sliding frame window or a sliding door, that looks like shown below:
+
+```
+      past > ------------------ > time > - - - - - - - - > future
+
+
+                           sliding frame
+                           of 1000 most
+                           recent trades
+                        +-----------------+
+                        |                 |
+                        |===========+=====|
++----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+|                |      |           |     |           |                 |
+0              1000     |         2000    |         3000              4000  ...
+|                |      |           |     |           |                 |
++----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+                        |===========+=====|
+                        |                 |
+                        +---+---------+---+
+                            |         |
+                      since ^         ^ limit
+
+                   date-based pagination arguments
+                         are always applied
+                       within the cached frame
+```
+
+The user can configure the cache limits using the `exchange.options` as was shown above. Do not confuse the cache limits with the pagination limit.
+
+**Note, that the `since` and `limit` [date-based pagination](Manual#date-based-pagination) params have a different meaning and are always applied within the cached window!** If the user specifies a `since` argument to the `watchTrades()` call, CCXT Pro will return all cached trades having `timestamp >= since`. If the user does not specify a `since` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a `limit` argument, the library will return up to `limit` candles starting from `since` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
+
+```Python
+exchange.options['tradesLimit'] = 5  # set the size of the cache to 5
+
+# this call will return up to 5 cached trades
+await exchange.watchTrades (symbol)
+
+# the following call will return the first 2 of up to 5 cached trades
+await exchange.watchTrades (symbol, since=None, limit=2)
+
+# this call will first filter cached trades by trade['timestamp'] >= since
+# and will return the first 2 of up to 5 cached trades that pass the filter
+since = exchange.iso8601('2020-01-01T00:00:00Z')
+limit = 2
+await exchange.watchTrades (symbol, since, limit)
+```
+
+If you want to always get just the most recent trade, **you should set a cache limit to 1, instead of using the `limit=1` argument**.
+
+```Python
+# this loop will properly print the most recent trade when it happens
+exchange.options['tradesLimit'] = 1
+while True:
+    trade = await exchange.watchTrades (symbol)
+    print(trade)
+```
+
+The following loop will always print the first trade of up to 1000 most recent trades from the cache. It will print the same trade over and over again as the cache grows through the first 1000 iterations. When the cache size hits 1000, it will print the first trade from the beginning of the cache, that will slide with each new trade added to the end.
+
+```Python
+while True:
+    trade = await exchange.watchTrades (symbol, since=None, limit=1)
+    print(trade)
+```
 
 ## Linking
 
