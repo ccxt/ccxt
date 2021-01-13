@@ -160,6 +160,7 @@ module.exports = class hitbtc extends Exchange {
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',
