@@ -2605,6 +2605,7 @@ class okex extends Exchange {
         //         "$currency" => "XMR",
         //         "from" => "",
         //         "to" => "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        //         "tag" => "1234567",
         //         "deposit_id" => 11571659, <-- we can use this
         //         "$timestamp" => "2019-10-01T14:54:19.000Z",
         //         "$status" => "2"
@@ -2616,6 +2617,7 @@ class okex extends Exchange {
         $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
         $addressFrom = $this->safe_string($transaction, 'from');
         $addressTo = $this->safe_string($transaction, 'to');
+        $tagTo = $this->safe_string($transaction, 'tag');
         if ($withdrawalId !== null) {
             $type = 'withdrawal';
             $id = $withdrawalId;
@@ -2656,8 +2658,8 @@ class okex extends Exchange {
             'addressTo' => $addressTo,
             'address' => $address,
             'tagFrom' => null,
-            'tagTo' => null,
-            'tag' => null,
+            'tagTo' => $tagTo,
+            'tag' => $tagTo,
             'status' => $status,
             'type' => $type,
             'updated' => null,

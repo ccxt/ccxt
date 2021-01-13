@@ -1799,8 +1799,10 @@ module.exports = class phemex extends Exchange {
         };
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
-            if (price !== undefined) {
-                qtyType = 'ByQuote';
+            if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
+                if (price !== undefined) {
+                    qtyType = 'ByQuote';
+                }
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
