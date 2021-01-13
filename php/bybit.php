@@ -291,7 +291,7 @@ class bybit extends Exchange {
                 ),
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
-                    'method' => 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
+                    'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -1197,7 +1197,7 @@ class bybit extends Exchange {
         );
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
-        $method = ($marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
+        $method = ($marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'v2PrivateGetOrder';
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
         if ($stopOrderId === null) {
             $orderLinkId = $this->safe_string($params, 'order_link_id');
@@ -1205,7 +1205,7 @@ class bybit extends Exchange {
                 $request['order_id'] = $id;
             }
         } else {
-            $method = ($marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'privateGetStopOrder';
+            $method = ($marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'v2PrivateGetStopOrder';
         }
         $response = $this->$method (array_merge($request, $params));
         //
