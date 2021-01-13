@@ -1010,7 +1010,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetOrderBookL2 (this.extend (request, params));
+        const response = await this.v2PublicGetOrderBookL2 (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -1044,7 +1044,7 @@ module.exports = class bybit extends Exchange {
             const currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        const response = await this.privateGetWalletBalance (this.extend (request, params));
+        const response = await this.v2PrivateGetWalletBalance (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -2273,42 +2273,42 @@ module.exports = class bybit extends Exchange {
                 request += '?' + this.rawencode (params);
             }
         } else {
-            // this.checkRequiredCredentials ();
-            // if (api === 'openapi') {
-            //     request = '/open-api/' + request;
-            // } else if (api === 'private') {
-            //     // private v2
-            //     request = '/' + this.version + '/' + api + '/' + request;
-            // } else if (api === 'privateLinear') {
-            //     request = '/private/linear/' + request;
-            // } else {
+            this.checkRequiredCredentials ();
+            if (type === 'openapi') {
+                request = '/' + type + '/' + section + '/' + request;
+            } else if (type === 'v2') {
+                request = '/' + type + '/' + section + '/' + request;
+            } else if (type === 'private') {
+                request = '/' + type + '/' + section + '/' + request;
+            }
+            // else {
             //     // position, user
             //     request = '/' + api + '/' + request;
             // }
-            // const timestamp = this.nonce ();
-            // const query = this.extend (params, {
-            //     'api_key': this.apiKey,
-            //     'recv_window': this.options['recvWindow'],
-            //     'timestamp': timestamp,
-            // });
-            // let auth = this.rawencode (this.keysort (query));
-            // // https://github.com/ccxt/ccxt/issues/7377
-            // // https://github.com/ccxt/ccxt/issues/7515
-            // // bybit encodes whole floats as integers without .0 for conditional stop-orders only
-            // if (path.indexOf ('stop-order') >= 0) {
-            //     auth = auth.replace ('.0&', '&');
-            // }
-            // const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            // if (method === 'POST') {
-            //     body = this.json (this.extend (query, {
-            //         'sign': signature,
-            //     }));
-            //     headers = {
-            //         'Content-Type': 'application/json',
-            //     };
-            // } else {
-            //     request += '?' + auth + '&sign=' + signature;
-            // }
+            const timestamp = this.nonce ();
+            const query = this.extend (params, {
+                'api_key': this.apiKey,
+                'recv_window': this.options['recvWindow'],
+                'timestamp': timestamp,
+            });
+            let auth = this.rawencode (this.keysort (query));
+            // https://github.com/ccxt/ccxt/issues/7377
+            // https://github.com/ccxt/ccxt/issues/7515
+            // bybit encodes whole floats as integers without .0 for conditional stop-orders only
+            if (path.indexOf ('stop-order') >= 0) {
+                auth = auth.replace ('.0&', '&');
+            }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            if (method === 'POST') {
+                body = this.json (this.extend (query, {
+                    'sign': signature,
+                }));
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                request += '?' + auth + '&sign=' + signature;
+            }
         }
         url += request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
