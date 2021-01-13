@@ -445,7 +445,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const response = await this.v2PublicGetTime (params);
         //
         //     {
         //         ret_code: 0,
