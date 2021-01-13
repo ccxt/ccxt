@@ -956,7 +956,7 @@ module.exports = class bybit extends Exchange {
         }
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        const method = (marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'publicGetTradingRecords';
+        const method = (marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'v2PublicGetTradingRecords';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
