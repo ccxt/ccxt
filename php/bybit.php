@@ -19,6 +19,7 @@ class bybit extends Exchange {
             'version' => 'v2',
             'userAgent' => null,
             'rateLimit' => 100,
+            'hostname' => 'bybit.com', // bybit.com, bytick.com
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => true,
@@ -61,9 +62,9 @@ class bybit extends Exchange {
                 '1y' => 'Y',
             ),
             'urls' => array(
-                'test' => 'https://api-testnet.bybit.com',
+                'test' => 'https://api-testnet.{hostname}',
                 'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api' => 'https://api.bybit.com',
+                'api' => 'https://api.{hostname}',
                 'www' => 'https://www.bybit.com',
                 'doc' => array(
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -2152,7 +2153,7 @@ class bybit extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'];
+        $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
         $request = $path;
         // public v2
         if ($api === 'public') {

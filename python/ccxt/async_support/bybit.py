@@ -27,6 +27,7 @@ class bybit(Exchange):
             'version': 'v2',
             'userAgent': None,
             'rateLimit': 100,
+            'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
                 'cancelOrder': True,
                 'CORS': True,
@@ -69,9 +70,9 @@ class bybit(Exchange):
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.bybit.com',
+                'test': 'https://api-testnet.{hostname}',
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.bybit.com',
+                'api': 'https://api.{hostname}',
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -2051,7 +2052,7 @@ class bybit(Exchange):
         return self.safe_string(types, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']
+        url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
         request = path
         # public v2
         if api == 'public':
