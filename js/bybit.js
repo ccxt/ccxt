@@ -1856,41 +1856,60 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            // 'coin': currency['id'],
+            // 'currency': currency['id'], // alias
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (till),
+            'wallet_fund_type': 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+            // 'page': 1,
+            // 'limit': 20, // max 50
         };
-        if (limit !== undefined) {
-            request['count'] = limit;
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
         }
-        const response = await this.privateGetGetDeposits (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2PrivateGetWalletFundRecords (this.extend (request, params));
         //
         //     {
-        //         "jsonrpc": "2.0",
-        //         "id": 5611,
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
         //         "result": {
-        //             "count": 1,
         //             "data": [
         //                 {
-        //                     "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
-        //                     "amount": 5,
-        //                     "currency": "BTC",
-        //                     "received_timestamp": 1549295017670,
-        //                     "state": "completed",
-        //                     "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
-        //                     "updated_timestamp": 1549295130159
+        //                     "id": 234467,
+        //                     "user_id": 1,
+        //                     "coin": "BTC",
+        //                     "wallet_id": 27913,
+        //                     "type": "Realized P&L",
+        //                     "amount": "-0.00000006",
+        //                     "tx_id": "",
+        //                     "address": "BTCUSD",
+        //                     "wallet_balance": "0.03000330",
+        //                     "exec_time": "2019-12-09T00:00:25.000Z",
+        //                     "cross_seq": 0
         //                 }
         //             ]
-        //         }
+        //         },
+        //         "ext_info": null,
+        //         "time_now": "1577481867.115552",
+        //         "rate_limit_status": 119,
+        //         "rate_limit_reset_ms": 1577481867122,
+        //         "rate_limit": 120
         //     }
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, params);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1980,9 +1999,25 @@ module.exports = class bybit extends Exchange {
         //         "updated_at": "2019-06-11T02:20:24.000Z"
         //     }
         //
+        // fetchDeposits ledger entries
+        //
+        //     {
+        //         "id": 234467,
+        //         "user_id": 1,
+        //         "coin": "BTC",
+        //         "wallet_id": 27913,
+        //         "type": "Realized P&L",
+        //         "amount": "-0.00000006",
+        //         "tx_id": "",
+        //         "address": "BTCUSD",
+        //         "wallet_balance": "0.03000330",
+        //         "exec_time": "2019-12-09T00:00:25.000Z",
+        //         "cross_seq": 0
+        //     }
+        //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString (transaction, 'submited_at'));
+        const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const address = this.safeString (transaction, 'address');
