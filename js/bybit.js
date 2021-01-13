@@ -289,7 +289,7 @@ module.exports = class bybit extends Exchange {
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'privatePostOrderCancelAll', // privatePostStopOrderCancelAll
+                    'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -1195,7 +1195,7 @@ module.exports = class bybit extends Exchange {
         };
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        let method = (marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'privateGetOrder';
+        let method = (marketType === 'linear') ? 'privateLinearGetOrderSearch' : 'v2PrivateGetOrder';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
             const orderLinkId = this.safeString (params, 'order_link_id');
@@ -1203,7 +1203,7 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            method = (marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'privateGetStopOrder';
+            method = (marketType === 'linear') ? 'privateLinearGetStopOrderSearch' : 'v2PrivateGetStopOrder';
         }
         const response = await this[method] (this.extend (request, params));
         //
