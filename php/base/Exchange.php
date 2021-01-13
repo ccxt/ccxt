@@ -1446,7 +1446,7 @@ class Exchange {
             curl_setopt_array($this->curl, $this->curl_options);
         }
 
-        $result = curl_exec($this->curl);
+        $result = trim(curl_exec($this->curl));
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 

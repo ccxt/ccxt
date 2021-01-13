@@ -20,7 +20,6 @@
     "fcoin":         { "skip": true },
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
-    "gateio":        { "skip": true },
     "gemini":        { "skip": true },
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
