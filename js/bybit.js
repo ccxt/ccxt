@@ -1693,7 +1693,7 @@ module.exports = class bybit extends Exchange {
         const options = this.safeValue (this.options, 'fetchOrders', {});
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        let defaultMethod = (marketType === 'linear') ? 'privateLinearGetOrderList' : 'openapiGetOrderList';
+        let defaultMethod = (marketType === 'linear') ? 'privateLinearGetOrderList' : 'v2PrivateGetOrderList';
         let query = params;
         if (('stop_order_id' in params) || ('stop_order_status' in params)) {
             let stopOrderStatus = this.safeValue (params, 'stopOrderStatus');
@@ -1704,7 +1704,7 @@ module.exports = class bybit extends Exchange {
                 request['stop_order_status'] = stopOrderStatus;
                 query = this.omit (params, 'stop_order_status');
             }
-            defaultMethod = (marketType === 'linear') ? 'privateLinearGetStopOrderList' : 'openapiGetStopOrderList';
+            defaultMethod = (marketType === 'linear') ? 'privateLinearGetStopOrderList' : 'v2PrivateGetStopOrderList';
         }
         const method = this.safeString (options, 'method', defaultMethod);
         const response = await this[method] (this.extend (request, query));
