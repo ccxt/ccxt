@@ -565,65 +565,6 @@ module.exports = class bybit extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        const coin = this.safeString (params, 'coin');
-        const code = this.safeString (params, 'code');
-        if (coin !== undefined) {
-            request['coin'] = coin;
-        } else if (code !== undefined) {
-            const currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        const response = await this.privateGetWalletBalance (this.extend (request, params));
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: {
-        //             BTC: {
-        //                 equity: 0,
-        //                 available_balance: 0,
-        //                 used_margin: 0,
-        //                 order_margin: 0,
-        //                 position_margin: 0,
-        //                 occ_closing_fee: 0,
-        //                 occ_funding_fee: 0,
-        //                 wallet_balance: 0,
-        //                 realised_pnl: 0,
-        //                 unrealised_pnl: 0,
-        //                 cum_realised_pnl: 0,
-        //                 given_cash: 0,
-        //                 service_cash: 0
-        //             }
-        //         },
-        //         time_now: '1583937810.370020',
-        //         rate_limit_status: 119,
-        //         rate_limit_reset_ms: 1583937810367,
-        //         rate_limit: 120
-        //     }
-        //
-        const result = {
-            'info': response,
-        };
-        const balances = this.safeValue (response, 'result', {});
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available_balance');
-            account['used'] = this.safeFloat (balance, 'used_margin');
-            account['total'] = this.safeFloat (balance, 'equity');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         // fetchTicker
@@ -702,7 +643,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response = await this.v2PublicGetTickers (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -1090,6 +1031,65 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeTimestamp (response, 'time_now');
         return this.parseOrderBook (result, timestamp, 'Buy', 'Sell', 'price', 'size');
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const coin = this.safeString (params, 'coin');
+        const code = this.safeString (params, 'code');
+        if (coin !== undefined) {
+            request['coin'] = coin;
+        } else if (code !== undefined) {
+            const currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        const response = await this.privateGetWalletBalance (this.extend (request, params));
+        //
+        //     {
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: {
+        //             BTC: {
+        //                 equity: 0,
+        //                 available_balance: 0,
+        //                 used_margin: 0,
+        //                 order_margin: 0,
+        //                 position_margin: 0,
+        //                 occ_closing_fee: 0,
+        //                 occ_funding_fee: 0,
+        //                 wallet_balance: 0,
+        //                 realised_pnl: 0,
+        //                 unrealised_pnl: 0,
+        //                 cum_realised_pnl: 0,
+        //                 given_cash: 0,
+        //                 service_cash: 0
+        //             }
+        //         },
+        //         time_now: '1583937810.370020',
+        //         rate_limit_status: 119,
+        //         rate_limit_reset_ms: 1583937810367,
+        //         rate_limit: 120
+        //     }
+        //
+        const result = {
+            'info': response,
+        };
+        const balances = this.safeValue (response, 'result', {});
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = balances[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available_balance');
+            account['used'] = this.safeFloat (balance, 'used_margin');
+            account['total'] = this.safeFloat (balance, 'equity');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
