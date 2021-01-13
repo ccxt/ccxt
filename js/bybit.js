@@ -73,118 +73,234 @@ module.exports = class bybit extends Exchange {
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'v2': {
+                    'public': {
+                        'get': [
+                            // GET /v2/public/
+                            'orderBook/L2',
+                            'kline/list',
+                            'tickers',
+                            'trading-records',
+                            'symbols',
+                            'liq-records',
+                            'mark-price-kline',
+                            'index-price-kline',
+                            'premium-index-kline',
+                            'open-interest',
+                            'big-deal',
+                            'account-ratio',
+                            'time',
+                            'announcement',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            // GET /v2/private/
+                            'order/list',
+                            'order',
+                            'stop-order/list',
+                            'stop-order',
+                            'position/list',
+                            'execution/list',
+                            'trade/closed-pnl/list',
+                            'funding/prev-funding-rate',
+                            'funding/prev-funding',
+                            'funding/predicted-funding',
+                            'account/api-key',
+                            'account/lcp',
+                            'wallet/balance',
+                            'wallet/fund/records',
+                            'wallet/withdraw/list',
+                            'exchange-order/list',
+                        ],
+                        'post': [
+                            // POST /v2/private/
+                            'order/create',
+                            'order/cancel',
+                            'order/cancelAll',
+                            'order/replace',
+                            'stop-order/create',
+                            'stop-order/cancel',
+                            'stop-order/cancelAll',
+                            'stop-order/replace',
+                            'position/change-position-margin',
+                            'position/trading-stop',
+                            'position/leverage/save',
+                        ],
+                    },
+                },
                 'public': {
-                    'get': [
-                        'orderBook/L2',
-                        'kline/list',
-                        'tickers',
-                        'trading-records',
-                        'symbols',
-                        'liq-records',
-                        'mark-price-kline',
-                        'open-interest',
-                        'big-deal',
-                        'account-ratio',
-                        'time',
-                        'announcement',
-                    ],
+                    'linear': {
+                        'get': [
+                            // GET /public/linear/
+                            'kline',
+                            'recent-trading-records',
+                            'funding/prev-funding-rate',
+                            'mark-price-kline',
+                            'index-price-kline',
+                            'premium-index-kline',
+                            'risk-limit',
+                        ],
+                    },
                 },
                 'private': {
-                    'get': [
-                        'order/list',
-                        'order',
-                        'stop-order/list',
-                        'stop-order',
-                        'position/list',
-                        'wallet/balance',
-                        'execution/list',
-                        'trade/closed-pnl/list',
-                        'account/lcp',
-                        'exchange-order/list',
-                    ],
-                    'post': [
-                        'order/create',
-                        'order/cancel',
-                        'order/cancelAll',
-                        'order/replace',
-                        'stop-order/create',
-                        'stop-order/cancel',
-                        'stop-order/cancelAll',
-                        'stop-order/replace',
-                    ],
+                    'linear': {
+                        'get': [
+                            // GET /private/linear/
+                            'order/list',
+                            'order/search',
+                            'stop-order/list',
+                            'stop-order/search',
+                            'position/list',
+                            'trade/execution/list',
+                            'trade/closed-pnl/list',
+                            'funding/predicted-funding',
+                            'funding/prev-funding',
+                        ],
+                        'post': [
+                            // POST /private/linear/
+                            'order/create',
+                            'order/cancel',
+                            'order/cancel-all',
+                            'order/replace',
+                            'stop-order/create',
+                            'stop-order/cancel',
+                            'stop-order/cancel-all',
+                            'stop-order/replace',
+                            'position/set-auto-add-margin',
+                            'position/switch-isolated',
+                            'tpsl/switch-mode',
+                            'position/add-margin',
+                            'position/set-leverage',
+                            'position/trading-stop',
+                        ],
+                    },
                 },
                 'openapi': {
-                    'get': [
-                        'order/list', // deprecated
-                        'stop-order/list', // deprecated
-                        'wallet/risk-limit/list',
-                        'funding/prev-funding-rate',
-                        'funding/prev-funding',
-                        'funding/predicted-funding',
-                        'api-key',
-                        'wallet/fund/records',
-                        'wallet/withdraw/list',
-                    ],
-                    'post': [
-                        'order/replace', // deprecated
-                        'stop-order/create', // deprecated
-                        'stop-order/cancel', // deprecated
-                        'stop-order/replace', // deprecated
-                        'position/trading-stop',
-                        'wallet/risk-limit',
-                    ],
+                    'wallet': {
+                        'get': [
+                            // GET /open-api/wallet/
+                            'risk-limit/list',
+                        ],
+                        'post': [
+                            // POST /open-api/
+                            'risk-limit',
+                        ],
+                    },
                 },
-                'publicLinear': {
-                    'get': [
-                        'kline',
-                        'recent-trading-records',
-                        'funding/prev-funding-rate',
-                        'mark-price-kline',
-                        'risk-limit',
-                    ],
-                },
-                'privateLinear': {
-                    'get': [
-                        'order/list',
-                        'order/search',
-                        'stop-order/list',
-                        'stop-order/search',
-                        'position/list',
-                        'trade/execution/list',
-                        'trade/closed-pnl/list',
-                        'funding/prev-funding',
-                        'funding/predicted-funding',
-                    ],
-                    'post': [
-                        'order/create',
-                        'order/cancel',
-                        'order/cancel-all',
-                        'order/replace',
-                        'stop-order/create',
-                        'stop-order/cancel',
-                        'stop-order/cancel-all',
-                        'stop-order/replace',
-                        'position/switch-isolated',
-                        'position/set-auto-add-margin',
-                        'tpsl/switch-mode',
-                        'position/set-leverage',
-                        'position/trading-stop',
-                        'position/add-margin',
-                    ],
-                },
-                'position': {
-                    'post': [
-                        'change-position-margin',
-                    ],
-                },
-                'user': {
-                    'get': [
-                        'leverage', // deprecated
-                    ],
-                    'post': [
-                        'leverage/save',
-                    ],
-                },
+                // ------------------------------------------------------------
+                // 'public': {
+                //     'get': [
+                //         'orderBook/L2',
+                //         'kline/list',
+                //         'tickers',
+                //         'trading-records',
+                //         'symbols',
+                //         'liq-records',
+                //         'mark-price-kline',
+                //         'open-interest',
+                //         'big-deal',
+                //         'account-ratio',
+                //         'time',
+                //         'announcement',
+                //     ],
+                // },
+                // 'private': {
+                //     'get': [
+                //         'order/list',
+                //         'order',
+                //         'stop-order/list',
+                //         'stop-order',
+                //         'position/list',
+                //         'wallet/balance',
+                //         'execution/list',
+                //         'trade/closed-pnl/list',
+                //         'account/lcp',
+                //         'exchange-order/list',
+                //     ],
+                //     'post': [
+                //         'order/create',
+                //         'order/cancel',
+                //         'order/cancelAll',
+                //         'order/replace',
+                //         'stop-order/create',
+                //         'stop-order/cancel',
+                //         'stop-order/cancelAll',
+                //         'stop-order/replace',
+                //     ],
+                // },
+                // 'openapi': {
+                //     'get': [
+                //         'order/list', // deprecated
+                //         'stop-order/list', // deprecated
+                //         'wallet/risk-limit/list',
+                //         'funding/prev-funding-rate',
+                //         'funding/prev-funding',
+                //         'funding/predicted-funding',
+                //         'api-key',
+                //         'wallet/fund/records',
+                //         'wallet/withdraw/list',
+                //     ],
+                //     'post': [
+                //         'order/replace', // deprecated
+                //         'stop-order/create', // deprecated
+                //         'stop-order/cancel', // deprecated
+                //         'stop-order/replace', // deprecated
+                //         'position/trading-stop',
+                //         'wallet/risk-limit',
+                //     ],
+                // },
+                // 'publicLinear': {
+                //     'get': [
+                //         'kline',
+                //         'recent-trading-records',
+                //         'funding/prev-funding-rate',
+                //         'mark-price-kline',
+                //         'risk-limit',
+                //     ],
+                // },
+                // 'privateLinear': {
+                //     'get': [
+                //         'order/list',
+                //         'order/search',
+                //         'stop-order/list',
+                //         'stop-order/search',
+                //         'position/list',
+                //         'trade/execution/list',
+                //         'trade/closed-pnl/list',
+                //         'funding/prev-funding',
+                //         'funding/predicted-funding',
+                //     ],
+                //     'post': [
+                //         'order/create',
+                //         'order/cancel',
+                //         'order/cancel-all',
+                //         'order/replace',
+                //         'stop-order/create',
+                //         'stop-order/cancel',
+                //         'stop-order/cancel-all',
+                //         'stop-order/replace',
+                //         'position/switch-isolated',
+                //         'position/set-auto-add-margin',
+                //         'tpsl/switch-mode',
+                //         'position/set-leverage',
+                //         'position/trading-stop',
+                //         'position/add-margin',
+                //     ],
+                // },
+                // 'position': {
+                //     'post': [
+                //         'change-position-margin',
+                //     ],
+                // },
+                // 'user': {
+                //     'get': [
+                //         'leverage', // deprecated
+                //     ],
+                //     'post': [
+                //         'leverage/save',
+                //     ],
+                // },
             },
             'httpExceptions': {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
@@ -347,30 +463,7 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const response = await this.publicGetSymbols (params);
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             {
-        //                 name: 'BTCUSD',
-        //                 base_currency: 'BTC',
-        //                 quote_currency: 'USD',
-        //                 price_scale: 2,
-        //                 taker_fee: '0.00075',
-        //                 maker_fee: '-0.00025',
-        //                 leverage_filter: { min_leverage: 1, max_leverage: 100, leverage_step: '0.01' },
-        //                 price_filter: { min_price: '0.5', max_price: '999999.5', tick_size: '0.5' },
-        //                 lot_size_filter: { max_trading_qty: 1000000, min_trading_qty: 1, qty_step: 1 }
-        //             },
-        //         ],
-        //         time_now: '1583930495.454196'
-        //     }
-        //
-        // sandbox/testnet
+        const response = await this.v2PublicGetSymbols (params);
         //
         //     {
         //         "ret_code":0,
@@ -379,8 +472,8 @@ module.exports = class bybit extends Exchange {
         //         "ext_info":"",
         //         "result":[
         //             {
-        //                 "symbol":"BTCUSD",
-        //                 "symbol_alias":"BTCUSD",
+        //                 "name":"BTCUSD",
+        //                 "alias":"BTCUSD",
         //                 "status":"Trading",
         //                 "base_currency":"BTC",
         //                 "quote_currency":"USD",
@@ -390,9 +483,22 @@ module.exports = class bybit extends Exchange {
         //                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
         //                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
         //                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
-        //             }
+        //             },
+        //             {
+        //                 "name":"BTCUSDT",
+        //                 "alias":"BTCUSDT",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USDT",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
+        //                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
+        //                 "lot_size_filter":{"max_trading_qty":100,"min_trading_qty":0.001,"qty_step":0.001}
+        //             },
         //         ],
-        //         "time_now":"1605916574.118500"
+        //         "time_now":"1610539664.818033"
         //     }
         //
         const markets = this.safeValue (response, 'result', []);
@@ -2153,54 +2259,56 @@ module.exports = class bybit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         let request = path;
+        const type = this.safeString (api, 0);
+        const section = this.safeString (api, 1);
         // public v2
-        if (api === 'public') {
-            request = '/' + this.version + '/' + api + '/' + request;
+        if (section === 'public') {
+            request = '/' + type + '/' + section + '/' + request;
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
-        } else if (api === 'publicLinear') {
-            request = '/public/linear/' + request;
+        } else if (type === 'public') {
+            request = '/' + type + '/' + section + '/' + request;
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
         } else {
-            this.checkRequiredCredentials ();
-            if (api === 'openapi') {
-                request = '/open-api/' + request;
-            } else if (api === 'private') {
-                // private v2
-                request = '/' + this.version + '/' + api + '/' + request;
-            } else if (api === 'privateLinear') {
-                request = '/private/linear/' + request;
-            } else {
-                // position, user
-                request = '/' + api + '/' + request;
-            }
-            const timestamp = this.nonce ();
-            const query = this.extend (params, {
-                'api_key': this.apiKey,
-                'recv_window': this.options['recvWindow'],
-                'timestamp': timestamp,
-            });
-            let auth = this.rawencode (this.keysort (query));
-            // https://github.com/ccxt/ccxt/issues/7377
-            // https://github.com/ccxt/ccxt/issues/7515
-            // bybit encodes whole floats as integers without .0 for conditional stop-orders only
-            if (path.indexOf ('stop-order') >= 0) {
-                auth = auth.replace ('.0&', '&');
-            }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            if (method === 'POST') {
-                body = this.json (this.extend (query, {
-                    'sign': signature,
-                }));
-                headers = {
-                    'Content-Type': 'application/json',
-                };
-            } else {
-                request += '?' + auth + '&sign=' + signature;
-            }
+            // this.checkRequiredCredentials ();
+            // if (api === 'openapi') {
+            //     request = '/open-api/' + request;
+            // } else if (api === 'private') {
+            //     // private v2
+            //     request = '/' + this.version + '/' + api + '/' + request;
+            // } else if (api === 'privateLinear') {
+            //     request = '/private/linear/' + request;
+            // } else {
+            //     // position, user
+            //     request = '/' + api + '/' + request;
+            // }
+            // const timestamp = this.nonce ();
+            // const query = this.extend (params, {
+            //     'api_key': this.apiKey,
+            //     'recv_window': this.options['recvWindow'],
+            //     'timestamp': timestamp,
+            // });
+            // let auth = this.rawencode (this.keysort (query));
+            // // https://github.com/ccxt/ccxt/issues/7377
+            // // https://github.com/ccxt/ccxt/issues/7515
+            // // bybit encodes whole floats as integers without .0 for conditional stop-orders only
+            // if (path.indexOf ('stop-order') >= 0) {
+            //     auth = auth.replace ('.0&', '&');
+            // }
+            // const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            // if (method === 'POST') {
+            //     body = this.json (this.extend (query, {
+            //         'sign': signature,
+            //     }));
+            //     headers = {
+            //         'Content-Type': 'application/json',
+            //     };
+            // } else {
+            //     request += '?' + auth + '&sign=' + signature;
+            // }
         }
         url += request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
