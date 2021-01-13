@@ -691,7 +691,7 @@ module.exports = class bybit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickers (params);
+        const response = await this.v2PublicGetTickers (params);
         //
         //     {
         //         ret_code: 0,
