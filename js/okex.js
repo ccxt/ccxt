@@ -2599,6 +2599,7 @@ module.exports = class okex extends Exchange {
         //         "currency": "XMR",
         //         "from": "",
         //         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        //         "tag": "1234567",
         //         "deposit_id": 11571659, <-- we can use this
         //         "timestamp": "2019-10-01T14:54:19.000Z",
         //         "status": "2"
@@ -2610,6 +2611,7 @@ module.exports = class okex extends Exchange {
         const withdrawalId = this.safeString (transaction, 'withdrawal_id');
         const addressFrom = this.safeString (transaction, 'from');
         const addressTo = this.safeString (transaction, 'to');
+        const tagTo = this.safeString (transaction, 'tag');
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
@@ -2650,8 +2652,8 @@ module.exports = class okex extends Exchange {
             'addressTo': addressTo,
             'address': address,
             'tagFrom': undefined,
-            'tagTo': undefined,
-            'tag': undefined,
+            'tagTo': tagTo,
+            'tag': tagTo,
             'status': status,
             'type': type,
             'updated': undefined,
