@@ -1507,7 +1507,7 @@ module.exports = class huobipro extends Exchange {
         }
         url += '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private' || api === 'v2Private') {
+        if (api === 'private' || api === 'v2Private' || api === 'v1PrivateSwap') {
             this.checkRequiredCredentials ();
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
             let request = {
