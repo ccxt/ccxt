@@ -570,7 +570,7 @@ class Exchange(object):
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
-            http_response = response.text.strip ()
+            http_response = response.text.strip()
             http_status_code = response.status_code
             http_status_text = response.reason
             json_response = self.parse_json(http_response)
