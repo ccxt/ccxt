@@ -17,6 +17,7 @@ module.exports = class bybit extends Exchange {
             'version': 'v2',
             'userAgent': undefined,
             'rateLimit': 100,
+            'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
                 'cancelOrder': true,
                 'CORS': true,
@@ -59,9 +60,9 @@ module.exports = class bybit extends Exchange {
                 '1y': 'Y',
             },
             'urls': {
-                'test': 'https://api-testnet.bybit.com',
+                'test': 'https://api-testnet.{hostname}',
                 'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
-                'api': 'https://api.bybit.com',
+                'api': 'https://api.{hostname}',
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
@@ -2150,7 +2151,7 @@ module.exports = class bybit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'];
+        let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         let request = path;
         // public v2
         if (api === 'public') {
