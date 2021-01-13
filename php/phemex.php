@@ -1803,8 +1803,10 @@ class phemex extends Exchange {
         );
         if ($market['spot']) {
             $qtyType = $this->safe_value($params, 'qtyType', 'ByBase');
-            if ($price !== null) {
-                $qtyType = 'ByQuote';
+            if (($type === 'Market') || ($type === 'Stop') || ($type === 'MarketIfTouched')) {
+                if ($price !== null) {
+                    $qtyType = 'ByQuote';
+                }
             }
             $request['qtyType'] = $qtyType;
             if ($qtyType === 'ByQuote') {

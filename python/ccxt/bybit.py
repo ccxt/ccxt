@@ -1774,39 +1774,57 @@ class bybit(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()
-        currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            # 'coin': currency['id'],
+            # 'currency': currency['id'],  # alias
+            # 'start_date': self.iso8601(since),
+            # 'end_date': self.iso8601(till),
+            'wallet_fund_type': 'Deposit',  # Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+            # 'page': 1,
+            # 'limit': 20,  # max 50
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
         if limit is not None:
-            request['count'] = limit
-        response = self.privateGetGetDeposits(self.extend(request, params))
+            request['limit'] = limit
+        response = self.v2PrivateGetWalletFundRecords(self.extend(request, params))
         #
         #     {
-        #         "jsonrpc": "2.0",
-        #         "id": 5611,
+        #         "ret_code": 0,
+        #         "ret_msg": "ok",
+        #         "ext_code": "",
         #         "result": {
-        #             "count": 1,
         #             "data": [
         #                 {
-        #                     "address": "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
-        #                     "amount": 5,
-        #                     "currency": "BTC",
-        #                     "received_timestamp": 1549295017670,
-        #                     "state": "completed",
-        #                     "transaction_id": "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
-        #                     "updated_timestamp": 1549295130159
+        #                     "id": 234467,
+        #                     "user_id": 1,
+        #                     "coin": "BTC",
+        #                     "wallet_id": 27913,
+        #                     "type": "Realized P&L",
+        #                     "amount": "-0.00000006",
+        #                     "tx_id": "",
+        #                     "address": "BTCUSD",
+        #                     "wallet_balance": "0.03000330",
+        #                     "exec_time": "2019-12-09T00:00:25.000Z",
+        #                     "cross_seq": 0
         #                 }
         #             ]
-        #         }
+        #         },
+        #         "ext_info": null,
+        #         "time_now": "1577481867.115552",
+        #         "rate_limit_status": 119,
+        #         "rate_limit_reset_ms": 1577481867122,
+        #         "rate_limit": 120
         #     }
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_transactions(data, currency, since, limit, params)
+        return self.parse_transactions(data, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1890,9 +1908,25 @@ class bybit(Exchange):
         #         "updated_at": "2019-06-11T02:20:24.000Z"
         #     }
         #
+        # fetchDeposits ledger entries
+        #
+        #     {
+        #         "id": 234467,
+        #         "user_id": 1,
+        #         "coin": "BTC",
+        #         "wallet_id": 27913,
+        #         "type": "Realized P&L",
+        #         "amount": "-0.00000006",
+        #         "tx_id": "",
+        #         "address": "BTCUSD",
+        #         "wallet_balance": "0.03000330",
+        #         "exec_time": "2019-12-09T00:00:25.000Z",
+        #         "cross_seq": 0
+        #     }
+        #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.parse8601(self.safe_string(transaction, 'submited_at'))
+        timestamp = self.parse8601(self.safe_string_2(transaction, 'submited_at', 'exec_time'))
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         address = self.safe_string(transaction, 'address')

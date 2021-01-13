@@ -1736,8 +1736,9 @@ class phemex(Exchange):
         }
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
-            if price is not None:
-                qtyType = 'ByQuote'
+            if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
+                if price is not None:
+                    qtyType = 'ByQuote'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
                 cost = self.safe_float(params, 'cost')
