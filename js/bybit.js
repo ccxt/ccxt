@@ -76,7 +76,6 @@ module.exports = class bybit extends Exchange {
                 'v2': {
                     'public': {
                         'get': [
-                            // GET /v2/public/
                             'orderBook/L2',
                             'kline/list',
                             'tickers',
@@ -95,7 +94,6 @@ module.exports = class bybit extends Exchange {
                     },
                     'private': {
                         'get': [
-                            // GET /v2/private/
                             'order/list',
                             'order',
                             'stop-order/list',
@@ -114,7 +112,6 @@ module.exports = class bybit extends Exchange {
                             'exchange-order/list',
                         ],
                         'post': [
-                            // POST /v2/private/
                             'order/create',
                             'order/cancel',
                             'order/cancelAll',
@@ -132,7 +129,6 @@ module.exports = class bybit extends Exchange {
                 'public': {
                     'linear': {
                         'get': [
-                            // GET /public/linear/
                             'kline',
                             'recent-trading-records',
                             'funding/prev-funding-rate',
@@ -146,7 +142,6 @@ module.exports = class bybit extends Exchange {
                 'private': {
                     'linear': {
                         'get': [
-                            // GET /private/linear/
                             'order/list',
                             'order/search',
                             'stop-order/list',
@@ -158,7 +153,6 @@ module.exports = class bybit extends Exchange {
                             'funding/prev-funding',
                         ],
                         'post': [
-                            // POST /private/linear/
                             'order/create',
                             'order/cancel',
                             'order/cancel-all',
@@ -179,128 +173,13 @@ module.exports = class bybit extends Exchange {
                 'openapi': {
                     'wallet': {
                         'get': [
-                            // GET /open-api/wallet/
                             'risk-limit/list',
                         ],
                         'post': [
-                            // POST /open-api/
                             'risk-limit',
                         ],
                     },
                 },
-                // ------------------------------------------------------------
-                // 'public': {
-                //     'get': [
-                //         'orderBook/L2',
-                //         'kline/list',
-                //         'tickers',
-                //         'trading-records',
-                //         'symbols',
-                //         'liq-records',
-                //         'mark-price-kline',
-                //         'open-interest',
-                //         'big-deal',
-                //         'account-ratio',
-                //         'time',
-                //         'announcement',
-                //     ],
-                // },
-                // 'private': {
-                //     'get': [
-                //         'order/list',
-                //         'order',
-                //         'stop-order/list',
-                //         'stop-order',
-                //         'position/list',
-                //         'wallet/balance',
-                //         'execution/list',
-                //         'trade/closed-pnl/list',
-                //         'account/lcp',
-                //         'exchange-order/list',
-                //     ],
-                //     'post': [
-                //         'order/create',
-                //         'order/cancel',
-                //         'order/cancelAll',
-                //         'order/replace',
-                //         'stop-order/create',
-                //         'stop-order/cancel',
-                //         'stop-order/cancelAll',
-                //         'stop-order/replace',
-                //     ],
-                // },
-                // 'openapi': {
-                //     'get': [
-                //         'order/list', // deprecated
-                //         'stop-order/list', // deprecated
-                //         'wallet/risk-limit/list',
-                //         'funding/prev-funding-rate',
-                //         'funding/prev-funding',
-                //         'funding/predicted-funding',
-                //         'api-key',
-                //         'wallet/fund/records',
-                //         'wallet/withdraw/list',
-                //     ],
-                //     'post': [
-                //         'order/replace', // deprecated
-                //         'stop-order/create', // deprecated
-                //         'stop-order/cancel', // deprecated
-                //         'stop-order/replace', // deprecated
-                //         'position/trading-stop',
-                //         'wallet/risk-limit',
-                //     ],
-                // },
-                // 'publicLinear': {
-                //     'get': [
-                //         'kline',
-                //         'recent-trading-records',
-                //         'funding/prev-funding-rate',
-                //         'mark-price-kline',
-                //         'risk-limit',
-                //     ],
-                // },
-                // 'privateLinear': {
-                //     'get': [
-                //         'order/list',
-                //         'order/search',
-                //         'stop-order/list',
-                //         'stop-order/search',
-                //         'position/list',
-                //         'trade/execution/list',
-                //         'trade/closed-pnl/list',
-                //         'funding/prev-funding',
-                //         'funding/predicted-funding',
-                //     ],
-                //     'post': [
-                //         'order/create',
-                //         'order/cancel',
-                //         'order/cancel-all',
-                //         'order/replace',
-                //         'stop-order/create',
-                //         'stop-order/cancel',
-                //         'stop-order/cancel-all',
-                //         'stop-order/replace',
-                //         'position/switch-isolated',
-                //         'position/set-auto-add-margin',
-                //         'tpsl/switch-mode',
-                //         'position/set-leverage',
-                //         'position/trading-stop',
-                //         'position/add-margin',
-                //     ],
-                // },
-                // 'position': {
-                //     'post': [
-                //         'change-position-margin',
-                //     ],
-                // },
-                // 'user': {
-                //     'get': [
-                //         'leverage', // deprecated
-                //     ],
-                //     'post': [
-                //         'leverage/save',
-                //     ],
-                // },
             },
             'httpExceptions': {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
@@ -1449,7 +1328,7 @@ module.exports = class bybit extends Exchange {
         const basePrice = this.safeValue (params, 'base_price');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        let method = (marketType === 'linear') ? 'privateLinearPostOrderCreate' : 'privatePostOrderCreate';
+        let method = (marketType === 'linear') ? 'privateLinearPostOrderCreate' : 'v2PrivatePostOrderCreate';
         if (marketType === 'linear') {
             method = 'privateLinearPostOrderCreate';
             request['reduce_only'] = false;
@@ -1459,7 +1338,7 @@ module.exports = class bybit extends Exchange {
             if (basePrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
-                method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'openapiPostStopOrderCreate';
+                method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'v2PrivatePostStopOrderCreate';
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
                 request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
                 params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price' ]);
@@ -1567,10 +1446,10 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        let method = (marketType === 'linear') ? 'privateLinearPostOrderReplace' : 'openapiPostOrderReplace';
+        let method = (marketType === 'linear') ? 'privateLinearPostOrderReplace' : 'v2PrivatePostOrderReplace';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId !== undefined) {
-            method = (marketType === 'linear') ? 'privateLinearPostStopOrderReplace' : 'openapiPostStopOrderReplace';
+            method = (marketType === 'linear') ? 'privateLinearPostStopOrderReplace' : 'v2PrivatePostStopOrderReplace';
             request['stop_order_id'] = stopOrderId;
             params = this.omit (params, [ 'stop_order_id' ]);
         } else {
@@ -1634,7 +1513,7 @@ module.exports = class bybit extends Exchange {
         };
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeValue (marketTypes, symbol);
-        let method = (marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'privatePostOrderCancel';
+        let method = (marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'v2PrivatePostOrderCancel';
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId === undefined) {
             const orderLinkId = this.safeString (params, 'order_link_id');
@@ -1642,7 +1521,7 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            method = (marketType === 'linear') ? 'privateLinearPostStopOrderCancel' : 'openapiPostStopOrderCancel';
+            method = (marketType === 'linear') ? 'privateLinearPostStopOrderCancel' : 'v2PrivatePostStopOrderCancel';
         }
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -1661,7 +1540,7 @@ module.exports = class bybit extends Exchange {
         const options = this.safeValue (this.options, 'cancelAllOrders');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'privatePostOrderCancelAll';
+        const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'v2PrivatePostOrderCancelAll';
         const method = this.safeString (options, 'method', defaultMethod);
         const response = await this[method] (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
@@ -2281,10 +2160,6 @@ module.exports = class bybit extends Exchange {
             } else if (type === 'private') {
                 request = '/' + type + '/' + section + '/' + request;
             }
-            // else {
-            //     // position, user
-            //     request = '/' + api + '/' + request;
-            // }
             const timestamp = this.nonce ();
             const query = this.extend (params, {
                 'api_key': this.apiKey,
