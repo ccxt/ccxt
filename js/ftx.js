@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -203,6 +203,7 @@ module.exports = class ftx extends Exchange {
                     'Missing parameter price': InvalidOrder, // {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound, // {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder, // {"error":"Order already closed","success":false}
+                    'Order already queued for cancellation': CancelPending, // {"error":"Order already queued for cancellation","success":false}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
