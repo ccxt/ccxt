@@ -65,6 +65,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 
+[Use CCXT to calculate Cryptocurrency trade indicators](https://itnext.io/use-ccxt-to-calculate-cryptocurrency-trade-indicators-102a3ac1428e) – an article @ Medium on building basic indicators using CCXT.
+
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
 [A Video Crash-Course On Using CCXT](https://www.youtube.com/playlist?list=PLIFBTFgFpoJ-xGRz3v_2nF7f9HKZrfSpj) – A series of awesome video tutorials on getting started with CCXT!

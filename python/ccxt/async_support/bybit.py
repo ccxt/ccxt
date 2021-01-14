@@ -299,7 +299,7 @@ class bybit(Exchange):
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'privatePostOrderCancelAll',  # privatePostStopOrderCancelAll
+                    'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -1154,14 +1154,14 @@ class bybit(Exchange):
         }
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
-        method = 'privateLinearGetOrderSearch' if (marketType == 'linear') else 'privateGetOrder'
+        method = 'privateLinearGetOrderSearch' if (marketType == 'linear') else 'v2PrivateGetOrder'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
             orderLinkId = self.safe_string(params, 'order_link_id')
             if orderLinkId is None:
                 request['order_id'] = id
         else:
-            method = 'privateLinearGetStopOrderSearch' if (marketType == 'linear') else 'privateGetStopOrder'
+            method = 'privateLinearGetStopOrderSearch' if (marketType == 'linear') else 'v2PrivateGetStopOrder'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
