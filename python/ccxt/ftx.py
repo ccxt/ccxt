@@ -18,6 +18,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -219,6 +220,7 @@ class ftx(Exchange):
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
+                    'Order already queued for cancellation': CancelPending,  # {"error":"Order already queued for cancellation","success":false}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
