@@ -677,7 +677,8 @@ module.exports = class huobipro extends Exchange {
             request['size'] = limit; // 1-100 orders, default is 100
         }
         if (since !== undefined) {
-            request['start-date'] = this.ymd (since); // maximum query window size is 2 days, query window shift should be within past 120 days
+            request['start-date'] = this.ymd (since); // a date within 61 days from today
+            request['end-date'] = this.ymd (this.sum (since, 86400000));
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         const trades = this.parseTrades (response['data'], market, since, limit);
