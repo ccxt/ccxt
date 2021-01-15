@@ -1456,7 +1456,13 @@ module.exports = class bybit extends Exchange {
             request['order_id'] = id;
         }
         if (amount !== undefined) {
-            request['p_r_qty'] = parseInt (this.amountToPrecision (symbol, amount));
+            let qty = this.amountToPrecision (symbol, amount);
+            if (market['inverse']) {
+                qty = parseInt (qty);
+            } else {
+                qty = parseFloat (qty);
+            }
+            request['p_r_qty'] = qty;
         }
         if (price !== undefined) {
             request['p_r_price'] = parseFloat (this.priceToPrecision (symbol, price));
