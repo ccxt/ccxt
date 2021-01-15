@@ -2174,29 +2174,20 @@ class bybit extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
-        $request = $path;
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
+        $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {
-            $request = '/' . $type . '/' . $section . '/' . $request;
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }
         } else if ($type === 'public') {
-            $request = '/' . $type . '/' . $section . '/' . $request;
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }
         } else {
             $this->check_required_credentials();
-            if ($type === 'openapi') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            } else if ($type === 'v2') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            } else if ($type === 'private') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            }
             $timestamp = $this->nonce();
             $query = array_merge($params, array(
                 'api_key' => $this->apiKey,
