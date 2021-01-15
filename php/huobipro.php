@@ -103,6 +103,7 @@ class huobipro extends Exchange {
                         'user/api-key', // 母子用户API key信息查询
                     ),
                     'post' => array(
+                        'account/transfer',
                         'point/transfer', // 点卡划转
                         'sub-user/management', // 冻结/解冻子用户
                         'sub-user/creation', // 子用户创建
