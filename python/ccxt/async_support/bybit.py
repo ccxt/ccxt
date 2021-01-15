@@ -1401,7 +1401,12 @@ class bybit(Exchange):
         else:
             request['order_id'] = id
         if amount is not None:
-            request['p_r_qty'] = int(self.amount_to_precision(symbol, amount))
+            qty = self.amount_to_precision(symbol, amount)
+            if market['inverse']:
+                qty = int(qty)
+            else:
+                qty = float(qty)
+            request['p_r_qty'] = qty
         if price is not None:
             request['p_r_price'] = float(self.price_to_precision(symbol, price))
         response = await getattr(self, method)(self.extend(request, params))

@@ -1458,7 +1458,13 @@ class bybit extends Exchange {
             $request['order_id'] = $id;
         }
         if ($amount !== null) {
-            $request['p_r_qty'] = intval($this->amount_to_precision($symbol, $amount));
+            $qty = $this->amount_to_precision($symbol, $amount);
+            if ($market['inverse']) {
+                $qty = intval($qty);
+            } else {
+                $qty = floatval($qty);
+            }
+            $request['p_r_qty'] = $qty;
         }
         if ($price !== null) {
             $request['p_r_price'] = floatval($this->price_to_precision($symbol, $price));
