@@ -1874,7 +1874,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1930,7 +1930,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2069,7 +2069,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

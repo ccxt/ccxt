@@ -1789,7 +1789,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.iso8601(since)
+            request['start_date'] = self.ymd(since)
         if limit is not None:
             request['limit'] = limit
         response = await self.v2PrivateGetWalletFundRecords(self.extend(request, params))
@@ -1841,7 +1841,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.iso8601(since)
+            request['start_date'] = self.ymd(since)
         if limit is not None:
             request['limit'] = limit
         response = await self.v2PrivateGetWalletWithdrawList(self.extend(request, params))
@@ -1973,7 +1973,7 @@ class bybit(Exchange):
             currency = self.currency(code)
             request['coin'] = currency['id']
         if since is not None:
-            request['start_date'] = self.iso8601(since)
+            request['start_date'] = self.ymd(since)
         if limit is not None:
             request['limit'] = limit
         response = await self.v2PrivateGetWalletFundRecords(self.extend(request, params))
