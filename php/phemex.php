@@ -2336,7 +2336,7 @@ class phemex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'submitedAt');
         $type = $this->safe_string_lower($transaction, 'type');
         $feeCost = $this->from_en($this->safe_float($transaction, 'feeEv'), $currency['valueScale'], $currency['precision']);
         $fee = null;
