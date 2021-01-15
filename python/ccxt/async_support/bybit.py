@@ -2072,26 +2072,18 @@ class bybit(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
-        request = path
         type = self.safe_string(api, 0)
         section = self.safe_string(api, 1)
+        request = '/' + type + '/' + section + '/' + path
         # public v2
         if section == 'public':
-            request = '/' + type + '/' + section + '/' + request
             if params:
                 request += '?' + self.rawencode(params)
         elif type == 'public':
-            request = '/' + type + '/' + section + '/' + request
             if params:
                 request += '?' + self.rawencode(params)
         else:
             self.check_required_credentials()
-            if type == 'openapi':
-                request = '/' + type + '/' + section + '/' + request
-            elif type == 'v2':
-                request = '/' + type + '/' + section + '/' + request
-            elif type == 'private':
-                request = '/' + type + '/' + section + '/' + request
             timestamp = self.nonce()
             query = self.extend(params, {
                 'api_key': self.apiKey,
