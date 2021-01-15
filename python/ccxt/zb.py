@@ -507,10 +507,7 @@ class zb(Exchange):
         side = self.safe_integer(order, 'type')
         side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
-        timestamp = None
-        createDateField = self.get_create_date_field()
-        if createDateField in order:
-            timestamp = order[createDateField]
+        timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
@@ -558,9 +555,6 @@ class zb(Exchange):
             '3': 'open',  # partial
         }
         return self.safe_string(statuses, status, status)
-
-    def get_create_date_field(self):
-        return 'trade_date'
 
     def nonce(self):
         return self.milliseconds()
