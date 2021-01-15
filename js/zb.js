@@ -589,10 +589,47 @@ module.exports = class zb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const code = (currency === undefined) ? undefined : currency['code'];
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': undefined,
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         const password = this.safeString (params, 'safePwd', this.password);
         if (password === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        const fees = this.safeFloat (params, 'fees');
+        if (fees === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires a fees parameter');
         }
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -614,7 +651,13 @@ module.exports = class zb extends Exchange {
         //         "id": "withdrawalId"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        });
     }
 
     nonce () {
