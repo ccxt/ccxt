@@ -541,11 +541,7 @@ class zb extends Exchange {
         $side = $this->safe_integer($order, 'type');
         $side = ($side === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
-        $timestamp = null;
-        $createDateField = $this->get_create_date_field();
-        if (is_array($order) && array_key_exists($createDateField, $order)) {
-            $timestamp = $order[$createDateField];
-        }
+        $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
@@ -597,10 +593,6 @@ class zb extends Exchange {
             '3' => 'open', // partial
         );
         return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function get_create_date_field() {
-        return 'trade_date';
     }
 
     public function nonce() {
