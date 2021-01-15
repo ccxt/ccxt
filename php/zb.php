@@ -595,6 +595,77 @@ class zb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "message" => "success",
+        //         "$id" => "withdrawalId"
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $code = ($currency === null) ? null : $currency['code'];
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => null,
+            'amount' => null,
+            'currency' => $code,
+            'status' => null,
+            'updated' => null,
+            'fee' => null,
+        );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $password = $this->safe_string($params, 'safePwd', $this->password);
+        if ($password === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        $fees = $this->safe_float($params, 'fees');
+        if ($fees === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw requires a $fees parameter');
+        }
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'amount' => $this->currency_to_precision($code, $amount),
+            'currency' => $currency['id'],
+            'fees' => $this->currency_to_precision($code, $fees),
+            // 'itransfer' => 0, // agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method' => 'withdraw',
+            'receiveAddr' => $address,
+            'safePwd' => $password,
+        );
+        $response = $this->privateGetWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "message" => "success",
+        //         "id" => "withdrawalId"
+        //     }
+        //
+        $transaction = $this->parse_transaction($response, $currency);
+        return array_merge($transaction, array(
+            'type' => 'withdrawal',
+            'address' => $address,
+            'addressTo' => $address,
+            'amount' => $amount,
+        ));
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
