@@ -589,6 +589,34 @@ module.exports = class zb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        const password = this.safeString (params, 'safePwd', this.password);
+        if (password === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'fees': this.currencyToPrecision (code, fees),
+            // 'itransfer': 0, // agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        };
+        const response = await this.privateGetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
