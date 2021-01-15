@@ -99,9 +99,11 @@ module.exports = class ftx extends Exchange {
                         'wallet/coins',
                         'wallet/balances',
                         'wallet/all_balances',
-                        'wallet/deposit_address/{coin}',
+                        'wallet/deposit_address/{coin}', // ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
+                        'wallet/airdrops',
+                        'wallet/saved_addresses',
                         'orders', // ?market={market}
                         'orders/history', // ?market={market}
                         'orders/{order_id}',
@@ -109,6 +111,14 @@ module.exports = class ftx extends Exchange {
                         'conditional_orders', // ?market={market}
                         'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history', // ?market={market}
+                        'spot_margin/borrow_rates',
+                        'spot_margin/lending_rates',
+                        'spot_margin/borrow_summary',
+                        'spot_margin/market_info', // ?market={market}
+                        'spot_margin/borrow_history',
+                        'spot_margin/lending_history',
+                        'spot_margin/offers',
+                        'spot_margin/lending_info',
                         'fills', // ?market={market}
                         'funding_payments',
                         // leverage tokens
@@ -127,15 +137,23 @@ module.exports = class ftx extends Exchange {
                         'options/account_info',
                         'options/positions',
                         'options/fills',
+                        // staking
+                        'staking/stakes',
+                        'staking/unstake_requests',
+                        'staking/balances',
+                        'staking/staking_rewards',
                     ],
                     'post': [
                         'account/leverage',
                         'wallet/withdrawals',
+                        'wallet/saved_addresses',
                         'orders',
                         'conditional_orders',
                         'orders/{order_id}/modify',
                         'orders/by_client_id/{client_order_id}/modify',
                         'conditional_orders/{order_id}/modify',
+                        // spot margin
+                        'spot_margin/offers',
                         // leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
@@ -150,8 +168,12 @@ module.exports = class ftx extends Exchange {
                         'options/requests',
                         'options/requests/{request_id}/quotes',
                         'options/quotes/{quote_id}/accept',
+                        // staking
+                        'staking/unstake_requests',
+                        'srm_stakes/stakes',
                     ],
                     'delete': [
+                        'wallet/saved_addresses/{saved_address_id}',
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
@@ -161,6 +183,8 @@ module.exports = class ftx extends Exchange {
                         // options
                         'options/requests/{request_id}',
                         'options/quotes/{quote_id}',
+                        // staking
+                        'staking/unstake_requests/{request_id}',
                     ],
                 },
             },
