@@ -535,11 +535,7 @@ module.exports = class zb extends Exchange {
         let side = this.safeInteger (order, 'type');
         side = (side === 1) ? 'buy' : 'sell';
         const type = 'limit'; // market order is not availalbe in ZB
-        let timestamp = undefined;
-        const createDateField = this.getCreateDateField ();
-        if (createDateField in order) {
-            timestamp = order[createDateField];
-        }
+        const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
@@ -591,10 +587,6 @@ module.exports = class zb extends Exchange {
             '3': 'open', // partial
         };
         return this.safeString (statuses, status, status);
-    }
-
-    getCreateDateField () {
-        return 'trade_date';
     }
 
     nonce () {
