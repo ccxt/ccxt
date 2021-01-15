@@ -113,6 +113,7 @@ class huobipro(Exchange):
                         'user/api-key',  # 母子用户API key信息查询
                     ],
                     'post': [
+                        'account/transfer',
                         'point/transfer',  # 点卡划转
                         'sub-user/management',  # 冻结/解冻子用户
                         'sub-user/creation',  # 子用户创建
@@ -658,7 +659,8 @@ class huobipro(Exchange):
         if limit is not None:
             request['size'] = limit  # 1-100 orders, default is 100
         if since is not None:
-            request['start-date'] = self.ymd(since)  # maximum query window size is 2 days, query window shift should be within past 120 days
+            request['start-date'] = self.ymd(since)  # a date within 61 days from today
+            request['end-date'] = self.ymd(self.sum(since, 86400000))
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
         trades = self.parse_trades(response['data'], market, since, limit)
         return trades
