@@ -694,22 +694,39 @@ module.exports = class ftx extends Exchange {
         //         "type": "order"
         //     }
         //
+        //     {
+        //         "baseCurrency": "BTC",
+        //         "fee": 0,
+        //         "feeCurrency": "USD",
+        //         "feeRate": 0,
+        //         "future": null,
+        //         "id": 664079556,
+        //         "liquidity": "taker",
+        //         "market": null,
+        //         "orderId": null,
+        //         "price": 34830.61359,
+        //         "quoteCurrency": "USD",
+        //         "side": "sell",
+        //         "size": 0.0005996,
+        //         "time": "2021-01-15T16:05:29.246135+00:00",
+        //         "tradeId": null,
+        //         "type": "otc"
+        //     }
+        //
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
         let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
+            const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
             } else {
-                const base = this.safeCurrencyCode (this.safeString (trade, 'baseCurrency'));
-                const quote = this.safeCurrencyCode (this.safeString (trade, 'quoteCurrency'));
-                if ((base !== undefined) && (quote !== undefined)) {
-                    symbol = base + '/' + quote;
-                } else {
-                    symbol = marketId;
-                }
+                symbol = marketId;
             }
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
