@@ -696,22 +696,39 @@ class ftx extends Exchange {
         //         "type" => "order"
         //     }
         //
+        //     {
+        //         "baseCurrency" => "BTC",
+        //         "$fee" => 0,
+        //         "feeCurrency" => "USD",
+        //         "feeRate" => 0,
+        //         "future" => null,
+        //         "$id" => 664079556,
+        //         "liquidity" => "taker",
+        //         "$market" => null,
+        //         "$orderId" => null,
+        //         "$price" => 34830.61359,
+        //         "quoteCurrency" => "USD",
+        //         "$side" => "sell",
+        //         "size" => 0.0005996,
+        //         "time" => "2021-01-15T16:05:29.246135+00:00",
+        //         "tradeId" => null,
+        //         "type" => "otc"
+        //     }
+        //
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        } else {
+            $base = $this->safe_currency_code($this->safe_string($trade, 'baseCurrency'));
+            $quote = $this->safe_currency_code($this->safe_string($trade, 'quoteCurrency'));
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
             } else {
-                $base = $this->safe_currency_code($this->safe_string($trade, 'baseCurrency'));
-                $quote = $this->safe_currency_code($this->safe_string($trade, 'quoteCurrency'));
-                if (($base !== null) && ($quote !== null)) {
-                    $symbol = $base . '/' . $quote;
-                } else {
-                    $symbol = $marketId;
-                }
+                $symbol = $marketId;
             }
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
