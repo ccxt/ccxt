@@ -1428,7 +1428,7 @@ class exmo extends Exchange {
         //            "$status" => "processing",
         //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
-        //            "account" => "",
+        //            "$account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
@@ -1442,12 +1442,21 @@ class exmo extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'curr');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $address = $this->safe_string($transaction, 'account');
-        if ($address !== null) {
-            $parts = explode(':', $address);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts === 2) {
-                $address = str_replace(' ', '', $parts[1]);
+        $address = null;
+        $tag = null;
+        $comment = null;
+        $account = $this->safe_string($transaction, 'account');
+        if ($type === 'deposit') {
+            $comment = $account;
+        } else if ($type === 'withdrawal') {
+            $address = $account;
+            if ($address !== null) {
+                $parts = explode(':', $address);
+                $numParts = is_array($parts) ? count($parts) : 0;
+                if ($numParts === 2) {
+                    $address = $this->safe_string($parts, 1);
+                    $address = str_replace(' ', '', $address);
+                }
             }
         }
         $fee = null;
@@ -1475,16 +1484,21 @@ class exmo extends Exchange {
         return array(
             'info' => $transaction,
             'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
-            'tag' => null, // refix it properly
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => null,
+            'comment' => $comment,
             'txid' => $txid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
     }
