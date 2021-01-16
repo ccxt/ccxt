@@ -1438,7 +1438,8 @@ module.exports = class exmo extends Exchange {
         const currencyId = this.safeString (transaction, 'curr');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = undefined;
-        let tag = undefined;
+        const tag = undefined;
+        let comment = undefined;
         const account = this.safeString (transaction, 'account');
         if (type === 'deposit') {
             comment = account;
@@ -1451,6 +1452,7 @@ module.exports = class exmo extends Exchange {
                     address = this.safeString (parts, 1);
                     address = address.replace (' ', '');
                 }
+            }
         }
         let fee = undefined;
         // fixed funding fees only (for now)
