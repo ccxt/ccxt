@@ -924,40 +924,38 @@ class Transpiler {
         try {
 
             const { python2Folder, python3Folder, phpFolder } = options
-            const path = jsFolder + filename
-            const contents = fs.readFileSync (path, 'utf8')
 
-            // function getMethodNames (object) {
-            //     let functions = []
-            //     let o = object
-            //     do {
-            //         functions = functions.concat (Object.getOwnPropertyNames (o))
-            //     } while (o = Object.getPrototypeOf (o))
-            //     return unique (functions.filter (f => (typeof object[f] === 'function')))
-            // }
-            // const exchangeClass = require ('.' + path)
-            // const exchange = new exchangeClass ()
-            // const methodNames = getMethodNames (exchange)
-            // const { python2, python3, php, className, baseClass } =
-            //     this.transpileDerivedExchangeClass (contents, methodNames)
+            const jsmtime = fs.statSync (jsFolder + filename).mtime
+            const python2mtime = fs.statSync (python2Folder + filename.replace ('.js', '.py')).mtime
+            const python3mtime = fs.statSync (python3Folder + filename.replace ('.js', '.py')).mtime
+            const phpmtime = fs.statSync (phpFolder + filename.replace ('.js', '.php')).mtime
+            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            const { python2, python3, php, className, baseClass } =
-                this.transpileDerivedExchangeClass (contents)
+            if (jsmtime.getTime() != python2mtime.getTime() || jsmtime.getTime() != python3mtime.getTime() || jsmtime.getTime() != phpmtime.getTime()) {
+                const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
+                log.cyan ('Transpiling from', filename.yellow)
 
-            log.cyan ('Transpiling from', filename.yellow)
+                ;[
+                    [ python2Folder, filename.replace ('.js', '.py'), python2 ],
+                    [ python3Folder, filename.replace ('.js', '.py'), python3 ],
+                    [ phpFolder, filename.replace ('.js', '.php'), php ],
+                ].forEach (([ folder, filename, code ]) => {
+                    if (folder) {
+                        overwriteFile (folder + filename, code)
+                        fs.utimesSync(folder + filename, new Date(), jsmtime)
+                    }
+                })
+                return { className, baseClass }
+            } else {
+                let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
-            ;[
-                [ python2Folder, filename.replace ('.js', '.py'), python2 ],
-                [ python3Folder, filename.replace ('.js', '.py'), python3 ],
-                [ phpFolder, filename.replace ('.js', '.php'), php ],
-            ].forEach (([ folder, filename, code ]) => {
-                if (folder) {
-                    overwriteFile (folder + filename, code)
-                }
-            })
+                log.green ('Already transpiled', filename.yellow)
+        
+                let className = exchangeClassDeclarationMatches[1]
+                let baseClass = exchangeClassDeclarationMatches[2]
 
-            return { className, baseClass }
-
+                return { className, baseClass }
+            }
         } catch (e) {
 
             log.red ('\nFailed to transpile source code from', filename.yellow)
