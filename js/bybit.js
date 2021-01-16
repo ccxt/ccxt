@@ -1456,7 +1456,13 @@ module.exports = class bybit extends Exchange {
             request['order_id'] = id;
         }
         if (amount !== undefined) {
-            request['p_r_qty'] = parseInt (this.amountToPrecision (symbol, amount));
+            let qty = this.amountToPrecision (symbol, amount);
+            if (market['inverse']) {
+                qty = parseInt (qty);
+            } else {
+                qty = parseFloat (qty);
+            }
+            request['p_r_qty'] = qty;
         }
         if (price !== undefined) {
             request['p_r_price'] = parseFloat (this.priceToPrecision (symbol, price));
@@ -1872,7 +1878,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.iso8601 (since);
+            request['start_date'] = this.ymd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1928,7 +1934,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.iso8601 (since);
+            request['start_date'] = this.ymd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2067,7 +2073,7 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.iso8601 (since);
+            request['start_date'] = this.ymd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2172,29 +2178,20 @@ module.exports = class bybit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
-        let request = path;
         const type = this.safeString (api, 0);
         const section = this.safeString (api, 1);
+        let request = '/' + type + '/' + section + '/' + path;
         // public v2
         if (section === 'public') {
-            request = '/' + type + '/' + section + '/' + request;
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
         } else if (type === 'public') {
-            request = '/' + type + '/' + section + '/' + request;
             if (Object.keys (params).length) {
                 request += '?' + this.rawencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            if (type === 'openapi') {
-                request = '/' + type + '/' + section + '/' + request;
-            } else if (type === 'v2') {
-                request = '/' + type + '/' + section + '/' + request;
-            } else if (type === 'private') {
-                request = '/' + type + '/' + section + '/' + request;
-            }
             const timestamp = this.nonce ();
             const query = this.extend (params, {
                 'api_key': this.apiKey,

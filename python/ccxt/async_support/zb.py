@@ -507,10 +507,7 @@ class zb(Exchange):
         side = self.safe_integer(order, 'type')
         side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
-        timestamp = None
-        createDateField = self.get_create_date_field()
-        if createDateField in order:
-            timestamp = order[createDateField]
+        timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
@@ -559,8 +556,72 @@ class zb(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def get_create_date_field(self):
-        return 'trade_date'
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        code = None if (currency is None) else currency['code']
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': None,
+            'amount': None,
+            'currency': code,
+            'status': None,
+            'updated': None,
+            'fee': None,
+        }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        password = self.safe_string(params, 'safePwd', self.password)
+        if password is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires exchange.password or a safePwd parameter')
+        fees = self.safe_float(params, 'fees')
+        if fees is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires a fees parameter')
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'fees': self.currency_to_precision(code, fees),
+            # 'itransfer': 0,  # agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        }
+        response = await self.privateGetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        transaction = self.parse_transaction(response, currency)
+        return self.extend(transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        })
 
     def nonce(self):
         return self.milliseconds()

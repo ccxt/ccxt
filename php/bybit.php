@@ -1458,7 +1458,13 @@ class bybit extends Exchange {
             $request['order_id'] = $id;
         }
         if ($amount !== null) {
-            $request['p_r_qty'] = intval($this->amount_to_precision($symbol, $amount));
+            $qty = $this->amount_to_precision($symbol, $amount);
+            if ($market['inverse']) {
+                $qty = intval($qty);
+            } else {
+                $qty = floatval($qty);
+            }
+            $request['p_r_qty'] = $qty;
         }
         if ($price !== null) {
             $request['p_r_price'] = floatval($this->price_to_precision($symbol, $price));
@@ -1874,7 +1880,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1930,7 +1936,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2069,7 +2075,7 @@ class bybit extends Exchange {
             $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start_date'] = $this->iso8601($since);
+            $request['start_date'] = $this->ymd($since);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2174,29 +2180,20 @@ class bybit extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
-        $request = $path;
         $type = $this->safe_string($api, 0);
         $section = $this->safe_string($api, 1);
+        $request = '/' . $type . '/' . $section . '/' . $path;
         // public v2
         if ($section === 'public') {
-            $request = '/' . $type . '/' . $section . '/' . $request;
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }
         } else if ($type === 'public') {
-            $request = '/' . $type . '/' . $section . '/' . $request;
             if ($params) {
                 $request .= '?' . $this->rawencode($params);
             }
         } else {
             $this->check_required_credentials();
-            if ($type === 'openapi') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            } else if ($type === 'v2') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            } else if ($type === 'private') {
-                $request = '/' . $type . '/' . $section . '/' . $request;
-            }
             $timestamp = $this->nonce();
             $query = array_merge($params, array(
                 'api_key' => $this->apiKey,

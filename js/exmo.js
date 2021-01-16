@@ -1437,12 +1437,21 @@ module.exports = class exmo extends Exchange {
         const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString (transaction, 'curr');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let address = this.safeString (transaction, 'account');
-        if (address !== undefined) {
-            const parts = address.split (':');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                address = parts[1].replace (' ', '');
+        let address = undefined;
+        const tag = undefined;
+        let comment = undefined;
+        const account = this.safeString (transaction, 'account');
+        if (type === 'deposit') {
+            comment = account;
+        } else if (type === 'withdrawal') {
+            address = account;
+            if (address !== undefined) {
+                const parts = address.split (':');
+                const numParts = parts.length;
+                if (numParts === 2) {
+                    address = this.safeString (parts, 1);
+                    address = address.replace (' ', '');
+                }
             }
         }
         let fee = undefined;
@@ -1470,16 +1479,21 @@ module.exports = class exmo extends Exchange {
         return {
             'info': transaction,
             'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined, // refix it properly
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': undefined,
+            'comment': comment,
             'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }

@@ -535,11 +535,7 @@ module.exports = class zb extends Exchange {
         let side = this.safeInteger (order, 'type');
         side = (side === 1) ? 'buy' : 'sell';
         const type = 'limit'; // market order is not availalbe in ZB
-        let timestamp = undefined;
-        const createDateField = this.getCreateDateField ();
-        if (createDateField in order) {
-            timestamp = order[createDateField];
-        }
+        const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
@@ -593,8 +589,75 @@ module.exports = class zb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    getCreateDateField () {
-        return 'trade_date';
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const code = (currency === undefined) ? undefined : currency['code'];
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': undefined,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        const password = this.safeString (params, 'safePwd', this.password);
+        if (password === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        const fees = this.safeFloat (params, 'fees');
+        if (fees === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires a fees parameter');
+        }
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'fees': this.currencyToPrecision (code, fees),
+            // 'itransfer': 0, // agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        };
+        const response = await this.privateGetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        });
     }
 
     nonce () {
