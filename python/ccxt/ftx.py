@@ -689,21 +689,39 @@ class ftx(Exchange):
         #         "type": "order"
         #     }
         #
+        #     {
+        #         "baseCurrency": "BTC",
+        #         "fee": 0,
+        #         "feeCurrency": "USD",
+        #         "feeRate": 0,
+        #         "future": null,
+        #         "id": 664079556,
+        #         "liquidity": "taker",
+        #         "market": null,
+        #         "orderId": null,
+        #         "price": 34830.61359,
+        #         "quoteCurrency": "USD",
+        #         "side": "sell",
+        #         "size": 0.0005996,
+        #         "time": "2021-01-15T16:05:29.246135+00:00",
+        #         "tradeId": null,
+        #         "type": "otc"
+        #     }
+        #
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         marketId = self.safe_string(trade, 'market')
         symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        else:
+            base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
+            quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
+            if (base is not None) and (quote is not None):
+                symbol = base + '/' + quote
             else:
-                base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
-                quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
-                if (base is not None) and (quote is not None):
-                    symbol = base + '/' + quote
-                else:
-                    symbol = marketId
+                symbol = marketId
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
