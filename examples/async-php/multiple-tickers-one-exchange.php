@@ -7,22 +7,23 @@ use ccxt\async;
 use React\Promise;
 
 $exchange = new async\binance([
-        'enableRateLimit' => true,
-        'verbose' => true,
+    'enableRateLimit' => true,
+    'verbose' => true,
 ]);
 
-$symbols = array('ETH/BTC', 'LTC/BTC', 'BCH/BTC');
-$promises = [];
-foreach ($symbols as $symbol) {
-    $promises[] = $exchange->fetch_ticker($symbol);
-}
-
-Promise\all($promises)->then(function ($tickers) {
-    foreach ($tickers as $ticker) {
-        echo $ticker['symbol'] . ' bid price is ' . $ticker['bid'] . PHP_EOL;
+$exchange::$kernel->execute(function () use ($exchange) {
+    $symbols = array('ETH/BTC', 'LTC/BTC', 'BCH/BTC');
+    try {
+        $yields = [];
+        foreach ($symbols as $symbol) {
+            $yields[] = $exchange->fetch_ticker($symbol);
+        }
+        $tickers = yield $yields;
+        foreach ($tickers as $ticker) {
+            echo $ticker['symbol'] . ' bid price is ' . $ticker['bid'] . PHP_EOL;
+        }
+    } catch (Exception $e) {
+        var_dump($e);
     }
-}, function ($error) {
-    var_dump($error);
 });
-
 $exchange::$kernel->run();

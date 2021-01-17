@@ -11,19 +11,17 @@ $exchange = new async\binance([
     'verbose' => true,
 ]);
 
-$symbols = array('ETH/BTC', 'LTC/BTC', 'BCH/BTC');
-$promises = [];
-foreach ($symbols as $symbol) {
-    $promises[] = $exchange->fetch_ticker($symbol);
-}
-
-
-$exchange::$kernel->execute(function () use ($exchange, $promises) {
+$exchange::$kernel->execute(function () use ($exchange) {
     yield $exchange->load_markets();
     echo 'Market id of BTC/USDT is ' . $exchange->market_id('BTC/USDT');
-    $all_promises = Promise\all($promises);
+
+    $symbols = array('ETH/BTC', 'LTC/BTC', 'BCH/BTC');
+    $yields = [];
+    foreach ($symbols as $symbol) {
+        $yields[] = $exchange->fetch_ticker($symbol);
+    }
     try {
-        $tickers = yield $all_promises;
+        $tickers = yield $yields;
     } catch (\Exception $e) {
         trigger_error('Something went wrong uwu', E_USER_ERROR);
     }
