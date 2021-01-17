@@ -3,9 +3,6 @@
 use React\Promise;
 
 function throttle($config, $loop) {
-    function now() {
-        return microtime(true) * 1000;
-    }
     // {
     //    delay:       1,
     //    capacity:    1,
@@ -26,28 +23,36 @@ function throttle($config, $loop) {
 
         $resolver = function() use (&$resolver, $rate_limit, $cost, $config, &$last_timestamp, &$running, $queue, &$tokens, $loop) {
             // bit of a weird recursive translation
+            //
+            //  <<">>
+            // /<: :>\
+            //
+            // crab approves this code
             if (count($queue) && !$running) {
                 $running = true;
                 $cost = $cost ? $cost : $config['defaultCost'];
                 if ($tokens >= min($cost, $config['capacity'])) {
                     $first = $queue->dequeue();
-                    list($cost, $resolve, $reject) = $first;
+                    list($cost, $resolve) = $first;
                     // allow tokens to become  negative
                     $tokens -= $cost;
                     $resolve();
                 }
-                $now = now();
+                $now = microtime(true) * 1000;
                 $elapsed = $now - $last_timestamp;
                 $last_timestamp = $now;
                 $tokens = min($config['capacity'], $tokens + $elapsed / $rate_limit);
-                Promise\Timer\resolve($config['delay'] / 1000, $loop)->then(function ($elapsed) use($resolver, $resolve, $reject, &$running) {
+                Promise\Timer\resolve($config['delay'] / 1000, $loop)->then(function ($elapsed) use($resolver, &$running) {
                     $running = false;
-                    $resolver($resolve, $reject);
+                    $resolver();
                 });
             }
         };
-        return new React\Promise\Promise(function($resolve, $reject) use ($queue, $cost, $resolver) {
-            $queue->enqueue(array($cost, $resolve, $reject));
+        return new React\Promise\Promise(function($resolve) use ($queue, $cost, $resolver) {
+            // add the resolve function to a queue
+            // promises get resolved FIFO with a minimum of $config['delay'] delay
+            // the maximum delay depends on the $cost of the call and the $tokens available
+            $queue->enqueue(array($cost, $resolve));
             $resolver();
         });
     };
