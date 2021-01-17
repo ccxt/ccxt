@@ -8,12 +8,17 @@ use Recoil\React\ReactKernel;
 
 use Exception;
 
+include 'throttle.php';
+
 class Exchange extends \ccxt\Exchange {
     public static $loop;
     public static $kernel;
     public $client;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
+    public $async_api;
+    public $tokenBucket;
+    public $throttle;
 
     public function __construct($options = array()) {
         parent::__construct($options);
@@ -29,7 +34,19 @@ class Exchange extends \ccxt\Exchange {
         ));
         if ($this->client === null) {
             $this->client = new React\Http\Browser(static::$loop, $connector);
+            $this->client = $this->client->withRejectErrorResponse(false);
         }
+
+        $class_methods = get_class_methods($this);
+        $end_part = '_generator';
+        $end_length = strlen($end_part);
+        foreach ($class_methods as $method) {
+            if (substr($method, -$end_length) === $end_part) {
+                $async_method = substr($method, 0, strlen($method) - $end_length);
+                $this->async_api[$async_method] = $method;
+            }
+        }
+        $this->throttle = throttle($this->tokenBucket, static::$loop);
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -57,6 +74,14 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
         return $json_response ? $json_response : $response_body;
+    }
+
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
+        if ($this->enableRateLimit) {
+            yield call_user_func($this->throttle, $this->rateLimit);
+        }
+        $request = $this->sign($path, $api, $method, $params, $headers, $body);
+        return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
     public function load_markets_helper($reload = false, $params = array()) {
@@ -89,6 +114,8 @@ class Exchange extends \ccxt\Exchange {
         return $this->marketsLoading;
     }
 
+    // these methods are already defined in the base class so __call doesn't see them
+    // we need to override them
     public function fetch_markets($params = array()) {
         return static::$kernel->execute($this->fetch_markets_generator($params))->promise();
     }
@@ -103,5 +130,49 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array()) {
         return static::$kernel->execute($this->fetch_trades_generator($symbol, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_my_trades_generator($symbol, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_open_orders_generator($symbol, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_closed_orders_generator($symbol, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_orders_generator($symbol, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_ticker($symbol, $params = array()) {
+        return static::$kernel->execute($this->fetch_ticker_generator($symbol, $params))->promise();
+    }
+
+    public function fetch_tickers($symbols = array(), $params = array()) {
+        return static::$kernel->execute($this->fetch_tickers_generator($symbols, $params))->promise();
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
+        return static::$kernel->execute($this->create_order_generator($symbol, $type, $side, $amount, $price, $params))->promise();
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_deposits_generator($code, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_withdrawals_generator($code, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array()) {
+        return static::$kernel->execute($this->fetch_transactions_generator($code, $since, $limit, $params))->promise();
+    }
+
+    public function fetch_deposit_address($code, $params = array()) {
+        return static::$kernel->execute($this->fetch_deposit_address_generator($code, $params))->promise();
     }
 }

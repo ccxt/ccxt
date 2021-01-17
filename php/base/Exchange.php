@@ -831,22 +831,13 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
+        $this->async_api = array();
         $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
         $this->curl_reset = true;
         $this->curl_close = false;
 
         $this->id = null;
-
-        // rate limiter params
-        $this->rateLimit = 2000;
-        $this->tokenBucket = array(
-            'refillRate' => 1.0 / $this->rateLimit,
-            'delay' => 1.0,
-            'capacity' => 1.0,
-            'defaultCost' => 1.0,
-            'maxCapacity' => 1000,
-        );
 
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
@@ -1054,6 +1045,15 @@ class Exchange {
             }
         }
 
+        // rate limiter params
+        $this->tokenBucket = array_merge(array(
+            'refillRate' => ($this->rateLimit > 0) ? (1.0 / $this->rateLimit) : PHP_INT_MAX,
+            'delay' => 1.0,
+            'capacity' => 1.0,
+            'defaultCost' => 1.0,
+            'maxCapacity' => 1000,
+        ), $this->tokenBucket ? $this->tokenBucket : array());
+
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');
         }
@@ -1212,11 +1212,12 @@ class Exchange {
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
     }
 
-    public function throttle() {
+    public function throttle($rate_limit, $cost) {
+        // TODO: use a token bucket here
         $now = $this->milliseconds();
         $elapsed = $now - $this->lastRestRequestTimestamp;
-        if ($elapsed < $this->rateLimit) {
-            $delay = $this->rateLimit - $elapsed;
+        if ($elapsed < $rate_limit) {
+            $delay = $rate_limit - $elapsed;
             usleep((int) ($delay * 1000.0));
         }
     }
@@ -1227,7 +1228,7 @@ class Exchange {
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         if ($this->enableRateLimit) {
-            $this->throttle();
+            $this->throttle($this->rateLimit);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
@@ -2476,7 +2477,11 @@ class Exchange {
     }
 
     public function __call($function, $params) {
-        if (array_key_exists($function, $this->defined_rest_api)) {
+        if (array_key_exists($function, $this->async_api)) {
+            $generator_name = $this->async_api[$function];
+            $generator = call_user_func_array(array($this, $generator_name), $params);
+            return static::$kernel->execute($generator)->promise();
+        } else if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
             $partial[3] = $params ? $params[0] : $params;
