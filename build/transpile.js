@@ -910,7 +910,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileDerivedExchangeFile (jsFolder, filename, options, force = true) {
+    transpileDerivedExchangeFile (jsFolder, filename, options, force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -959,7 +959,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = true) {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1415,7 +1415,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything (force = true) {
+    transpileEverything (force = false) {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
