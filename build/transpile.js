@@ -920,12 +920,12 @@ class Transpiler {
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
             const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
-            const python2mtime = fs.statSync (python2Folder + pythonFilename).mtime.getTime ()
+            const python2mtime = python2Folder ? fs.statSync (python2Folder + pythonFilename).mtime.getTime () : undefined
             const python3mtime = fs.statSync (python3Folder + pythonFilename).mtime.getTime ()
             const phpmtime = fs.statSync (phpFolder + phpFilename).mtime.getTime ()
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (force || (jsmtime > python2mtime) || (jsmtime > python3mtime) || (jsmtime > phpmtime)) {
+            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (python2Folder && (jsmtime > python2mtime))) {
                 const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
