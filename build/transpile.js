@@ -806,16 +806,17 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    getExchangeClassDeclarationMatches (contents) {
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+    }
+
+    // ------------------------------------------------------------------------
+
     transpileDerivedExchangeClass (contents, methodNames = undefined) {
 
-        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+        const [ _, className, baseClass, methodMatches ] = this.getExchangeClassDeclarationMatches (contents)
 
-        // log.green (file, exchangeClassDeclarationMatches[3])
-
-        let className = exchangeClassDeclarationMatches[1]
-        let baseClass = exchangeClassDeclarationMatches[2]
-
-        let methods = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
+        const methods = methodMatches.trim ().split (/\n\s*\n/)
 
         let python2 = []
         let python3 = []
@@ -839,14 +840,6 @@ class Transpiler {
 
             // async or not
             let keyword = matches[1]
-            // try {
-            //     keyword = matches[1]
-            // } catch (e) {
-            //     log.red (e)
-            //     log.green (methods[i])
-            //     log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
-            //     process.exit ()
-            // }
 
             // method name
             let method = matches[2]
@@ -932,7 +925,7 @@ class Transpiler {
             const phpmtime = fs.statSync (phpFolder + phpFilename).mtime.getTime ()
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (jsmtime != python2mtime || jsmtime != python3mtime || jsmtime != phpmtime) {
+            if ((jsmtime > python2mtime) || (jsmtime > python3mtime) || (jsmtime > phpmtime)) {
                 const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
@@ -943,20 +936,19 @@ class Transpiler {
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         overwriteFile (folder + filename, code)
-                        fs.utimesSync (folder + filename, new Date (), parseInt (jsmtime / 1000))
+                        fs.utimesSync (folder + filename, new Date (), new Date (jsmtime))
                     }
                 })
+
                 return { className, baseClass }
+
             } else {
-                let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
+                const [ _, className, baseClass ] = this.getExchangeClassDeclarationMatches (contents)
                 log.green ('Already transpiled', filename.yellow)
-        
-                let className = exchangeClassDeclarationMatches[1]
-                let baseClass = exchangeClassDeclarationMatches[2]
-
                 return { className, baseClass }
             }
+
         } catch (e) {
 
             log.red ('\nFailed to transpile source code from', filename.yellow)
@@ -1092,7 +1084,7 @@ class Transpiler {
 
         const quote = (s) => "'" + s + "'" // helper to add quotes around class names
 
-        const pythonExports = [ 'error_hierarchy' ]
+        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
 
