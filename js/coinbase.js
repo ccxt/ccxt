@@ -172,7 +172,11 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        const response = await this.privateGetAccounts (params);
+        await this.loadMarkets ();
+        const request = {
+            'limit': 100,
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "id": "XLM",
@@ -703,7 +707,10 @@ module.exports = class coinbase extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const request = {
+            'limit': 100,
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
         const balances = this.safeValue (response, 'data');
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const result = { 'info': response };
