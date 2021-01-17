@@ -174,7 +174,11 @@ class coinbase(Exchange):
         return self.safe_timestamp(data, 'epoch')
 
     def fetch_accounts(self, params={}):
-        response = self.privateGetAccounts(params)
+        self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         #
         #     {
         #         "id": "XLM",
@@ -676,7 +680,10 @@ class coinbase(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccounts(params)
+        request = {
+            'limit': 100,
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
         balances = self.safe_value(response, 'data')
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
