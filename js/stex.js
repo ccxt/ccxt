@@ -17,25 +17,30 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createDepositAddress': true,
                 'createMarketOrder': false, // limit orders only
-                'fetchCurrencies': true,
-                'fetchMarkets': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
+                'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingFees': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchMyTrades': true,
+                'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'fetchDeposits': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
-                'fetchFundingFees': true,
             },
             'version': 'v3',
             'urls': {
@@ -176,6 +181,9 @@ module.exports = class stex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
                 'BHD': 'Bithold',
             },
             'options': {
@@ -411,6 +419,26 @@ module.exports = class stex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "server_datetime": {
+        //                 "date": "2019-01-22 15:13:34.233796",
+        //                 "timezone_type": 3,
+        //                 "timezone": "UTC"
+        //             },
+        //             "server_timestamp": 1548170014
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const serverDatetime = this.safeValue (data, 'server_datetime', {});
+        return this.parse8601 (this.safeString (serverDatetime, 'date'));
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -486,22 +514,8 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        let marketId = this.safeString (ticker, 'id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            marketId = this.safeString (ticker, 'symbol');
-            if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString2 (ticker, 'id', 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const last = this.safeFloat (ticker, 'last');
         const open = this.safeFloat (ticker, 'open');
         let change = undefined;
@@ -596,7 +610,7 @@ module.exports = class stex extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "time": 1566086400000,
@@ -658,8 +672,8 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -866,22 +880,8 @@ module.exports = class stex extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
-        let marketId = this.safeString (order, 'currency_pair_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            marketId = this.safeString (order, 'currency_pair_name');
-            if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'initial_amount');
@@ -915,6 +915,7 @@ module.exports = class stex extends Exchange {
                 'order': id,
             });
         }
+        const stopPrice = this.safeFloat (order, 'trigger_price');
         const result = {
             'info': order,
             'id': id,
@@ -924,8 +925,11 @@ module.exports = class stex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,

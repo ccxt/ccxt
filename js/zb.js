@@ -16,14 +16,21 @@ module.exports = class zb extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -65,6 +72,8 @@ module.exports = class zb extends Exchange {
                 '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError, // 'The request time has expired',
                 '3008': OrderNotFound, // 'Transaction records not found',
+                '3009': InvalidOrder, // 'The price exceeds the limit',
+                '3011': InvalidOrder, // 'The entrusted price is abnormal, please modify it and place order again',
                 '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                 '4002': DDoSProtection, // 'Request too often',
             },
@@ -290,7 +299,7 @@ module.exports = class zb extends Exchange {
             const market = anotherMarketsById[ids[i]];
             result[market['symbol']] = this.parseTicker (response[ids[i]], market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -526,20 +535,9 @@ module.exports = class zb extends Exchange {
         let side = this.safeInteger (order, 'type');
         side = (side === 1) ? 'buy' : 'sell';
         const type = 'limit'; // market order is not availalbe in ZB
-        let timestamp = undefined;
-        const createDateField = this.getCreateDateField ();
-        if (createDateField in order) {
-            timestamp = order[createDateField];
-        }
-        let symbol = undefined;
+        const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
-        if (marketId in this.markets_by_id) {
-            // get symbol from currency
-            market = this.marketsById[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'trade_amount');
         const amount = this.safeFloat (order, 'total_amount');
@@ -565,8 +563,11 @@ module.exports = class zb extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -588,8 +589,75 @@ module.exports = class zb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    getCreateDateField () {
-        return 'trade_date';
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const code = (currency === undefined) ? undefined : currency['code'];
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': undefined,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        const password = this.safeString (params, 'safePwd', this.password);
+        if (password === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        const fees = this.safeFloat (params, 'fees');
+        if (fees === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires a fees parameter');
+        }
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'fees': this.currencyToPrecision (code, fees),
+            // 'itransfer': 0, // agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        };
+        const response = await this.privateGetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "id": "withdrawalId"
+        //     }
+        //
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        });
     }
 
     nonce () {

@@ -18,19 +18,27 @@ class bitflyer(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'withdraw': True,
-                'fetchMyTrades': True,
-                'fetchOrders': True,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': 'emulated',
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -314,13 +322,8 @@ class bitflyer(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'product_code')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'product_code')
+        symbol = self.safe_symbol(marketId, market)
         fee = None
         feeCost = self.safe_float(order, 'total_commission')
         if feeCost is not None:
@@ -340,8 +343,11 @@ class bitflyer(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -400,6 +406,34 @@ class bitflyer(Exchange):
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a `symbols` argument, exactly one symbol in an array')
+        self.load_markets()
+        request = {
+            'product_code': self.market_ids(symbols),
+        }
+        response = self.privateGetpositions(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "product_code": "FX_BTC_JPY",
+        #             "side": "BUY",
+        #             "price": 36000,
+        #             "size": 10,
+        #             "commission": 0,
+        #             "swap_point_accumulate": -35,
+        #             "require_collateral": 120000,
+        #             "open_date": "2015-11-03T10:04:45.011",
+        #             "leverage": 3,
+        #             "pnl": 965,
+        #             "sfd": -0.5
+        #         }
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
@@ -426,7 +460,8 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        url = self.urls['api'] + request
+        baseUrl = self.implode_params(self.urls['api'], {'hostname': self.hostname})
+        url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

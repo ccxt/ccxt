@@ -17,9 +17,15 @@ module.exports = class paymium extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': true,
+                'fetchBalance': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchOrderBook': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
                 'fees': 'https://www.paymium.com/page/help/fees',
@@ -33,31 +39,34 @@ module.exports = class paymium extends Exchange {
                 'public': {
                     'get': [
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ],
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{uuid}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
                         'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ],
                     'post': [
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ],
                     'delete': [
+                        'user/orders/{uuid}',
                         'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
@@ -98,17 +107,18 @@ module.exports = class paymium extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': this.marketId (symbol),
+            'currency': this.marketId (symbol),
         };
-        const response = await this.publicGetDataIdDepth (this.extend (request, params));
+        const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         const request = {
-            'id': this.marketId (symbol),
+            'currency': this.marketId (symbol),
         };
-        const ticker = await this.publicGetDataIdTicker (this.extend (request, params));
+        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
         const timestamp = this.safeTimestamp (ticker, 'at');
         const vwap = this.safeFloat (ticker, 'vwap');
         const baseVolume = this.safeFloat (ticker, 'volume');
@@ -179,9 +189,9 @@ module.exports = class paymium extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
+            'currency': market['id'],
         };
-        const response = await this.publicGetDataIdTrades (this.extend (request, params));
+        const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 

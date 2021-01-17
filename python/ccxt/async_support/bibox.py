@@ -19,6 +19,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -34,22 +35,29 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
+            'hostname': 'bibox365.com',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'publicAPI': False,
+                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'createOrder': True,
                 'fetchBalance': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchWithdrawals': True,
+                'publicAPI': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -67,13 +75,13 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
+                'api': 'https://api.{hostname}',
+                'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -84,6 +92,7 @@ class bibox(Exchange):
                     'get': [
                         'cquery',
                         'mdata',
+                        'cdata',
                     ],
                 },
                 'private': {
@@ -125,15 +134,22 @@ class bibox(Exchange):
                 '2068': InvalidOrder,  # The number of orders can not be less than
                 '2085': InvalidOrder,  # Order quantity is too small
                 '3012': AuthenticationError,  # invalid apiKey
+                '3016': BadSymbol,  # Trading pair error
                 '3024': PermissionDenied,  # wrong apikey permissions
                 '3025': AuthenticationError,  # signature failed
                 '4000': ExchangeNotAvailable,  # current network is unstable
                 '4003': DDoSProtection,  # server busy please try again later
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
+                'BPT': 'BlockPool Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
+                'TERN': 'Ternio-ERC20',
+            },
+            'options': {
+                'fetchCurrencies': 'fetch_currencies_public',  # or 'fetch_currencies_private' with apiKey and secret
             },
         })
 
@@ -280,7 +296,8 @@ class bibox(Exchange):
         }
         response = await self.publicGetMdata(self.extend(request, params))
         tickers = self.parse_tickers(response['result'], symbols)
-        return self.index_by(tickers, 'symbol')
+        result = self.index_by(tickers, 'symbol')
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer_2(trade, 'time', 'createdAt')
@@ -314,7 +331,7 @@ class bibox(Exchange):
             cost = price * amount
         if feeCost is not None:
             fee = {
-                'cost': feeCost,
+                'cost': -feeCost,
                 'currency': feeCurrency,
                 'rate': feeRate,
             }
@@ -359,9 +376,19 @@ class bibox(Exchange):
         response = await self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "time":1591448220000,
+        #         "open":"0.02507029",
+        #         "high":"0.02507029",
+        #         "low":"0.02506349",
+        #         "close":"0.02506349",
+        #         "vol":"5.92000000"
+        #     }
+        #
         return [
-            ohlcv['time'],
+            self.safe_integer(ohlcv, 'time'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
@@ -379,9 +406,90 @@ class bibox(Exchange):
             'size': limit,
         }
         response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        #
+        #     {
+        #         "result":[
+        #             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
+        #             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
+        #             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
+        #         ],
+        #         "cmd":"kline",
+        #         "ver":"1.1"
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
+        method = self.safe_string(self.options, 'fetchCurrencies', 'fetch_currencies_public')
+        return await getattr(self, method)(params)
+
+    async def fetch_currencies_public(self, params={}):
+        request = {
+            'cmd': 'currencies',
+        }
+        response = await self.publicGetCdata(self.extend(request, params))
+        #
+        # publicGetCdata
+        #
+        #     {
+        #         "result":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "name":"BTC",
+        #                 "valid_decimals":8,
+        #                 "original_decimals":8,
+        #                 "is_erc20":0,
+        #                 "enable_withdraw":1,
+        #                 "enable_deposit":1,
+        #                 "withdraw_min":0.005,
+        #                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"},{\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\"}]"
+        #             }
+        #         ],
+        #         "cmd":"currencies"
+        #     }
+        #
+        currencies = self.safe_value(response, 'result')
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = self.safe_string(currency, 'symbol')
+            name = self.safe_string(currency, 'name')  # contains hieroglyphs causing python ASCII bug
+            code = self.safe_currency_code(id)
+            precision = self.safe_integer(currency, 'valid_decimals')
+            deposit = self.safe_value(currency, 'enable_deposit')
+            withdraw = self.safe_value(currency, 'enable_withdraw')
+            active = (deposit and withdraw)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(currency, 'withdraw_min'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
+    async def fetch_currencies_private(self, params={}):
         if not self.apiKey or not self.secret:
             raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         request = {
@@ -389,6 +497,48 @@ class bibox(Exchange):
             'body': {},
         }
         response = await self.privatePostTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "result":[
+        #             {
+        #                 "totalBalance":"14.57582269",
+        #                 "balance":"14.57582269",
+        #                 "freeze":"0.00000000",
+        #                 "id":60,
+        #                 "symbol":"USDT",
+        #                 "icon_url":"/appimg/USDT_icon.png",
+        #                 "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        #                 "name":"USDT",
+        #                 "enable_withdraw":1,
+        #                 "enable_deposit":1,
+        #                 "enable_transfer":1,
+        #                 "confirm_count":2,
+        #                 "is_erc20":1,
+        #                 "forbid_info":null,
+        #                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        #                 "total_amount":4776930644,
+        #                 "supply_amount":4642367414,
+        #                 "price":"--",
+        #                 "contract_father":"OMNI",
+        #                 "supply_time":"--",
+        #                 "comment":null,
+        #                 "contract":"31",
+        #                 "original_decimals":8,
+        #                 "deposit_type":0,
+        #                 "hasCobo":0,
+        #                 "BTCValue":"0.00126358",
+        #                 "CNYValue":"100.93381445",
+        #                 "USDValue":"14.57524654",
+        #                 "children":[
+        #                     {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        #                     {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        #                     {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
+        #                 ]
+        #             },
+        #         ],
+        #         "cmd":"transfer/coinList"
+        #     }
+        #
         currencies = self.safe_value(response, 'result')
         result = {}
         for i in range(0, len(currencies)):
@@ -679,8 +829,11 @@ class bibox(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -849,7 +1002,7 @@ class bibox(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + self.version + '/' + path
         cmds = self.json([params])
         if api == 'public':
             if method != 'GET':
@@ -858,7 +1011,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v2private':
             self.check_required_credentials()
-            url = self.urls['api'] + '/v2/' + path
+            url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/v2/' + path
             json_params = self.json(params)
             body = {
                 'body': json_params,

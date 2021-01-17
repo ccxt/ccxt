@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -27,11 +28,19 @@ class bitbay(Exchange):
             'countries': ['MT', 'EU'],  # Malta
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -228,6 +237,11 @@ class bitbay(Exchange):
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
                 'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
                 'UNDER_MAINTENANCE': OnMaintenance,
+                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+            },
+            'commonCurrencies': {
+                'GGC': 'Global Game Coin',
             },
         })
 
@@ -335,18 +349,7 @@ class bitbay(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(order, 'time')
         amount = self.safe_float(order, 'startAmount')
         remaining = self.safe_float(order, 'currentAmount')
@@ -354,6 +357,7 @@ class bitbay(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = max(0, amount - remaining)
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -364,8 +368,11 @@ class bitbay(Exchange):
             'status': None,
             'symbol': symbol,
             'type': self.safe_string(order, 'mode'),
+            'timeInForce': None,
+            'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_float(order, 'rate'),
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'filled': filled,
@@ -811,25 +818,28 @@ class bitbay(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        # [
-        #     '1582399800000',
-        #     {
-        #         o: '0.0001428',
-        #         c: '0.0001428',
-        #         h: '0.0001428',
-        #         l: '0.0001428',
-        #         v: '4',
-        #         co: '1'
-        #     }
-        # ]
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         '1582399800000',
+        #         {
+        #             o: '0.0001428',
+        #             c: '0.0001428',
+        #             h: '0.0001428',
+        #             l: '0.0001428',
+        #             v: '4',
+        #             co: '1'
+        #         }
+        #     ]
+        #
+        first = self.safe_value(ohlcv, 1, {})
         return [
-            int(ohlcv[0]),
-            self.safe_float(ohlcv[1], 'o'),
-            self.safe_float(ohlcv[1], 'h'),
-            self.safe_float(ohlcv[1], 'l'),
-            self.safe_float(ohlcv[1], 'c'),
-            self.safe_float(ohlcv[1], 'v'),
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(first, 'o'),
+            self.safe_float(first, 'h'),
+            self.safe_float(first, 'l'),
+            self.safe_float(first, 'c'),
+            self.safe_float(first, 'v'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -853,8 +863,18 @@ class bitbay(Exchange):
             request['from'] = int(since)
             request['to'] = self.sum(request['from'], timerange)
         response = await self.v1_01PublicGetTradingCandleHistorySymbolResolution(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'items', [])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        #
+        #     {
+        #         "status":"Ok",
+        #         "items":[
+        #             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        #             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        #             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        #         ]
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
@@ -905,28 +925,11 @@ class bitbay(Exchange):
                 cost = price * amount
         feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
-        base = None
-        quote = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                base = market['base']
-                quote = market['quote']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         fee = None
         if feeCost is not None:
-            feeCcy = base if (side == 'buy') else quote
+            feeCcy = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,
@@ -965,7 +968,7 @@ class bitbay(Exchange):
             request['limit'] = limit  # default - 10, max - 300
         response = await self.v1_01PublicGetTradingTransactionsSymbol(self.extend(request, params))
         items = self.safe_value(response, 'items')
-        return self.parse_trades(items, symbol, since, limit)
+        return self.parse_trades(items, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -979,6 +982,8 @@ class bitbay(Exchange):
         }
         if type == 'limit':
             request['rate'] = price
+            price = float(price)
+        amount = float(amount)
         response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
@@ -1066,8 +1071,8 @@ class bitbay(Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': float(price),
-            'amount': float(amount),
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,

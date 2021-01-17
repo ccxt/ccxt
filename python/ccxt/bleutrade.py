@@ -23,36 +23,36 @@ class bleutrade(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'cancelOrder': False,  # todo
-                'createLimitOrder': False,  # todo
-                'createMarketOrder': False,  # todo
-                'createOrder': False,  # todo
-                'editOrder': False,  # todo
-                'withdraw': False,  # todo
-                'fetchTrades': False,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOrders': False,
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'editOrder': False,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchWithdrawals': True,
-                'fetchOrderTrades': False,
-                'fetchLedger': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
+                'fetchWithdrawals': True,
+                'withdraw': False,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bleutrade.com',
             'urls': {
@@ -61,7 +61,7 @@ class bleutrade(Exchange):
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -113,6 +113,7 @@ class bleutrade(Exchange):
                 'exact': {
                     'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
                     'ERR_LOW_VOLUME': BadRequest,
+                    'Invalid form': BadRequest,
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
@@ -129,7 +130,6 @@ class bleutrade(Exchange):
             },
             'options': {
                 'parseOrderStatus': True,
-                'symbolSeparator': '_',
             },
         })
         # undocumented api calls
@@ -253,7 +253,7 @@ class bleutrade(Exchange):
             'market': market['id'],
         }
         response = self.v3PublicGetGetmarketsummary(self.extend(request, params))
-        ticker = response['result'][0]
+        ticker = self.safe_value(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -287,15 +287,8 @@ class bleutrade(Exchange):
         #     MarketCurrency: 'Litecoin',
         #     BaseCurrency: 'Tether'}
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
         change = None
@@ -328,10 +321,9 @@ class bleutrade(Exchange):
             'info': ticker,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
-            timestamp,
+            self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
             self.safe_float(ohlcv, 'Open'),
             self.safe_float(ohlcv, 'High'),
             self.safe_float(ohlcv, 'Low'),
@@ -348,7 +340,8 @@ class bleutrade(Exchange):
             'count': limit,
         }
         response = self.v3PublicGetGetcandles(self.extend(request, params))
-        return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -392,12 +385,6 @@ class bleutrade(Exchange):
         response = self.v3PrivatePostGetopenorders(self.extend(request, params))
         items = self.safe_value(response, 'result', [])
         return self.parse_orders(items, market, since, limit)
-
-    def parse_symbol(self, id):
-        base, quote = id.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(base)
-        quote = self.safe_currency_code(quote)
-        return base + '/' + quote
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -608,17 +595,8 @@ class bleutrade(Exchange):
         #     Comments: {String: '', Valid: True}
         side = self.safe_string(order, 'Type').lower()
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
         marketId = self.safe_string(order, 'Exchange')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = None
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
@@ -646,8 +624,11 @@ class bleutrade(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -763,17 +744,18 @@ class bleutrade(Exchange):
         #    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
         #    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
         #    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
+        #    {"success":false,"message":"Invalid form","result":null}
         #
-        if body[0] == '{':
-            success = self.safe_value(response, 'success')
-            if success is None:
-                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
-            if not success:
-                feedback = self.id + ' ' + body
-                errorCode = self.safe_string(response, 'result')
+        success = self.safe_value(response, 'success')
+        if success is None:
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        if not success:
+            feedback = self.id + ' ' + body
+            errorCode = self.safe_string(response, 'result')
+            if errorCode is not None:
                 self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-                errorMessage = self.safe_string(response, 'message')
-                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
-                raise ExchangeError(feedback)
+            errorMessage = self.safe_string(response, 'message')
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            raise ExchangeError(feedback)

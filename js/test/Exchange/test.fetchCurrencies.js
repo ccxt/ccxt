@@ -27,7 +27,7 @@ module.exports = async (exchange) => {
 
         const method = 'fetchCurrencies'
         const currencies = await exchange[method] ()
-        Object.values (currencies).forEach (currency => testCurrency (exchange, currency, method))
+        Object.values (currencies).forEach ((currency) => testCurrency (exchange, currency, method))
         return currencies
 
     } else {
