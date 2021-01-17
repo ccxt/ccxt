@@ -924,25 +924,26 @@ class Transpiler {
         try {
 
             const { python2Folder, python3Folder, phpFolder } = options
-
-            const jsmtime = fs.statSync (jsFolder + filename).mtime
-            const python2mtime = fs.statSync (python2Folder + filename.replace ('.js', '.py')).mtime
-            const python3mtime = fs.statSync (python3Folder + filename.replace ('.js', '.py')).mtime
-            const phpmtime = fs.statSync (phpFolder + filename.replace ('.js', '.php')).mtime
+            const pythonFilename = filename.replace ('.js', '.py')
+            const phpFilename = filename.replace ('.js', '.php')
+            const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
+            const python2mtime = fs.statSync (python2Folder + pythonFilename).mtime.getTime ()
+            const python3mtime = fs.statSync (python3Folder + pythonFilename).mtime.getTime ()
+            const phpmtime = fs.statSync (phpFolder + phpFilename).mtime.getTime ()
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (jsmtime.getTime() != python2mtime.getTime() || jsmtime.getTime() != python3mtime.getTime() || jsmtime.getTime() != phpmtime.getTime()) {
+            if (jsmtime != python2mtime || jsmtime != python3mtime || jsmtime != phpmtime) {
                 const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
                 ;[
-                    [ python2Folder, filename.replace ('.js', '.py'), python2 ],
-                    [ python3Folder, filename.replace ('.js', '.py'), python3 ],
-                    [ phpFolder, filename.replace ('.js', '.php'), php ],
+                    [ python2Folder, pythonFilename, python2 ],
+                    [ python3Folder, pythonFilename, python3 ],
+                    [ phpFolder, phpFilename, php ],
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         overwriteFile (folder + filename, code)
-                        fs.utimesSync(folder + filename, new Date(), jsmtime)
+                        fs.utimesSync (folder + filename, new Date (), parseInt (jsmtime / 1000))
                     }
                 })
                 return { className, baseClass }
