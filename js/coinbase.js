@@ -1188,7 +1188,7 @@ module.exports = class coinbase extends Exchange {
         let errorCode = this.safeString (response, 'error');
         if (errorCode !== undefined) {
             const errorMessage = this.safeString (response, 'error_description');
-            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
             throw new ExchangeError (feedback);
         }
