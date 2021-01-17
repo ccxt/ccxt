@@ -52,7 +52,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguge support]
 
 # Exchanges
 
-The CCXT Pro library currently supports the following 26 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 27 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                         | id            | name                                                                                | ver | doc                                                                                | certified                                                                                                                   | pro                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------------------------------------------------------------------------|:---:|:----------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -70,6 +70,7 @@ The CCXT Pro library currently supports the following 26 cryptocurrency exchange
 | [![currencycom](https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg)](https://currency.com/trading/signup?c=362jaimv&pid=referral)           | currencycom   | [Currency.com](https://currency.com/trading/signup?c=362jaimv&pid=referral)         | 1   | [API](https://currency.com/api)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ftx](https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg)](https://ftx.com/#a=1623029)                                                    | ftx           | [FTX](https://ftx.com/#a=1623029)                                                   | *   | [API](https://github.com/ftexchange/ftx)                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/signup/2436035)                                         | gateio        | [Gate.io](https://www.gate.io/signup/2436035)                                       | 2   | [API](https://gate.io/api2)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![gopax](https://user-images.githubusercontent.com/1294454/102897212-ae8a5e00-4478-11eb-9bab-91507c643900.jpg)](https://www.gopax.co.kr)                                                    | gopax         | [GOPAX](https://www.gopax.co.kr)                                                    | 1   | [API](https://gopax.github.io/API/index.en.html)                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                   | hitbtc        | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | 2   | [API](https://api.hitbtc.com)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                       | huobijp       | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                  | 1   | [API](https://api-doc.huobi.co.jp)                                                 |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobipro](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3)             | huobipro      | [Huobi Pro](https://www.huobi.com/en-us/topic/invited/?invite_code=rwrd3)           | 1   | [API](https://huobiapi.github.io/docs/spot/v1/cn/)                                 |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -247,7 +248,94 @@ The incremental structures returned from the unified methods of CCXT Pro are oft
 1. JSON-decoded object (`object` in JavaScript, `dict` in Python, `array()` in PHP). This type may be returned from public and private methods like `watchTicker`, `watchBalance`, `watchOrder`, etc.
 2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, etc.
 
-In the latter case the CCXT Pro library has to keep a reasonable limit on the number of objects stored in memory. The allowed maximum can be configured by the user upon instantiation or later.
+The unified methods returning arrays like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, are based on the caching layer. The user has to understand the inner workings of the caching layer to work with it efficiently.
+
+The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro library has a reasonable limit on the number of objects stored in memory. By default the caching array structures will store up to 1000 entries of each type (1000 most recent trades, 1000 most recent candles, 1000 most recent orders). The allowed maximum number can be configured by the user upon instantiation or later:
+
+```Python
+ccxtpro.ftx({
+    'enableRateLimit': True,
+    'options': {
+        'tradesLimit': 1000,
+        'OHLCVLimit': 1000,
+        'ordersLimit': 1000,
+    },
+})
+
+# or
+
+exchange.options['tradesLimit'] = 1000
+exchange.options['OHLCVLimit'] = 1000
+exchange.options['ordersLimit'] = 1000
+```
+
+The cache limits have to be set prior to calling any watch-methods and cannot change during a program run.
+
+When there is space left in the cache, new elements are simply appended to the end of it. If there's not enough room to fit a new element, the oldest element is deleted from the beginning of the cache to free some space. Thus, for example, the cache grows from 0 to 1000 most recent trades and then stays at 1000 most recent trades max, constantly renewing the stored data with each new update incoming from the exchange. It reminds a sliding frame window or a sliding door, that looks like shown below:
+
+```
+      past > ------------------ > time > - - - - - - - - > future
+
+
+                           sliding frame
+                           of 1000 most
+                           recent trades
+                        +-----------------+
+                        |                 |
+                        |===========+=====|
++----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+|                |      |           |     |           |                 |
+0              1000     |         2000    |         3000              4000  ...
+|                |      |           |     |           |                 |
++----------------+------|           |     | - - - - - + - - - - - - - - + - - -
+                        |===========+=====|
+                        |                 |
+                        +---+---------+---+
+                            |         |
+                      since ^         ^ limit
+
+                   date-based pagination arguments
+                         are always applied
+                       within the cached frame
+```
+
+The user can configure the cache limits using the `exchange.options` as was shown above. Do not confuse the cache limits with the pagination limit.
+
+**Note, that the `since` and `limit` [date-based pagination](Manual#date-based-pagination) params have a different meaning and are always applied within the cached window!** If the user specifies a `since` argument to the `watchTrades()` call, CCXT Pro will return all cached trades having `timestamp >= since`. If the user does not specify a `since` argument, CCXT pro will return cached trades from the beginning of the sliding window. If the user specifies a `limit` argument, the library will return up to `limit` candles starting from `since` or from the beginning of the cache. For that reason the user cannot paginate beyond the cached frame due to the WebSocket real-time specifics.
+
+```Python
+exchange.options['tradesLimit'] = 5  # set the size of the cache to 5
+
+# this call will return up to 5 cached trades
+await exchange.watchTrades (symbol)
+
+# the following call will return the first 2 of up to 5 cached trades
+await exchange.watchTrades (symbol, since=None, limit=2)
+
+# this call will first filter cached trades by trade['timestamp'] >= since
+# and will return the first 2 of up to 5 cached trades that pass the filter
+since = exchange.iso8601('2020-01-01T00:00:00Z')
+limit = 2
+await exchange.watchTrades (symbol, since, limit)
+```
+
+If you want to always get just the most recent trade, **you should set a cache limit to 1, instead of using the `limit=1` argument**.
+
+```Python
+# this loop will properly print the most recent trade when it happens
+exchange.options['tradesLimit'] = 1
+while True:
+    trade = await exchange.watchTrades (symbol)
+    print(trade)
+```
+
+The following loop will always print the first trade of up to 1000 most recent trades from the cache. It will print the same trade over and over again as the cache grows through the first 1000 iterations. When the cache size hits 1000, it will print the first trade from the beginning of the cache, that will slide with each new trade added to the end.
+
+```Python
+while True:
+    trade = await exchange.watchTrades (symbol, since=None, limit=1)
+    print(trade)
+```
 
 ## Linking
 

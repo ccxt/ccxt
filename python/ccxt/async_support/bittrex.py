@@ -19,6 +19,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -45,6 +46,7 @@ class bittrex(Exchange):
                 'CORS': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -1138,6 +1140,37 @@ class bittrex(Exchange):
         response = await self.privateGetOrdersClosed(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currencySymbol': currency['id'],
+        }
+        response = await self.privatePostAddressesCurrencySymbol(self.extend(request, params))
+        #
+        #     {
+        #         "status":"PROVISIONED",
+        #         "currencySymbol":"XRP",
+        #         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        #         "cryptoAddressTag":"392034158"
+        #     }
+        #
+        address = self.safe_string(response, 'cryptoAddress')
+        message = self.safe_string(response, 'status')
+        if not address or message == 'REQUESTED':
+            raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
+        tag = self.safe_string(response, 'cryptoAddressTag')
+        if (tag is None) and (currency['type'] in self.options['tag']):
+            tag = address
+            address = currency['address']
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -1145,17 +1178,20 @@ class bittrex(Exchange):
             'currencySymbol': currency['id'],
         }
         response = await self.privateGetAddressesCurrencySymbol(self.extend(request, params))
-        # {
-        #     "status": "PROVISIONED",
-        #     "currencySymbol": "BTC",
-        #     "cryptoAddress": "1PhmYjnJPZH5NUwV8AUjqkeDkCBpbE2xqX"
-        # }
+        #
+        #     {
+        #         "status":"PROVISIONED",
+        #         "currencySymbol":"XRP",
+        #         "cryptoAddress":"rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy",
+        #         "cryptoAddressTag":"392034158"
+        #     }
+        #
         address = self.safe_string(response, 'cryptoAddress')
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = None
-        if currency['type'] in self.options['tag']:
+        tag = self.safe_string(response, 'cryptoAddressTag')
+        if (tag is None) and (currency['type'] in self.options['tag']):
             tag = address
             address = currency['address']
         self.check_address(address)
@@ -1240,6 +1276,8 @@ class bittrex(Exchange):
                 if code is not None:
                     self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                     self.throw_broadly_matched_exception(self.exceptions['broad'], code, feedback)
+                if (code == 'NOT_FOUND') and (url.find('addresses') >= 0):
+                    raise InvalidAddress(feedback)
                 # raise ExchangeError(self.id + ' malformed response ' + self.json(response))
                 return
             if isinstance(success, basestring):

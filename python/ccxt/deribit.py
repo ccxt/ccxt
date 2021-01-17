@@ -997,7 +997,7 @@ class deribit(Exchange):
             'cancelled': 'canceled',
             'filled': 'closed',
             'rejected': 'rejected',
-            # 'untriggered': 'open',
+            'untriggered': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1577,7 +1577,7 @@ class deribit(Exchange):
         request = {
             'instrument_name': market['id'],
         }
-        response = self.privateGetPosition(self.extend(request, params))
+        response = self.privateGetGetPosition(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -1615,7 +1615,7 @@ class deribit(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.privateGetPositions(self.extend(request, params))
+        response = self.privateGetGetPositions(self.extend(request, params))
         #
         #     {
         #         "jsonrpc": "2.0",

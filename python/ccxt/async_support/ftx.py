@@ -18,6 +18,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -115,9 +116,11 @@ class ftx(Exchange):
                         'wallet/coins',
                         'wallet/balances',
                         'wallet/all_balances',
-                        'wallet/deposit_address/{coin}',
+                        'wallet/deposit_address/{coin}',  # ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
+                        'wallet/airdrops',
+                        'wallet/saved_addresses',
                         'orders',  # ?market={market}
                         'orders/history',  # ?market={market}
                         'orders/{order_id}',
@@ -125,6 +128,14 @@ class ftx(Exchange):
                         'conditional_orders',  # ?market={market}
                         'conditional_orders/{conditional_order_id}/triggers',
                         'conditional_orders/history',  # ?market={market}
+                        'spot_margin/borrow_rates',
+                        'spot_margin/lending_rates',
+                        'spot_margin/borrow_summary',
+                        'spot_margin/market_info',  # ?market={market}
+                        'spot_margin/borrow_history',
+                        'spot_margin/lending_history',
+                        'spot_margin/offers',
+                        'spot_margin/lending_info',
                         'fills',  # ?market={market}
                         'funding_payments',
                         # leverage tokens
@@ -143,15 +154,23 @@ class ftx(Exchange):
                         'options/account_info',
                         'options/positions',
                         'options/fills',
+                        # staking
+                        'staking/stakes',
+                        'staking/unstake_requests',
+                        'staking/balances',
+                        'staking/staking_rewards',
                     ],
                     'post': [
                         'account/leverage',
                         'wallet/withdrawals',
+                        'wallet/saved_addresses',
                         'orders',
                         'conditional_orders',
                         'orders/{order_id}/modify',
                         'orders/by_client_id/{client_order_id}/modify',
                         'conditional_orders/{order_id}/modify',
+                        # spot margin
+                        'spot_margin/offers',
                         # leverage tokens
                         'lt/{token_name}/create',
                         'lt/{token_name}/redeem',
@@ -166,8 +185,12 @@ class ftx(Exchange):
                         'options/requests',
                         'options/requests/{request_id}/quotes',
                         'options/quotes/{quote_id}/accept',
+                        # staking
+                        'staking/unstake_requests',
+                        'srm_stakes/stakes',
                     ],
                     'delete': [
+                        'wallet/saved_addresses/{saved_address_id}',
                         'orders/{order_id}',
                         'orders/by_client_id/{client_order_id}',
                         'orders',
@@ -177,6 +200,8 @@ class ftx(Exchange):
                         # options
                         'options/requests/{request_id}',
                         'options/quotes/{quote_id}',
+                        # staking
+                        'staking/unstake_requests/{request_id}',
                     ],
                 },
             },
@@ -219,15 +244,18 @@ class ftx(Exchange):
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
+                    'Order already queued for cancellation': CancelPending,  # {"error":"Order already queued for cancellation","success":false}
                 },
                 'broad': {
+                    'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
                     'No such market': BadRequest,
                     'Do not send more than': RateLimitExceeded,
-                    'An unexpected error occurred': ExchangeError,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
+                    'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
+                    'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -661,21 +689,39 @@ class ftx(Exchange):
         #         "type": "order"
         #     }
         #
+        #     {
+        #         "baseCurrency": "BTC",
+        #         "fee": 0,
+        #         "feeCurrency": "USD",
+        #         "feeRate": 0,
+        #         "future": null,
+        #         "id": 664079556,
+        #         "liquidity": "taker",
+        #         "market": null,
+        #         "orderId": null,
+        #         "price": 34830.61359,
+        #         "quoteCurrency": "USD",
+        #         "side": "sell",
+        #         "size": 0.0005996,
+        #         "time": "2021-01-15T16:05:29.246135+00:00",
+        #         "tradeId": null,
+        #         "type": "otc"
+        #     }
+        #
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         marketId = self.safe_string(trade, 'market')
         symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        else:
+            base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
+            quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
+            if (base is not None) and (quote is not None):
+                symbol = base + '/' + quote
             else:
-                base = self.safe_currency_code(self.safe_string(trade, 'baseCurrency'))
-                quote = self.safe_currency_code(self.safe_string(trade, 'quoteCurrency'))
-                if (base is not None) and (quote is not None):
-                    symbol = base + '/' + quote
-                else:
-                    symbol = marketId
+                symbol = marketId
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
@@ -1211,11 +1257,16 @@ class ftx(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
+        conditionalOrdersOnly = self.safe_value(params, 'conditionalOrdersOnly')
         request = {
             # 'market': market['id'],  # optional
-            'conditionalOrdersOnly': False,  # cancel conditional orders only
-            'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
+            # 'conditionalOrdersOnly': False,  # cancel conditional orders only
+            # 'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
         }
+        if conditionalOrdersOnly:
+            request['conditionalOrdersOnly'] = conditionalOrdersOnly
+        else:
+            request['limitOrdersOnly'] = True
         marketId = self.get_market_id(symbol, 'market', params)
         if marketId is not None:
             request['market'] = marketId

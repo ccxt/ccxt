@@ -682,10 +682,9 @@ class cex extends Exchange {
         $cost = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-            $cost = $this->safe_float($order, 'ta:' . $market['quote']);
-            if ($cost === null) {
-                $cost = $this->safe_float($order, 'tta:' . $market['quote']);
-            }
+            $taCost = $this->safe_float($order, 'ta:' . $market['quote']);
+            $ttaCost = $this->safe_float($order, 'tta:' . $market['quote']);
+            $cost = $this->sum($taCost, $ttaCost);
             $baseFee = 'fa:' . $market['base'];
             $baseTakerFee = 'tfa:' . $market['base'];
             $quoteFee = 'fa:' . $market['quote'];

@@ -1450,7 +1450,7 @@ module.exports = class binance extends Exchange {
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
-            'EXPIRED': 'canceled',
+            'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2000,7 +2000,9 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeValue (params, 'type', market['type']);
+        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', market['type']);
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         let method = undefined;
         if (type === 'spot') {
             method = 'privateGetMyTrades';
@@ -2009,7 +2011,6 @@ module.exports = class binance extends Exchange {
         } else if (type === 'delivery') {
             method = 'dapiPrivateGetUserTrades';
         }
-        params = this.omit (params, 'type');
         const request = {
             'symbol': market['id'],
         };

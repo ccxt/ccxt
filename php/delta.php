@@ -167,6 +167,7 @@ class delta extends Exchange {
                     'invalid_api_key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_api_key"))
                     'invalid_signature' => '\\ccxt\\AuthenticationError', // array("success":false,"error":array("code":"invalid_signature"))
                     'open_order_not_found' => '\\ccxt\\OrderNotFound', // array("error":array("code":"open_order_not_found"),"success":false)
+                    'unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("code":"unavailable"),"success":false)
                 ),
                 'broad' => array(
                 ),

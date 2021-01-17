@@ -27,6 +27,7 @@ class gopax(Exchange):
             'rateLimit': 50,
             'hostname': 'gopax.co.kr',  # or 'gopax.com'
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelOrder': True,
                 'createMarketOrder': True,
@@ -60,7 +61,7 @@ class gopax(Exchange):
                     'public': 'https://api.{hostname}',  # or 'https://api.gopax.co.kr'
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://gopax.co.kr',
+                'www': 'https://www.gopax.co.kr',
                 'doc': 'https://gopax.github.io/API/index.en.html',
                 'fees': 'https://www.gopax.com/feeinfo',
             },
@@ -113,7 +114,7 @@ class gopax(Exchange):
                     'ERROR_INVALID_AMOUNT': InvalidOrder,
                     'ERROR_INVALID_TRADING_PAIR': BadSymbol,  # Unlikely to be triggered, due to ccxt.gopax.js implementation
                     'No such order ID': OrderNotFound,  # {"errorMessage":"No such order ID","errorCode":202,"errorData":"Order server error: 202"}
-                    'Not enough amount': InsufficientFunds,
+                    # 'Not enough amount': InsufficientFunds,  # {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
                     'Forbidden order type': InvalidOrder,
                     'the client order ID will be reusable which order has already been completed or canceled': InvalidOrder,
                     'ERROR_NO_SUCH_TRADING_PAIR': BadSymbol,  # Unlikely to be triggered, due to ccxt.gopax.js implementation
@@ -528,13 +529,37 @@ class gopax(Exchange):
         #         "position": "maker"                      # maker, taker
         #     }
         #
-        id = self.safe_string(trade, 'id')
+        #     {
+        #         "tradeId": 74072,            # trade ID
+        #         "orderId": 453529,           # order ID
+        #         "side": 2,                   # 1(bid), 2(ask)
+        #         "type": 1,                   # 1(limit), 2(market)
+        #         "baseAmount": 0.01,          # filled base asset amount(in ZEC for self case)
+        #         "quoteAmount": 1,            # filled quote asset amount(in KRW for self case)
+        #         "fee": 0.0004,               # fee
+        #         "price": 100,                # price
+        #         "isSelfTrade": False,        # whether both of matching orders are yours
+        #         "occurredAt": 1603932107,    # trade occurrence time
+        #         "tradingPairName": "ZEC-KRW"  # order book
+        #     }
+        #
+        id = self.safe_string_2(trade, 'id', 'tradeId')
         orderId = self.safe_integer(trade, 'orderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'timestamp'))
+        timestamp = self.safe_timestamp(trade, 'occuredAt', timestamp)
         marketId = self.safe_string(trade, 'tradingPairName')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         side = self.safe_string(trade, 'side')
+        if side == '1':
+            side = 'buy'
+        elif side == '2':
+            side = 'sell'
+        type = self.safe_string(trade, 'type')
+        if type == '1':
+            type = 'limit'
+        elif type == '2':
+            type = 'market'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'amount', 'baseAmount')
         cost = self.safe_float(trade, 'quoteAmount')
@@ -638,6 +663,20 @@ class gopax(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def parse_balance_response(self, response):
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string_2(balance, 'asset', 'isoAlpha3')
+            code = self.safe_currency_code(currencyId)
+            hold = self.safe_float(balance, 'hold')
+            pendingWithdrawal = self.safe_float(balance, 'pendingWithdrawal')
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'avail')
+            account['used'] = self.sum(hold, pendingWithdrawal)
+            result[code] = account
+        return self.parse_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalances(params)
@@ -647,23 +686,12 @@ class gopax(Exchange):
         #             "asset": "KRW",                   # asset name
         #             "avail": 1759466.76,              # available amount to place order
         #             "hold": 16500,                    # outstanding amount on order books
-        #             "pendingWithdrawal": 0,           # amount being withdrawan
+        #             "pendingWithdrawal": 0,           # amount being withdrawn
         #             "lastUpdatedAt": "1600684352032",  # balance last update time
         #         },
         #     ]
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'asset')
-            code = self.safe_currency_code(currencyId)
-            hold = self.safe_float(balance, 'hold')
-            pendingWithdrawal = self.safe_float(balance, 'pendingWithdrawal')
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'avail')
-            account['used'] = self.sum(hold, pendingWithdrawal)
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance_response(response)
 
     def parse_order_status(self, status):
         statuses = {
@@ -728,16 +756,18 @@ class gopax(Exchange):
         marketId = self.safe_string(order, 'tradingPairName')
         market = self.safe_market(marketId, market, '-')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        filled = None
-        cost = None
-        updated = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-            if filled > 0:
-                updated = self.parse8601(self.safe_string(order, 'updatedAt'))
-            if price is not None:
-                cost = filled * price
         balanceChange = self.safe_value(order, 'balanceChange', {})
+        filled = self.safe_float(balanceChange, 'baseNet')
+        cost = self.safe_float(balanceChange, 'quoteNet')
+        if cost is not None:
+            cost = abs(cost)
+        updated = None
+        if (filled is None) and (amount is not None) and (remaining is not None):
+            filled = max(0, amount - remaining)
+        if (filled is not None) and (filled > 0):
+            updated = self.parse8601(self.safe_string(order, 'updatedAt'))
+        if (cost is None) and (price is not None) and (filled is not None):
+            cost = filled * price
         fee = None
         if side == 'buy':
             baseFee = self.safe_value(balanceChange, 'baseFee', {})
@@ -772,7 +802,7 @@ class gopax(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'average': price,
+            'average': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

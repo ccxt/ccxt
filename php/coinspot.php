@@ -8,7 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
-use \ccxt\NotSupported;
+use \ccxt\ArgumentsRequired;
 
 class coinspot extends Exchange {
 
@@ -74,27 +74,72 @@ class coinspot extends Exchange {
             ),
             'markets' => array(
                 'BTC/AUD' => array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud' ),
+                'ETH/AUD' => array( 'id' => 'eth', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'baseId' => 'eth', 'quoteId' => 'aud' ),
+                'XRP/AUD' => array( 'id' => 'xrp', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'baseId' => 'xrp', 'quoteId' => 'aud' ),
                 'LTC/AUD' => array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud' ),
                 'DOGE/AUD' => array( 'id' => 'doge', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD', 'baseId' => 'doge', 'quoteId' => 'aud' ),
+                'RFOX/AUD' => array( 'id' => 'rfox', 'symbol' => 'RFOX/AUD', 'base' => 'RFOX', 'quote' => 'AUD', 'baseId' => 'rfox', 'quoteId' => 'aud' ),
+                'POWR/AUD' => array( 'id' => 'powr', 'symbol' => 'POWR/AUD', 'base' => 'POWR', 'quote' => 'AUD', 'baseId' => 'powr', 'quoteId' => 'aud' ),
+                'NEO/AUD' => array( 'id' => 'neo', 'symbol' => 'NEO/AUD', 'base' => 'NEO', 'quote' => 'AUD', 'baseId' => 'neo', 'quoteId' => 'aud' ),
+                'TRX/AUD' => array( 'id' => 'trx', 'symbol' => 'TRX/AUD', 'base' => 'TRX', 'quote' => 'AUD', 'baseId' => 'trx', 'quoteId' => 'aud' ),
+                'EOS/AUD' => array( 'id' => 'eos', 'symbol' => 'EOS/AUD', 'base' => 'EOS', 'quote' => 'AUD', 'baseId' => 'eos', 'quoteId' => 'aud' ),
+                'XLM/AUD' => array( 'id' => 'xlm', 'symbol' => 'XLM/AUD', 'base' => 'XLM', 'quote' => 'AUD', 'baseId' => 'xlm', 'quoteId' => 'aud' ),
+                'RHOC/AUD' => array( 'id' => 'rhoc', 'symbol' => 'RHOC/AUD', 'base' => 'RHOC', 'quote' => 'AUD', 'baseId' => 'rhoc', 'quoteId' => 'aud' ),
+                'GAS/AUD' => array( 'id' => 'gas', 'symbol' => 'GAS/AUD', 'base' => 'GAS', 'quote' => 'AUD', 'baseId' => 'gas', 'quoteId' => 'aud' ),
             ),
             'commonCurrencies' => array(
                 'DRK' => 'DASH',
+            ),
+            'options' => array(
+                'fetchBalance' => 'private_post_my_balances',
             ),
         ));
     }
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostMyBalances ($params);
+        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+        $response = $this->$method ($params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "$balances":array(
+        //             {
+        //                 "LTC":array("$balance":0.1,"audbalance":16.59,"rate":165.95)
+        //             }
+        //         )
+        //     }
+        //
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'balance', array());
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_float($balances, $currencyId);
-            $result[$code] = $account;
+        $balances = $this->safe_value_2($response, 'balance', 'balances');
+        if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
+            for ($i = 0; $i < count($balances); $i++) {
+                $currencies = $balances[$i];
+                $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
+                for ($j = 0; $j < count($currencyIds); $j++) {
+                    $currencyId = $currencyIds[$j];
+                    $balance = $currencies[$currencyId];
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['total'] = $this->safe_float($balance, 'balance');
+                    $result[$code] = $account;
+                }
+            }
+        } else {
+            $currencyIds = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['total'] = $this->safe_float($balances, $currencyId);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -214,9 +259,16 @@ class coinspot extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        throw new NotSupported($this->id . ' cancelOrder () is not fully implemented yet');
-        // $method = 'privatePostMyBuy';
-        // return $this->$method (array( 'id' => $id ));
+        $side = $this->safe_string($params, 'side');
+        if ($side !== 'buy' && $side !== 'sell') {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+        }
+        $params = $this->omit($params, 'side');
+        $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
+        $request = array(
+            'id' => $id,
+        );
+        return $this->$method (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -350,13 +350,17 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    safeCurrencyCode (currencyId, currency = undefined) {
+    safeCurrency (currencyId, currency = undefined) {
         if (currencyId.length > 3) {
-            if (((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) && (currencyId.indexOf ('.') < 0)) {
-                currencyId = currencyId.slice (1);
+            if ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0)) {
+                if (currencyId.indexOf ('.') > 0) {
+                    return super.safeCurrency (currencyId, currency);
+                } else {
+                    currencyId = currencyId.slice (1);
+                }
             }
         }
-        return super.safeCurrencyCode (currencyId, currency);
+        return super.safeCurrency (currencyId, currency);
     }
 
     appendInactiveMarkets (result) {
@@ -821,7 +825,7 @@ module.exports = class kraken extends Exchange {
         let amount = undefined;
         let cost = undefined;
         let id = undefined;
-        let order = undefined;
+        let orderId = undefined;
         let fee = undefined;
         let symbol = undefined;
         if (Array.isArray (trade)) {
@@ -845,7 +849,7 @@ module.exports = class kraken extends Exchange {
                 // delisted market ids go here
                 market = this.getDelistedMarketById (marketId);
             }
-            order = trade['ordertxid'];
+            orderId = this.safeString (trade, 'ordertxid');
             id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
@@ -873,7 +877,7 @@ module.exports = class kraken extends Exchange {
         }
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -936,6 +940,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         const balances = this.safeValue (response, 'result', {});
         const result = { 'info': balances };
@@ -960,18 +965,50 @@ module.exports = class kraken extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        const query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
         }
-        const priceIsDefined = (price !== undefined);
-        const marketOrder = (type === 'market');
-        const limitOrder = (type === 'limit');
-        const shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
-        if (shouldIncludePrice) {
+        //
+        //     market
+        //     limit (price = limit price)
+        //     stop-loss (price = stop loss price)
+        //     take-profit (price = take profit price)
+        //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
+        //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
+        //     settle-position
+        //
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else if ((type === 'stop-loss') || (type === 'take-profit')) {
+            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice', price);
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
+            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice');
+            const limitPrice = this.safeFloat (params, 'price2');
+            const stopPriceDefined = (stopPrice !== undefined);
+            const limitPriceDefined = (limitPrice !== undefined);
+            if (stopPriceDefined && limitPriceDefined) {
+                request['price'] = this.priceToPrecision (symbol, stopPrice);
+                request['price2'] = this.priceToPrecision (symbol, limitPrice);
+            } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
+                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
+            } else {
+                if (stopPriceDefined) {
+                    request['price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['price2'] = this.priceToPrecision (symbol, price);
+                } else if (limitPriceDefined) {
+                    request['price'] = this.priceToPrecision (symbol, price);
+                    request['price2'] = this.priceToPrecision (symbol, limitPrice);
+                }
+            }
         }
-        const response = await this.privatePostAddOrder (this.extend (request, query));
+        params = this.omit (params, [ 'price', 'stopPrice', 'price2' ]);
+        const response = await this.privatePostAddOrder (this.extend (request, params));
         //
         //     {
         //         error: [],
@@ -1201,8 +1238,11 @@ module.exports = class kraken extends Exchange {
         //         }
         //     }
         //
-        const orders = this.safeValue (response, 'result', []);
-        const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
+        const result = this.safeValue (response, 'result', []);
+        if (!(id in result)) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
+        }
+        const order = this.parseOrder (this.extend ({ 'id': id }, result[id]));
         return this.extend ({ 'info': response }, order);
     }
 

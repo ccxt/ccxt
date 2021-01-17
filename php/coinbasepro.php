@@ -349,6 +349,7 @@ class coinbasepro extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         //
         //     array(
@@ -1096,7 +1097,7 @@ class coinbasepro extends Exchange {
             if ($feeCost !== null) {
                 $fee = array(
                     'cost' => $feeCost,
-                    'code' => $code,
+                    'currency' => $code,
                 );
             }
         }

@@ -345,6 +345,7 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
         //
         //     [
@@ -1092,7 +1093,7 @@ module.exports = class coinbasepro extends Exchange {
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
-                    'code': code,
+                    'currency': code,
                 };
             }
         }

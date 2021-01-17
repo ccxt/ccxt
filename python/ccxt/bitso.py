@@ -198,14 +198,14 @@ class bitso(Exchange):
             }
             takerFees = []
             makerFees = []
-            for i in range(0, len(feeTiers)):
-                tier = feeTiers[i]
+            for j in range(0, len(feeTiers)):
+                tier = feeTiers[j]
                 volume = self.safe_float(tier, 'volume')
                 takerFee = self.safe_float(tier, 'taker')
                 makerFee = self.safe_float(tier, 'maker')
                 takerFees.append([volume, takerFee])
                 makerFees.append([volume, makerFee])
-                if i == 0:
+                if j == 0:
                     fee['taker'] = taker
                     fee['maker'] = maker
             tiers = {

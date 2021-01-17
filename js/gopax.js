@@ -18,6 +18,7 @@ module.exports = class gopax extends Exchange {
             'rateLimit': 50,
             'hostname': 'gopax.co.kr', // or 'gopax.com'
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelOrder': true,
                 'createMarketOrder': true,
@@ -51,7 +52,7 @@ module.exports = class gopax extends Exchange {
                     'public': 'https://api.{hostname}', // or 'https://api.gopax.co.kr'
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://gopax.co.kr',
+                'www': 'https://www.gopax.co.kr',
                 'doc': 'https://gopax.github.io/API/index.en.html',
                 'fees': 'https://www.gopax.com/feeinfo',
             },
@@ -104,7 +105,7 @@ module.exports = class gopax extends Exchange {
                     'ERROR_INVALID_AMOUNT': InvalidOrder,
                     'ERROR_INVALID_TRADING_PAIR': BadSymbol, // Unlikely to be triggered, due to ccxt.gopax.js implementation
                     'No such order ID': OrderNotFound, // {"errorMessage":"No such order ID","errorCode":202,"errorData":"Order server error: 202"}
-                    'Not enough amount': InsufficientFunds,
+                    // 'Not enough amount': InsufficientFunds, // {"errorMessage":"Not enough amount, try increasing your order amount","errorCode":10212,"errorData":{}}
                     'Forbidden order type': InvalidOrder,
                     'the client order ID will be reusable which order has already been completed or canceled': InvalidOrder,
                     'ERROR_NO_SUCH_TRADING_PAIR': BadSymbol, // Unlikely to be triggered, due to ccxt.gopax.js implementation
@@ -537,13 +538,39 @@ module.exports = class gopax extends Exchange {
         //         "position": "maker"                      // maker, taker
         //     }
         //
-        const id = this.safeString (trade, 'id');
+        //     {
+        //         "tradeId": 74072,            // trade ID
+        //         "orderId": 453529,           // order ID
+        //         "side": 2,                   // 1(bid), 2(ask)
+        //         "type": 1,                   // 1(limit), 2(market)
+        //         "baseAmount": 0.01,          // filled base asset amount (in ZEC for this case)
+        //         "quoteAmount": 1,            // filled quote asset amount (in KRW for this case)
+        //         "fee": 0.0004,               // fee
+        //         "price": 100,                // price
+        //         "isSelfTrade": false,        // whether both of matching orders are yours
+        //         "occurredAt": 1603932107,    // trade occurrence time
+        //         "tradingPairName": "ZEC-KRW" // order book
+        //     }
+        //
+        const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeInteger (trade, 'orderId');
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'timestamp'));
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'timestamp'));
+        timestamp = this.safeTimestamp (trade, 'occuredAt', timestamp);
         const marketId = this.safeString (trade, 'tradingPairName');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const side = this.safeString (trade, 'side');
+        let side = this.safeString (trade, 'side');
+        if (side === '1') {
+            side = 'buy';
+        } else if (side === '2') {
+            side = 'sell';
+        }
+        let type = this.safeString (trade, 'type');
+        if (type === '1') {
+            type = 'limit';
+        } else if (type === '2') {
+            type = 'market';
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat2 (trade, 'amount', 'baseAmount');
         let cost = this.safeFloat (trade, 'quoteAmount');
@@ -657,24 +684,11 @@ module.exports = class gopax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetBalances (params);
-        //
-        //     [
-        //         {
-        //             "asset": "KRW",                   // asset name
-        //             "avail": 1759466.76,              // available amount to place order
-        //             "hold": 16500,                    // outstanding amount on order books
-        //             "pendingWithdrawal": 0,           // amount being withdrawan
-        //             "lastUpdatedAt": "1600684352032", // balance last update time
-        //         },
-        //     ]
-        //
+    parseBalanceResponse (response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 'asset');
+            const currencyId = this.safeString2 (balance, 'asset', 'isoAlpha3');
             const code = this.safeCurrencyCode (currencyId);
             const hold = this.safeFloat (balance, 'hold');
             const pendingWithdrawal = this.safeFloat (balance, 'pendingWithdrawal');
@@ -684,6 +698,23 @@ module.exports = class gopax extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalances (params);
+        //
+        //     [
+        //         {
+        //             "asset": "KRW",                   // asset name
+        //             "avail": 1759466.76,              // available amount to place order
+        //             "hold": 16500,                    // outstanding amount on order books
+        //             "pendingWithdrawal": 0,           // amount being withdrawn
+        //             "lastUpdatedAt": "1600684352032", // balance last update time
+        //         },
+        //     ]
+        //
+        return this.parseBalanceResponse (response);
     }
 
     parseOrderStatus (status) {
@@ -750,19 +781,22 @@ module.exports = class gopax extends Exchange {
         const marketId = this.safeString (order, 'tradingPairName');
         market = this.safeMarket (marketId, market, '-');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let filled = undefined;
-        let cost = undefined;
-        let updated = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-            if (filled > 0) {
-                updated = this.parse8601 (this.safeString (order, 'updatedAt'));
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const balanceChange = this.safeValue (order, 'balanceChange', {});
+        let filled = this.safeFloat (balanceChange, 'baseNet');
+        let cost = this.safeFloat (balanceChange, 'quoteNet');
+        if (cost !== undefined) {
+            cost = Math.abs (cost);
+        }
+        let updated = undefined;
+        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
+            filled = Math.max (0, amount - remaining);
+        }
+        if ((filled !== undefined) && (filled > 0)) {
+            updated = this.parse8601 (this.safeString (order, 'updatedAt'));
+        }
+        if ((cost === undefined) && (price !== undefined) && (filled !== undefined)) {
+            cost = filled * price;
+        }
         let fee = undefined;
         if (side === 'buy') {
             const baseFee = this.safeValue (balanceChange, 'baseFee', {});
@@ -799,7 +833,7 @@ module.exports = class gopax extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'average': price,
+            'average': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

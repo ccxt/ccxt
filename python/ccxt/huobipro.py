@@ -113,6 +113,7 @@ class huobipro(Exchange):
                         'user/api-key',  # 母子用户API key信息查询
                     ],
                     'post': [
+                        'account/transfer',
                         'point/transfer',  # 点卡划转
                         'sub-user/management',  # 冻结/解冻子用户
                         'sub-user/creation',  # 子用户创建
@@ -223,6 +224,8 @@ class huobipro(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
+                    'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
                     'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                     'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                     'order-update-error': ExchangeNotAvailable,  # undocumented error
@@ -656,7 +659,8 @@ class huobipro(Exchange):
         if limit is not None:
             request['size'] = limit  # 1-100 orders, default is 100
         if since is not None:
-            request['start-date'] = self.ymd(since)  # maximum query window size is 2 days, query window shift should be within past 120 days
+            request['start-date'] = self.ymd(since)  # a date within 61 days from today
+            request['end-date'] = self.ymd(self.sum(since, 86400000))
         response = self.privateGetOrderMatchresults(self.extend(request, params))
         trades = self.parse_trades(response['data'], market, since, limit)
         return trades

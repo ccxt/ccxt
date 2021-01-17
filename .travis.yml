@@ -31,7 +31,7 @@ before_install:
 - git pull --tags
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- npm run build
+- npm run force-build
 - cd python
 - tox -e doc
 - cd ..

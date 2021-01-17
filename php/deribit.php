@@ -1013,7 +1013,7 @@ class deribit extends Exchange {
             'cancelled' => 'canceled',
             'filled' => 'closed',
             'rejected' => 'rejected',
-            // 'untriggered' => 'open',
+            'untriggered' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1635,7 +1635,7 @@ class deribit extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        $response = $this->privateGetPosition (array_merge($request, $params));
+        $response = $this->privateGetGetPosition (array_merge($request, $params));
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -1674,7 +1674,7 @@ class deribit extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privateGetPositions (array_merge($request, $params));
+        $response = $this->privateGetGetPositions (array_merge($request, $params));
         //
         //     {
         //         "jsonrpc" => "2.0",

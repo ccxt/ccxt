@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
@@ -25,6 +26,8 @@ class mercado(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -64,6 +67,7 @@ class mercado(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'coins',
                         '{coin}/orderbook/',  # last slash critical
                         '{coin}/ticker/',
                         '{coin}/trades/',
@@ -94,21 +98,86 @@ class mercado(Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Bitcoin'},
-                'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Litecoin'},
-                'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'BCash'},
-                'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ripple'},
-                'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ethereum'},
-                'USDC/BRL': {'id': 'BRLUSDC', 'symbol': 'USDC/BRL', 'base': 'USDC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'USDC'},
-            },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.7 / 100,
+                    'maker': 0.003,
+                    'taker': 0.007,
+                },
+            },
+            'options': {
+                'limits': {
+                    'BTC': 0.001,
+                    'BCH': 0.001,
+                    'ETH': 0.01,
+                    'LTC': 0.01,
+                    'XRP': 0.1,
                 },
             },
         })
+
+    def fetch_markets(self, params={}):
+        response = self.publicGetCoins(params)
+        #
+        #     [
+        #         "BCH",
+        #         "BTC",
+        #         "ETH",
+        #         "LTC",
+        #         "XRP",
+        #         "MBPRK01",
+        #         "MBPRK02",
+        #         "MBPRK03",
+        #         "MBPRK04",
+        #         "MBCONS01",
+        #         "USDC",
+        #         "WBX",
+        #         "CHZ",
+        #         "MBCONS02",
+        #         "PAXG",
+        #         "MBVASCO01",
+        #         "LINK"
+        #     ]
+        #
+        result = []
+        amountLimits = self.safe_value(self.options, 'limits', {})
+        for i in range(0, len(response)):
+            coin = response[i]
+            baseId = coin
+            quoteId = 'BRL'
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            id = quote + base
+            precision = {
+                'amount': 8,
+                'price': 5,
+            }
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': None,
+                'info': coin,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(amountLimits, baseId),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': 1 / math.pow(10, precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -153,19 +222,26 @@ class mercado(Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_timestamp(trade, 'date')
+        timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        id = self.safe_string(trade, 'tid')
+        id = self.safe_string_2(trade, 'tid', 'operation_id')
         type = None
         side = self.safe_string(trade, 'type')
         price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        amount = self.safe_float_2(trade, 'amount', 'quantity')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        feeCost = self.safe_float(trade, 'fee_rate')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': None,
+            }
         return {
             'id': id,
             'info': trade,
@@ -179,7 +255,7 @@ class mercado(Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -332,6 +408,11 @@ class mercado(Exchange):
         remaining = amount - filled
         cost = filled * average
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
+        rawTrades = self.safe_value(order, 'operations', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'side': side,
+            'order': id,
+        })
         return {
             'info': order,
             'id': id,
@@ -353,7 +434,7 @@ class mercado(Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': None,  # todo parse trades(operations)
+            'trades': trades,
         }
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -441,6 +522,44 @@ class mercado(Exchange):
         responseData = self.safe_value(response, 'response_data', {})
         orders = self.safe_value(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin_pair': market['id'],
+            'status_list': '[2]',  # open only
+        }
+        response = self.privatePostListOrders(self.extend(request, params))
+        responseData = self.safe_value(response, 'response_data', {})
+        orders = self.safe_value(responseData, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin_pair': market['id'],
+            'has_fills': True,
+        }
+        response = self.privatePostListOrders(self.extend(request, params))
+        responseData = self.safe_value(response, 'response_data', {})
+        ordersRaw = self.safe_value(responseData, 'orders', [])
+        orders = self.parse_orders(ordersRaw, market, since, limit)
+        trades = self.orders_to_trades(orders)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+
+    def orders_to_trades(self, orders):
+        result = []
+        for i in range(0, len(orders)):
+            trades = self.safe_value(orders[i], 'trades', [])
+            for y in range(0, len(trades)):
+                result.append(trades[y])
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

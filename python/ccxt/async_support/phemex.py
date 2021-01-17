@@ -810,6 +810,8 @@ class phemex(Exchange):
         return self.to_en(price, market['priceScale'], 0)
 
     def from_en(self, en, scale, precision, precisionMode=None):
+        if en is None:
+            return en
         precisionMode = self.precisionMode if (precisionMode is None) else precisionMode
         return float(self.decimal_to_precision(en * math.pow(10, -scale), ROUND, precision, precisionMode))
 
@@ -1734,8 +1736,9 @@ class phemex(Exchange):
         }
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
-            if price is not None:
-                qtyType = 'ByQuote'
+            if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
+                if price is not None:
+                    qtyType = 'ByQuote'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
                 cost = self.safe_float(params, 'cost')
@@ -2222,7 +2225,7 @@ class phemex(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        timestamp = self.safe_integer(transaction, 'createdAt')
+        timestamp = self.safe_integer_2(transaction, 'createdAt', 'submitedAt')
         type = self.safe_string_lower(transaction, 'type')
         feeCost = self.from_en(self.safe_float(transaction, 'feeEv'), currency['valueScale'], currency['precision'])
         fee = None

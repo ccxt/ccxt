@@ -821,6 +821,9 @@ module.exports = class phemex extends Exchange {
     }
 
     fromEn (en, scale, precision, precisionMode = undefined) {
+        if (en === undefined) {
+            return en;
+        }
         precisionMode = (precisionMode === undefined) ? this.precisionMode : precisionMode;
         return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, precisionMode));
     }
@@ -1796,8 +1799,10 @@ module.exports = class phemex extends Exchange {
         };
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
-            if (price !== undefined) {
-                qtyType = 'ByQuote';
+            if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
+                if (price !== undefined) {
+                    qtyType = 'ByQuote';
+                }
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
@@ -2327,7 +2332,7 @@ module.exports = class phemex extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const timestamp = this.safeInteger (transaction, 'createdAt');
+        const timestamp = this.safeInteger2 (transaction, 'createdAt', 'submitedAt');
         let type = this.safeStringLower (transaction, 'type');
         const feeCost = this.fromEn (this.safeFloat (transaction, 'feeEv'), currency['valueScale'], currency['precision']);
         let fee = undefined;

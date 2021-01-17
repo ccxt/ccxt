@@ -360,13 +360,17 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function safe_currency_code($currencyId, $currency = null) {
+    public function safe_currency($currencyId, $currency = null) {
         if (strlen($currencyId) > 3) {
-            if (((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) && (mb_strpos($currencyId, '.') < 0)) {
-                $currencyId = mb_substr($currencyId, 1);
+            if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
+                if (mb_strpos($currencyId, '.') > 0) {
+                    return parent::safe_currency($currencyId, $currency);
+                } else {
+                    $currencyId = mb_substr($currencyId, 1);
+                }
             }
         }
-        return parent::safe_currency_code($currencyId, $currency);
+        return parent::safe_currency($currencyId, $currency);
     }
 
     public function append_inactive_markets($result) {
@@ -831,7 +835,7 @@ class kraken extends Exchange {
         $amount = null;
         $cost = null;
         $id = null;
-        $order = null;
+        $orderId = null;
         $fee = null;
         $symbol = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
@@ -855,7 +859,7 @@ class kraken extends Exchange {
                 // delisted $market ids go here
                 $market = $this->get_delisted_market_by_id($marketId);
             }
-            $order = $trade['ordertxid'];
+            $orderId = $this->safe_string($trade, 'ordertxid');
             $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $this->safe_string($trade, 'type');
@@ -883,7 +887,7 @@ class kraken extends Exchange {
         }
         return array(
             'id' => $id,
-            'order' => $order,
+            'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -946,6 +950,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $balances );
@@ -970,18 +975,50 @@ class kraken extends Exchange {
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
         $clientOrderId = $this->safe_string_2($params, 'userref', 'clientOrderId');
-        $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
         }
-        $priceIsDefined = ($price !== null);
-        $marketOrder = ($type === 'market');
-        $limitOrder = ($type === 'limit');
-        $shouldIncludePrice = $limitOrder || (!$marketOrder && $priceIsDefined);
-        if ($shouldIncludePrice) {
+        //
+        //     $market
+        //     limit ($price = limit $price)
+        //     stop-loss ($price = stop loss $price)
+        //     take-profit ($price = take profit $price)
+        //     stop-loss-limit ($price = stop loss trigger $price, price2 = triggered limit $price)
+        //     take-profit-limit ($price = take profit trigger $price, price2 = triggered limit $price)
+        //     settle-position
+        //
+        if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
+        } else if (($type === 'stop-loss') || ($type === 'take-profit')) {
+            $stopPrice = $this->safe_float_2($params, 'price', 'stopPrice', $price);
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a price/stopPrice parameter for a ' . $type . ' order');
+            } else {
+                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+            }
+        } else if (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
+            $stopPrice = $this->safe_float_2($params, 'price', 'stopPrice');
+            $limitPrice = $this->safe_float($params, 'price2');
+            $stopPriceDefined = ($stopPrice !== null);
+            $limitPriceDefined = ($limitPrice !== null);
+            if ($stopPriceDefined && $limitPriceDefined) {
+                $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
+            } else if (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
+                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
+            } else {
+                if ($stopPriceDefined) {
+                    $request['price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['price2'] = $this->price_to_precision($symbol, $price);
+                } else if ($limitPriceDefined) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
+                }
+            }
         }
-        $response = $this->privatePostAddOrder (array_merge($request, $query));
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2' ));
+        $response = $this->privatePostAddOrder (array_merge($request, $params));
         //
         //     {
         //         error => array(),
@@ -1177,7 +1214,7 @@ class kraken extends Exchange {
         //
         //     {
         //         "error":array(),
-        //         "result":{
+        //         "$result":{
         //             "OTLAS3-RRHUF-NDWH5A":{
         //                 "refid":null,
         //                 "userref":null,
@@ -1211,8 +1248,11 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $orders = $this->safe_value($response, 'result', array());
-        $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
+        $result = $this->safe_value($response, 'result', array());
+        if (!(is_array($result) && array_key_exists($id, $result))) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+        }
+        $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
         return array_merge(array( 'info' => $response ), $order);
     }
 

@@ -359,6 +359,7 @@ class coinbasepro(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        self.load_markets()
         response = self.privateGetAccounts(params)
         #
         #     [
@@ -1035,7 +1036,7 @@ class coinbasepro(Exchange):
             if feeCost is not None:
                 fee = {
                     'cost': feeCost,
-                    'code': code,
+                    'currency': code,
                 }
         return {
             'info': transaction,

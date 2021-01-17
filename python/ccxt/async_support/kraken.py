@@ -368,11 +368,14 @@ class kraken(Exchange):
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
 
-    def safe_currency_code(self, currencyId, currency=None):
+    def safe_currency(self, currencyId, currency=None):
         if len(currencyId) > 3:
-            if ((currencyId.find('X') == 0) or (currencyId.find('Z') == 0)) and (currencyId.find('.') < 0):
-                currencyId = currencyId[1:]
-        return super(kraken, self).safe_currency_code(currencyId, currency)
+            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+                if currencyId.find('.') > 0:
+                    return super(kraken, self).safe_currency(currencyId, currency)
+                else:
+                    currencyId = currencyId[1:]
+        return super(kraken, self).safe_currency(currencyId, currency)
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
@@ -800,7 +803,7 @@ class kraken(Exchange):
         amount = None
         cost = None
         id = None
-        order = None
+        orderId = None
         fee = None
         symbol = None
         if isinstance(trade, list):
@@ -822,7 +825,7 @@ class kraken(Exchange):
             elif marketId is not None:
                 # delisted market ids go here
                 market = self.get_delisted_market_by_id(marketId)
-            order = trade['ordertxid']
+            orderId = self.safe_string(trade, 'ordertxid')
             id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = self.safe_timestamp(trade, 'time')
             side = self.safe_string(trade, 'type')
@@ -844,7 +847,7 @@ class kraken(Exchange):
                 cost = price * amount
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -901,6 +904,7 @@ class kraken(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostBalance(params)
         balances = self.safe_value(response, 'result', {})
         result = {'info': balances}
@@ -923,16 +927,45 @@ class kraken(Exchange):
             'volume': self.amount_to_precision(symbol, amount),
         }
         clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
-        query = self.omit(params, ['userref', 'clientOrderId'])
+        params = self.omit(params, ['userref', 'clientOrderId'])
         if clientOrderId is not None:
             request['userref'] = clientOrderId
-        priceIsDefined = (price is not None)
-        marketOrder = (type == 'market')
-        limitOrder = (type == 'limit')
-        shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
-        if shouldIncludePrice:
+        #
+        #     market
+        #     limit(price = limit price)
+        #     stop-loss(price = stop loss price)
+        #     take-profit(price = take profit price)
+        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
+        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
+        #     settle-position
+        #
+        if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostAddOrder(self.extend(request, query))
+        elif (type == 'stop-loss') or (type == 'take-profit'):
+            stopPrice = self.safe_float_2(params, 'price', 'stopPrice', price)
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
+            else:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
+            stopPrice = self.safe_float_2(params, 'price', 'stopPrice')
+            limitPrice = self.safe_float(params, 'price2')
+            stopPriceDefined = (stopPrice is not None)
+            limitPriceDefined = (limitPrice is not None)
+            if stopPriceDefined and limitPriceDefined:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+                request['price2'] = self.price_to_precision(symbol, limitPrice)
+            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
+                raise ArgumentsRequired(self.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
+            else:
+                if stopPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price2'] = self.price_to_precision(symbol, price)
+                elif limitPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price2'] = self.price_to_precision(symbol, limitPrice)
+        params = self.omit(params, ['price', 'stopPrice', 'price2'])
+        response = await self.privatePostAddOrder(self.extend(request, params))
         #
         #     {
         #         error: [],
@@ -1142,8 +1175,10 @@ class kraken(Exchange):
         #         }
         #     }
         #
-        orders = self.safe_value(response, 'result', [])
-        order = self.parse_order(self.extend({'id': id}, orders[id]))
+        result = self.safe_value(response, 'result', [])
+        if not (id in result):
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
+        order = self.parse_order(self.extend({'id': id}, result[id]))
         return self.extend({'info': response}, order)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):

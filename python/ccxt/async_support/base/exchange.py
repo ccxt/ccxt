@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.39.79'
+__version__ = '1.40.73'
 
 # -----------------------------------------------------------------------------
 
@@ -119,6 +119,7 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
+                http_response = http_response.strip()
                 http_status_code = response.status
                 http_status_text = response.reason
                 json_response = self.parse_json(http_response)

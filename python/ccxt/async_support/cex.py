@@ -655,9 +655,9 @@ class cex(Exchange):
         cost = None
         if market is not None:
             symbol = market['symbol']
-            cost = self.safe_float(order, 'ta:' + market['quote'])
-            if cost is None:
-                cost = self.safe_float(order, 'tta:' + market['quote'])
+            taCost = self.safe_float(order, 'ta:' + market['quote'])
+            ttaCost = self.safe_float(order, 'tta:' + market['quote'])
+            cost = self.sum(taCost, ttaCost)
             baseFee = 'fa:' + market['base']
             baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
