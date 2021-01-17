@@ -175,7 +175,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
-        $response = $this->privateGetAccounts ($params);
+        $this->load_markets();
+        $request = array(
+            'limit' => 100,
+        );
+        $response = $this->privateGetAccounts (array_merge($request, $params));
         //
         //     {
         //         "id" => "XLM",
@@ -706,7 +710,10 @@ class coinbase extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccounts ($params);
+        $request = array(
+            'limit' => 100,
+        );
+        $response = $this->privateGetAccounts (array_merge($request, $params));
         $balances = $this->safe_value($response, 'data');
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $result = array( 'info' => $response );

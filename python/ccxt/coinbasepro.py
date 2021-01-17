@@ -360,10 +360,7 @@ class coinbasepro(Exchange):
 
     def fetch_accounts(self, params={}):
         self.load_markets()
-        request = {
-            'limit': 100,
-        }
-        response = self.privateGetAccounts(self.extend(request, params))
+        response = self.privateGetAccounts(params)
         #
         #     [
         #         {
