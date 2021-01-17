@@ -1093,7 +1093,7 @@ class Transpiler {
 
         const quote = (s) => "'" + s + "'" // helper to add quotes around class names
 
-        const pythonExports = [ 'error_hierarchy' ]
+        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
 
