@@ -959,7 +959,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = true) {
 
         // todo normalize jsFolder and other arguments
 
@@ -976,7 +976,7 @@ class Transpiler {
 
         const classNames = fs.readdirSync (jsFolder)
             .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
-            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options))
+            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 
@@ -1415,7 +1415,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything () {
+    transpileEverything (force = true) {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -1430,7 +1430,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1467,7 +1467,7 @@ if (require.main === module) { // called directly like `node module`
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else {
-        transpiler.transpileEverything ()
+        transpiler.transpileEverything (force)
     }
 
 } else { // if required as a module
