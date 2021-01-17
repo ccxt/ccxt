@@ -228,6 +228,10 @@ module.exports = class bitvavo extends Exchange {
         });
     }
 
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    }
+
     amountToPrecision (symbol, amount) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
