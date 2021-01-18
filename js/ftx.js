@@ -1698,7 +1698,7 @@ module.exports = class ftx extends Exchange {
             'tagFrom': undefined,
             'tag': tag,
             'tagTo': tag,
-            'type': type,
+            'type': undefined,
             'amount': amount,
             'currency': code,
             'status': status,
