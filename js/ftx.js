@@ -1664,6 +1664,15 @@ module.exports = class ftx extends Exchange {
         //         "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         //     }
         //
+        //     {
+        //         'coin': 'USD',
+        //         'id': '503722',
+        //         'notes': 'Transfer',
+        //         'size': '3.35',
+        //         'status': 'complete',
+        //         'time': '2020-10-06T03:20:34.201556+00:00',
+        //     }
+        //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
         const id = this.safeString (transaction, 'id');
         const amount = this.safeFloat (transaction, 'size');
@@ -1677,7 +1686,6 @@ module.exports = class ftx extends Exchange {
             address = this.safeString (address, 'address');
         }
         const fee = this.safeFloat (transaction, 'fee');
-        const type = ('destinationName' in transaction) ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
             'id': id,
@@ -1728,7 +1736,7 @@ module.exports = class ftx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        return this.parseTransactions (result, currency, since, limit);
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1755,7 +1763,7 @@ module.exports = class ftx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        return this.parseTransactions (result, currency, since, limit);
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
