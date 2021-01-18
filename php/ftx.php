@@ -1666,6 +1666,15 @@ class ftx extends Exchange {
         //         "$txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         //     }
         //
+        //     {
+        //         'coin' => 'USD',
+        //         'id' => '503722',
+        //         'notes' => 'Transfer',
+        //         'size' => '3.35',
+        //         'status' => 'complete',
+        //         'time' => '2020-10-06T03:20:34.201556+00:00',
+        //     }
+        //
         $code = $this->safe_currency_code($this->safe_string($transaction, 'coin'));
         $id = $this->safe_string($transaction, 'id');
         $amount = $this->safe_float($transaction, 'size');
@@ -1679,7 +1688,6 @@ class ftx extends Exchange {
             $address = $this->safe_string($address, 'address');
         }
         $fee = $this->safe_float($transaction, 'fee');
-        $type = (is_array($transaction) && array_key_exists('destinationName', $transaction)) ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1692,7 +1700,7 @@ class ftx extends Exchange {
             'tagFrom' => null,
             'tag' => $tag,
             'tagTo' => $tag,
-            'type' => $type,
+            'type' => null,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
@@ -1730,7 +1738,7 @@ class ftx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        return $this->parse_transactions($result, $currency, $since, $limit);
+        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1757,7 +1765,7 @@ class ftx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        return $this->parse_transactions($result, $currency, $since, $limit);
+        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

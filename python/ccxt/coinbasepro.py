@@ -359,6 +359,7 @@ class coinbasepro(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        self.load_markets()
         response = self.privateGetAccounts(params)
         #
         #     [

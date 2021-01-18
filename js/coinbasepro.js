@@ -345,6 +345,7 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
         //
         //     [

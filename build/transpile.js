@@ -806,16 +806,17 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    getExchangeClassDeclarationMatches (contents) {
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+    }
+
+    // ------------------------------------------------------------------------
+
     transpileDerivedExchangeClass (contents, methodNames = undefined) {
 
-        let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+        const [ _, className, baseClass, methodMatches ] = this.getExchangeClassDeclarationMatches (contents)
 
-        // log.green (file, exchangeClassDeclarationMatches[3])
-
-        let className = exchangeClassDeclarationMatches[1]
-        let baseClass = exchangeClassDeclarationMatches[2]
-
-        let methods = exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/)
+        const methods = methodMatches.trim ().split (/\n\s*\n/)
 
         let python2 = []
         let python3 = []
@@ -839,14 +840,6 @@ class Transpiler {
 
             // async or not
             let keyword = matches[1]
-            // try {
-            //     keyword = matches[1]
-            // } catch (e) {
-            //     log.red (e)
-            //     log.green (methods[i])
-            //     log.yellow (exchangeClassDeclarationMatches[3].trim ().split (/\n\s*\n/))
-            //     process.exit ()
-            // }
 
             // method name
             let method = matches[2]
@@ -917,46 +910,44 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileDerivedExchangeFile (jsFolder, filename, options) {
+    transpileDerivedExchangeFile (jsFolder, filename, options, force = false) {
 
         // todo normalize jsFolder and other arguments
 
         try {
 
             const { python2Folder, python3Folder, phpFolder } = options
-            const path = jsFolder + filename
-            const contents = fs.readFileSync (path, 'utf8')
+            const pythonFilename = filename.replace ('.js', '.py')
+            const phpFilename = filename.replace ('.js', '.php')
+            const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
+            const python2mtime = python2Folder ? fs.statSync (python2Folder + pythonFilename).mtime.getTime () : undefined
+            const python3mtime = fs.statSync (python3Folder + pythonFilename).mtime.getTime ()
+            const phpmtime = fs.statSync (phpFolder + phpFilename).mtime.getTime ()
+            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            // function getMethodNames (object) {
-            //     let functions = []
-            //     let o = object
-            //     do {
-            //         functions = functions.concat (Object.getOwnPropertyNames (o))
-            //     } while (o = Object.getPrototypeOf (o))
-            //     return unique (functions.filter (f => (typeof object[f] === 'function')))
-            // }
-            // const exchangeClass = require ('.' + path)
-            // const exchange = new exchangeClass ()
-            // const methodNames = getMethodNames (exchange)
-            // const { python2, python3, php, className, baseClass } =
-            //     this.transpileDerivedExchangeClass (contents, methodNames)
+            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (python2Folder && (jsmtime > python2mtime))) {
+                const { python2, python3, php, className, baseClass } = this.transpileDerivedExchangeClass (contents)
+                log.cyan ('Transpiling from', filename.yellow)
 
-            const { python2, python3, php, className, baseClass } =
-                this.transpileDerivedExchangeClass (contents)
+                ;[
+                    [ python2Folder, pythonFilename, python2 ],
+                    [ python3Folder, pythonFilename, python3 ],
+                    [ phpFolder, phpFilename, php ],
+                ].forEach (([ folder, filename, code ]) => {
+                    if (folder) {
+                        overwriteFile (folder + filename, code)
+                        fs.utimesSync (folder + filename, new Date (), new Date (jsmtime))
+                    }
+                })
 
-            log.cyan ('Transpiling from', filename.yellow)
+                return { className, baseClass }
 
-            ;[
-                [ python2Folder, filename.replace ('.js', '.py'), python2 ],
-                [ python3Folder, filename.replace ('.js', '.py'), python3 ],
-                [ phpFolder, filename.replace ('.js', '.php'), php ],
-            ].forEach (([ folder, filename, code ]) => {
-                if (folder) {
-                    overwriteFile (folder + filename, code)
-                }
-            })
+            } else {
 
-            return { className, baseClass }
+                const [ _, className, baseClass ] = this.getExchangeClassDeclarationMatches (contents)
+                log.green ('Already transpiled', filename.yellow)
+                return { className, baseClass }
+            }
 
         } catch (e) {
 
@@ -968,7 +959,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js') {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -985,7 +976,7 @@ class Transpiler {
 
         const classNames = fs.readdirSync (jsFolder)
             .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
-            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options))
+            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 
@@ -1093,7 +1084,7 @@ class Transpiler {
 
         const quote = (s) => "'" + s + "'" // helper to add quotes around class names
 
-        const pythonExports = [ 'error_hierarchy' ]
+        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const pythonErrors = intellisense (root, 'BaseError', pythonDeclareErrorClass, pythonExports)
         const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
 
@@ -1424,10 +1415,10 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything () {
+    transpileEverything (force = false) {
 
         // default pattern is '.js'
-        const [ /* node */, /* script */, pattern ] = process.argv
+        const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             , python2Folder = './python/ccxt/'
             , python3Folder = './python/ccxt/async_support/'
             , phpFolder     = './php/'
@@ -1439,7 +1430,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1470,12 +1461,14 @@ if (require.main === module) { // called directly like `node module`
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
+    const force = process.argv.includes ('--force')
+    log.bright.green ({ force })
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else {
-        transpiler.transpileEverything ()
+        transpiler.transpileEverything (force)
     }
 
 } else { // if required as a module

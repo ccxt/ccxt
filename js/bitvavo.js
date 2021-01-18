@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -221,10 +221,31 @@ module.exports = class bitvavo extends Exchange {
                     'expires': 1000, // 1 second
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
+    }
+
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    }
+
+    amountToPrecision (symbol, amount) {
+        // https://docs.bitfinex.com/docs/introduction#amount-precision
+        // The amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    priceToPrecision (symbol, price) {
+        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchTime (params = {}) {
