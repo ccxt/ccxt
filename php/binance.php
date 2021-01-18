@@ -1478,7 +1478,7 @@ class binance extends Exchange {
         //         "$timeInForce" => "GTC",
         //         "$type" => "LIMIT",
         //         "$side" => "BUY",
-        //         "stopPrice" => "0.0",
+        //         "$stopPrice" => "0.0",
         //         "icebergQty" => "0.0",
         //         "time" => 1499827319559,
         //         "updateTime" => 1499827319559,
@@ -1499,7 +1499,7 @@ class binance extends Exchange {
         //         "$timeInForce" => "GTC",
         //         "$type" => "LIMIT",
         //         "$side" => "BUY",
-        //         "stopPrice" => "0.0",
+        //         "$stopPrice" => "0.0",
         //         "updateTime" => 1499827319559
         //     }
         //
@@ -1584,6 +1584,7 @@ class binance extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1597,6 +1598,7 @@ class binance extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
