@@ -175,6 +175,7 @@ class Exchange {
         'tidebit',
         'tidex',
         'timex',
+        'tprexchange',
         'upbit',
         'vaultoro',
         'vbtc',
