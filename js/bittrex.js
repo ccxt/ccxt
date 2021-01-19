@@ -763,10 +763,8 @@ module.exports = class bittrex extends Exchange {
             if (isCeilingLimit) {
                 request['limit'] = this.priceToPrecision (symbol, price);
                 cost = this.safeFloat2 (params, 'ceiling', 'cost', amount);
-                params = this.omit (params, [ 'ceiling', 'cost' ]);
             } else if (isCeilingMarket) {
                 cost = this.safeFloat2 (params, 'ceiling', 'cost');
-                params = this.omit (params, [ 'ceiling', 'cost' ]);
                 if (cost === undefined) {
                     if (price === undefined) {
                         cost = amount;
@@ -775,6 +773,7 @@ module.exports = class bittrex extends Exchange {
                     }
                 }
             }
+            params = this.omit (params, [ 'ceiling', 'cost' ]);
             request['ceiling'] = this.costToPrecision (symbol, cost);
             // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
