@@ -767,7 +767,16 @@ class bittrex extends Exchange {
         $isCeilingMarket = ($uppercaseType === 'CEILING_MARKET');
         $isCeilingOrder = $isCeilingLimit || $isCeilingMarket;
         if ($isCeilingOrder) {
-            $request['ceiling'] = $this->price_to_precision($symbol, $price);
+            $cost = $this->safe_float_2($params, 'ceiling', 'cost');
+            $params = $this->omit($params, array( 'ceiling', 'cost' ));
+            if ($cost === null) {
+                if ($price === null) {
+                    $cost = $amount;
+                } else {
+                    $cost = $amount * $price;
+                }
+            }
+            $request['ceiling'] = $this->cost_to_precision($symbol, $cost);
             // bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             $request['timeInForce'] = 'IMMEDIATE_OR_CANCEL';
         } else {
