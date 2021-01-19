@@ -77,8 +77,6 @@ foreach ($config as $id => $params) {
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 
 function test_ticker($exchange, $symbol) {
-    $delay = $exchange->rateLimit * 1000;
-    usleep($delay);
     dump(green($exchange->id), green($symbol), 'fetching ticker...');
     $ticker = $exchange->fetch_ticker($symbol);
     dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
@@ -91,8 +89,6 @@ function test_ticker($exchange, $symbol) {
 }
 
 function test_order_book($exchange, $symbol) {
-    $delay = $exchange->rateLimit * 1000;
-    usleep($delay);
     dump(green($exchange->id), green($symbol), 'fetching order book...');
     $orderbook = $exchange->fetch_order_book($symbol);
     dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
@@ -107,8 +103,6 @@ function test_order_book($exchange, $symbol) {
 
 function test_trades($exchange, $symbol) {
     if ($exchange->has['fetchTrades']) {
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
 
         dump(green($symbol), 'fetching trades...');
         $trades = $exchange->fetch_trades($symbol);
@@ -133,8 +127,6 @@ function test_orders($exchange, $symbol) {
             dump(green($symbol), 'fetch_orders() skipped');
             return;
         }
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
         dump(green($symbol), 'fetching orders...');
         $orders = $exchange->fetch_orders($symbol);
         foreach ($orders as $order) {
@@ -150,8 +142,6 @@ function test_orders($exchange, $symbol) {
 
 function test_closed_orders($exchange, $symbol) {
     if ($exchange->has['fetchClosedOrders']) {
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
 
         dump(green($symbol), 'fetching closed orders...');
         $orders = $exchange->fetch_closed_orders($symbol);
@@ -169,8 +159,6 @@ function test_closed_orders($exchange, $symbol) {
 
 function test_open_orders($exchange, $symbol) {
     if ($exchange->has['fetchOpenOrders']) {
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
 
         dump(green($symbol), 'fetching open orders...');
         $orders = $exchange->fetch_open_orders($symbol);
@@ -188,8 +176,6 @@ function test_open_orders($exchange, $symbol) {
 
 function test_transactions($exchange, $code) {
     if ($exchange->has['fetchTransactions']) {
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
 
         dump(green($code), 'fetching transactions...');
         $transactions = $exchange->fetch_transactions($code);
@@ -214,8 +200,6 @@ function test_ohlcvs($exchange, $symbol) {
         return;
     }
     if ($exchange->has['fetchOHLCV']) {
-        $delay = $exchange->rateLimit * 1000;
-        usleep($delay);
 
         $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
         $timeframe = array_keys($timeframes)[0];
