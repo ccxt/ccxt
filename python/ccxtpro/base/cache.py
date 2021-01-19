@@ -65,8 +65,9 @@ class ArrayCacheById(ArrayCache):
     def append(self, item):
         if item['id'] in self.hashmap:
             reference = self.hashmap[item['id']]
-            reference.clear()
-            reference.update(item)
+            if reference != item:
+                reference.clear()
+                reference.update(item)
         else:
             self.hashmap[item['id']] = item
             if len(self._deque) == self._deque.maxlen:
@@ -81,8 +82,9 @@ class ArrayCacheBySymbolById(ArrayCacheById):
         by_id = self._index.setdefault(item['symbol'], {})
         if item['id'] in by_id:
             reference = by_id[item['id']]
-            reference.clear()
-            reference.update(item)
+            if reference != item:
+                reference.clear()
+                reference.update(item)
         else:
             by_id[item['id']] = item
             if len(self._deque) == self._deque.maxlen:
