@@ -748,7 +748,14 @@ class bittrex(Exchange):
         isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
         isCeilingOrder = isCeilingLimit or isCeilingMarket
         if isCeilingOrder:
-            request['ceiling'] = self.price_to_precision(symbol, price)
+            cost = self.safe_float_2(params, 'ceiling', 'cost')
+            params = self.omit(params, ['ceiling', 'cost'])
+            if cost is None:
+                if price is None:
+                    cost = amount
+                else:
+                    cost = amount * price
+            request['ceiling'] = self.cost_to_precision(symbol, cost)
             # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
             request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
         else:
