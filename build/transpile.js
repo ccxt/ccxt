@@ -219,7 +219,7 @@ class CCXTProTranspiler extends Transpiler {
     transpileEverything (force = false) {
 
         // default pattern is '.js'
-        const [ /* node */, /* script */, pattern ] = process.argv
+        const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxtpro/'
             , phpFolder     = './php/'
