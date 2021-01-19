@@ -38,11 +38,13 @@ class ArrayCacheById extends ArrayCache {
     append (item) {
         if (item.id in this.hashmap) {
             const reference = this.hashmap[item.id]
-            for (const prop in reference) {
-                delete reference[prop]
-            }
-            for (const prop in item) {
-                reference[prop] = item[prop]
+            if (reference !== item) {
+                for (const prop in reference) {
+                    delete reference[prop]
+                }
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
             }
         } else {
             this.hashmap[item.id] = item
@@ -55,18 +57,19 @@ class ArrayCacheById extends ArrayCache {
     }
 }
 
-
 class ArrayCacheBySymbolById extends ArrayCacheById {
 
     append (item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
-            for (const prop in reference) {
-                delete reference[prop]
-            }
-            for (const prop in item) {
-                reference[prop] = item[prop]
+            if (reference !== item) {
+                for (const prop in reference) {
+                    delete reference[prop]
+                }
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
             }
         } else {
             byId[item.id] = item
