@@ -216,7 +216,7 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileEverything () {
+    transpileEverything (force = false) {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv
@@ -231,7 +231,7 @@ class CCXTProTranspiler extends Transpiler {
 
         this.transpileCacheTest ()
         this.transpileOrderBookTest ()
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -260,7 +260,9 @@ if (require.main === module) {
     // if called directly like `node module`
 
     const transpiler = new CCXTProTranspiler ()
-    transpiler.transpileEverything ()
+    const force = process.argv.includes ('--force')
+    log.bright.green ({ force })
+    transpiler.transpileEverything (force)
 
 } else {
 
