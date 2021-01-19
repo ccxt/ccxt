@@ -62,8 +62,8 @@ module.exports = class foblgate extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
-                'Invalid ApiKey': AuthenticationError, //{"status":"6004","message":"This API key does not have permission to access the URL"}
-                'Method Not Allowed.(Access IP)': PermissionDenied, //{"status":"6007","message":"IP Address is not granted access"}
+                'Invalid ApiKey': AuthenticationError, // {"status":"6004","message":"This API key does not have permission to access the URL"}
+                'Method Not Allowed.(Access IP)': PermissionDenied, // {"status":"6007","message":"IP Address is not granted access"}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': AuthenticationError,
