@@ -1098,7 +1098,7 @@ class deribit extends Exchange {
             $trades = $this->parse_trades($trades, $market);
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = null;
+        $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
         return array(
             'info' => $order,
