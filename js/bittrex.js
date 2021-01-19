@@ -759,13 +759,20 @@ module.exports = class bittrex extends Exchange {
         const isCeilingMarket = (uppercaseType === 'CEILING_MARKET');
         const isCeilingOrder = isCeilingLimit || isCeilingMarket;
         if (isCeilingOrder) {
-            let cost = this.safeFloat2 (params, 'ceiling', 'cost');
-            params = this.omit (params, [ 'ceiling', 'cost' ]);
-            if (cost === undefined) {
-                if (price === undefined) {
-                    cost = amount;
-                } else {
-                    cost = amount * price;
+            let cost = undefined;
+            if (isCeilingLimit) {
+                request['limit'] = this.priceToPrecision (symbol, price);
+                cost = this.safeFloat2 (params, 'ceiling', 'cost', amount);
+                params = this.omit (params, [ 'ceiling', 'cost' ]);
+            } else if (isCeilingMarket) {
+                cost = this.safeFloat2 (params, 'ceiling', 'cost');
+                params = this.omit (params, [ 'ceiling', 'cost' ]);
+                if (cost === undefined) {
+                    if (price === undefined) {
+                        cost = amount;
+                    } else {
+                        cost = amount * price;
+                    }
                 }
             }
             request['ceiling'] = this.costToPrecision (symbol, cost);
