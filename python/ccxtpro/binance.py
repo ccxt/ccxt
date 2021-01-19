@@ -15,13 +15,14 @@ class binance(Exchange, ccxt.binance):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
                 'ws': True,
-                'watchOrderBook': True,
-                'watchTrades': True,
+                'watchBalance': True,
+                'watchMyTrades': True,
                 'watchOHLCV': True,
+                'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
-                'watchOrders': True,
-                'watchBalance': True,
+                'watchTrades': True,
             },
             'urls': {
                 'test': {
@@ -332,6 +333,8 @@ class binance(Exchange, ccxt.binance):
 
     def parse_trade(self, trade, market=None):
         #
+        # public watchTrades
+        #
         #     {
         #         e: 'trade',       # event type
         #         E: 1579481530911,  # event time
@@ -360,24 +363,75 @@ class binance(Exchange, ccxt.binance):
         #        "M": True         # Ignore
         #     }
         #
+        # private watchMyTrades
+        #
+        #     {
+        #         e: 'executionReport',
+        #         E: 1611063861489,
+        #         s: 'BNBUSDT',
+        #         c: 'm4M6AD5MF3b1ERe65l4SPq',
+        #         S: 'BUY',
+        #         o: 'MARKET',
+        #         f: 'GTC',
+        #         q: '2.00000000',
+        #         p: '0.00000000',
+        #         P: '0.00000000',
+        #         F: '0.00000000',
+        #         g: -1,
+        #         C: '',
+        #         x: 'TRADE',
+        #         X: 'PARTIALLY_FILLED',
+        #         r: 'NONE',
+        #         i: 1296882607,
+        #         l: '0.33200000',
+        #         z: '0.33200000',
+        #         L: '46.86600000',
+        #         n: '0.00033200',
+        #         N: 'BNB',
+        #         T: 1611063861488,
+        #         t: 109747654,
+        #         I: 2696953381,
+        #         w: False,
+        #         m: False,
+        #         M: True,
+        #         O: 1611063861488,
+        #         Z: '15.55951200',
+        #         Y: '15.55951200',
+        #         Q: '0.00000000'
+        #     }
+        #
         event = self.safe_string(trade, 'e')
         if event is None:
             return super(binance, self).parse_trade(trade, market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float(trade, 'p')
+        price = self.safe_float_2(trade, 'L', 'p')
         amount = self.safe_float(trade, 'q')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        if event == 'executionReport':
+            amount = self.safe_float(trade, 'l', amount)
+        cost = self.safe_float(trade, 'Y')
+        if cost is None:
+            if (price is not None) and (amount is not None):
+                cost = price * amount
         marketId = self.safe_string(trade, 's')
         symbol = self.safe_symbol(marketId)
-        side = None
+        side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
-        orderId = None
+        orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
+            if side is None:
+                side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
+        fee = None
+        feeCost = self.safe_float(trade, 'n')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'N')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        type = self.safe_string_lower(trade, 'o')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -385,13 +439,13 @@ class binance(Exchange, ccxt.binance):
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': None,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def handle_trade(self, client, message):
@@ -648,11 +702,15 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'executionReport'
-        future = self.watch(url, messageHash)
+        messageHash = 'orders'
+        subscriptionHash = messageHash
+        if symbol is not None:
+            subscriptionHash += ':' + symbol
+        message = None
+        future = self.watch(url, messageHash, message, subscriptionHash)
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
-    def handle_order(self, client, message):
+    def parse_ws_order(self, order, market=None):
         #
         #     {
         #         "e": "executionReport",        # Event type
@@ -689,41 +747,45 @@ class binance(Exchange, ccxt.binance):
         #         "Q": "0.00000000"              # Quote Order Qty
         #     }
         #
-        messageHash = self.safe_string(message, 'e')
-        orderId = self.safe_string(message, 'i')
-        marketId = self.safe_string(message, 's')
+        orderId = self.safe_string(order, 'i')
+        marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId)
-        timestamp = self.safe_integer(message, 'O')
-        lastTradeTimestamp = self.safe_string(message, 'T')
-        feeAmount = self.safe_float(message, 'n')
-        feeCurrency = self.safe_currency_code(self.safe_string(message, 'N'))
-        fee = {
-            'cost': feeAmount,
-            'currency': feeCurrency,
-        }
-        price = self.safe_float(message, 'p')
-        amount = self.safe_float(message, 'q')
-        side = self.safe_string_lower(message, 'S')
-        type = self.safe_string_lower(message, 'o')
-        filled = self.safe_float(message, 'z')
-        cumulativeQuote = self.safe_float(message, 'Z')
+        timestamp = self.safe_integer(order, 'O')
+        lastTradeTimestamp = self.safe_string(order, 'T')
+        fee = None
+        feeCost = self.safe_float(order, 'n')
+        if (feeCost is not None) and (feeCost > 0):
+            feeCurrencyId = self.safe_string(order, 'N')
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        price = self.safe_float(order, 'p')
+        amount = self.safe_float(order, 'q')
+        side = self.safe_string_lower(order, 'S')
+        type = self.safe_string_lower(order, 'o')
+        filled = self.safe_float(order, 'z')
+        cumulativeQuote = self.safe_float(order, 'Z')
         remaining = amount
         average = None
-        cost = None
+        cost = cumulativeQuote
         if filled is not None:
-            if price is not None:
-                cost = filled * price
+            if cost is None:
+                if price is not None:
+                    cost = filled * price
             if amount is not None:
                 remaining = max(amount - filled, 0)
             if (cumulativeQuote is not None) and (filled > 0):
                 average = cumulativeQuote / filled
-        rawStatus = self.safe_string(message, 'X')
+        rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None
-        clientOrderId = self.safe_string(message, 'c')
-        stopPrice = self.safe_float(message, 'P')
-        parsed = {
-            'info': message,
+        clientOrderId = self.safe_string(order, 'c')
+        stopPrice = self.safe_float(order, 'P')
+        timeInForce = self.safe_string(order, 'f')
+        return {
+            'info': order,
             'symbol': symbol,
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -731,6 +793,8 @@ class binance(Exchange, ccxt.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': None,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -743,12 +807,139 @@ class binance(Exchange, ccxt.binance):
             'fee': fee,
             'trades': trades,
         }
-        if self.orders is None:
-            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            self.orders = ArrayCacheBySymbolById(limit)
-        orders = self.orders
-        orders.append(parsed)
-        client.resolve(self.orders, messageHash)
+
+    def handle_execution_report(self, client, message):
+        #
+        #     {
+        #         "e": "executionReport",        # Event type
+        #         "E": 1499405658658,            # Event time
+        #         "s": "ETHBTC",                 # Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
+        #         "S": "BUY",                    # Side
+        #         "o": "LIMIT",                  # Order type
+        #         "f": "GTC",                    # Time in force
+        #         "q": "1.00000000",             # Order quantity
+        #         "p": "0.10264410",             # Order price
+        #         "P": "0.00000000",             # Stop price
+        #         "F": "0.00000000",             # Iceberg quantity
+        #         "g": -1,                       # OrderListId
+        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    # Current execution type
+        #         "X": "NEW",                    # Current order status
+        #         "r": "NONE",                   # Order reject reason; will be an error code.
+        #         "i": 4293153,                  # Order ID
+        #         "l": "0.00000000",             # Last executed quantity
+        #         "z": "0.00000000",             # Cumulative filled quantity
+        #         "L": "0.00000000",             # Last executed price
+        #         "n": "0",                      # Commission amount
+        #         "N": null,                     # Commission asset
+        #         "T": 1499405658657,            # Transaction time
+        #         "t": -1,                       # Trade ID
+        #         "I": 8641984,                  # Ignore
+        #         "w": True,                     # Is the order on the book?
+        #         "m": False,                    # Is self trade the maker side?
+        #         "M": False,                    # Ignore
+        #         "O": 1499405658657,            # Order creation time
+        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              # Quote Order Qty
+        #     }
+        #
+        self.handle_my_trade(client, message)
+        self.handle_order(client, message)
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.authenticate()
+        defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        messageHash = 'myTrades'
+        subscriptionHash = messageHash
+        if symbol is not None:
+            subscriptionHash += ':' + symbol
+        message = None
+        future = self.watch(url, messageHash, message, subscriptionHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_my_trade(self, client, message):
+        messageHash = 'myTrades'
+        executionType = self.safe_string(message, 'x')
+        if executionType == 'TRADE':
+            trade = self.parse_trade(message)
+            orderId = self.safe_string(trade, 'order')
+            tradeFee = self.safe_value(trade, 'fee')
+            symbol = self.safe_string(trade, 'symbol')
+            if orderId is not None and tradeFee is not None and symbol is not None:
+                cachedOrders = self.orders
+                if cachedOrders is not None:
+                    orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+                    order = self.safe_value(orders, orderId)
+                    if order is not None:
+                        # accumulate order fees
+                        fees = self.safe_value(order, 'fees')
+                        fee = self.safe_value(order, 'fee')
+                        if fees is not None:
+                            insertNewFeeCurrency = True
+                            for i in range(0, len(fees)):
+                                orderFee = fees[i]
+                                if orderFee['currency'] == tradeFee['currency']:
+                                    feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
+                                    order['fees'][i]['cost'] = float(self.currency_to_precision(tradeFee['currency'], feeCost))
+                                    insertNewFeeCurrency = False
+                                    break
+                            if insertNewFeeCurrency:
+                                order['fees'].append(tradeFee)
+                        elif fee is not None:
+                            if fee['currency'] == tradeFee['currency']:
+                                feeCost = self.sum(fee['cost'], tradeFee['cost'])
+                                order['fee']['cost'] = float(self.currency_to_precision(tradeFee['currency'], feeCost))
+                            elif fee['currency'] is None:
+                                order['fee'] = tradeFee
+                            else:
+                                order['fees'] = [fee, tradeFee]
+                                order['fee'] = None
+                        else:
+                            order['fee'] = tradeFee
+                        # save self trade in the order
+                        orderTrades = self.safe_value(order, 'trades', [])
+                        orderTrades.append(trade)
+                        order['trades'] = orderTrades
+                        # save the order
+                        cachedOrders.append(order)
+                if self.myTrades is None:
+                    limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                    self.myTrades = ArrayCacheBySymbolById(limit)
+                myTrades = self.myTrades
+                myTrades.append(trade)
+                client.resolve(self.myTrades, messageHash)
+                messageHashSymbol = messageHash + ':' + symbol
+                client.resolve(self.myTrades, messageHashSymbol)
+
+    def handle_order(self, client, message):
+        messageHash = 'orders'
+        parsed = self.parse_ws_order(message)
+        symbol = self.safe_string(parsed, 'symbol')
+        orderId = self.safe_string(parsed, 'id')
+        if symbol is not None:
+            if self.orders is None:
+                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+                self.orders = ArrayCacheBySymbolById(limit)
+            cachedOrders = self.orders
+            orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+            order = self.safe_value(orders, orderId)
+            if order is not None:
+                fee = self.safe_value(order, 'fee')
+                if fee is not None:
+                    parsed['fee'] = fee
+                fees = self.safe_value(order, 'fees')
+                if fees is not None:
+                    parsed['fees'] = fees
+                parsed['trades'] = self.safe_value(order, 'trades')
+            cachedOrders.append(parsed)
+            client.resolve(self.orders, messageHash)
+            messageHashSymbol = messageHash + ':' + symbol
+            client.resolve(self.orders, messageHashSymbol)
 
     def handle_message(self, client, message):
         methods = {
@@ -759,7 +950,7 @@ class binance(Exchange, ccxt.binance):
             '24hrTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
-            'executionReport': self.handle_order,
+            'executionReport': self.handle_execution_report,
         }
         event = self.safe_string(message, 'e')
         method = self.safe_value(methods, event)
