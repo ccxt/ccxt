@@ -4,7 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
-    , debug = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--debug')
     , no_poll = process.argv.includes ('--no-poll')
     , no_send = process.argv.includes ('--no-send')
     , no_load_markets = process.argv.includes ('--no-load-markets')
@@ -124,6 +124,7 @@ const printHumanReadable = (exchange, result) => {
         if (!no_table)
             if (arrayOfObjects || table) {
                 log (result.length > 0 ? asTable (result.map (element => {
+                    element = Object.assign ({}, element);
                     let keys = Object.keys (element)
                     delete element['info']
                     keys.forEach (key => {
