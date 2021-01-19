@@ -13,13 +13,14 @@ module.exports = class binance extends ccxt.binance {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOrderBook': true,
-                'watchTrades': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
-                'watchOrders': true,
-                'watchBalance': true,
+                'watchTrades': true,
             },
             'urls': {
                 'test': {
@@ -364,6 +365,8 @@ module.exports = class binance extends ccxt.binance {
 
     parseTrade (trade, market = undefined) {
         //
+        // public watchTrades
+        //
         //     {
         //         e: 'trade',       // event type
         //         E: 1579481530911, // event time
@@ -392,27 +395,82 @@ module.exports = class binance extends ccxt.binance {
         //        "M": true         // Ignore
         //     }
         //
+        // private watchMyTrades
+        //
+        //     {
+        //         e: 'executionReport',
+        //         E: 1611063861489,
+        //         s: 'BNBUSDT',
+        //         c: 'm4M6AD5MF3b1ERe65l4SPq',
+        //         S: 'BUY',
+        //         o: 'MARKET',
+        //         f: 'GTC',
+        //         q: '2.00000000',
+        //         p: '0.00000000',
+        //         P: '0.00000000',
+        //         F: '0.00000000',
+        //         g: -1,
+        //         C: '',
+        //         x: 'TRADE',
+        //         X: 'PARTIALLY_FILLED',
+        //         r: 'NONE',
+        //         i: 1296882607,
+        //         l: '0.33200000',
+        //         z: '0.33200000',
+        //         L: '46.86600000',
+        //         n: '0.00033200',
+        //         N: 'BNB',
+        //         T: 1611063861488,
+        //         t: 109747654,
+        //         I: 2696953381,
+        //         w: false,
+        //         m: false,
+        //         M: true,
+        //         O: 1611063861488,
+        //         Z: '15.55951200',
+        //         Y: '15.55951200',
+        //         Q: '0.00000000'
+        //     }
+        //
         const event = this.safeString (trade, 'e');
         if (event === undefined) {
             return super.parseTrade (trade, market);
         }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        const price = this.safeFloat2 (trade, 'L', 'p');
+        let amount = this.safeFloat (trade, 'q');
+        if (event === 'executionReport') {
+            amount = this.safeFloat (trade, 'l', amount);
+        }
+        let cost = this.safeFloat (trade, 'Y');
+        if (cost === undefined) {
+            if ((price !== undefined) && (amount !== undefined)) {
+                cost = price * amount;
+            }
         }
         const marketId = this.safeString (trade, 's');
         const symbol = this.safeSymbol (marketId);
-        let side = undefined;
+        let side = this.safeStringLower (trade, 'S');
         let takerOrMaker = undefined;
-        const orderId = undefined;
+        const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            if (side === undefined) {
+                side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            }
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'n');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'N');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const type = this.safeStringLower (trade, 'o');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -420,13 +478,13 @@ module.exports = class binance extends ccxt.binance {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -699,12 +757,17 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'executionReport';
-        const future = this.watch (url, messageHash);
+        const messageHash = 'orders';
+        let subscriptionHash = messageHash;
+        if (symbol !== undefined) {
+            subscriptionHash += ':' + symbol;
+        }
+        const message = undefined;
+        const future = this.watch (url, messageHash, message, subscriptionHash);
         return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
     }
 
-    handleOrder (client, message) {
+    parseWsOrder (order, market = undefined) {
         //
         //     {
         //         "e": "executionReport",        // Event type
@@ -741,30 +804,35 @@ module.exports = class binance extends ccxt.binance {
         //         "Q": "0.00000000"              // Quote Order Qty
         //     }
         //
-        const messageHash = this.safeString (message, 'e');
-        const orderId = this.safeString (message, 'i');
-        const marketId = this.safeString (message, 's');
+        const orderId = this.safeString (order, 'i');
+        const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId);
-        const timestamp = this.safeInteger (message, 'O');
-        const lastTradeTimestamp = this.safeString (message, 'T');
-        const feeAmount = this.safeFloat (message, 'n');
-        const feeCurrency = this.safeCurrencyCode (this.safeString (message, 'N'));
-        const fee = {
-            'cost': feeAmount,
-            'currency': feeCurrency,
-        };
-        const price = this.safeFloat (message, 'p');
-        const amount = this.safeFloat (message, 'q');
-        const side = this.safeStringLower (message, 'S');
-        const type = this.safeStringLower (message, 'o');
-        const filled = this.safeFloat (message, 'z');
-        const cumulativeQuote = this.safeFloat (message, 'Z');
+        const timestamp = this.safeInteger (order, 'O');
+        const lastTradeTimestamp = this.safeString (order, 'T');
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'n');
+        if ((feeCost !== undefined) && (feeCost > 0)) {
+            const feeCurrencyId = this.safeString (order, 'N');
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        const price = this.safeFloat (order, 'p');
+        const amount = this.safeFloat (order, 'q');
+        const side = this.safeStringLower (order, 'S');
+        const type = this.safeStringLower (order, 'o');
+        const filled = this.safeFloat (order, 'z');
+        const cumulativeQuote = this.safeFloat (order, 'Z');
         let remaining = amount;
         let average = undefined;
-        let cost = undefined;
+        let cost = cumulativeQuote;
         if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = filled * price;
+                }
             }
             if (amount !== undefined) {
                 remaining = Math.max (amount - filled, 0);
@@ -773,13 +841,14 @@ module.exports = class binance extends ccxt.binance {
                 average = cumulativeQuote / filled;
             }
         }
-        const rawStatus = this.safeString (message, 'X');
+        const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
-        const clientOrderId = this.safeString (message, 'c');
-        const stopPrice = this.safeFloat (message, 'P');
-        const parsed = {
-            'info': message,
+        const clientOrderId = this.safeString (order, 'c');
+        const stopPrice = this.safeFloat (order, 'P');
+        const timeInForce = this.safeString (order, 'f');
+        return {
+            'info': order,
             'symbol': symbol,
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -787,6 +856,8 @@ module.exports = class binance extends ccxt.binance {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -799,13 +870,159 @@ module.exports = class binance extends ccxt.binance {
             'fee': fee,
             'trades': trades,
         };
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+    }
+
+    handleExecutionReport (client, message) {
+        //
+        //     {
+        //         "e": "executionReport",        // Event type
+        //         "E": 1499405658658,            // Event time
+        //         "s": "ETHBTC",                 // Symbol
+        //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S": "BUY",                    // Side
+        //         "o": "LIMIT",                  // Order type
+        //         "f": "GTC",                    // Time in force
+        //         "q": "1.00000000",             // Order quantity
+        //         "p": "0.10264410",             // Order price
+        //         "P": "0.00000000",             // Stop price
+        //         "F": "0.00000000",             // Iceberg quantity
+        //         "g": -1,                       // OrderListId
+        //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //         "x": "NEW",                    // Current execution type
+        //         "X": "NEW",                    // Current order status
+        //         "r": "NONE",                   // Order reject reason; will be an error code.
+        //         "i": 4293153,                  // Order ID
+        //         "l": "0.00000000",             // Last executed quantity
+        //         "z": "0.00000000",             // Cumulative filled quantity
+        //         "L": "0.00000000",             // Last executed price
+        //         "n": "0",                      // Commission amount
+        //         "N": null,                     // Commission asset
+        //         "T": 1499405658657,            // Transaction time
+        //         "t": -1,                       // Trade ID
+        //         "I": 8641984,                  // Ignore
+        //         "w": true,                     // Is the order on the book?
+        //         "m": false,                    // Is this trade the maker side?
+        //         "M": false,                    // Ignore
+        //         "O": 1499405658657,            // Order creation time
+        //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q": "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        this.handleMyTrade (client, message);
+        this.handleOrder (client, message);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const messageHash = 'myTrades';
+        let subscriptionHash = messageHash;
+        if (symbol !== undefined) {
+            subscriptionHash += ':' + symbol;
         }
-        const orders = this.orders;
-        orders.append (parsed);
-        client.resolve (this.orders, messageHash);
+        const message = undefined;
+        const future = this.watch (url, messageHash, message, subscriptionHash);
+        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+    }
+
+    handleMyTrade (client, message) {
+        const messageHash = 'myTrades';
+        const executionType = this.safeString (message, 'x');
+        if (executionType === 'TRADE') {
+            const trade = this.parseTrade (message);
+            const orderId = this.safeString (trade, 'order');
+            const tradeFee = this.safeValue (trade, 'fee');
+            const symbol = this.safeString (trade, 'symbol');
+            if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
+                const cachedOrders = this.orders;
+                if (cachedOrders !== undefined) {
+                    const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                    const order = this.safeValue (orders, orderId);
+                    if (order !== undefined) {
+                        // accumulate order fees
+                        const fees = this.safeValue (order, 'fees');
+                        const fee = this.safeValue (order, 'fee');
+                        if (fees !== undefined) {
+                            let insertNewFeeCurrency = true;
+                            for (let i = 0; i < fees.length; i++) {
+                                const orderFee = fees[i];
+                                if (orderFee['currency'] === tradeFee['currency']) {
+                                    const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
+                                    order['fees'][i]['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                                    insertNewFeeCurrency = false;
+                                    break;
+                                }
+                            }
+                            if (insertNewFeeCurrency) {
+                                order['fees'].push (tradeFee);
+                            }
+                        } else if (fee !== undefined) {
+                            if (fee['currency'] === tradeFee['currency']) {
+                                const feeCost = this.sum (fee['cost'], tradeFee['cost']);
+                                order['fee']['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost));
+                            } else if (fee['currency'] === undefined) {
+                                order['fee'] = tradeFee;
+                            } else {
+                                order['fees'] = [ fee, tradeFee ];
+                                order['fee'] = undefined;
+                            }
+                        } else {
+                            order['fee'] = tradeFee;
+                        }
+                        // save this trade in the order
+                        const orderTrades = this.safeValue (order, 'trades', []);
+                        orderTrades.push (trade);
+                        order['trades'] = orderTrades;
+                        // save the order
+                        cachedOrders.append (order);
+                    }
+                }
+                if (this.myTrades === undefined) {
+                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                    this.myTrades = new ArrayCacheBySymbolById (limit);
+                }
+                const myTrades = this.myTrades;
+                myTrades.append (trade);
+                client.resolve (this.myTrades, messageHash);
+                const messageHashSymbol = messageHash + ':' + symbol;
+                client.resolve (this.myTrades, messageHashSymbol);
+            }
+        }
+    }
+
+    handleOrder (client, message) {
+        const messageHash = 'orders';
+        const parsed = this.parseWsOrder (message);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const order = this.safeValue (orders, orderId);
+            if (order !== undefined) {
+                const fee = this.safeValue (order, 'fee');
+                if (fee !== undefined) {
+                    parsed['fee'] = fee;
+                }
+                const fees = this.safeValue (order, 'fees');
+                if (fees !== undefined) {
+                    parsed['fees'] = fees;
+                }
+                parsed['trades'] = this.safeValue (order, 'trades');
+            }
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, messageHash);
+            const messageHashSymbol = messageHash + ':' + symbol;
+            client.resolve (this.orders, messageHashSymbol);
+        }
     }
 
     handleMessage (client, message) {
@@ -817,7 +1034,7 @@ module.exports = class binance extends ccxt.binance {
             '24hrTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
-            'executionReport': this.handleOrder,
+            'executionReport': this.handleExecutionReport,
         };
         const event = this.safeString (message, 'e');
         const method = this.safeValue (methods, event);
