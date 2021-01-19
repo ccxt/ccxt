@@ -1521,6 +1521,7 @@ class binance(Exchange):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'info': order,
             'id': id,
@@ -1534,6 +1535,7 @@ class binance(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
