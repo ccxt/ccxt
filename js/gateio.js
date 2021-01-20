@@ -466,11 +466,20 @@ module.exports = class gateio extends ccxt.gateio {
         const market = this.safeMarket (marketId, undefined, '_');
         const parsed = this.parseOrder (order, market);
         if (event === 1) {
+            // put
             parsed['status'] = 'open';
         } else if (event === 2) {
+            // update
             parsed['status'] = 'open';
         } else if (event === 3) {
-            parsed['status'] = 'closed';
+            // finish
+            const filled = this.safeFloat (parsed, 'filled');
+            const amount = this.safeFloat (parsed, 'amount');
+            if ((filled !== undefined) && (amount !== undefined)) {
+                parsed['status'] = (filled >= amount) ? 'closed' : 'canceled';
+            } else {
+                parsed['status'] = 'closed';
+            }
         }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
