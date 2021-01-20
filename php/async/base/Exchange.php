@@ -4,14 +4,14 @@
 namespace ccxt\async;
 
 use React;
-use Recoil\React\ReactKernel;
+use Recoil;
 
 use Exception;
 
 include 'throttle.php';
 
 class Exchange extends \ccxt\Exchange {
-    public static $loop;
+    private static $loop;
     public static $kernel;
     public $client;
     public $marketsLoading = null;
@@ -20,15 +20,44 @@ class Exchange extends \ccxt\Exchange {
     public $tokenBucket;
     public $throttle;
 
-    public function __construct($options = array()) {
-        parent::__construct($options);
-        // we only want one instance of the loop and one instance of the kernel
-        if (static::$loop === null) {
+    public static function get_loop() {
+        if (!static::$loop) {
             static::$loop = React\EventLoop\Factory::create();
         }
-        if (static::$kernel === null) {
-            static::$kernel = ReactKernel::create(static::$loop);
+        return static::$loop;
+    }
+
+    public static function get_kernel() {
+        if (!static::$kernel) {
+            static::$kernel = Recoil\React\ReactKernel::create(static::get_loop());
         }
+        return static::$kernel;
+    }
+
+    public function __construct($options = array()) {
+        $config = $this->omit($options, array('loop', 'kernel'));
+        parent::__construct($config);
+        // we only want one instance of the loop and one instance of the kernel
+        if (static::$loop === null) {
+            if (array_key_exists('loop', $options)) {
+                static::$loop = $options['loop'];
+            } else {
+                static::$loop = React\EventLoop\Factory::create();
+            }
+        } else if (array_key_exists('loop', $options)) {
+            throw new Exception($this->id, ' cannot use two different loops');
+        }
+
+        if (static::$kernel === null) {
+            if (array_key_exists('kernel', $options)) {
+                static::$kernel = $options['kernel'];
+            } else {
+                static::$kernel = ReactKernel::create(static::$loop);
+            }
+        } else if (array_key_exists('kernel', $options)) {
+            throw new Exception($this->id, ' cannot use two different loops');
+        }
+
         $connector = new React\Socket\Connector(static::$loop, array(
             'timeout' => $this->timeout,
         ));
@@ -176,3 +205,7 @@ class Exchange extends \ccxt\Exchange {
         return static::$kernel->execute($this->fetch_deposit_address_generator($code, $params))->promise();
     }
 }
+
+register_shutdown_function(function () {
+    Exchange::$kernel->run();
+});

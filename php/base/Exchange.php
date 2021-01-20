@@ -1048,13 +1048,14 @@ class Exchange {
         }
 
         // rate limiter params
+        $this->rateLimit = isset($this->rateLimit) ? $this->rateLimit : 0;
         $this->tokenBucket = array_merge(array(
             'refillRate' => ($this->rateLimit > 0) ? (1.0 / $this->rateLimit) : PHP_INT_MAX,
             'delay' => 1.0,
             'capacity' => 1.0,
             'defaultCost' => 1.0,
             'maxCapacity' => 1000,
-        ), $this->tokenBucket ? $this->tokenBucket : array());
+        ), isset($this->tokenBucket) ? $this->tokenBucket : array());
 
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');
@@ -1214,7 +1215,7 @@ class Exchange {
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
     }
 
-    public function throttle($rate_limit, $cost) {
+    public function throttle($rate_limit, $cost = null) {
         // TODO: use a token bucket here
         $now = $this->milliseconds();
         $elapsed = $now - $this->lastRestRequestTimestamp;

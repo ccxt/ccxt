@@ -11,7 +11,7 @@ function throttle($config, $loop) {
     // }
 
     // ported from js implementation for reference
-    $last_timestamp = time();
+    $last_timestamp = microtime(true) * 1000;
     $running = false;
     $queue = new SplQueue();
     $tokens = $config['capacity'];
