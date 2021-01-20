@@ -1,0 +1,54 @@
+{
+    "name": "recoil/react",
+    "description": "Integrate Recoil with ReactPHP.",
+    "require": {
+        "php": "^7",
+        "react/event-loop": "^1.0 || ^0.5 || ^0.4",
+        "react/promise": "^2",
+        "recoil/api": "^1",
+        "recoil/kernel": "^1"
+    },
+    "require-dev": {
+        "eloquent/phony": "^2",
+        "friendsofphp/php-cs-fixer": "^2",
+        "hamcrest/hamcrest-php": "^2",
+        "peridot-php/leo": "^1",
+        "peridot-php/peridot-code-coverage-reporters": "^2",
+        "peridot-php/peridot": "^1",
+        "recoil/dev": "^0.3"
+    },
+    "autoload": { "psr-4": { "Recoil\\React\\": "src" } },
+    "autoload-dev": {
+        "psr-4": { "Recoil\\React\\": "test/src" },
+        "files": ["test/src/compatibility.php"]
+    },
+    "keywords": [
+        "async",
+        "asynchronous",
+        "continuation",
+        "coroutine",
+        "event",
+        "generator",
+        "green",
+        "multitasking",
+        "promise",
+        "react",
+        "react",
+        "thread"
+    ],
+    "homepage": "https://github.com/recoilphp/react",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "James Harris",
+            "email": "james.harris@icecave.com.au",
+            "homepage": "https://github.com/jmalloc"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "7.0"
+        }
+    }
+}

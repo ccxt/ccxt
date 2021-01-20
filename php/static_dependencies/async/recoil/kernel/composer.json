@@ -1,0 +1,46 @@
+{
+    "name": "recoil/kernel",
+    "description": "Reusable components for implementing Recoil kernels.",
+    "require": {
+        "php": "^7.1",
+        "icecave/repr": "^4|^3|^2",
+        "recoil/api": "^1"
+    },
+    "require-dev": {
+        "eloquent/phony": "^3.2",
+        "friendsofphp/php-cs-fixer": "^2",
+        "hamcrest/hamcrest-php": "^2",
+        "peridot-php/leo": "^1",
+        "peridot-php/peridot-code-coverage-reporters": "^2",
+        "peridot-php/peridot": "^1"
+    },
+    "autoload": { "psr-4": { "Recoil\\Kernel\\": "src" } },
+    "autoload-dev": { "psr-4": { "Recoil\\Kernel\\": "test/src" } },
+    "keywords": [
+        "coroutine",
+        "generator",
+        "event",
+        "async",
+        "asynchronous",
+        "react",
+        "green",
+        "thread",
+        "multitasking",
+        "continuation"
+    ],
+    "homepage": "https://github.com/recoilphp/kernel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "James Harris",
+            "email": "james.harris@icecave.com.au",
+            "homepage": "https://github.com/jmalloc"
+        }
+    ],
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "7.1"
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "name": "react/promise-stream",
+    "description": "The missing link between Promise-land and Stream-land for ReactPHP",
+    "keywords": ["unwrap", "stream", "buffer", "promise", "ReactPHP", "async"],
+    "homepage": "https://github.com/reactphp/promise-stream",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christian Lück",
+            "email": "christian@lueck.tv"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "React\\Promise\\Stream\\" : "src/" },
+        "files": [ "src/functions_include.php" ]
+    },
+    "autoload-dev": {
+        "psr-4": { "React\\Tests\\Promise\\Stream\\": "tests/" }
+    },
+    "require": {
+        "php": ">=5.3",
+        "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.6",
+        "react/promise": "^2.1 || ^1.2"
+    },
+    "require-dev": {
+        "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3",
+        "react/promise-timer": "^1.0",
+        "clue/block-react": "^1.0",
+        "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35"
+    }
+}
