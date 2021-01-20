@@ -3,6 +3,23 @@
 
 namespace ccxt\async;
 
+use ccxt;
+
+// rounding mode
+const TRUNCATE = ccxt\TRUNCATE;
+const ROUND = ccxt\ROUND;
+const ROUND_UP = ccxt\ROUND_UP;
+const ROUND_DOWN = ccxt\ROUND_DOWN;
+
+// digits counting mode
+const DECIMAL_PLACES = ccxt\DECIMAL_PLACES;
+const SIGNIFICANT_DIGITS = ccxt\SIGNIFICANT_DIGITS;
+const TICK_SIZE = ccxt\TICK_SIZE;
+
+// padding mode
+const NO_PADDING = ccxt\NO_PADDING;
+const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
+
 use React;
 use Recoil;
 
@@ -52,7 +69,7 @@ class Exchange extends \ccxt\Exchange {
             if (array_key_exists('kernel', $options)) {
                 static::$kernel = $options['kernel'];
             } else {
-                static::$kernel = ReactKernel::create(static::$loop);
+                static::$kernel = Recoil\React\ReactKernel::create(static::$loop);
             }
         } else if (array_key_exists('kernel', $options)) {
             throw new Exception($this->id, ' cannot use two different loops');
@@ -205,7 +222,3 @@ class Exchange extends \ccxt\Exchange {
         return static::$kernel->execute($this->fetch_deposit_address_generator($code, $params))->promise();
     }
 }
-
-register_shutdown_function(function () {
-    Exchange::$kernel->run();
-});
