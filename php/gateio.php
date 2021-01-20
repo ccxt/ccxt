@@ -464,7 +464,7 @@ class gateio extends \ccxt\gateio {
     public function handle_order($client, $message) {
         $method = $this->safe_string($message, 'method');
         $params = $this->safe_value($message, 'params');
-        $event = $this->safe_integer($message, 'event');
+        $event = $this->safe_integer($params, 0);
         $order = $this->safe_value($params, 1);
         $marketId = $this->safe_string_lower($order, 'market');
         $market = $this->safe_market($marketId, null, '_');

@@ -435,7 +435,7 @@ class gateio(Exchange, ccxt.gateio):
     def handle_order(self, client, message):
         method = self.safe_string(message, 'method')
         params = self.safe_value(message, 'params')
-        event = self.safe_integer(message, 'event')
+        event = self.safe_integer(params, 0)
         order = self.safe_value(params, 1)
         marketId = self.safe_string_lower(order, 'market')
         market = self.safe_market(marketId, None, '_')
