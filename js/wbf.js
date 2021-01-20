@@ -36,7 +36,7 @@ module.exports = class wbf extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchOHLCV': true,
@@ -191,6 +191,43 @@ module.exports = class wbf extends Exchange {
                 },
                 'info': market,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        // {
+        //     "symbol": "btcusdt",
+        //     "count_coin": "USDT",
+        //     "amount_precision": 6,
+        //     "base_coin": "BTC",
+        //     "price_precision": 4
+        // },
+        const response = await this.publicGetCommonSymbols (params);
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const name = this.safeString (entry, 'base_coin');
+            const currencyId = this.safeString (entry, 'base_coin');
+            const precision = this.safeInteger (entry, 'price_precision');
+            const code = this.safeCurrencyCode (currencyId);
+            result[code] = {
+                'id': currencyId,
+                'code': code,
+                'info': entry,
+                'type': undefined,
+                'name': name,
+                'active': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
         }
         return result;
     }
