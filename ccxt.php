@@ -37,71 +37,21 @@ define('PATH_TO_CCXT_ASYNC_BASE', PATH_TO_CCXT_ASYNC . 'base' . DIRECTORY_SEPARA
 
 spl_autoload_register(function ($class) {
     // used to include static dependencies
-    $parts = explode('\\', $class);
-    if ($parts[0] === 'ccxt') {
-        return;
-    }
-    $PATH = PATH_TO_CCXT . 'static_dependencies' . DIRECTORY_SEPARATOR;
-    $ASYNC_PATH = $PATH . 'async' . DIRECTORY_SEPARATOR;
-
-    if ($parts[0] === 'kornrunnner') {
+    $PATH = PATH_TO_CCXT . 'static_dependencies/';
+    if (strpos($class, 'kornrunner') !== false) {
         $version = phpversion();
         if (intval(explode('.', $version)[0]) < 7) {
             throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
         }
     }
-    if ($parts[0] === 'React') {
-        $hyphenated = strtolower(preg_replace('/(?!^)[A-Z][a-z]+/', '-$0', $parts[1]));
-        $all_parts = array(strtolower($parts[0]), $hyphenated, 'src', $parts[2]);
-        if (count($parts) > 3) {
-            array_push($all_parts, $parts[3]);
-        }
-        $class_name = implode(DIRECTORY_SEPARATOR, $all_parts);
-        $file = $ASYNC_PATH . $class_name . '.php';
-    } else if ($parts[0] === 'Recoil') {
-        if (count($parts) === 2 || $parts[1] === 'Exception') {
-            $all_parts = array(strtolower($parts[0]), 'api', 'src', $parts[1]);
-            if (count($parts) > 2) {
-                // inside the react/promise/src/Exception directory
-                array_push($all_parts, $parts[2]);
-            }
-        } else {
-            $all_parts = array(strtolower($parts[0]), $parts[1], 'src', $parts[2]);
-        }
-        if (count($parts) > 3) {
-            array_push($all_parts, $parts[3]);
-        }
-        $class_name = implode(DIRECTORY_SEPARATOR, $all_parts);
-        $file = $ASYNC_PATH . $class_name . '.php';
-    } else if ($parts[0] === 'RingCentral') {
-        $all_parts = array(strtolower($parts[0]), strtolower($parts[1]), 'src', $parts[2]);
-        $class_name = implode(DIRECTORY_SEPARATOR, $all_parts);
-        $file = $ASYNC_PATH . $class_name . '.php';
-    } else if ($parts[0] === 'Psr') {
-        $all_parts = array(strtolower($parts[0]), strtolower($parts[1]) . '-' . strtolower($parts[2]), 'src', $parts[3]);
-        $class_name = implode(DIRECTORY_SEPARATOR, $all_parts);
-        $file = $ASYNC_PATH . $class_name . '.php';
-    } else if ($parts[0] === 'Evenement') {
-        $all_parts = array(strtolower($parts[0]), strtolower($parts[0]), 'src', 'Evenement', $parts[1]);
-        $class_name = implode(DIRECTORY_SEPARATOR, $all_parts);
-        $file = $ASYNC_PATH . $class_name . '.php';
-    } else {
-        $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
-        $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
-        $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
-        $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
-        $file = $PATH . $class_name . '.php';
-    }
-    if (file_exists ($file)) {
+    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
+    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
+    $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
+    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
+    $file = $PATH . $class_name . '.php';
+    if (file_exists ($file))
         require_once $file;
-    }
 });
-
-require_once 'php/static_dependencies/async/react/promise/src/functions_include.php';
-require_once 'php/static_dependencies/async/react/promise-timer/src/functions_include.php';
-require_once 'php/static_dependencies/async/react/promise-stream/src/functions_include.php';
-
-require_once 'php/static_dependencies/async/ringcentral/psr7/src/functions_include.php';
 
 require_once PATH_TO_CCXT_BASE . 'BaseError.php';
 require_once PATH_TO_CCXT_BASE . 'ExchangeError.php';
