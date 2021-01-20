@@ -920,9 +920,14 @@ class Transpiler {
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
             const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
-            const python2mtime = python2Folder ? fs.statSync (python2Folder + pythonFilename).mtime.getTime () : undefined
-            const python3mtime = fs.statSync (python3Folder + pythonFilename).mtime.getTime ()
-            const phpmtime = fs.statSync (phpFolder + phpFilename).mtime.getTime ()
+
+            const python2Path = python2Folder ? (python2Folder + pythonFilename) : undefined
+            const python3Path = python3Folder + pythonFilename
+            const phpPath = phpFolder + phpFilename
+
+            const python2mtime = python2Folder ? (fs.existsSync (python2Path) ? fs.statSync (python2Path).mtime.getTime () : 0) : undefined
+            const python3mtime = fs.existsSync (python3Path) ? fs.statSync (python3Path).mtime.getTime () : 0
+            const phpmtime = fs.existsSync (python3Path) ? fs.statSync (phpPath).mtime.getTime () : 0
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
             if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (python2Folder && (jsmtime > python2mtime))) {
