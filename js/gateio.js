@@ -460,7 +460,7 @@ module.exports = class gateio extends ccxt.gateio {
     handleOrder (client, message) {
         const method = this.safeString (message, 'method');
         const params = this.safeValue (message, 'params');
-        const event = this.safeInteger (message, 'event');
+        const event = this.safeInteger (params, 0);
         const order = this.safeValue (params, 1);
         const marketId = this.safeStringLower (order, 'market');
         const market = this.safeMarket (marketId, undefined, '_');
