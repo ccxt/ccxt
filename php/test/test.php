@@ -289,7 +289,6 @@ function try_all_proxies($exchange, $proxies) {
 }
 
 function test_exchange($exchange) {
-    $delay = $exchange->rateLimit * 1000;
 
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
@@ -378,7 +377,7 @@ if (count($argv) > 1) {
             try_all_proxies($exchange, $proxies);
         }
     } else {
-        echo $argv[1] + " not found.\n";
+        echo $argv[1] . " not found.\n";
     }
 } else {
     foreach ($exchanges as $id => $exchange) {
