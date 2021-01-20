@@ -450,7 +450,7 @@ module.exports = class wbf extends Exchange {
         //     "ask_id":1002,
         //     "bid_user_id":10001,
         //     "ask_user_id":10001
-        // }
+        //  }
         const timestamp1 = this.safeString (order, 'ctime');
         const timestamp2 = this.safeString (order, 'created_at');
         const timestamp = timestamp1 || timestamp2;
