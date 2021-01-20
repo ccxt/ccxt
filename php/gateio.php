@@ -464,10 +464,27 @@ class gateio extends \ccxt\gateio {
     public function handle_order($client, $message) {
         $method = $this->safe_string($message, 'method');
         $params = $this->safe_value($message, 'params');
+        $event = $this->safe_integer($message, 'event');
         $order = $this->safe_value($params, 1);
         $marketId = $this->safe_string_lower($order, 'market');
         $market = $this->safe_market($marketId, null, '_');
         $parsed = $this->parse_order($order, $market);
+        if ($event === 1) {
+            // put
+            $parsed['status'] = 'open';
+        } else if ($event === 2) {
+            // update
+            $parsed['status'] = 'open';
+        } else if ($event === 3) {
+            // finish
+            $filled = $this->safe_float($parsed, 'filled');
+            $amount = $this->safe_float($parsed, 'amount');
+            if (($filled !== null) && ($amount !== null)) {
+                $parsed['status'] = ($filled >= $amount) ? 'closed' : 'canceled';
+            } else {
+                $parsed['status'] = 'closed';
+            }
+        }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);

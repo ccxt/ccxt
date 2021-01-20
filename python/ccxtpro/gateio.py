@@ -435,10 +435,25 @@ class gateio(Exchange, ccxt.gateio):
     def handle_order(self, client, message):
         method = self.safe_string(message, 'method')
         params = self.safe_value(message, 'params')
+        event = self.safe_integer(message, 'event')
         order = self.safe_value(params, 1)
         marketId = self.safe_string_lower(order, 'market')
         market = self.safe_market(marketId, None, '_')
         parsed = self.parse_order(order, market)
+        if event == 1:
+            # put
+            parsed['status'] = 'open'
+        elif event == 2:
+            # update
+            parsed['status'] = 'open'
+        elif event == 3:
+            # finish
+            filled = self.safe_float(parsed, 'filled')
+            amount = self.safe_float(parsed, 'amount')
+            if (filled is not None) and (amount is not None):
+                parsed['status'] = 'closed' if (filled >= amount) else 'canceled'
+            else:
+                parsed['status'] = 'closed'
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
