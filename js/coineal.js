@@ -12,6 +12,7 @@ const {
     OnMaintenance,
     AccountSuspended,
     PermissionDenied,
+    ArgumentsRequired
 } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -64,6 +65,17 @@ module.exports = class coineal extends Exchange {
                         'common/symbols',
                     ],
                 },
+                'private': {
+                    'get': [
+                        'user/account',
+                        'order_info',
+                        'all_trade',
+                    ],
+                    'post': [
+                        'cancel_order',
+                        'create_order',
+                    ],
+                },
             },
             'exceptions': {
                 '5': BadRequest, // Order failed
@@ -97,13 +109,13 @@ module.exports = class coineal extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-    // {
-    //     "symbol": "btcusdt",
-    //     "count_coin": "usdt",
-    //     "amount_precision": 5,
-    //     "base_coin": "btc",
-    //     "price_precision": 2
-    // },
+        // {
+        //     "symbol": "btcusdt",
+        //     "count_coin": "usdt",
+        //     "amount_precision": 5,
+        //     "base_coin": "btc",
+        //     "price_precision": 2
+        // },
         const response = await this.publicGetCommonSymbols (params);
         const result = [];
         for (let i = 0; i < response['data'].length; i++) {
@@ -112,14 +124,14 @@ module.exports = class coineal extends Exchange {
             const quoteId = this.safeString (market, 'count_coin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const id = base + quote;
+            const id = base + '/' + quote;
             const symbol = base + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'amount_precision'),
                 'price': this.safeInteger (market, 'price_precision'),
             };
             result.push ({
-                'id': id.toLowerCase (),
+                'id': id,
                 'symbol': symbol.toLowerCase (),
                 'base': base,
                 'quote': quote,
@@ -150,7 +162,7 @@ module.exports = class coineal extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const timestamp = this.seconds ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (symbol);
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
@@ -188,7 +200,7 @@ module.exports = class coineal extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (symbol);
         const request = {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
@@ -215,7 +227,7 @@ module.exports = class coineal extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (symbol);
         const request = {
             'symbol': market['id'],
             'type': 'step0',
@@ -231,7 +243,7 @@ module.exports = class coineal extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const market = this.safeMarket (symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -282,14 +294,172 @@ module.exports = class coineal extends Exchange {
         };
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetUserAccount (params);
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances['coin_list'].length; i++) {
+            const wallet = balances['coin_list'][i];
+            const currencyId = wallet['coin'];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (wallet, 'normal') - this.safeFloat (wallet, 'locked');
+            account['total'] = this.safeFloat (wallet, 'normal');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'symbol': market['symbol'],
+            'price': price,
+            'volume': amount,
+            'type': type,
+            'side': (side === 'buy') ? 'Buy' : 'Sell',
+        };
+        const response = await this.privatePostCreateOrder (this.extend (request, params));
+        console.log('repone , ', response)
+        return this.parseOrder (this.extend ({
+            'status': 'open',
+            'type': side,
+            'initialAmount': amount,
+        }, response), market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'order_id': id,
+            'symbol': market['symbol'],
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'symbol': market['symbol'],
+            'orderId': id,
+        };
+        const response = await this.privateGetOrderInfo (this.extend (request, params));
+        const order = this.parseOrder (response['data'], market);
+        return order;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'symbol': market['symbol'],
+        };
+        const response = await this.privateGetAllTrade (this.extend (request, params));
+        // {
+        //     "code": "0",
+        //     "msg": "suc",
+        //     "data": {
+        //     "count": 22,
+        //         "resultList": [
+        //         {
+        //             "volume": "1.000",
+        //             "side": "BUY",
+        //             "price": "0.10000000",
+        //             "fee": "0.16431104",
+        //             "ctime": 1510996571195,
+        //             "deal_price": "0.10000000",
+        //             "id": 306,
+        //             "type": "买入"
+        //         }
+        //     ]
+        // }
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data['resultList'], undefined, since, limit);
+    }
+
+    parseBody (query) {
+        const spli = query.map ((element) => {
+            const splited = element.split ('=');
+            return splited;
+        });
+        // eslint-disable-next-line prefer-spread
+        const merged = [].concat.apply ([], spli);
+        const ob = {};
+        const keys = [];
+        const val = [];
+        merged.forEach ((item, i) => {
+            if (i % 2 === 0) {
+                keys.push (item);
+                ob[item] = '';
+            } else {
+                val.push (item);
+            }
+        });
+        const result = val.reduce ((result, field, index ) => {
+            result[keys[index]] = field;
+            return result;
+        }, {});
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+        if (api === 'public') {
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            query['time'] = timestamp;
+            query['api_key'] = this.apiKey;
+            const query2 = this.urlencode (query);
+            const queryArray = query2.split ('&');
+            const sortedQuery = this.sortBy (queryArray, 0).join ('');
+            console.log ('query', query2);
+            console.log ('queryArray', queryArray);
+            console.log ('sortedQuery', sortedQuery);
+            console.log ('secret', this.encode (this.secret));
+            const auth = sortedQuery.replace (/=/g, '');
+            console.log ('auth', auth);
+            console.log ('auth', auth);
+            const hashBefore = auth + this.secret;
+            const hash = this.hash (this.encode (hashBefore), 'md5');
+            console.log ('hash', hash);
+            if (method === 'GET') {
+                query['sign'] = hash;
+                const query3 = this.urlencode (query);
+                const queryArray = query3.split ('&');
+                const sortedQuery = this.sortBy (queryArray, 0).join ('&');
+                console.log('query inside', sortedQuery)
+                url += '?' + sortedQuery;
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                body = this.parseBody (queryArray);
+                body['sign'] = hash;
+                console.log ('body ', body);
             }
         }
+        console.log('url', url, 'method', method, 'body', body, 'headers', headers)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
