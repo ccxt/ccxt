@@ -11,7 +11,7 @@ use Exception;
 include 'throttle.php';
 
 class Exchange extends \ccxt\Exchange {
-    private static $loop;
+    public static $loop;
     public static $kernel;
     public $client;
     public $marketsLoading = null;
