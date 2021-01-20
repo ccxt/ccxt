@@ -8,7 +8,7 @@ const { TRUNCATE, NO_PADDING, DECIMAL_PLACES } = require ('./base/functions/numb
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bytetrade extends Exchange {
+module.exports = class bloxxwop extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bloxxwop',
@@ -61,7 +61,7 @@ module.exports = class bytetrade extends Exchange {
                 'logo': 'https://cdn.byte-trade.com/token/icon6/bloxx.png',
                 'api': {
                     'market': 'https://api.bloxxwop.com',
-                    'public': 'https://ap.bloxxwop.com',
+                    'public': 'https://api.bloxxwop.com',
                 },
                 'www': 'https://www.bloxxwop.com',
                 'doc': 'https://docs.bloxxwop.com/#description',
