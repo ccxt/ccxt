@@ -854,10 +854,11 @@ class Transpiler {
 
         lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
                     .map (line => line.replace ('$kernel->execute($main);', '$main();')
-                                .replace ('include_once \'vendor/autoload.php\';', '')
-                                .replace ('$kernel->run();', '')
-                                .replace ('$kernel = async\\Exchange::get_kernel();', '')
-                                .replace ('yield ', '')
+                        .replace ('include_once \'vendor/autoload.php\';', '')
+                        .replace ('$kernel->run();', '')
+                        .replace ('$kernel = async\\Exchange::get_kernel();', '')
+                        .replace ('yield ', '')
+                        .replace ('ccxt\\\\async', 'ccxt')
                     )
 
         let newContents = lines.join ('\n')
