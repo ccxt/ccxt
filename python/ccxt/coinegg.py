@@ -162,6 +162,7 @@ class coinegg(Exchange):
             },
             'commonCurrencies': {
                 'JBC': 'JubaoCoin',
+                'SBTC': 'Super Bitcoin',
             },
         })
 

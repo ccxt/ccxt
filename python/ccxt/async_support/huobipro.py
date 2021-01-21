@@ -262,6 +262,7 @@ class huobipro(Exchange):
                 # https://coinmarketcap.com/currencies/penta/markets/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
             },
         })
 
