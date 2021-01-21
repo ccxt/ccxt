@@ -21,7 +21,7 @@ def throttle(config, loop):
     queue = collections.deque()
     tokens = config['capacity']
 
-    def inner(rate_limit, cost = None):
+    def inner(rate_limit, cost=None):
         if len(queue) > config['maxCapacity']:
             raise RuntimeError('Backlog is over max capacity of ' + config['maxCapacity'])
 
