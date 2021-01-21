@@ -305,7 +305,7 @@ module.exports = class wbf extends Exchange {
         const timestamp = this.milliseconds ();
         const market = this.market (symbol);
         const request = this.extend ({
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         }, params);
         const response = await this.publicGetGetTicker (request);
         const ticker = this.safeValue (response, 'data');
