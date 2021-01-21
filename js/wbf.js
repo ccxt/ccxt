@@ -322,7 +322,7 @@ module.exports = class wbf extends Exchange {
             'vwap': undefined,
             'previousClose': undefined,
             'open': undefined,
-            'close': undefined,
+            'close': this.safeFloat (ticker, 'last'),
             'last': this.safeFloat (ticker, 'last'),
             'percentage': undefined,
             'change': undefined,
