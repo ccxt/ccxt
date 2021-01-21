@@ -1096,7 +1096,7 @@ module.exports = class deribit extends Exchange {
             trades = this.parseTrades (trades, market);
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = undefined;
+        const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
         return {
             'info': order,

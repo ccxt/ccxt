@@ -1073,7 +1073,7 @@ class deribit(Exchange):
         if trades is not None:
             trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = None
+        stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
         return {
             'info': order,

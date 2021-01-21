@@ -1601,6 +1601,15 @@ class ftx(Exchange):
         #         "txid": "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
         #     }
         #
+        #     {
+        #         'coin': 'USD',
+        #         'id': '503722',
+        #         'notes': 'Transfer',
+        #         'size': '3.35',
+        #         'status': 'complete',
+        #         'time': '2020-10-06T03:20:34.201556+00:00',
+        #     }
+        #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
         id = self.safe_string(transaction, 'id')
         amount = self.safe_float(transaction, 'size')
@@ -1613,7 +1622,6 @@ class ftx(Exchange):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
         fee = self.safe_float(transaction, 'fee')
-        type = 'withdrawal' if ('destinationName' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1626,7 +1634,7 @@ class ftx(Exchange):
             'tagFrom': None,
             'tag': tag,
             'tagTo': tag,
-            'type': type,
+            'type': None,
             'amount': amount,
             'currency': code,
             'status': status,
@@ -1662,7 +1670,7 @@ class ftx(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parse_transactions(result, currency, since, limit)
+        return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1687,7 +1695,7 @@ class ftx(Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parse_transactions(result, currency, since, limit)
+        return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.implode_params(path, params)

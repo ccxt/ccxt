@@ -1577,6 +1577,7 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'info': order,
             'id': id,
@@ -1590,6 +1591,7 @@ module.exports = class binance extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
