@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, BadRequest, PermissionDenied, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, InvalidOrder } = require ('./base/errors');
 const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -62,8 +62,6 @@ module.exports = class foblgate extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'exceptions': {
-                'Invalid Apikey': AuthenticationError, // {"status":"6004","message":"This API key does not have permission to access the URL"}
-                'Method Not Allowed.(Access IP)': PermissionDenied, // {"status":"6007","message":"IP Address is not granted access"}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': AuthenticationError,
