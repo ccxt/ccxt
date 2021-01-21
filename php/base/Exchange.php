@@ -1048,7 +1048,7 @@ class Exchange {
         }
 
         // rate limiter params
-        $this->rateLimit = isset($this->rateLimit) ? $this->rateLimit : 0;
+        $this->rateLimit = isset($this->rateLimit) ? $this->rateLimit : 2000;
         $this->tokenBucket = array_merge(array(
             'refillRate' => ($this->rateLimit > 0) ? (1.0 / $this->rateLimit) : PHP_INT_MAX,
             'delay' => 1.0,

@@ -101,7 +101,16 @@ class Exchange extends \ccxt\Exchange {
         if ($this->verbose) {
             print_r(array('Request:', $method, $url, $headers, $body));
         }
-        $result = yield $this->client->request($method, $url, $headers, $body);
+        try {
+            $result = yield $this->client->request($method, $url, $headers, $body);
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            if (strpos($message, 'DNS query') !== false) {
+                throw new ccxt\NetworkError($message);
+            } else {
+                throw new ccxt\ExchangeError($message);
+            }
+        }
 
         $response_body = strval($result->getBody());
         $raw_response_headers = $result->getHeaders();
@@ -118,7 +127,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $json_response = $this->parse_json($response_body);
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
-        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
+        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
         return $json_response ? $json_response : $response_body;
     }
 
