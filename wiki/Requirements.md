@@ -33,7 +33,7 @@ The exchange is required to implement the following list of methods and structur
 
 - [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id + [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 - [`fetchOpenOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all open orders
-- [`fetchAllOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all orders
+- [`fetchOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all orders
 - [`fetchMyTrades`](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades) – the personal history of filled trades for the account + [trade structure](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
 
 #### Funding

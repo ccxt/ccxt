@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import json
+import platform
 from pprint import pprint
 
 # ------------------------------------------------------------------------------
@@ -15,6 +16,11 @@ sys.path.append(root + '/python')
 # ------------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
+
+# ------------------------------------------------------------------------------
+
+print('Python v' + platform.python_version())
+print('CCXT v' + ccxt.__version__)
 
 # ------------------------------------------------------------------------------
 
@@ -34,6 +40,7 @@ argv = Argv()
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--table', action='store_true', help='output as table')
+parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
@@ -90,7 +97,7 @@ config = {
     'enableRateLimit': True,
 }
 
-if not (argv.method and argv.exchange_id):
+if not argv.exchange_id:
     print_usage()
     sys.exit()
 
@@ -105,6 +112,12 @@ if argv.exchange_id in keys:
     config.update(keys[argv.exchange_id])
 
 exchange = getattr(ccxt, argv.exchange_id)(config)
+
+if argv.cors:
+    exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
+    exchange.origin = exchange.uuid ()
+
+# pprint(dir(exchange))
 
 # ------------------------------------------------------------------------------
 
@@ -130,16 +143,18 @@ exchange.load_markets()
 
 exchange.verbose = argv.verbose  # now set verbose mode
 
-method = getattr(exchange, argv.method)
-
-# if it is a method, call it
-if callable(method):
-    result = method(*args)
-else:  # otherwise it's a property, print it
-    result = method
-
-if argv.table:
-    result = list(result.values()) if isinstance(result, dict) else result
-    print(table([exchange.omit(v, 'info') for v in result]))
+if argv.method:
+    method = getattr(exchange, argv.method)
+    # if it is a method, call it
+    if callable(method):
+        result = method(*args)
+    else:  # otherwise it's a property, print it
+        result = method
+    if argv.table:
+        result = list(result.values()) if isinstance(result, dict) else result
+        print(table([exchange.omit(v, 'info') for v in result]))
+    else:
+        pprint(result)
 else:
-    pprint(result)
+    pprint(dir(exchange))
+

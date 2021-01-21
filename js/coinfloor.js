@@ -15,11 +15,18 @@ module.exports = class coinfloor extends Exchange {
             'rateLimit': 1000,
             'countries': [ 'UK' ],
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
                 'api': 'https://webapi.coinfloor.co.uk/bist',
                 'www': 'https://www.coinfloor.co.uk',
                 'doc': [
@@ -399,7 +406,27 @@ module.exports = class coinfloor extends Exchange {
             request['price'] = price;
             request['amount'] = amount;
         }
-        return await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "type":1,
+        //         "price":"9100",
+        //         "amount":"0.0026"
+        //     }
+        //
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'datetime'));
+        return {
+            'id': this.safeString (response, 'id'),
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': this.safeFloat (response, 'price'),
+            'remaining': this.safeFloat (response, 'amount'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -452,11 +479,14 @@ module.exports = class coinfloor extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'amount': amount,
+            'stopPrice': undefined,
+            'amount': undefined,
             'filled': undefined,
-            'remaining': undefined,
+            'remaining': amount,
             'cost': cost,
             'fee': undefined,
             'average': undefined,
@@ -510,7 +540,7 @@ module.exports = class coinfloor extends Exchange {
             const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             const auth = this.uid + '/' + this.apiKey + ':' + this.password;
-            const signature = this.decode (this.stringToBase64 (this.encode (auth)));
+            const signature = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

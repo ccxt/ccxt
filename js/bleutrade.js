@@ -15,36 +15,36 @@ module.exports = class bleutrade extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'cancelOrder': false, // todo
-                'createLimitOrder': false, // todo
-                'createMarketOrder': false, // todo
-                'createOrder': false, // todo
-                'editOrder': false, // todo
-                'withdraw': false, // todo
-                'fetchTrades': false,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOrders': false,
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'editOrder': false,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchWithdrawals': true,
-                'fetchOrderTrades': false,
-                'fetchLedger': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchWithdrawals': true,
+                'withdraw': false,
             },
             'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'hostname': 'bleutrade.com',
             'urls': {
@@ -53,7 +53,7 @@ module.exports = class bleutrade extends Exchange {
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -105,6 +105,7 @@ module.exports = class bleutrade extends Exchange {
                 'exact': {
                     'ERR_INSUFICIENT_BALANCE': InsufficientFunds,
                     'ERR_LOW_VOLUME': BadRequest,
+                    'Invalid form': BadRequest,
                 },
                 'broad': {
                     'Order is not open': InvalidOrder,
@@ -121,7 +122,6 @@ module.exports = class bleutrade extends Exchange {
             },
             'options': {
                 'parseOrderStatus': true,
-                'symbolSeparator': '_',
             },
         });
         // undocumented api calls
@@ -253,7 +253,7 @@ module.exports = class bleutrade extends Exchange {
             'market': market['id'],
         };
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
-        const ticker = response['result'][0];
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -290,18 +290,8 @@ module.exports = class bleutrade extends Exchange {
         //     MarketCurrency: 'Litecoin',
         //     BaseCurrency: 'Tether' }
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'MarketName');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const previous = this.safeFloat (ticker, 'PrevDay');
         const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
@@ -338,10 +328,9 @@ module.exports = class bleutrade extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        const timestamp = this.parse8601 (ohlcv['TimeStamp'] + '+00:00');
+    parseOHLCV (ohlcv, market = undefined) {
         return [
-            timestamp,
+            this.parse8601 (ohlcv['TimeStamp'] + '+00:00'),
             this.safeFloat (ohlcv, 'Open'),
             this.safeFloat (ohlcv, 'High'),
             this.safeFloat (ohlcv, 'Low'),
@@ -359,7 +348,8 @@ module.exports = class bleutrade extends Exchange {
             'count': limit,
         };
         const response = await this.v3PublicGetGetcandles (this.extend (request, params));
-        return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -409,13 +399,6 @@ module.exports = class bleutrade extends Exchange {
         const response = await this.v3PrivatePostGetopenorders (this.extend (request, params));
         const items = this.safeValue (response, 'result', []);
         return this.parseOrders (items, market, since, limit);
-    }
-
-    parseSymbol (id) {
-        let [ base, quote ] = id.split (this.options['symbolSeparator']);
-        base = this.safeCurrencyCode (base);
-        quote = this.safeCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     async fetchBalance (params = {}) {
@@ -643,20 +626,8 @@ module.exports = class bleutrade extends Exchange {
         //     Comments: { String: '', Valid: true }
         const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'Exchange');
-        if (marketId === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        } else {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = undefined;
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');
@@ -690,8 +661,11 @@ module.exports = class bleutrade extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -818,22 +792,23 @@ module.exports = class bleutrade extends Exchange {
         //    {"success":false,"message":"Erro: Order is not open.","result":""} <-- 'error' is spelt wrong
         //    {"success":false,"message":"Error: Very low volume.","result":"ERR_LOW_VOLUME"}
         //    {"success":false,"message":"Error: Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE"}
+        //    {"success":false,"message":"Invalid form","result":null}
         //
-        if (body[0] === '{') {
-            const success = this.safeValue (response, 'success');
-            if (success === undefined) {
-                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            }
-            if (!success) {
-                const feedback = this.id + ' ' + body;
-                const errorCode = this.safeString (response, 'result');
+        const success = this.safeValue (response, 'success');
+        if (success === undefined) {
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        }
+        if (!success) {
+            const feedback = this.id + ' ' + body;
+            const errorCode = this.safeString (response, 'result');
+            if (errorCode !== undefined) {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const errorMessage = this.safeString (response, 'message');
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
-                throw new ExchangeError (feedback);
             }
+            const errorMessage = this.safeString (response, 'message');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
     }
 };

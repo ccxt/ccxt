@@ -20,7 +20,7 @@ const ccxt = require ('../../ccxt')
 
     log.bright.green ('\nFetching history for:', symbol, '\n')
 
-    let allOrders = [];
+    let allOrders = []
     let since = exchange.parse8601 (startingDate)
 
     while (since < now) {
@@ -29,18 +29,18 @@ const ccxt = require ('../../ccxt')
 
             log.bright.blue ('Fetching history for', symbol, 'since', exchange.iso8601 (since))
             const orders = await exchange.fetchClosedOrders (symbol, since)
-            log.green.dim ('Fetched', orders.length, 'orders');
+            log.green.dim ('Fetched', orders.length, 'orders')
 
             allOrders = allOrders.concat (orders)
 
             if (orders.length) {
 
-                const lastOrder = orders[orders.length - 1];
-                since = lastOrder['timestamp'] + 1;
+                const lastOrder = orders[orders.length - 1]
+                since = lastOrder['timestamp'] + 1
 
             } else {
 
-                break; // no more orders left for this symbol, move to next one
+                break // no more orders left for this symbol, move to next one
             }
 
         } catch (e) {
@@ -60,7 +60,7 @@ const ccxt = require ('../../ccxt')
     ]
 
     log.yellow (asTable (allOrders.map (order => exchange.omit (order, omittedKeys))))
-    log.green ('Fetched', allOrders.length, symbol, 'orders in total');
+    log.green ('Fetched', allOrders.length, symbol, 'orders in total')
 
     // do whatever you want to do with them, calculate profit loss, etc...
 

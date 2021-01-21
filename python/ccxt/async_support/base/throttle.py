@@ -26,24 +26,35 @@ def throttle(config=None):
 
     async def run():
         if not cfg['running']:
-            cfg['running'] = True
-            while not cfg['queue'].empty():
-                now = time()
-                elapsed = (now - cfg['lastTimestamp'])
-                cfg['lastTimestamp'] = now
-                cfg['numTokens'] = min(cfg['capacity'], cfg['numTokens'] + elapsed * cfg['refillRate'] * 1000)
-                if cfg['numTokens'] > 0:
-                    if not cfg['queue'].empty():
-                        cost, future = cfg['queue'].get_nowait()
-                        cfg['numTokens'] -= (cost if cost else cfg['defaultCost'])
-                        if not future.done():
-                            future.set_result(None)
-                await sleep(cfg['delay'])
-            cfg['running'] = False
+            future = None
+            try:
+                cfg['running'] = True
+                while not cfg['queue'].empty():
+                    now = time()
+                    elapsed = (now - cfg['lastTimestamp'])
+                    cfg['lastTimestamp'] = now
+                    cfg['numTokens'] = min(cfg['capacity'], cfg['numTokens'] + elapsed * cfg['refillRate'] * 1000)
+                    if cfg['numTokens'] > 0 or cfg['refillRate'] == 0:
+                        if not cfg['queue'].empty():
+                            cost, future = cfg['queue'].get_nowait()
+                            cfg['numTokens'] -= (cost if cost else cfg['defaultCost'])
+                            if not future.done():
+                                future.set_result(None)
+                    await sleep(cfg['delay'])
+            except BaseException as excp:
+                if future is not None:
+                    if not future.done():
+                        future.set_exception(excp)
+                while not cfg['queue'].empty():
+                    _, future = cfg['queue'].get_nowait()
+                    if not future.done():
+                        future.set_exception(excp)
+            finally:
+                cfg['running'] = False
 
     def throttle(rate_limit, cost=None):
         future = Future()
-        cfg['refillRate'] = 1 / rate_limit
+        cfg['refillRate'] = 0 if rate_limit == 0 else 1 / rate_limit
         cfg['queue'].put_nowait((cost, future))
         ensure_future(run())
         return future

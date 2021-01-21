@@ -12,7 +12,7 @@ sys.path.append(root + '/python')
 
 
 async def async_client(exchange, symbol):
-    client = getattr(ccxta, exchange)()
+    client = getattr(ccxta, exchange)({'enableRateLimit': True})
     await client.load_markets()
     if symbol not in client.symbols:
         raise Exception(exchange + ' does not support symbol ' + symbol)
