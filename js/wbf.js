@@ -38,7 +38,7 @@ module.exports = class wbf extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchCurrencies': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
@@ -326,6 +326,48 @@ module.exports = class wbf extends Exchange {
             'last': this.safeFloat (ticker, 'last'),
             'percentage': undefined,
             'change': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetGetAllticker (params);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'ticker', []);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const marketId = tickers[i];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (marketId, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
+        return {
+            'symbol': this.safeString (ticker, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'change'),
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
