@@ -990,19 +990,20 @@ class Transpiler {
             const { python2Folder, python3Folder, phpFolder, asyncPhpFolder } = options
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
+
+            const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
+
+            const python2Path = python2Folder ? (python2Folder + pythonFilename) : undefined
+            const python3Path = python3Folder + pythonFilename
+            const phpPath = phpFolder + phpFilename
+            const asyncPhpPath = asyncPhpFolder + phpFilename
+
+            const python2mtime = python2Folder ? (fs.existsSync (python2Path) ? fs.statSync (python2Path).mtime.getTime () : 0) : undefined
+            const python3mtime = fs.existsSync (python3Path) ? fs.statSync (python3Path).mtime.getTime () : 0
+            const phpmtime = fs.existsSync (phpPath) ? fs.statSync (phpPath).mtime.getTime () : 0
+            const asyncPhpmtime = fs.existsSync (asyncPhpPath) ? fs.statSync (asyncPhpPath).mtime.getTime () : 0
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
-            let jsmtime, python2mtime, python3mtime, phpmtime, asyncPhpmtime
-            if (!force) {
-                jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
-                const python2Path = python2Folder ? (python2Folder + pythonFilename) : undefined
-                const python3Path = python3Folder + pythonFilename
-                const phpPath = phpFolder + phpFilename
-                const asyncPhpPath = asyncPhpFolder + phpFilename
-                python2mtime = python2Folder ? (fs.existsSync (python2Path) ? fs.statSync (python2Path).mtime.getTime () : 0) : undefined
-                python3mtime = fs.existsSync (python3Path) ? fs.statSync (python3Path).mtime.getTime () : 0
-                phpmtime = fs.existsSync (python3Path) ? fs.statSync (phpPath).mtime.getTime () : 0
-                asyncPhpmtime = fs.existsSync (asyncPhpPath) ? fs.statSync (phpPath).mtime.getTime () : 0
-            }
+
             if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (jsmtime > asyncPhpmtime) || (python2Folder && (jsmtime > python2mtime))) {
                 const { python2, python3, php, asyncPhp, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
