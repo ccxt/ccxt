@@ -21,7 +21,7 @@ function throttle($config, $loop) {
             throw new Error ("Backlog is over max capacity of " . $config['maxCapacity']);
         }
 
-        $resolver = function() use (&$resolver, $rate_limit, &$cost, $config, &$last_timestamp, &$running, $queue, &$tokens, $loop) {
+        $resolver = function() use (&$resolver, $rate_limit, $config, &$last_timestamp, &$running, $queue, &$tokens, $loop) {
             // bit of a weird recursive translation
             //
             //  <<">>
@@ -30,6 +30,7 @@ function throttle($config, $loop) {
             // crab approves this code
             if (count($queue) && !$running) {
                 $running = true;
+                $cost = $queue->bottom()[0];
                 if ($tokens >= min($cost, $config['capacity'])) {
                     $first = $queue->dequeue();
                     list($cost, $resolve) = $first;
@@ -47,7 +48,7 @@ function throttle($config, $loop) {
                 });
             }
         };
-        return new React\Promise\Promise(function($resolve) use ($queue, &$cost, $resolver, $config) {
+        return new React\Promise\Promise(function($resolve) use ($queue, $cost, $resolver, $config) {
             // add the resolve function to a queue
             // promises get resolved FIFO with a minimum of $config['delay'] delay
             // the maximum delay depends on the $cost of the call and the $tokens available
