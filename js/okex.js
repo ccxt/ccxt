@@ -677,6 +677,7 @@ module.exports = class okex extends Exchange {
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
                 'MAG': 'Maggie',
+                'SBTC': 'Super Bitcoin',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
