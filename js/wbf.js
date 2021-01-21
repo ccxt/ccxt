@@ -340,10 +340,10 @@ module.exports = class wbf extends Exchange {
         const tickers = this.safeValue (data, 'ticker', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const marketId = tickers[i];
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (marketId, market);
+            const ticker = tickers[i];
+            const market = this.safeMarket (ticker);
+            const symbol = market['symbol']['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
