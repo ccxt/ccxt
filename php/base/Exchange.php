@@ -841,6 +841,15 @@ class Exchange {
 
         $this->id = null;
 
+        // rate limiter params
+        $this->rateLimit = 2000;
+        $this->tokenBucket = array(
+            'delay' => 1.0,
+            'capacity' => 1.0,
+            'defaultCost' => 1.0,
+            'maxCapacity' => 1000,
+        );
+
         $this->curlopt_interface = null;
         $this->timeout = 10000; // in milliseconds
         $this->proxy = '';
@@ -1046,16 +1055,6 @@ class Exchange {
                     " 'urlencode_glue_warning' => false or 'urlencode_glue' => '&' with exchange constructor params");
             }
         }
-
-        // rate limiter params
-        $this->rateLimit = isset($this->rateLimit) ? $this->rateLimit : 2000;
-        $this->tokenBucket = array_merge(array(
-            'refillRate' => ($this->rateLimit > 0) ? (1.0 / $this->rateLimit) : PHP_INT_MAX,
-            'delay' => 1.0,
-            'capacity' => 1.0,
-            'defaultCost' => 1.0,
-            'maxCapacity' => 1000,
-        ), isset($this->tokenBucket) ? $this->tokenBucket : array());
 
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');
