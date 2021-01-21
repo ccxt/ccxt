@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { sleep
+const { setTimeout_safe
       , now } = require ('./time')
 
 /*  ------------------------------------------------------------------------ */
@@ -18,19 +18,39 @@ module.exports = {
         // }
 
         let   lastTimestamp = now ()
-            , tokens     = cfg.capacity
+            , tokens        = config.capacity
             , running       = false
-
         const queue = []
 
         return (rateLimit, cost = undefined) => {
-            if (queue.length && !running) {
-                running = true
-                if (tokens >= Math.min (config['capacity'], cost)) {
-                    let [cost, resolve] = queue.shift ()
+            if (queue.length > config['maxCapacity']) {
+                throw new Error ('Backlog is over max capacity of ' + config['maxCapacity'])
+            }
 
+            function resolver () {
+                if (queue.length && !running) {
+                    running = true
+                    const cost = queue[0][0]
+                    if (tokens >= Math.min (config['capacity'], cost)) {
+                        const [_, resolve] = queue.shift ()
+                        tokens -= cost
+                        resolve ()
+                    }
+                    const currentTime = now ()
+                    const elapsed = currentTime - lastTimestamp
+                    lastTimestamp = currentTime
+                    tokens = Math.min (config['capacity'], tokens + elapsed / rateLimit)
+                    setTimeout_safe (() => {
+                        running = false
+                        resolver ()
+                    }, config['delay'])
                 }
             }
+            return new Promise ((resolve, reject) => {
+                cost = cost ? cost : config['defaultCost']
+                queue.push ([cost, resolve])
+                resolver ()
+            })
         }
     }
 }
