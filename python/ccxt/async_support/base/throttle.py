@@ -32,7 +32,6 @@ def throttle(config, loop):
             nonlocal cost
             if queue and not running:
                 running = True
-                cost = cost if cost else config['defaultCost']
                 if tokens >= min(cost, config['capacity']):
                     cost, resolve = queue.popleft()
                     tokens -= cost
@@ -49,6 +48,7 @@ def throttle(config, loop):
             loop.call_later(config['delay'], callback)
 
         future = Future()
+        cost = cost if cost else config['defaultCost']
         queue.append([cost, lambda: future.set_result(True)])
         resolver()
         return future
