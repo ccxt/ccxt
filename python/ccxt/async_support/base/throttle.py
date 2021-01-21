@@ -29,9 +29,9 @@ def throttle(config, loop):
             nonlocal running
             nonlocal tokens
             nonlocal last_timestamp
-            nonlocal cost
             if queue and not running:
                 running = True
+                cost = queue[0][0]
                 if tokens >= min(cost, config['capacity']):
                     cost, resolve = queue.popleft()
                     tokens -= cost
