@@ -4,6 +4,7 @@ namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
+
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
@@ -38,6 +39,8 @@ function dump($s) {
     echo implode(' ', func_get_args()) . "\n";
 }
 
+ini_set('memory_limit', '512M');
+
 $exchanges = null;
 
 // $shortopts = '';
@@ -51,8 +54,8 @@ $exchanges = null;
 
 //-----------------------------------------------------------------------------
 
-foreach (\ccxt\Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\' . $id;
+foreach (Exchange::$exchanges as $id) {
+    $exchange = '\\ccxt\\async\\' . $id;
     $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
 }
 
@@ -363,24 +366,29 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-if (count($argv) > 1) {
-    if ($exchanges[$argv[1]]) {
-        $id = $argv[1];
-        $exchange = $exchanges[$id];
+$main = function() use ($argv, $exchanges, $proxies) {
+    if (count($argv) > 1) {
+        if ($exchanges[$argv[1]]) {
+            $id = $argv[1];
+            $exchange = $exchanges[$id];
 
-        dump(green('EXCHANGE:'), green($exchange->id));
+            dump(green('EXCHANGE:'), green($exchange->id));
 
-        if (count($argv) > 2) {
-            load_exchange($exchange);
-            test_symbol($exchange, $argv[2]);
+            if (count($argv) > 2) {
+                load_exchange($exchange);
+                test_symbol($exchange, $argv[2]);
+            } else {
+                try_all_proxies($exchange, $proxies);
+            }
         } else {
-            try_all_proxies($exchange, $proxies);
+            echo $argv[1] . " not found.\n";
         }
     } else {
-        echo $argv[1] . " not found.\n";
+        foreach ($exchanges as $id => $exchange) {
+            try_all_proxies($exchange, $proxies);
+        }
     }
-} else {
-    foreach ($exchanges as $id => $exchange) {
-        try_all_proxies($exchange, $proxies);
-    }
-}
+};
+
+
+$main();

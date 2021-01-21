@@ -4,6 +4,7 @@ namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
+include_once 'vendor/autoload.php';
 include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
@@ -37,6 +38,8 @@ function underline($s) {
 function dump($s) {
     echo implode(' ', func_get_args()) . "\n";
 }
+
+ini_set('memory_limit', '512M');
 
 $exchanges = null;
 
