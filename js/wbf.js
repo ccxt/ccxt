@@ -280,7 +280,7 @@ module.exports = class wbf extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
         if (limit !== undefined) {
