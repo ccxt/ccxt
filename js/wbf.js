@@ -609,12 +609,8 @@ module.exports = class wbf extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (errorCode in this.exceptions) {
-            const Exception = this.exceptions[errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
         if (code >= 400) {
-            throw new ExchangeError (this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + message + errorCode);
         }
     }
 };
