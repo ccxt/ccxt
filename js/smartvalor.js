@@ -124,17 +124,36 @@ module.exports = class smartvalor extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const instruments = await this.publicGetInstruments (params);
+        const response = await this.publicGetInstruments (params);
+        // [
+        //     {
+        //         "id": 1,
+        //         "symbol": "BTCUSD",
+        //         "product1": {
+        //             "id": 1,
+        //             "isoCode": "BTC"
+        //         },
+        //         "product2": {
+        //             "id": 3,
+        //             "isoCode": "USD"
+        //         }
+        //     }
+        // ]
         const result = [];
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = this.safeValue (instruments, i);
+        for (let i = 0; i < response.length; i++) {
+            const instrument = this.safeValue (response, i);
             const base = this.safeValue (instrument, 'product1');
+            const baseId = this.safeInteger (base, 'id');
+            const baseCode = this.safeString (base, 'isoCode');
             const quote = this.safeValue (instrument, 'product2');
+            const quoteId = this.safeInteger (quote, 'id');
+            const quoteCode = this.safeString (quote, 'isoCode');
+            const symbol = baseCode + '/' + quoteCode;
             result.push ({
-                'id': instruments[i].id,
-                'symbol': base['isoCode'] + '/' + quote['isoCode'],
-                'base': base['isoCode'],
-                'quote': quote['isoCode'],
+                'id': this.safeInteger (instrument, 'id'),
+                'symbol': symbol,
+                'base': baseCode,
+                'quote': quoteCode,
                 'info': instrument,
                 'active': true,
                 'precision': {
@@ -155,23 +174,32 @@ module.exports = class smartvalor extends Exchange {
                         'max': undefined,
                     },
                 },
-                'baseId': base['id'],
-                'quoteId': quote['id'],
+                'baseId': baseId,
+                'quoteId': quoteId,
             });
         }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
-        const currencies = await this.publicGetProducts (params);
+        const response = await this.publicGetProducts (params);
+        //    [
+        //       {
+        //         "id": 1,
+        //         "name": "Bitcoin",
+        //         "isoCode": "BTC",
+        //         "type": "CRYPTO_COIN"
+        //       }
+        //    ]
         const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.safeValue (currencies, i);
-            result[currency['isoCode']] = {
-                'id': currency['id'],
-                'code': currency['isoCode'],
+        for (let i = 0; i < response.length; i++) {
+            const currency = this.safeValue (response, i);
+            const code = this.safeString (currency, 'isoCode');
+            result[code] = {
+                'id': this.safeInteger (currency, 'id'),
+                'code': code,
                 'info': currency,
-                'name': currency['name'],
+                'name': this.safeString (currency, 'name'),
                 'active': true,
                 'fee': undefined,
                 'precision': undefined,
