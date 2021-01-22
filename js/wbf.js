@@ -287,7 +287,7 @@ module.exports = class wbf extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetGetRecords (request);
-        return this.parseOHLCVs (response.data, undefined, timeframe, since, limit);
+        return this.parseOHLCVs (response['data'], undefined, timeframe, since, limit);
     }
 
     async fetchTicker (symbol, params = {}) {
