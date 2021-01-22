@@ -387,7 +387,7 @@ module.exports = class wbf extends Exchange {
         }
         const response = await this.publicGetMarketDept (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data.tick, undefined, 'bids', 'asks');
+        return this.parseOrderBook (data['tick'], undefined, 'bids', 'asks');
     }
 
     async fetchBalance (params = {}) {
