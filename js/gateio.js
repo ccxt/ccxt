@@ -884,21 +884,21 @@ module.exports = class gateio extends Exchange {
         // withdrawal
         //
         //     {
-        //         'id': 'w5864259',
-        //         'currency': 'ETH',
-        //         'address': '0x72632f462....',
-        //         'amount': '0.4947',
-        //         'txid': '0x111167d120f736....',
-        //         'timestamp': '1553123688',
-        //         'status': 'DONE',
-        //         'type': 'withdrawal'
-        //     }
+        //         "id": "w6754336",
+        //         "fee": "0.1",
+        //         "txid": "zzyy",
+        //         "amount": "1",
+        //         "status": "DONE",
+        //         "address": "tz11234",
+        //         "currency": "XTZ",
+        //         "timestamp": "1561030206"
+        //    }
         //
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         if (address === 'false') {
             address = undefined;
@@ -906,6 +906,17 @@ module.exports = class gateio extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.parseTransactionType (id[0]);
+        const feeCost = this.safeFloat (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+            if (amount !== undefined) {
+                amount = amount - feeCost;
+            }
+        }
         return {
             'info': transaction,
             'id': id,
@@ -918,7 +929,7 @@ module.exports = class gateio extends Exchange {
             'type': type,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
