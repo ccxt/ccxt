@@ -161,8 +161,8 @@ module.exports = class bitmart extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.002,
-                    'maker': 0.001,
+                    'taker': 0.0025,
+                    'maker': 0.0025,
                     'tiers': {
                         'taker': [
                             [0, 0.20 / 100],
