@@ -2479,11 +2479,7 @@ class Exchange {
     }
 
     public function __call($function, $params) {
-        if (array_key_exists($function, $this->async_api)) {
-            $generator_name = $this->async_api[$function];
-            $generator = call_user_func_array(array($this, $generator_name), $params);
-            return static::$kernel->execute($generator)->promise();
-        } else if (array_key_exists($function, $this->defined_rest_api)) {
+        if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
             $partial[3] = $params ? $params[0] : $params;

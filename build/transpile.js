@@ -958,10 +958,8 @@ class Transpiler {
             php.push (phpBody);
             php.push ('    }')
 
-            // compile signature + body for generator PHP (mostly same as above)
-            const generator = asyncPhpBody.indexOf ('yield') > -1 ? '_generator' : ''
             asyncPhp.push ('');
-            asyncPhp.push ('    public function ' + method + generator + '(' + phpArgs + ') {');
+            asyncPhp.push ('    public function ' + method + '(' + phpArgs + ') {');
             asyncPhp.push (asyncPhpBody);
             asyncPhp.push ('    }')
         }

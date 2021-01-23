@@ -55,7 +55,7 @@ $exchanges = null;
 //-----------------------------------------------------------------------------
 
 foreach (Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\async\\' . $id;
+    $exchange = '\\ccxt\\' . $id;
     $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
 }
 
