@@ -3437,7 +3437,7 @@ Receiver's balance before the deposit:  200.0000
 Receiver's balance after the deposit:   201.1111
 ```
 
-Therefore on the sender's end the balance will show a change of -1.2345. On the receiver's side it will show a balance changge of +1.1111 = 1.2345 amount - 0.1234 fee.
+Therefore on the sender's end the balance will show a change of -1.2345. On the receiver's side it will show a balance change of +1.1111 = 1.2345 amount - 0.1234 fee.
 
 ##### Notes On Transaction Structure
 
