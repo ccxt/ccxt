@@ -1,8 +1,6 @@
 language: python
 python:
   - "3.6"
-php:
-  - "7.4"
 cache:
  directories:
    # - $HOME/.cache/pip
@@ -30,6 +28,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
+- curl -L https://raw.githubusercontent.com/phpenv/phpenv-installer/master/bin/phpenv-installer | bash
 - composer install
 - git pull --tags
 script:
