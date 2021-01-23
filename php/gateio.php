@@ -888,15 +888,15 @@ class gateio extends Exchange {
         // withdrawal
         //
         //     {
-        //         'id' => 'w5864259',
-        //         'currency' => 'ETH',
-        //         'address' => '0x72632f462....',
-        //         'amount' => '0.4947',
-        //         'txid' => '0x111167d120f736....',
-        //         'timestamp' => '1553123688',
-        //         'status' => 'DONE',
-        //         'type' => 'withdrawal'
-        //     }
+        //         "$id" => "w6754336",
+        //         "$fee" => "0.1",
+        //         "$txid" => "zzyy",
+        //         "$amount" => "1",
+        //         "$status" => "DONE",
+        //         "$address" => "tz11234",
+        //         "$currency" => "XTZ",
+        //         "$timestamp" => "1561030206"
+        //    }
         //
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -910,6 +910,17 @@ class gateio extends Exchange {
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type($id[0]);
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+            if ($amount !== null) {
+                $amount = $amount - $feeCost;
+            }
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -922,7 +933,7 @@ class gateio extends Exchange {
             'type' => $type,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
