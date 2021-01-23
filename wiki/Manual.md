@@ -3407,7 +3407,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'tag':      '0xabcdef' // "tag" or "memo" or "payment_id" associated with the address
     'tagTo': '0xhijgklmn', // "tag" or "memo" or "payment_id" associated with the receiver
     'type':     'deposit',   // or 'withdrawal', string
-    'amount':    1.2345,     // float (a gross amount, including the fee)
+    'amount':    1.2345,     // float (does not include the fee)
     'currency': 'ETH',       // a common unified currency code, string
     'status':   'pending',   // 'ok', 'failed', 'canceled', string
     'updated':   undefined,  // UTC timestamp of most recent status change in ms
@@ -3419,25 +3419,6 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     },
 }
 ```
-
-##### Transaction Fees
-
-In general, the exchanges will deduce the transaction fees from the sent transaction amount. In other words, the `fee['cost']` is included in the `amount`. The receiver will  receive `amount - fee['cost']` to his account. The withdrawal amount is a _"gross"_ value (amount includes the fee).
-
-Consider the following example of a transaction being sent from one exchange to another:
-
-```
-Transaction gross amount   1.2345
-Fee cost                   0.1234
-
-Sender's balance before the withdrawal: 100.0000
-Sender's balance after the withdrawal:   98.7655
-
-Receiver's balance before the deposit:  200.0000
-Receiver's balance after the deposit:   201.1111
-```
-
-Therefore on the sender's end the balance will show a change of -1.2345. On the receiver's side it will show a balance change of +1.1111 = 1.2345 amount - 0.1234 fee.
 
 ##### Notes On Transaction Structure
 
