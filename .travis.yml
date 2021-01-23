@@ -1,6 +1,8 @@
 language: python
 python:
   - "3.6"
+php:
+  - "7.4"
 cache:
  directories:
    # - $HOME/.cache/pip
