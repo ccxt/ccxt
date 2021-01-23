@@ -268,7 +268,7 @@ $bitfinex = new \ccxt\bitfinex(); // default id
 $bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
 $bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
 $id = 'kraken';
-$exchange = '\\ccxt\\' . $id
+$exchange = '\\ccxt\\' . $id;
 $kraken = new $exchange();
 
 // from variable id
