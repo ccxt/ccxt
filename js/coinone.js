@@ -17,8 +17,11 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -180,7 +183,7 @@ module.exports = class coinone extends Exchange {
                 result[symbol]['timestamp'] = timestamp;
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -514,8 +517,11 @@ module.exports = class coinone extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': undefined,
             'amount': amount,
@@ -641,7 +647,7 @@ module.exports = class coinone extends Exchange {
                 'access_token': this.apiKey,
                 'nonce': nonce,
             }, params));
-            const payload = this.stringToBase64 (this.encode (json));
+            const payload = this.stringToBase64 (json);
             body = this.decode (payload);
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (payload, this.encode (secret), 'sha512');

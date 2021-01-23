@@ -28,11 +28,19 @@ class bitbay(Exchange):
             'countries': ['MT', 'EU'],  # Malta
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -232,6 +240,9 @@ class bitbay(Exchange):
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
+            'commonCurrencies': {
+                'GGC': 'Global Game Coin',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -338,18 +349,7 @@ class bitbay(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'market')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(order, 'time')
         amount = self.safe_float(order, 'startAmount')
         remaining = self.safe_float(order, 'currentAmount')
@@ -357,6 +357,7 @@ class bitbay(Exchange):
         if amount is not None:
             if remaining is not None:
                 filled = max(0, amount - remaining)
+        postOnly = self.safe_value(order, 'postOnly')
         return {
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -367,8 +368,11 @@ class bitbay(Exchange):
             'status': None,
             'symbol': symbol,
             'type': self.safe_string(order, 'mode'),
+            'timeInForce': None,
+            'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_float(order, 'rate'),
+            'stopPrice': None,
             'amount': amount,
             'cost': None,
             'filled': filled,
@@ -921,28 +925,11 @@ class bitbay(Exchange):
                 cost = price * amount
         feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
-        base = None
-        quote = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                base = market['base']
-                quote = market['quote']
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         fee = None
         if feeCost is not None:
-            feeCcy = base if (side == 'buy') else quote
+            feeCcy = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,

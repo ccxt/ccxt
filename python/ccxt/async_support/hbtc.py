@@ -35,27 +35,32 @@ class hbtc(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTime': True,
+                'createOrder': True,
+                'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchBidAsk': True,
                 'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchDepositAddress': False,
-                'fetchOHLCV': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchTradingLimits': True,
+                'fetchCurrencies': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'withdraw': True,
-                'fetchCurrencies': False,
-                'fetchDeposits': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
-                'fetchAccounts': True,
-                'fetchLedger': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1575,12 +1580,8 @@ class hbtc(Exchange):
         #         "askQty": "9.00000000"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'time')
         open = self.safe_float(ticker, 'openPrice')
         close = self.safe_float(ticker, 'lastPrice')
@@ -1594,9 +1595,7 @@ class hbtc(Exchange):
                 percentage = (change / open) * 100
         quoteVolume = self.safe_float(ticker, 'quoteVolume')
         baseVolume = self.safe_float(ticker, 'volume')
-        vwap = None
-        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
-            vwap = quoteVolume / baseVolume
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1773,13 +1772,8 @@ class hbtc(Exchange):
         timestamp = self.safe_integer(order, 'time')
         if timestamp is None:
             timestamp = self.safe_integer(order, 'transactTime')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId is not None:
-                marketId = marketId.upper()
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         price = self.safe_float(order, 'price')
@@ -1808,8 +1802,8 @@ class hbtc(Exchange):
         if average == 0.0:
             average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if market is not None:
-            symbol = market['symbol']
+        timeInForce = self.safe_string(order, 'timeInForce')
+        stopPrice = self.safe_float(order, 'stopPrice')
         result = {
             'info': order,
             'id': id,
@@ -1819,8 +1813,10 @@ class hbtc(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

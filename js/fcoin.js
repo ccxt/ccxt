@@ -20,18 +20,25 @@ module.exports = class fcoin extends Exchange {
             'accountsById': undefined,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTime': true,
+                'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'withdraw': false,
-                'fetchCurrencies': false,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -375,16 +382,11 @@ module.exports = class fcoin extends Exchange {
             if (tickerType !== undefined) {
                 const parts = tickerType.split ('.');
                 const id = parts[1];
-                if (id in this.markets_by_id) {
-                    market = this.markets_by_id[id];
-                }
+                symbol = this.safeSymbol (id, market);
             }
         }
         const values = ticker['ticker'];
         const last = this.safeFloat (values, 0);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -441,6 +443,17 @@ module.exports = class fcoin extends Exchange {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetServerTime (params);
+        //
+        //     {
+        //         "status": 0,
+        //         "data": 1523430502977
+        //     }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
@@ -533,13 +546,9 @@ module.exports = class fcoin extends Exchange {
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const orderType = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'created_at');
         const amount = this.safeFloat (order, 'amount');
@@ -564,14 +573,12 @@ module.exports = class fcoin extends Exchange {
         const feeRebate = this.safeFloat (order, 'fees_income');
         if ((feeRebate !== undefined) && (feeRebate > 0)) {
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
             }
             feeCost = -feeRebate;
         } else {
             feeCost = this.safeFloat (order, 'fill_fees');
             if (market !== undefined) {
-                symbol = market['symbol'];
                 feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
         }
@@ -584,8 +591,11 @@ module.exports = class fcoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'remaining': remaining,
@@ -702,7 +712,7 @@ module.exports = class fcoin extends Exchange {
                     auth += this.urlencode (query);
                 }
             }
-            const payload = this.stringToBase64 (this.encode (auth));
+            const payload = this.stringToBase64 (auth);
             let signature = this.hmac (payload, this.encode (this.secret), 'sha1', 'binary');
             signature = this.decode (this.stringToBase64 (signature));
             headers = {

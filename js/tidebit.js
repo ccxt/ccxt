@@ -16,10 +16,17 @@ module.exports = class tidebit extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'fetchDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchDepositAddress': true,
+                'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -36,7 +43,7 @@ module.exports = class tidebit extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': [
@@ -236,15 +243,12 @@ module.exports = class tidebit extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                const ticker = tickers[id];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -390,13 +394,8 @@ module.exports = class tidebit extends Exchange {
         //         ]
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = order['market'];
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const id = this.safeString (order, 'id');
@@ -412,6 +411,7 @@ module.exports = class tidebit extends Exchange {
                 cost = price * filled;
             }
         }
+        const average = this.safeFloat (order, 'avg_price');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -421,8 +421,11 @@ module.exports = class tidebit extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -430,7 +433,7 @@ module.exports = class tidebit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-            'average': undefined,
+            'average': average,
         };
     }
 
@@ -446,8 +449,7 @@ module.exports = class tidebit extends Exchange {
             request['price'] = price.toString ();
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const market = this.markets_by_id[response['market']];
-        return this.parseOrder (response, market);
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

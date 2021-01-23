@@ -29,16 +29,26 @@ class bitz(Exchange):
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'cancelOrders': True,
+                'createOrder': True,
+                'createMarketOrder': False,
+                'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'createMarketOrder': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -54,7 +64,7 @@ class bitz(Exchange):
             },
             'hostname': 'apiv2.bitz.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api': {
                     'market': 'https://{hostname}',
                     'trade': 'https://{hostname}',
@@ -74,6 +84,7 @@ class bitz(Exchange):
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -84,6 +95,7 @@ class bitz(Exchange):
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut',  # withdraw
                         'getUserHistoryEntrustSheet',  # closed orders
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
@@ -359,12 +371,8 @@ class bitz(Exchange):
         #                    krw: "318655.82"   }
         #
         timestamp = None
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float(ticker, 'now')
         open = self.safe_float(ticker, 'open')
         change = None
@@ -506,7 +514,21 @@ class bitz(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 })
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        response = self.marketGetGetServerTime(params)
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":[],
+        #         "time":1555490875,
+        #         "microtime":"0.35994200 1555490875",
+        #         "source":"api"
+        #     }
+        #
+        return self.safe_timestamp(response, 'time')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -730,8 +752,11 @@ class bitz(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1033,6 +1058,16 @@ class bitz(Exchange):
         #         "memo":""
         #     }
         #
+        # withdraw
+        #
+        #     {
+        #         "id":397574,
+        #         "email":"***@email.com",
+        #         "coin":"usdt",
+        #         "network_fee":"",
+        #         "eid":23112
+        #     }
+        #
         timestamp = self.safe_integer(transaction, 'updated')
         if timestamp == 0:
             timestamp = None
@@ -1040,6 +1075,13 @@ class bitz(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        fee = None
+        feeCost = self.safe_float(transaction, 'network_fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'code': code,
+            }
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'txid'),
@@ -1052,7 +1094,7 @@ class bitz(Exchange):
             'currency': code,
             'status': status,
             'updated': timestamp,
-            'fee': None,
+            'fee': fee,
             'info': transaction,
         }
 
@@ -1095,6 +1137,38 @@ class bitz(Exchange):
         response = self.tradePostDepositOrWithdraw(self.extend(request, params))
         transactions = self.safe_value(response['data'], 'data', [])
         return self.parse_transactions_by_type(type, transactions, code, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'number': self.currency_to_precision(code, amount),
+            'address': address,
+            # 'type': 'erc20',  # omni, trc20, optional
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = self.tradePostCoinOut(self.extend(request, params))
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":{
+        #             "id":397574,
+        #             "email":"***@email.com",
+        #             "coin":"usdt",
+        #             "network_fee":"",
+        #             "eid":23112
+        #         },
+        #         "time":1552641646,
+        #         "microtime":"0.70304500 1552641646",
+        #         "source":"api"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def nonce(self):
         currentTimestamp = self.seconds()

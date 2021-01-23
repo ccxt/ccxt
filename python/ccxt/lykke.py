@@ -19,12 +19,19 @@ class lykke(Exchange):
             'has': {
                 'CORS': False,
                 'fetchOHLCV': False,
-                'fetchTrades': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchTrades': True,
                 'fetchMyTrades': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'cancelAllOrders': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
             },
             'timeframes': {
                 '1m': 'Minute',
@@ -112,6 +119,10 @@ class lykke(Exchange):
                         'Orders/stoplimit',
                         'Orders/bulk',
                     ],
+                    'delete': [
+                        'Orders',
+                        'Orders/{id}',
+                    ],
                 },
             },
             'fees': {
@@ -169,12 +180,8 @@ class lykke(Exchange):
         #         Price: 9847.427,
         #         Fee: {Amount: null, Type: 'Unknown', FeeAssetId: null}
         #     },
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         id = self.safe_string_2(trade, 'id', 'Id')
         orderId = self.safe_string(trade, 'OrderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
@@ -248,7 +255,17 @@ class lykke(Exchange):
         return self.parse_balance(result)
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostOrdersIdCancel({'id': id})
+        request = {'id': id}
+        return self.privateDeleteOrdersId(self.extend(request, params))
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['assetPairId'] = market['id']
+        return self.privateDeleteOrders(self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -257,16 +274,46 @@ class lykke(Exchange):
             'AssetPairId': market['id'],
             'OrderAction': self.capitalize(side),
             'Volume': amount,
+            'Asset': market['baseId'],
         }
-        if type == 'market':
-            query['Asset'] = market['base'] if (side == 'buy') else market['quote']
-        elif type == 'limit':
+        if type == 'limit':
             query['Price'] = price
-        method = 'privatePostOrders' + self.capitalize(type)
+        method = 'privatePostOrdersV2' + self.capitalize(type)
         result = getattr(self, method)(self.extend(query, params))
+        #
+        # market
+        #
+        #     {
+        #         "Price": 0
+        #     }
+        #
+        # limit
+        #
+        #     {
+        #         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        #     }
+        #
+        id = self.safe_string(result, 'Id')
+        price = self.safe_float(result, 'Price')
         return {
-            'id': None,
+            'id': id,
             'info': result,
+            'clientOrderId': None,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
         }
 
     def fetch_markets(self, params={}):
@@ -299,8 +346,8 @@ class lykke(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'Accuracy'),
-                'price': self.safe_integer(market, 'InvertedAccuracy'),
+                'price': self.safe_integer(market, 'Accuracy'),
+                'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,
@@ -400,12 +447,8 @@ class lykke(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
         if ('Registered' in order) and (order['Registered']):
@@ -433,8 +476,11 @@ class lykke(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,
@@ -511,7 +557,7 @@ class lykke(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 if query:
                     url += '?' + self.urlencode(query)
             self.check_required_credentials()

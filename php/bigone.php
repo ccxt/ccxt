@@ -20,16 +20,23 @@ class bigone extends Exchange {
             'rateLimit' => 1200, // 500 request per 10 minutes
             'has' => array(
                 'cancelAllOrders' => true,
-                'createMarketOrder' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -140,6 +147,7 @@ class bigone extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'MBN' => 'Mobilian Coin',
                 'ONE' => 'BigONE Token',
             ),
         ));
@@ -250,24 +258,9 @@ class bigone extends Exchange {
         //         "daily_change":"-0.000182"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'asset_pair_name');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $timestamp = $this->milliseconds();
+        $marketId = $this->safe_string($ticker, 'asset_pair_name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $timestamp = null;
         $close = $this->safe_float($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
@@ -366,7 +359,21 @@ class bigone extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetPing ($params);
+        //
+        //     {
+        //         "$data" => {
+        //             "$timestamp" => 1527665262168391000
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        return intval($timestamp / 1000000);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -443,20 +450,7 @@ class bigone extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -504,7 +498,7 @@ class bigone extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'info' => $trade,
         );
         $makerCurrencyCode = null;
@@ -620,7 +614,7 @@ class bigone extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            // $start = intval ($since / 1000);
+            // $start = intval($since / 1000);
             $end = $this->sum($since, $limit * $this->parse_timeframe($timeframe) * 1000);
             $request['time'] = $this->iso8601($end);
         }
@@ -695,23 +689,8 @@ class bigone extends Exchange {
         //    }
         //
         $id = $this->safe_string($order, 'id');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'asset_pair_name');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'asset_pair_name');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
@@ -744,8 +723,11 @@ class bigone extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -761,12 +743,34 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $uppercaseType = strtoupper($type);
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $side, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-            'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+            'type' => $uppercaseType,
+            // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
+            // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
+            // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
+        if ($uppercaseType === 'LIMIT') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
+            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
+            if ($isStopLimit || $isStopMarket) {
+                $stopPrice = $this->safe_float_2($params, 'stop_price', 'stopPrice');
+                if ($stopPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price parameter');
+                }
+                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
+            }
+            if ($isStopLimit) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {

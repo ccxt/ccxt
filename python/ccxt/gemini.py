@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -23,8 +22,10 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class gemini(Exchange):
@@ -37,22 +38,29 @@ class gemini(Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddress': False,
-                'createDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchBidsAsks': False,
-                'fetchTickers': False,
-                'fetchMyTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchBidsAsks': False,
+                'fetchClosedOrders': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': False,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
-                'fetchDeposits': False,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -69,7 +77,11 @@ class gemini(Exchange):
                 'test': {
                     'public': 'https://api.sandbox.gemini.com',
                     'private': 'https://api.sandbox.gemini.com',
-                    'web': 'https://docs.sandbox.gemini.com',
+                    # use the True doc instead of the sandbox doc
+                    # since they differ in parsing
+                    # https://github.com/ccxt/ccxt/issues/7874
+                    # https://github.com/ccxt/ccxt/issues/7894
+                    'web': 'https://docs.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -86,6 +98,7 @@ class gemini(Exchange):
                 'public': {
                     'get': [
                         'v1/symbols',
+                        'v1/pricefeed',
                         'v1/pubticker/{symbol}',
                         'v1/book/{symbol}',
                         'v1/trades/{symbol}',
@@ -115,6 +128,7 @@ class gemini(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -128,7 +142,7 @@ class gemini(Exchange):
                 '406': InsufficientFunds,  # Insufficient Funds
                 '429': RateLimitExceeded,  # Rate Limiting was applied
                 '500': ExchangeError,  # The server encountered an error
-                '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
+                '502': ExchangeNotAvailable,  # Technical issues are preventing the request from being satisfied
                 '503': OnMaintenance,  # The exchange is down for maintenance
             },
             'timeframes': {
@@ -175,10 +189,12 @@ class gemini(Exchange):
                 },
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance,  # The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': ExchangeNotAvailable,  # We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 },
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
             },
         })
 
@@ -186,7 +202,7 @@ class gemini(Exchange):
         method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
         return getattr(self, method)(params)
 
-    def fetch_markets_from_web(self, symbols=None, params={}):
+    def fetch_markets_from_web(self, params={}):
         response = self.webGetRestApi(params)
         sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         numSections = len(sections)
@@ -201,97 +217,78 @@ class gemini(Exchange):
         numRows = len(rows)
         if numRows < 2:
             raise NotSupported(error)
-        apiSymbols = self.fetch_markets_from_api(params)
-        indexedSymbols = self.index_by(apiSymbols, 'symbol')
         result = []
         # skip the first element(empty string)
         for i in range(1, numRows):
             row = rows[i]
             cells = row.split("</td>\n")  # eslint-disable-line quotes
             numCells = len(cells)
-            if numCells < 9:
+            if numCells < 5:
                 raise NotSupported(error)
             #     [
-            #         '<td>BTC',  # currency
+            #         '<td>btcusd',  # currency
             #         '<td>0.00001 BTC(1e-5)',  # min order size
             #         '<td>0.00000001 BTC(1e-8)',  # tick size
-            #         '<td>0.01 USD',  # usd price increment
-            #         '<td>N/A',  # btc price increment
-            #         '<td>0.0001 ETH(1e-4)',  # eth price increment
-            #         '<td>0.0001 BCH(1e-4)',  # bch price increment
-            #         '<td>0.001 LTC(1e-3)',  # ltc price increment
+            #         '<td>0.01 USD',  # quote currency price increment
             #         '</tr>'
             #     ]
-            #
-            uppercaseBaseId = cells[0].replace('<td>', '')
-            baseId = uppercaseBaseId.lower()
-            base = self.safe_currency_code(baseId)
-            quoteIds = ['usd', 'btc', 'eth', 'bch', 'ltc']
+            marketId = cells[0].replace('<td>', '')
+            # base = self.safe_currency_code(baseId)
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
-            amountPrecision = self.precision_from_string(amountPrecisionParts[0])
-            for j in range(0, len(quoteIds)):
-                quoteId = quoteIds[j]
-                quote = self.safe_currency_code(quoteId)
-                pricePrecisionIndex = self.sum(3, j)
-                pricePrecisionString = cells[pricePrecisionIndex].replace('<td>', '')
-                if pricePrecisionString == 'N/A':
-                    continue
-                pricePrecisionParts = pricePrecisionString.split(' ')
-                pricePrecision = self.precision_from_string(pricePrecisionParts[0])
-                symbol = base + '/' + quote
-                if not (symbol in indexedSymbols):
-                    continue
-                id = baseId + quoteId
-                active = None
-                result.append({
-                    'id': id,
-                    'info': row,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
+            amountPrecision = self.safe_float(amountPrecisionParts, 0)
+            idLength = len(marketId) - 0
+            quoteId = marketId[idLength - 3:idLength]
+            quote = self.safe_currency_code(quoteId)
+            pricePrecisionString = cells[3].replace('<td>', '')
+            pricePrecisionParts = pricePrecisionString.split(' ')
+            pricePrecision = self.safe_float(pricePrecisionParts, 0)
+            baseId = marketId.replace(quoteId, '')
+            base = self.safe_currency_code(baseId)
+            symbol = base + '/' + quote
+            active = None
+            result.append({
+                'id': marketId,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': None,
                     },
-                    'limits': {
-                        'amount': {
-                            'min': minAmount,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
+                    'price': {
+                        'min': None,
+                        'max': None,
                     },
-                })
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
         return result
 
     def fetch_markets_from_api(self, params={}):
         response = self.publicGetV1Symbols(params)
         result = []
         for i in range(0, len(response)):
-            id = response[i]
-            market = id
-            idLength = len(id) - 0
-            baseId = None
-            quoteId = None
-            if idLength == 7:
-                baseId = id[0:4]
-                quoteId = id[4:7]
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
+            marketId = response[i]
+            market = marketId
+            idLength = len(marketId) - 0
+            baseId = marketId[0:idLength - 3]
+            quoteId = marketId[idLength - 3:idLength]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -300,7 +297,7 @@ class gemini(Exchange):
                 'price': None,
             }
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
@@ -337,41 +334,213 @@ class gemini(Exchange):
         response = self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker_v1(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        ticker = self.publicGetV1PubtickerSymbol(self.extend(request, params))
-        timestamp = self.safe_integer(ticker['volume'], 'timestamp')
-        baseCurrency = market['base']  # unified structures are guaranteed to have unified fields
-        quoteCurrency = market['quote']  # so we don't need safe-methods for unified structures
-        last = self.safe_float(ticker, 'last')
+        response = self.publicGetV1PubtickerSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "bid":"9117.95",
+        #         "ask":"9117.96",
+        #         "volume":{
+        #             "BTC":"1615.46861748",
+        #             "USD":"14727307.57545006088",
+        #             "timestamp":1594982700000
+        #         },
+        #         "last":"9115.23"
+        #     }
+        #
+        return self.parse_ticker(response, market)
+
+    def fetch_ticker_v2(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetV2TickerSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "symbol":"BTCUSD",
+        #         "open":"9080.58",
+        #         "high":"9184.53",
+        #         "low":"9063.56",
+        #         "close":"9116.08",
+        #         # Hourly prices descending for past 24 hours
+        #         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        #         "bid":"9115.86",
+        #         "ask":"9115.87"
+        #     }
+        #
+        return self.parse_ticker(response, market)
+
+    def fetch_ticker_v1_and_v2(self, symbol, params={}):
+        tickerA = self.fetch_ticker_v1(symbol, params)
+        tickerB = self.fetch_ticker_v2(symbol, params)
+        return self.deep_extend(tickerA, {
+            'open': tickerB['open'],
+            'high': tickerB['high'],
+            'low': tickerB['low'],
+            'change': tickerB['change'],
+            'percentage': tickerB['percentage'],
+            'average': tickerB['average'],
+            'info': tickerB['info'],
+        })
+
+    def fetch_ticker(self, symbol, params={}):
+        method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
+        return getattr(self, method)(symbol, params)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTickers
+        #
+        #     {
+        #         "pair": "BATUSD",
+        #         "price": "0.20687",
+        #         "percentChange24h": "0.0146"
+        #     }
+        #
+        # fetchTickerV1
+        #
+        #     {
+        #         "bid":"9117.95",
+        #         "ask":"9117.96",
+        #         "volume":{
+        #             "BTC":"1615.46861748",
+        #             "USD":"14727307.57545006088",
+        #             "timestamp":1594982700000
+        #         },
+        #         "last":"9115.23"
+        #     }
+        #
+        # fetchTickerV2
+        #
+        #     {
+        #         "symbol":"BTCUSD",
+        #         "open":"9080.58",
+        #         "high":"9184.53",
+        #         "low":"9063.56",
+        #         "close":"9116.08",
+        #         # Hourly prices descending for past 24 hours
+        #         "changes":["9117.33","9105.69","9106.23","9120.35","9098.57","9114.53","9113.55","9128.01","9113.63","9133.49","9133.49","9137.75","9126.73","9103.91","9119.33","9123.04","9124.44","9117.57","9114.22","9102.33","9076.67","9074.72","9074.97","9092.05"],
+        #         "bid":"9115.86",
+        #         "ask":"9115.87"
+        #     }
+        #
+        volume = self.safe_value(ticker, 'volume', {})
+        timestamp = self.safe_integer(volume, 'timestamp')
+        symbol = None
+        marketId = self.safe_string(ticker, 'pair')
+        baseId = None
+        quoteId = None
+        base = None
+        quote = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                idLength = len(marketId) - 0
+                if idLength == 7:
+                    baseId = marketId[0:4]
+                    quoteId = marketId[4:7]
+                else:
+                    baseId = marketId[0:3]
+                    quoteId = marketId[3:6]
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+            baseId = market['baseId'].upper()
+            quoteId = market['quoteId'].upper()
+            base = market['base']
+            quote = market['quote']
+        price = self.safe_float(ticker, 'price')
+        last = self.safe_float_2(ticker, 'last', 'close', price)
+        percentage = self.safe_float(ticker, 'percentChange24h')
+        change = None
+        open = self.safe_float(ticker, 'open')
+        average = None
+        if last is not None:
+            if open is not None:
+                change = last - open
+                if open != 0:
+                    percentage = change / open * 100
+                average = self.sum(last, open) / 2
+            elif percentage is not None:
+                change = last * percentage
+                if open is None:
+                    open = last - change
+                average = self.sum(last, open) / 2
+        baseVolume = self.safe_float(volume, baseId)
+        quoteVolume = self.safe_float(volume, quoteId)
+        vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': None,
-            'low': None,
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
-            'vwap': None,
-            'open': None,
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], baseCurrency),
-            'quoteVolume': self.safe_float(ticker['volume'], quoteCurrency),
+            'previousClose': None,  # previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
+    def parse_tickers(self, tickers, symbols=None):
+        result = []
+        for i in range(0, len(tickers)):
+            result.append(self.parse_ticker(tickers[i]))
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetV1Pricefeed(params)
+        #
+        #     [
+        #         {
+        #             "pair": "BATUSD",
+        #             "price": "0.20687",
+        #             "percentChange24h": "0.0146"
+        #         },
+        #         {
+        #             "pair": "LINKETH",
+        #             "price": "0.018",
+        #             "percentChange24h": "0.0000"
+        #         },
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
+
     def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "timestamp":1601617445,
+        #         "timestampms":1601617445144,
+        #         "tid":14122489752,
+        #         "price":"0.46476",
+        #         "amount":"28.407209",
+        #         "exchange":"gemini",
+        #         "type":"buy"
+        #     }
+        #
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
@@ -389,9 +558,7 @@ class gemini(Exchange):
                 cost = price * amount
         type = None
         side = self.safe_string_lower(trade, 'type')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         return {
             'id': id,
             'order': orderId,
@@ -415,6 +582,19 @@ class gemini(Exchange):
             'symbol': market['id'],
         }
         response = self.publicGetV1TradesSymbol(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "timestamp":1601617445,
+        #             "timestampms":1601617445144,
+        #             "tid":14122489752,
+        #             "price":"0.46476",
+        #             "amount":"28.407209",
+        #             "exchange":"gemini",
+        #             "type":"buy"
+        #         },
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
@@ -455,13 +635,8 @@ class gemini(Exchange):
         else:
             type = order['type']
         fee = None
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -475,8 +650,11 @@ class gemini(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -497,11 +675,10 @@ class gemini(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privatePostV1Orders(params)
-        orders = self.parse_orders(response, None, since, limit)
+        market = None
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
-            orders = self.filter_by_symbol(orders, market['symbol'])
-        return orders
+        return self.parse_orders(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -616,7 +793,7 @@ class gemini(Exchange):
                 'nonce': nonce,
             }, query)
             payload = self.json(request)
-            payload = base64.b64encode(self.encode(payload))
+            payload = self.string_to_base64(payload)
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',

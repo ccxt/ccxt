@@ -41,7 +41,9 @@ Adding CCXT Pro as a dependency to `package.json` in your Node.js project or pac
 }
 ```
 
-Running `npm install` in the same folder after adding the above to `package.json` will install CCXT Pro to your `node_modules/`. To update it later run `npm update ccxt.pro`.
+1. Add the above to your `package.json`.
+2. Run `npm install` in your project.
+3. To update it later run `npm update ccxt.pro` in your project.
 
 ## Python
 

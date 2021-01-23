@@ -18,7 +18,7 @@ install:
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  - cd c:\tools\php74
+  - cd c:\tools\php80
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
   - echo extension_dir=ext >> php.ini
@@ -34,7 +34,7 @@ test_script:
   - node --version
   - npm --version
   - python --version
-  - npm run build
+  - npm run force-build
   # - npm run test-base
 cache:
   - '%APPDATA%\npm-cache'

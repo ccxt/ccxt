@@ -15,23 +15,29 @@ module.exports = class bleutrade extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'cancelOrder': false, // todo
-                'createLimitOrder': false, // todo
-                'createMarketOrder': false, // todo
-                'createOrder': false, // todo
-                'editOrder': false, // todo
-                'withdraw': false, // todo
-                'fetchTrades': false,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOrders': false,
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'editOrder': false,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchWithdrawals': true,
-                'fetchOrderTrades': false,
-                'fetchLedger': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchWithdrawals': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '1h': '1h',
@@ -47,7 +53,7 @@ module.exports = class bleutrade extends Exchange {
                     'v3Private': 'https://{hostname}/api/v3/private',
                     'v3Public': 'https://{hostname}/api/v3/public',
                 },
-                'www': ['https://bleutrade.com'],
+                'www': 'https://bleutrade.com',
                 'doc': [
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
@@ -116,7 +122,6 @@ module.exports = class bleutrade extends Exchange {
             },
             'options': {
                 'parseOrderStatus': true,
-                'symbolSeparator': '_',
             },
         });
         // undocumented api calls
@@ -248,7 +253,7 @@ module.exports = class bleutrade extends Exchange {
             'market': market['id'],
         };
         const response = await this.v3PublicGetGetmarketsummary (this.extend (request, params));
-        const ticker = response['result'][0];
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -285,18 +290,8 @@ module.exports = class bleutrade extends Exchange {
         //     MarketCurrency: 'Litecoin',
         //     BaseCurrency: 'Tether' }
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'MarketName');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const previous = this.safeFloat (ticker, 'PrevDay');
         const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
@@ -404,13 +399,6 @@ module.exports = class bleutrade extends Exchange {
         const response = await this.v3PrivatePostGetopenorders (this.extend (request, params));
         const items = this.safeValue (response, 'result', []);
         return this.parseOrders (items, market, since, limit);
-    }
-
-    parseSymbol (id) {
-        let [ base, quote ] = id.split (this.options['symbolSeparator']);
-        base = this.safeCurrencyCode (base);
-        quote = this.safeCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     async fetchBalance (params = {}) {
@@ -638,20 +626,8 @@ module.exports = class bleutrade extends Exchange {
         //     Comments: { String: '', Valid: true }
         const side = this.safeString (order, 'Type').toLowerCase ();
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'Exchange');
-        if (marketId === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        } else {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = undefined;
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');
@@ -685,8 +661,11 @@ module.exports = class bleutrade extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

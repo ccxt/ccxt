@@ -19,7 +19,7 @@ class coss(Exchange):
             'version': 'v1',
             'certified': False,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443313-008fa380-c5fe-11ea-8400-34d4749c7da5.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
@@ -410,19 +410,10 @@ class coss(Exchange):
         #           PrevDay:  0.000636                   }
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
         if marketId is not None:
             marketId = marketId.replace('-', '_')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is None:
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
         change = None
@@ -501,7 +492,7 @@ class coss(Exchange):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         tickers = self.fetch_tickers([symbol], params)
@@ -578,17 +569,8 @@ class coss(Exchange):
         timestamp = self.safe_integer(trade, 'time')
         orderId = self.safe_string(trade, 'order_id')
         side = self.safe_string_lower(trade, 'order_side')
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            market = self.safe_value(self.markets_by_id, marketId, market)
-            if market is None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        elif market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         cost = None
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'qty', 'quantity')
@@ -758,23 +740,10 @@ class coss(Exchange):
         #                total: "0.00659000 ETH"                        }
         #
         id = self.safe_string(order, 'order_id')
-        symbol = None
         marketId = self.safe_string(order, 'order_symbol')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
-            # a minor workaround for lowercase eth-btc symbols
-            marketId = marketId.upper()
+        if marketId is not None:
             marketId = marketId.replace('-', '_')
-            market = self.safe_value(self.markets_by_id, marketId, market)
-            if market is None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer(order, 'createTime')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'order_price')

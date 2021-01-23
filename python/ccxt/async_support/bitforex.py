@@ -13,6 +13,8 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -27,19 +29,20 @@ class bitforex(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
-                'fetchBalance': True,
-                'fetchMarkets': True,
-                'createOrder': True,
                 'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': False,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
-                'fetchMyTrades': False,
                 'fetchTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchOHLCV': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -55,7 +58,7 @@ class bitforex(Exchange):
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
@@ -233,12 +236,17 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CREDIT': 'TerraCredit',
+                'HBC': 'Hybrid Bank Cash',
+                'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
+                '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
+                '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
                 '10204': DDoSProtection,
             },
@@ -486,8 +494,11 @@ class bitforex(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,

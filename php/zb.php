@@ -22,14 +22,21 @@ class zb extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchDepositAddress' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -71,6 +78,8 @@ class zb extends Exchange {
                 '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
                 '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                 '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
+                '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
                 '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
                 '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
             ),
@@ -296,7 +305,7 @@ class zb extends Exchange {
             $market = $anotherMarketsById[$ids[$i]];
             $result[$market['symbol']] = $this->parse_ticker($response[$ids[$i]], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -532,20 +541,9 @@ class zb extends Exchange {
         $side = $this->safe_integer($order, 'type');
         $side = ($side === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
-        $timestamp = null;
-        $createDateField = $this->get_create_date_field();
-        if (is_array($order) && array_key_exists($createDateField, $order)) {
-            $timestamp = $order[$createDateField];
-        }
-        $symbol = null;
+        $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            // get $symbol from currency
-            $market = $this->marketsById[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'trade_amount');
         $amount = $this->safe_float($order, 'total_amount');
@@ -571,8 +569,11 @@ class zb extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -594,8 +595,75 @@ class zb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function get_create_date_field() {
-        return 'trade_date';
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "message" => "success",
+        //         "$id" => "withdrawalId"
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $code = ($currency === null) ? null : $currency['code'];
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => null,
+            'amount' => null,
+            'currency' => $code,
+            'status' => null,
+            'updated' => null,
+            'fee' => null,
+        );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $password = $this->safe_string($params, 'safePwd', $this->password);
+        if ($password === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw requires exchange.password or a safePwd parameter');
+        }
+        $fees = $this->safe_float($params, 'fees');
+        if ($fees === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw requires a $fees parameter');
+        }
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'amount' => $this->currency_to_precision($code, $amount),
+            'currency' => $currency['id'],
+            'fees' => $this->currency_to_precision($code, $fees),
+            // 'itransfer' => 0, // agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method' => 'withdraw',
+            'receiveAddr' => $address,
+            'safePwd' => $password,
+        );
+        $response = $this->privateGetWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "message" => "success",
+        //         "id" => "withdrawalId"
+        //     }
+        //
+        $transaction = $this->parse_transaction($response, $currency);
+        return array_merge($transaction, array(
+            'type' => 'withdrawal',
+            'address' => $address,
+            'addressTo' => $address,
+            'amount' => $amount,
+        ));
     }
 
     public function nonce() {

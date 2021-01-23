@@ -28,7 +28,7 @@ class kuna(acx):
             'timeframes': None,
             'urls': {
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
-                'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
@@ -181,10 +181,10 @@ class kuna(acx):
         response = await self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limits=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        trades = await self.fetch_trades(symbol, since, limits, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limits)
+        trades = await self.fetch_trades(symbol, since, limit, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
         for i in range(0, len(ohlcvc)):
             ohlcv = ohlcvc[i]

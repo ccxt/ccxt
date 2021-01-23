@@ -15,26 +15,32 @@ module.exports = class upbit extends Exchange {
             'countries': [ 'KR' ],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': true,
             'pro': true,
             // new metainfo interface
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
-                'fetchDepositAddress': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrderBooks': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchOrders': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchTrades': true,
                 'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'minutes',
@@ -143,10 +149,12 @@ module.exports = class upbit extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
-                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'TON': 'Tokamak Network',
             },
         });
     }
@@ -432,20 +440,6 @@ module.exports = class upbit extends Exchange {
         return this.parseBalance (result);
     }
 
-    getSymbolFromMarketId (marketId, market = undefined) {
-        if (marketId === undefined) {
-            return undefined;
-        }
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            return market['symbol'];
-        }
-        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return base + '/' + quote;
-    }
-
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
@@ -495,7 +489,8 @@ module.exports = class upbit extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const orderbook = response[i];
-            const symbol = this.getSymbolFromMarketId (this.safeString (orderbook, 'market'));
+            const marketId = this.safeString (orderbook, 'market');
+            const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
                 'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
@@ -543,7 +538,8 @@ module.exports = class upbit extends Exchange {
         //                     timestamp:  1542883543813  }
         //
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
-        const symbol = this.getSymbolFromMarketId (this.safeString2 (ticker, 'market', 'code'), market);
+        const marketId = this.safeString2 (ticker, 'market', 'code');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const previous = this.safeFloat (ticker, 'prev_closing_price');
         const last = this.safeFloat (ticker, 'trade_price');
         const change = this.safeFloat (ticker, 'signed_change_price');
@@ -624,7 +620,7 @@ module.exports = class upbit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -685,7 +681,7 @@ module.exports = class upbit extends Exchange {
             }
         }
         const marketId = this.safeString2 (trade, 'market', 'code');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        market = this.safeMarket (marketId, market);
         let fee = undefined;
         let feeCurrency = undefined;
         let symbol = undefined;
@@ -713,7 +709,7 @@ module.exports = class upbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
@@ -1161,22 +1157,13 @@ module.exports = class upbit extends Exchange {
         let average = undefined;
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'paid_fee');
-        let feeCurrency = undefined;
         const marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        } else {
-            const [ baseId, quoteId ] = marketId.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-            feeCurrency = quote;
-        }
+        market = this.safeMarket (marketId, market);
         let trades = this.safeValue (order, 'trades', []);
-        trades = this.parseTrades (trades, market, undefined, undefined, { 'order': id });
+        trades = this.parseTrades (trades, market, undefined, undefined, {
+            'order': id,
+            'type': type,
+        });
         const numTrades = trades.length;
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
@@ -1202,7 +1189,7 @@ module.exports = class upbit extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCost,
             };
         }
@@ -1213,10 +1200,13 @@ module.exports = class upbit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

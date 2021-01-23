@@ -21,19 +21,25 @@ class buda extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createDepositAddress' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTrades' => true,
+                'fetchTicker' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -180,7 +186,7 @@ class buda extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => floatval ($market['minimum_order_amount'][0]),
+                    'min' => floatval($market['minimum_order_amount'][0]),
                     'max' => null,
                 ),
                 'price' => array(
@@ -243,11 +249,11 @@ class buda extends Exchange {
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => floatval ($currency['deposit_minimum'][0]),
+                        'min' => floatval($currency['deposit_minimum'][0]),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => floatval ($currency['withdrawal_minimum'][0]),
+                        'min' => floatval($currency['withdrawal_minimum'][0]),
                     ),
                 ),
             );
@@ -296,7 +302,7 @@ class buda extends Exchange {
             'type' => $type,
             'currency' => $fee['base'][1],
             'rate' => $fee['percent'],
-            'cost' => floatval ($fee['base'][0]),
+            'cost' => floatval($fee['base'][0]),
         );
     }
 
@@ -317,9 +323,9 @@ class buda extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = floatval ($ticker['last_price'][0]);
-        $percentage = floatval ($ticker['price_variation_24h']);
-        $open = floatval ($this->price_to_precision($symbol, $last / ($percentage . 1)));
+        $last = floatval($ticker['last_price'][0]);
+        $percentage = floatval($ticker['price_variation_24h']);
+        $open = floatval($this->price_to_precision($symbol, $last / ($percentage + 1)));
         $change = $last - $open;
         $average = $this->sum($last, $open) / 2;
         return array(
@@ -328,9 +334,9 @@ class buda extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['max_bid'][0]),
+            'bid' => floatval($ticker['max_bid'][0]),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['min_ask'][0]),
+            'ask' => floatval($ticker['min_ask'][0]),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -340,7 +346,7 @@ class buda extends Exchange {
             'change' => $change,
             'percentage' => $percentage * 100,
             'average' => $average,
-            'baseVolume' => floatval ($ticker['volume'][0]),
+            'baseVolume' => floatval($ticker['volume'][0]),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -391,9 +397,9 @@ class buda extends Exchange {
             $symbol = $market['symbol'];
         }
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $timestamp = intval ($trade[0]);
-            $price = floatval ($trade[1]);
-            $amount = floatval ($trade[2]);
+            $timestamp = intval($trade[0]);
+            $price = floatval($trade[1]);
+            $amount = floatval($trade[2]);
             $cost = $price * $amount;
             $side = $trade[3];
             $id = (string) $trade[4];
@@ -452,8 +458,8 @@ class buda extends Exchange {
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = floatval ($balance['available_amount'][0]);
-            $account['total'] = floatval ($balance['amount'][0]);
+            $account['free'] = floatval($balance['available_amount'][0]);
+            $account['total'] = floatval($balance['amount'][0]);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -462,7 +468,7 @@ class buda extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => intval ($id),
+            'id' => intval($id),
         );
         $response = $this->privateGetOrdersId (array_merge($request, $params));
         $order = $this->safe_value($response, 'order');
@@ -518,7 +524,7 @@ class buda extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => intval ($id),
+            'id' => intval($id),
             'state' => 'canceling',
         );
         $response = $this->privatePutOrdersId (array_merge($request, $params));
@@ -536,37 +542,65 @@ class buda extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         'id' => 63679183,
+        //         'uuid' => 'f9697bee-627e-4175-983f-0d5a41963fec',
+        //         'market_id' => 'ETH-CLP',
+        //         'account_id' => 51590,
+        //         'type' => 'Ask',
+        //         'state' => 'received',
+        //         'created_at' => '2021-01-04T08:29:52.730Z',
+        //         'fee_currency' => 'CLP',
+        //         'price_type' => 'limit',
+        //         'source' => None,
+        //         'limit' => ['741000.0', 'CLP'],
+        //         'amount' => ['0.001', 'ETH'],
+        //         'original_amount' => ['0.001', 'ETH'],
+        //         'traded_amount' => ['0.0', 'ETH'],
+        //         'total_exchanged' => ['0.0', 'CLP'],
+        //         'paid_fee' => ['0.0', 'CLP']
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $order['market_id'];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market_id');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $type = $this->safe_string($order, 'price_type');
         $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $amount = floatval ($order['original_amount'][0]);
-        $remaining = floatval ($order['amount'][0]);
-        $filled = floatval ($order['traded_amount'][0]);
-        $cost = floatval ($order['total_exchanged'][0]);
-        $price = $this->safe_float($order, 'limit');
-        if ($price !== null) {
-            $price = floatval ($price[0]);
+        $originalAmount = $this->safe_value($order, 'original_amount', array());
+        $amount = $this->safe_float($originalAmount, 0);
+        $remainingAmount = $this->safe_value($order, 'amount', array());
+        $remaining = $this->safe_float($remainingAmount, 0);
+        $tradedAmount = $this->safe_value($order, 'traded_amount', array());
+        $filled = $this->safe_float($tradedAmount, 0);
+        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $cost = $this->safe_float($totalExchanged, 0);
+        $limitPrice = $this->safe_value($order, 'limit', array());
+        $price = $this->safe_float($limitPrice, 0);
+        if ($price === null) {
+            if ($limitPrice !== null) {
+                $price = $limitPrice;
+            }
         }
-        if ($cost > 0 && $filled > 0) {
-            $price = $this->price_to_precision($symbol, $cost / $filled);
+        $average = null;
+        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
+            $average = $this->price_to_precision($symbol, $cost / $filled);
         }
-        $fee = array(
-            'cost' => floatval ($order['paid_fee'][0]),
-            'currency' => $order['paid_fee'][1],
-        );
+        $paidFee = $this->safe_value($order, 'paid_fee', array());
+        $feeCost = $this->safe_float($paidFee, 0);
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($paidFee, 1);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'code' => $feeCurrencyCode,
+            );
+        }
         return array(
+            'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -575,16 +609,18 @@ class buda extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
+            'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-            'info' => $order,
-            'average' => null,
         );
     }
 
@@ -666,8 +702,8 @@ class buda extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = floatval ($transaction['amount'][0]);
-        $fee = floatval ($transaction['fee'][0]);
+        $amount = floatval($transaction['amount'][0]);
+        $fee = floatval($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $type = (is_array($transaction) && array_key_exists('deposit_data', $transaction)) ? 'deposit' : 'withdrawal';
@@ -760,7 +796,7 @@ class buda extends Exchange {
             $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
-                $base64Body = base64_encode($this->encode($body));
+                $base64Body = base64_encode($body);
                 $components[] = $this->decode($base64Body);
             }
             $components[] = $nonce;

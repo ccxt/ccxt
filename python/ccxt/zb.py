@@ -27,14 +27,21 @@ class zb(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -76,6 +83,8 @@ class zb(Exchange):
                 '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
                 '3007': AuthenticationError,  # 'The request time has expired',
                 '3008': OrderNotFound,  # 'Transaction records not found',
+                '3009': InvalidOrder,  # 'The price exceeds the limit',
+                '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
                 '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
                 '4002': DDoSProtection,  # 'Request too often',
             },
@@ -289,7 +298,7 @@ class zb(Exchange):
         for i in range(0, len(ids)):
             market = anotherMarketsById[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -498,17 +507,9 @@ class zb(Exchange):
         side = self.safe_integer(order, 'type')
         side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
-        timestamp = None
-        createDateField = self.get_create_date_field()
-        if createDateField in order:
-            timestamp = order[createDateField]
-        symbol = None
+        timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
-            # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
@@ -531,8 +532,11 @@ class zb(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -552,8 +556,72 @@ class zb(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def get_create_date_field(self):
-        return 'trade_date'
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        code = None if (currency is None) else currency['code']
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': None,
+            'amount': None,
+            'currency': code,
+            'status': None,
+            'updated': None,
+            'fee': None,
+        }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        password = self.safe_string(params, 'safePwd', self.password)
+        if password is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires exchange.password or a safePwd parameter')
+        fees = self.safe_float(params, 'fees')
+        if fees is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires a fees parameter')
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'fees': self.currency_to_precision(code, fees),
+            # 'itransfer': 0,  # agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        }
+        response = self.privateGetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        transaction = self.parse_transaction(response, currency)
+        return self.extend(transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        })
 
     def nonce(self):
         return self.milliseconds()

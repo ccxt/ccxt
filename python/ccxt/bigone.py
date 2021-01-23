@@ -27,16 +27,23 @@ class bigone(Exchange):
             'rateLimit': 1200,  # 500 request per 10 minutes
             'has': {
                 'cancelAllOrders': True,
-                'createMarketOrder': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -147,6 +154,7 @@ class bigone(Exchange):
                 },
             },
             'commonCurrencies': {
+                'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },
         })
@@ -251,20 +259,9 @@ class bigone(Exchange):
         #         "daily_change":"-0.000182"
         #     }
         #
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'asset_pair_name')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        timestamp = self.milliseconds()
+        marketId = self.safe_string(ticker, 'asset_pair_name')
+        symbol = self.safe_symbol(marketId, market, '-')
+        timestamp = None
         close = self.safe_float(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
@@ -359,7 +356,20 @@ class bigone(Exchange):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_time(self, params={}):
+        response = self.publicGetPing(params)
+        #
+        #     {
+        #         "data": {
+        #             "timestamp": 1527665262168391000
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(data, 'timestamp')
+        return int(timestamp / 1000000)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -433,17 +443,7 @@ class bigone(Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         marketId = self.safe_string(trade, 'asset_pair_name')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '-')
         cost = None
         if amount is not None:
             if price is not None:
@@ -660,19 +660,8 @@ class bigone(Exchange):
         #    }
         #
         id = self.safe_string(order, 'id')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'asset_pair_name')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    baseId, quoteId = marketId.split('-')
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'asset_pair_name')
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
@@ -701,8 +690,11 @@ class bigone(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -717,12 +709,30 @@ class bigone(Exchange):
         self.load_markets()
         market = self.market(symbol)
         side = 'BID' if (side == 'buy') else 'ASK'
+        uppercaseType = type.upper()
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': side,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
-            'price': self.price_to_precision(symbol, price),  # order price, string, required
+            # 'price': self.price_to_precision(symbol, price),  # order price, string, required
+            'type': uppercaseType,
+            # 'operator': 'GTE',  # stop orders only, GTE greater than and equal, LTE less than and equal
+            # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
+            # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
         }
+        if uppercaseType == 'LIMIT':
+            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            isStopLimit = (uppercaseType == 'STOP_LIMIT')
+            isStopMarket = (uppercaseType == 'STOP_MARKET')
+            if isStopLimit or isStopMarket:
+                stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
+                if stopPrice is None:
+                    raise ArgumentsRequired(self.id + ' createOrder requires a stop_price parameter')
+                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+                params = self.omit(params, ['stop_price', 'stopPrice'])
+            if isStopLimit:
+                request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {

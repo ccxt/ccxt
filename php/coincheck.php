@@ -18,12 +18,18 @@ class coincheck extends Exchange {
             'countries' => array( 'JP', 'ID' ),
             'rateLimit' => 1500,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchMyTrades' => true,
+                'fetchOrderBook' => true,
+                'fetchOpenOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
                 'api' => 'https://coincheck.com/api',
                 'www' => 'https://coincheck.com',
                 'doc' => 'https://coincheck.com/documents/exchange/api',
@@ -181,18 +187,7 @@ class coincheck extends Exchange {
         }
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -204,9 +199,12 @@ class coincheck extends Exchange {
             'filled' => $filled,
             'side' => $side,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'status' => $status,
             'symbol' => $symbol,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'fee' => null,
             'info' => $order,

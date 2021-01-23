@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,19 +15,20 @@ module.exports = class bitforex extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v1',
             'has': {
-                'fetchBalance': true,
-                'fetchMarkets': true,
-                'createOrder': true,
                 'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchMyTrades': false,
                 'fetchTrades': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -43,7 +44,7 @@ module.exports = class bitforex extends Exchange {
                 '1M': '1month',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
@@ -221,12 +222,17 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CREDIT': 'TerraCredit',
+                'HBC': 'Hybrid Bank Cash',
+                'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
             'exceptions': {
                 '4004': OrderNotFound,
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
+                '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
+                '1019': BadSymbol, // {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
                 '10204': DDoSProtection,
             },
@@ -494,8 +500,11 @@ module.exports = class bitforex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

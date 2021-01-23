@@ -18,24 +18,32 @@ module.exports = class hitbtc extends Exchange {
             'version': '2',
             'pro': true,
             'has': {
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'editOrder': true,
-                'fetchCurrencies': true,
-                'fetchOHLCV': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchOrderTrades': false, // not implemented yet
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchTransactions': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -142,18 +150,20 @@ module.exports = class hitbtc extends Exchange {
                 'defaultTimeInForce': 'FOK',
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
-                'CAT': 'BitClave',
+                'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
-                'DRK': 'DASH',
-                'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
+                'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
-                'UNC': 'Unigame',
+                'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
+                'TV': 'Tokenville',
                 'USD': 'USDT',
-                'XBT': 'BTC',
+                'XPNT': 'PNT',
             },
             'exceptions': {
                 '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -166,6 +176,7 @@ module.exports = class hitbtc extends Exchange {
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -197,7 +208,11 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            // bequant fix
+            if (id.indexOf ('_') >= 0) {
+                symbol = id;
+            }
             const lot = this.safeFloat (market, 'quantityIncrement');
             const step = this.safeFloat (market, 'tickSize');
             const precision = {
@@ -245,17 +260,19 @@ module.exports = class hitbtc extends Exchange {
         //
         //     [
         //         {
-        //             "id":"DDF",
-        //             "fullName":"DDF",
+        //             "id":"XPNT",
+        //             "fullName":"pToken",
         //             "crypto":true,
-        //             "payinEnabled":false,
+        //             "payinEnabled":true,
         //             "payinPaymentId":false,
-        //             "payinConfirmations":20,
+        //             "payinConfirmations":9,
         //             "payoutEnabled":true,
         //             "payoutIsPaymentId":false,
         //             "transferEnabled":true,
         //             "delisted":false,
-        //             "payoutFee":"646.000000000000"
+        //             "payoutFee":"26.510000000000",
+        //             "precisionPayout":18,
+        //             "precisionTransfer":8
         //         }
         //     ]
         //
@@ -266,7 +283,8 @@ module.exports = class hitbtc extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const decimals = this.safeInteger (currency, 'precisionTransfer', 8);
+            const precision = 1 / Math.pow (10, decimals);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -296,12 +314,12 @@ module.exports = class hitbtc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'cost': {
                         'min': undefined,
@@ -434,14 +452,7 @@ module.exports = class hitbtc extends Exchange {
                 percentage = change / open * 100;
             }
         }
-        let vwap = undefined;
-        if (quoteVolume !== undefined) {
-            if (baseVolume !== undefined) {
-                if (baseVolume > 0) {
-                    vwap = quoteVolume / baseVolume;
-                }
-            }
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -473,17 +484,11 @@ module.exports = class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
             const marketId = this.safeString (ticker, 'symbol');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    result[symbol] = this.parseTicker (ticker, market);
-                } else {
-                    result[marketId] = this.parseTicker (ticker);
-                }
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -500,7 +505,6 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
         // createMarketOrder
         //
         //  {       fee: "0.0004644",
@@ -509,23 +513,29 @@ module.exports = class hitbtc extends Exchange {
         //     quantity: "1",
         //    timestamp: "2018-10-25T16:41:44.780Z" }
         //
-        // fetchTrades ...
+        // fetchTrades
         //
-        // fetchMyTrades ...
+        // { id: 974786185,
+        //   price: '0.032462',
+        //   quantity: '0.3673',
+        //   side: 'buy',
+        //   timestamp: '2020-10-16T12:57:39.846Z' }
         //
+        // fetchMyTrades
+        //
+        // { id: 277210397,
+        //   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //   orderId: 28102855393,
+        //   symbol: 'ETHBTC',
+        //   side: 'sell',
+        //   quantity: '0.002',
+        //   price: '0.073365',
+        //   fee: '0.000000147',
+        //   timestamp: '2018-04-28T18:39:55.345Z' }
         const timestamp = this.parse8601 (trade['timestamp']);
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
@@ -733,8 +743,6 @@ module.exports = class hitbtc extends Exchange {
         if (order['status'] === 'rejected') {
             throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
         }
-        const id = order['id'];
-        this.orders[id] = order;
         return order;
     }
 
@@ -759,9 +767,7 @@ module.exports = class hitbtc extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
-        const order = this.parseOrder (response);
-        this.orders[order['id']] = order;
-        return order;
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -812,20 +818,8 @@ module.exports = class hitbtc extends Exchange {
         const created = this.parse8601 (this.safeString (order, 'createdAt'));
         const updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         const marketId = this.safeString (order, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['id'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -835,11 +829,6 @@ module.exports = class hitbtc extends Exchange {
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
         let price = this.safeFloat (order, 'price');
-        if (price === undefined) {
-            if (id in this.orders) {
-                price = this.orders[id]['price'];
-            }
-        }
         let remaining = undefined;
         let cost = undefined;
         if (amount !== undefined) {
@@ -887,6 +876,7 @@ module.exports = class hitbtc extends Exchange {
                 };
             }
         }
+        const timeInForce = this.safeString (order, 'timeInForce');
         return {
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
@@ -896,8 +886,10 @@ module.exports = class hitbtc extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'amount': amount,
             'cost': cost,

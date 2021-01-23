@@ -18,9 +18,16 @@ class lakebtc extends Exchange {
             'version' => 'api_v2',
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -159,16 +166,13 @@ class lakebtc extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $symbol = $ids[$i];
-            $ticker = $response[$symbol];
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$symbol];
-                $symbol = $market['symbol'];
-            }
+            $marketId = $ids[$i];
+            $ticker = $response[$marketId];
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -296,7 +300,7 @@ class lakebtc extends Exchange {
             );
             $query = implode('&', $query);
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha1');
-            $auth = $this->encode($this->apiKey . ':' . $signature);
+            $auth = $this->apiKey . ':' . $signature;
             $signature64 = $this->decode(base64_encode($auth));
             $headers = array(
                 'Json-Rpc-Tonce' => $nonceAsString,

@@ -26,15 +26,13 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching my trades...')
 
-        const since = exchange.milliseconds () - 60 * 60 * 1000
-
-        let trades = await exchange.fetchMyTrades (symbol, since)
+        const trades = await exchange.fetchMyTrades (symbol)
 
         assert (trades instanceof Array)
 
         log ('fetched', trades.length.toString ().green, 'trades')
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < trades.length; i++) {
             testTrade (exchange, trades[i], symbol, now)
