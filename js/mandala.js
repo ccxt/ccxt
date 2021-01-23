@@ -84,6 +84,7 @@ module.exports = class mandala extends Exchange {
                 'binance': {
                     'get': [
                         'ping',
+                        'v3/trades',
                     ],
                 },
             },
@@ -331,15 +332,24 @@ module.exports = class mandala extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = 'openGetMarketTrades';
+        let method = 'binanceGetV3Trades';
         await this.loadMarkets ();
+        let marketSymbol = this.markets[symbol]['id'];
+        if (marketSymbol.indexOf ('MDX') >= 0) {
+            method = 'openGetMarketTrades';
+        } else {
+            marketSymbol = marketSymbol.replace ('_', '');
+        }
         const request = {
-            'symbol': this.markets[symbol]['id'],
+            'symbol': marketSymbol,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
+        if (marketSymbol.indexOf ('MDX') >= 0) {
+            response = this.safeValue (response.data, 'list');
+        }
         const result = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.convertTrade (symbol, response[i]));
