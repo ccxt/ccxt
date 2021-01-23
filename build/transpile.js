@@ -1000,11 +1000,11 @@ class Transpiler {
 
             const python2mtime = python2Folder ? (fs.existsSync (python2Path) ? fs.statSync (python2Path).mtime.getTime () : 0) : undefined
             const python3mtime = fs.existsSync (python3Path) ? fs.statSync (python3Path).mtime.getTime () : 0
+            const asyncPhpmtime = asyncPhpFolder ? (fs.existsSync (asyncPhpPath) ? fs.statSync (asyncPhpPath).mtime.getTime () : 0) : undefined
             const phpmtime = fs.existsSync (phpPath) ? fs.statSync (phpPath).mtime.getTime () : 0
-            const asyncPhpmtime = fs.existsSync (asyncPhpPath) ? fs.statSync (asyncPhpPath).mtime.getTime () : 0
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (jsmtime > asyncPhpmtime) || (python2Folder && (jsmtime > python2mtime))) {
+            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (asyncPhpFolder && (jsmtime > asyncPhpmtime)) || (python2Folder && (jsmtime > python2mtime))) {
                 const { python2, python3, php, asyncPhp, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
