@@ -3422,7 +3422,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 ##### Transaction Fees
 
-In general, the exchanges will deduce the transaction fees from the sent transaction amount. In other words, the `fee['cost']` is included in the `amount`. The receiver will  receive `amount - fee['cost']` to his account. In other words, the withdrawal amount is a "gross" value (amount includes the fee).
+In general, the exchanges will deduce the transaction fees from the sent transaction amount. In other words, the `fee['cost']` is included in the `amount`. The receiver will  receive `amount - fee['cost']` to his account. The withdrawal amount is a _"gross"_ value (amount includes the fee).
 
 Consider the following example of a transaction being sent from one exchange to another:
 
