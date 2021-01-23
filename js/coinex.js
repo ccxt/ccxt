@@ -760,7 +760,7 @@ module.exports = class coinex extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         let feeCost = this.safeFloat (transaction, 'tx_fee');
         if (type === 'deposit') {
             feeCost = 0;
@@ -769,6 +769,10 @@ module.exports = class coinex extends Exchange {
             'cost': feeCost,
             'currency': code,
         };
+        // https://github.com/ccxt/ccxt/issues/8321
+        if (amount !== undefined) {
+            amount = amount - feeCost;
+        }
         return {
             'info': transaction,
             'id': id,
