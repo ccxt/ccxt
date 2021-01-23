@@ -161,10 +161,10 @@ class bittrex(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
                 },
                 'funding': {
                     'tierBased': False,
