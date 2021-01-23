@@ -898,7 +898,7 @@ module.exports = class gateio extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         if (address === 'false') {
             address = undefined;
@@ -913,6 +913,9 @@ module.exports = class gateio extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             };
+            if (amount !== undefined) {
+                amount = amount - feeCost;
+            }
         }
         return {
             'info': transaction,
