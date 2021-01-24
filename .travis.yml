@@ -17,7 +17,7 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-# - sudo apt-get install python3-pip libonig-dev libzip-dev
+
 - sudo add-apt-repository -y ppa:ondrej/php
 - sudo apt-get update
 - sudo apt-get install -y python3-pip php7.4
@@ -31,9 +31,8 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
-# - git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
-# - phpenv install 7.4.14
-- php7.4 $(which composer) install
+- php --version
+- composer install
 - git pull --tags
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
