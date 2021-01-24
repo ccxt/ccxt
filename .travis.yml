@@ -31,6 +31,7 @@ before_install:
 - git clone git://github.com/php-build/php-build
 - cd php-build
 - sudo ./install.sh
+- php-build --definitions
 - php-build 7.4 $HOME/.phpenv/versions/7.4
 - phpenv versions
 - phpenv install 7.4
