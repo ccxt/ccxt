@@ -373,6 +373,11 @@ $main = function() use ($argv, $exchanges, $proxies) {
         if ($exchanges[$argv[1]]) {
             $id = $argv[1];
             $exchange = $exchanges[$id];
+            
+            if ($exchange->skip) {
+                dump(red('[Skipped] ' . $id));
+                exit();
+            }
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
