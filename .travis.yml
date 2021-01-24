@@ -19,7 +19,11 @@ before_install:
 - git checkout package.json package-lock.json
 - sudo add-apt-repository -y ppa:ondrej/php
 - sudo apt-get update
-- sudo apt-get install -y python3-pip php7.4
+- sudo apt install -y php7.4
+- php --version
+- phpenv versions
+- composer install
+- sudo apt-get install -y python3-pip
 - python3 --version
 - python2 --version
 - pip3 --version
@@ -30,9 +34,6 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
-- php --version
-- phpenv versions
-- composer install
 - git pull --tags
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
