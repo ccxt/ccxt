@@ -22,6 +22,7 @@ before_install:
 - sudo add-apt-repository -y ppa:ondrej/php
 - sudo apt-get update
 - sudo apt install -y php7.4-cli
+- echo $PATH
 - php --version
 - phpenv versions
 - composer install
