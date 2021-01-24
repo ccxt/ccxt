@@ -17,7 +17,8 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- sudo apt-get install python3-pip libonig-dev libzip-dev
+# - sudo apt-get install python3-pip libonig-dev libzip-dev
+- sudo apt-get install python3-pip php7.4
 - python3 --version
 - python2 --version
 - pip3 --version
@@ -28,8 +29,8 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
-- git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
-- phpenv install 7.4.14
+# - git clone git://github.com/php-build/php-build.git $HOME/.phpenv/plugins/php-build
+# - phpenv install 7.4.14
 - phpenv global 7.4.14
 - composer install
 - git pull --tags
