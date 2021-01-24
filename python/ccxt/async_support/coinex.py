@@ -727,6 +727,9 @@ class coinex(Exchange):
             'cost': feeCost,
             'currency': code,
         }
+        # https://github.com/ccxt/ccxt/issues/8321
+        if amount is not None:
+            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,

@@ -772,6 +772,10 @@ class coinex extends Exchange {
             'cost' => $feeCost,
             'currency' => $code,
         );
+        // https://github.com/ccxt/ccxt/issues/8321
+        if ($amount !== null) {
+            $amount = $amount - $feeCost;
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
