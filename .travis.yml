@@ -17,7 +17,8 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- php -i
+- sudo apt-get update
+- sudo apt -y install software-properties-common
 - sudo add-apt-repository -y ppa:ondrej/php
 - sudo apt-get update
 - sudo apt install -y php7.4-cli
