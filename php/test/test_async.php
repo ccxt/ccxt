@@ -67,6 +67,8 @@ var_dump($keys_file);
 
 $config = json_decode(file_get_contents($keys_file), true);
 
+var_dump($config);
+
 foreach ($config as $id => $params) {
     foreach ($params as $key => $value) {
         if (array_key_exists($id, $exchanges)) {
