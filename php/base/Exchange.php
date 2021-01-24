@@ -833,7 +833,6 @@ class Exchange {
         // }
 
         $this->defined_rest_api = array();
-        $this->async_api = array();
         $this->curl = null;
         $this->curl_options = array(); // overrideable by user, empty by default
         $this->curl_reset = true;

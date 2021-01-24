@@ -33,7 +33,6 @@ class Exchange extends \ccxt\Exchange {
     public $client;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
-    public $async_api;
     public $tokenBucket;
     public $throttle;
 
