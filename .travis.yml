@@ -28,7 +28,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
-- phpenv global 7.4
+- phpenv global 7.4.14
 - composer install
 - git pull --tags
 script:
