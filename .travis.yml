@@ -18,7 +18,6 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- composer install
 - sudo -H pip install --upgrade setuptools
 - sudo -H pip install --upgrade pip wheel requests pyopenssl
 - sudo -H pip install --ignore-installed six
@@ -26,6 +25,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - git pull --tags
+- composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run force-build
