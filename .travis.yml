@@ -1,7 +1,7 @@
 language: python
 dist: focal
 python:
-  - "3.6"
+  - "3.7"
 cache:
  directories:
    # - $HOME/.cache/pip
