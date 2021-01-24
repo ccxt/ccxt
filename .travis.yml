@@ -20,7 +20,8 @@ before_install:
 # - sudo apt-get install python3-pip libonig-dev libzip-dev
 - sudo add-apt-repository ppa:ondrej/php
 - sudo apt-get update
-- sudo apt-get install python3-pip php7.4
+- sudo apt-get install python3-pip
+- sudo apt -y install php7.4
 - python3 --version
 - python2 --version
 - pip3 --version
