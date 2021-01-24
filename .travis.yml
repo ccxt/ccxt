@@ -28,13 +28,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
-- git clone git://github.com/php-build/php-build
-- cd php-build
-- sudo ./install.sh
-- php-build --definitions
-- php-build 7.4 $HOME/.phpenv/versions/7.4
-- phpenv versions
-- phpenv install 7.4
+- phpenv global 7.4
 - composer install
 - git pull --tags
 script:
