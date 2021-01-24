@@ -17,7 +17,7 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- sudo apt-get install python3-pip libonig-dev
+- sudo apt-get install python3-pip libonig-dev libzip-dev
 - python3 --version
 - python2 --version
 - pip3 --version
