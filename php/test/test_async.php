@@ -368,7 +368,7 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-$main = function() use ($argv, $exchanges, $proxies) {
+$main = function() use ($argv, $exchanges, $proxies, $config) {
     if (count($argv) > 1) {
         if ($exchanges[$argv[1]]) {
             $id = $argv[1];
