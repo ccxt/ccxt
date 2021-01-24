@@ -29,6 +29,7 @@ before_install:
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
 - curl -L https://raw.githubusercontent.com/phpenv/phpenv-installer/master/bin/phpenv-installer | bash
+- phpenv versions
 - composer install
 - git pull --tags
 script:
