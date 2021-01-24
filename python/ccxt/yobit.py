@@ -694,22 +694,6 @@ class yobit(Exchange):
             'id': None,
         }
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        }
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
