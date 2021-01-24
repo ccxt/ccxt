@@ -374,7 +374,9 @@ $main = function() use ($argv, $exchanges, $proxies) {
             $id = $argv[1];
             $exchange = $exchanges[$id];
             
-            if ($exchange->skip) {
+            $exchange_config = $exchange->safe_value($config, $id, array());
+            $skip = $exchange->safe_value($exchange_config, 'skip', false);
+            if ($skip) {
                 dump(red('[Skipped] ' . $id));
                 exit();
             }
