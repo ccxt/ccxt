@@ -2178,6 +2178,8 @@ class binance(Exchange):
             if len(tag) < 1:
                 tag = None
         txid = self.safe_string(transaction, 'txId')
+        if (txid is not None) and (txid.find('Internal transfer ') >= 0):
+            txid = txid[18:]
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
