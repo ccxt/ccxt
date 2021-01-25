@@ -321,6 +321,7 @@ class bitmart(Exchange):
                 'broad': {},
             },
             'commonCurrencies': {
+                'COT': 'Community Coin',
                 'ONE': 'Menlo One',
                 'PLA': 'Plair',
             },
