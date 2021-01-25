@@ -199,7 +199,7 @@ function test_ohlcvs($exchange, $symbol) {
         'okex',
         'okexusd',
     );
-    if (array_key_exists($exchange->id, $ignored_exchanges)) {
+    if (in_array($exchange->id, $ignored_exchanges)) {
         return;
     }
     if ($exchange->has['fetchOHLCV']) {
@@ -211,6 +211,7 @@ function test_ohlcvs($exchange, $symbol) {
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
         dump(green($symbol), 'fetching ohlcvs...');
         $ohlcvs = yield $exchange->fetch_ohlcv($symbol, $timeframe, $since, $limit);
+        var_dump($ohlcvs);
         foreach ($ohlcvs as $ohlcv) {
             test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
         }
@@ -371,7 +372,7 @@ $main = function() use ($argv, $exchanges, $proxies, $config) {
         if ($exchanges[$argv[1]]) {
             $id = $argv[1];
             $exchange = $exchanges[$id];
-            
+
             $exchange_config = $exchange->safe_value($config, $id, array());
             $skip = $exchange->safe_value($exchange_config, 'skip', false);
             if ($skip) {
