@@ -1598,6 +1598,63 @@ class kraken(Exchange):
             }
         raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'txid': 'comma delimited list of transaction ids to restrict output to',
+            # 'docalcs': False,  # whether or not to include profit/loss calculations
+            # 'consolidation': 'market',  # what to consolidate the positions data around, market will consolidate positions based on market pair
+        }
+        response = self.privatePostOpenPositions(self.extend(request, params))
+        #
+        # no consolidation
+        #
+        #     {
+        #         error: [],
+        #         result: {
+        #             'TGUFMY-FLESJ-VYIX3J': {
+        #                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
+        #                 posstatus: "open",
+        #                 pair: "ETHUSDT",
+        #                 time:  1611557231.4584,
+        #                 type: "buy",
+        #                 ordertype: "market",
+        #                 cost: "28.49800",
+        #                 fee: "0.07979",
+        #                 vol: "0.02000000",
+        #                 vol_closed: "0.00000000",
+        #                 margin: "14.24900",
+        #                 terms: "0.0200% per 4 hours",
+        #                 rollovertm: "1611571631",
+        #                 misc: "",
+        #                 oflags: ""
+        #             }
+        #         }
+        #     }
+        #
+        # consolidation by market
+        #
+        #     {
+        #         error: [],
+        #         result: [
+        #             {
+        #                 pair: "ETHUSDT",
+        #                 positions: "1",
+        #                 type: "buy",
+        #                 leverage: "2.00000",
+        #                 cost: "28.49800",
+        #                 fee: "0.07979",
+        #                 vol: "0.02000000",
+        #                 vol_closed: "0.00000000",
+        #                 margin: "14.24900"
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        # todo unify parsePosition/parsePositions
+        return result
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':

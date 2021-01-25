@@ -1717,6 +1717,64 @@ class kraken extends Exchange {
         throw new ExchangeError($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'txid' => 'comma delimited list of transaction ids to restrict output to',
+            // 'docalcs' => false, // whether or not to include profit/loss calculations
+            // 'consolidation' => 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
+        );
+        $response = $this->privatePostOpenPositions (array_merge($request, $params));
+        //
+        // no consolidation
+        //
+        //     {
+        //         error => array(),
+        //         $result => {
+        //             'TGUFMY-FLESJ-VYIX3J' => {
+        //                 ordertxid => "O3LRNU-ZKDG5-XNCDFR",
+        //                 posstatus => "open",
+        //                 pair => "ETHUSDT",
+        //                 time =>  1611557231.4584,
+        //                 type => "buy",
+        //                 ordertype => "market",
+        //                 cost => "28.49800",
+        //                 fee => "0.07979",
+        //                 vol => "0.02000000",
+        //                 vol_closed => "0.00000000",
+        //                 margin => "14.24900",
+        //                 terms => "0.0200% per 4 hours",
+        //                 rollovertm => "1611571631",
+        //                 misc => "",
+        //                 oflags => ""
+        //             }
+        //         }
+        //     }
+        //
+        // consolidation by market
+        //
+        //     {
+        //         error => array(),
+        //         $result => array(
+        //             {
+        //                 pair => "ETHUSDT",
+        //                 positions => "1",
+        //                 type => "buy",
+        //                 leverage => "2.00000",
+        //                 cost => "28.49800",
+        //                 fee => "0.07979",
+        //                 vol => "0.02000000",
+        //                 vol_closed => "0.00000000",
+        //                 margin => "14.24900"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        // todo unify parsePosition/parsePositions
+        return $result;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
