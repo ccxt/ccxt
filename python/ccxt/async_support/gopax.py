@@ -68,12 +68,15 @@ class gopax(Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'notices',
                         'assets',
+                        'price-tick-size',
                         'trading-pairs',
                         'trading-pairs/{tradingPair}/ticker',
                         'trading-pairs/{tradingPair}/book',
                         'trading-pairs/{tradingPair}/trades',
                         'trading-pairs/{tradingPair}/stats',
+                        'trading-pairs/{tradingPair}/price-tick-size',
                         'trading-pairs/stats',
                         'trading-pairs/{tradingPair}/candles',
                         'time',

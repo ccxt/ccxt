@@ -493,6 +493,7 @@ class binance(Exchange):
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
+                'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
                 'API key does not exist': AuthenticationError,
                 'Order would trigger immediately.': OrderImmediatelyFillable,
                 'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
@@ -2177,6 +2178,8 @@ class binance(Exchange):
             if len(tag) < 1:
                 tag = None
         txid = self.safe_string(transaction, 'txId')
+        if (txid is not None) and (txid.find('Internal transfer ') >= 0):
+            txid = txid[18:]
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None

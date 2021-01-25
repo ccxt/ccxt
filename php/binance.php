@@ -480,6 +480,7 @@ class binance extends Exchange {
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
+                'You are not authorized to execute this request.' => '\\ccxt\\PermissionDenied', // array("msg":"You are not authorized to execute this request.")
                 'API key does not exist' => '\\ccxt\\AuthenticationError',
                 'Order would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable',
                 'Stop price would trigger immediately.' => '\\ccxt\\OrderImmediatelyFillable', // array("code":-2010,"msg":"Stop price would trigger immediately.")
@@ -2304,6 +2305,9 @@ class binance extends Exchange {
             }
         }
         $txid = $this->safe_string($transaction, 'txId');
+        if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
+            $txid = mb_substr($txid, 18);
+        }
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;

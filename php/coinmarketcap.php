@@ -152,6 +152,8 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT' => 'SiamBitcoin', // conflict with sBTC
+            'Super Bitcoin' => 'Super Bitcoin', // conflict with sBTC
             'TerraCredit' => 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
             'UNI COIN' => 'UNI COIN', // conflict with UNI (Uniswap)

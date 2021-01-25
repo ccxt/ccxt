@@ -194,6 +194,7 @@ class stex(Exchange):
                 'BITS': 'Bitcoinus',
                 'BITSW': 'BITS',
                 'BHD': 'Bithold',
+                'SBTC': 'SBTCT',  # SiamBitcoin
             },
             'options': {
                 'parseOrderToPrecision': False,
