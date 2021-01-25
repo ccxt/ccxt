@@ -1707,6 +1707,64 @@ module.exports = class kraken extends Exchange {
         throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'txid': 'comma delimited list of transaction ids to restrict output to',
+            // 'docalcs': false, // whether or not to include profit/loss calculations
+            // 'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
+        };
+        const response = await this.privatePostOpenPositions (this.extend (request, params));
+        //
+        // no consolidation
+        //
+        //     {
+        //         error: [],
+        //         result: {
+        //             'TGUFMY-FLESJ-VYIX3J': {
+        //                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
+        //                 posstatus: "open",
+        //                 pair: "ETHUSDT",
+        //                 time:  1611557231.4584,
+        //                 type: "buy",
+        //                 ordertype: "market",
+        //                 cost: "28.49800",
+        //                 fee: "0.07979",
+        //                 vol: "0.02000000",
+        //                 vol_closed: "0.00000000",
+        //                 margin: "14.24900",
+        //                 terms: "0.0200% per 4 hours",
+        //                 rollovertm: "1611571631",
+        //                 misc: "",
+        //                 oflags: ""
+        //             }
+        //         }
+        //     }
+        //
+        // consolidation by market
+        //
+        //     {
+        //         error: [],
+        //         result: [
+        //             {
+        //                 pair: "ETHUSDT",
+        //                 positions: "1",
+        //                 type: "buy",
+        //                 leverage: "2.00000",
+        //                 cost: "28.49800",
+        //                 fee: "0.07979",
+        //                 vol: "0.02000000",
+        //                 vol_closed: "0.00000000",
+        //                 margin: "14.24900"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        // todo unify parsePosition/parsePositions
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
