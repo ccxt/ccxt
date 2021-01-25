@@ -12,7 +12,7 @@ const {
     OnMaintenance,
     AccountSuspended,
     PermissionDenied,
-    ArgumentsRequired
+    ArgumentsRequired,
 } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -318,14 +318,13 @@ module.exports = class coineal extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'side': (side === 'buy') ? 'BUY' : 'SELL',
             'price': price,
             'volume': amount,
             'type': type,
-            'side': (side === 'buy') ? 'Buy' : 'Sell',
+            'symbol': market['symbol'],
         };
         const response = await this.privatePostCreateOrder (this.extend (request, params));
-        console.log('repone , ', response)
         return this.parseOrder (this.extend ({
             'status': 'open',
             'type': side,
@@ -391,31 +390,6 @@ module.exports = class coineal extends Exchange {
         return this.parseTrades (data['resultList'], undefined, since, limit);
     }
 
-    parseBody (query) {
-        const spli = query.map ((element) => {
-            const splited = element.split ('=');
-            return splited;
-        });
-        // eslint-disable-next-line prefer-spread
-        const merged = [].concat.apply ([], spli);
-        const ob = {};
-        const keys = [];
-        const val = [];
-        merged.forEach ((item, i) => {
-            if (i % 2 === 0) {
-                keys.push (item);
-                ob[item] = '';
-            } else {
-                val.push (item);
-            }
-        });
-        const result = val.reduce ((result, field, index ) => {
-            result[keys[index]] = field;
-            return result;
-        }, {});
-        return result;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -432,34 +406,26 @@ module.exports = class coineal extends Exchange {
             query['api_key'] = this.apiKey;
             const query2 = this.urlencode (query);
             const queryArray = query2.split ('&');
-            const sortedQuery = this.sortBy (queryArray, 0).join ('');
-            console.log ('query', query2);
-            console.log ('queryArray', queryArray);
-            console.log ('sortedQuery', sortedQuery);
-            console.log ('secret', this.encode (this.secret));
-            const auth = sortedQuery.replace (/=/g, '');
-            console.log ('auth', auth);
-            console.log ('auth', auth);
+            const sortedQuery = queryArray.sort ();
+            const joinedQuery = sortedQuery.join ('');
+            const authArr = joinedQuery.split ('=');
+            const auth = authArr.join ('');
             const hashBefore = auth + this.secret;
             const hash = this.hash (this.encode (hashBefore), 'md5');
-            console.log ('hash', hash);
             if (method === 'GET') {
                 query['sign'] = hash;
                 const query3 = this.urlencode (query);
                 const queryArray = query3.split ('&');
                 const sortedQuery = this.sortBy (queryArray, 0).join ('&');
-                console.log('query inside', sortedQuery)
                 url += '?' + sortedQuery;
             } else {
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                body = this.parseBody (queryArray);
-                body['sign'] = hash;
-                console.log ('body ', body);
+                query['sign'] = hash;
+                body = this.urlencode (query);
             }
         }
-        console.log('url', url, 'method', method, 'body', body, 'headers', headers)
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
