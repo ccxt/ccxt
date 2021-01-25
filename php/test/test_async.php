@@ -211,7 +211,6 @@ function test_ohlcvs($exchange, $symbol) {
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
         dump(green($symbol), 'fetching ohlcvs...');
         $ohlcvs = yield $exchange->fetch_ohlcv($symbol, $timeframe, $since, $limit);
-        var_dump($ohlcvs);
         foreach ($ohlcvs as $ohlcv) {
             test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
         }
