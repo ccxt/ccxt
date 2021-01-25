@@ -26,7 +26,6 @@ async function main () {
             , market = exchange.market (symbol)
             , { base, quote } = market
             , type = 'market'
-            , side = 'buy'
             , amount = market['limits']['amount']['min']
             , price = undefined
             , params = {
@@ -38,7 +37,7 @@ async function main () {
         // https://www.kraken.com/en-us/features/api#add-standard-order
 
         console.log ('Placing order...')
-        const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+        let order = await exchange.createOrder (symbol, type, 'buy', amount, price, params)
         console.log ('Order placed:')
         console.log (order)
 
@@ -62,10 +61,10 @@ async function main () {
 
         console.log ('-----------------------------------------------------------')
 
-        console.log ('Sending a request to close and settle the position...')
-        const settleResponse = await exchange.createOrder (symbol, 'settle-position', side, amount, price, params)
+        console.log ('Closing the position...')
+        order = await exchange.createOrder (symbol, type, 'sell', amount, price, params)
         console.log ('Got a response:')
-        console.log (settleResponse)
+        console.log (order)
 
         console.log ('-----------------------------------------------------------')
 
