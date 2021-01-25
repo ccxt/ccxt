@@ -718,7 +718,6 @@ class aax extends Exchange {
             'symbol' => $market['id'],
             'orderQty' => $this->amount_to_precision($symbol, $amount),
             'side' => strtoupper($side),
-            'clOrdID' => 'quadency',
         );
         if (($type === 'LIMIT') || ($type === 'STOP-LIMIT')) {
             if ($price === null) {
