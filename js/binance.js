@@ -2298,10 +2298,8 @@ module.exports = class binance extends Exchange {
             }
         }
         let txid = this.safeString (transaction, 'txId');
-        if (txid && (txid.indexOf ('Internal') > -1)) {
-            // 'Internal transfer 14857067195'
-            const parts = txid.split (' ');
-            txid = parts[2];
+        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
+            txid = txid.slice (18);
         }
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
