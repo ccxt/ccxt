@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "28af55bc04c71eded840a90236591d41",
+    "content-hash": "3360acc2205196b284912deb577b4163",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.41.1",
+            "version": "1.41.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "7fe9df9e2ffcf8d31d52c8660ab4f6028954a66c"
+                "reference": "07c751736706c6ce59185e1406d89f874dfc75c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/7fe9df9e2ffcf8d31d52c8660ab4f6028954a66c",
-                "reference": "7fe9df9e2ffcf8d31d52c8660ab4f6028954a66c",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/07c751736706c6ce59185e1406d89f874dfc75c5",
+                "reference": "07c751736706c6ce59185e1406d89f874dfc75c5",
                 "shasum": ""
             },
             "require": {
@@ -269,13 +269,17 @@
                 "zec",
                 "zerocoin"
             ],
+            "support": {
+                "issues": "https://github.com/ccxt/ccxt/issues",
+                "source": "https://github.com/ccxt/ccxt/tree/1.41.5"
+            },
             "funding": [
                 {
                     "url": "https://opencollective.com/ccxt",
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-01-25T09:45:03+00:00"
+            "time": "2021-01-26T08:32:12+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -318,6 +322,10 @@
                 "event-dispatcher",
                 "event-emitter"
             ],
+            "support": {
+                "issues": "https://github.com/igorw/evenement/issues",
+                "source": "https://github.com/igorw/evenement/tree/master"
+            },
             "time": "2017-07-23T21:35:13+00:00"
         },
         {
@@ -389,6 +397,10 @@
                 "uri",
                 "url"
             ],
+            "support": {
+                "issues": "https://github.com/guzzle/psr7/issues",
+                "source": "https://github.com/guzzle/psr7/tree/1.7.0"
+            },
             "time": "2020-09-30T07:37:11+00:00"
         },
         {
@@ -444,6 +456,10 @@
             "keywords": [
                 "console"
             ],
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Console_Table",
+                "source": "https://github.com/pear/Console_Table"
+            },
             "time": "2018-01-25T20:47:17+00:00"
         },
         {
@@ -494,6 +510,9 @@
                 "request",
                 "response"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/master"
+            },
             "time": "2016-08-06T14:39:51+00:00"
         },
         {
@@ -534,6 +553,10 @@
                 }
             ],
             "description": "A polyfill for getallheaders.",
+            "support": {
+                "issues": "https://github.com/ralouphie/getallheaders/issues",
+                "source": "https://github.com/ralouphie/getallheaders/tree/develop"
+            },
             "time": "2019-03-08T08:55:37+00:00"
         },
         {
@@ -583,6 +606,10 @@
                 "websocket",
                 "websocket client"
             ],
+            "support": {
+                "issues": "https://github.com/ratchetphp/Pawl/issues",
+                "source": "https://github.com/ratchetphp/Pawl/tree/master"
+            },
             "time": "2020-07-17T15:32:47+00:00"
         },
         {
@@ -635,6 +662,11 @@
                 "rfc6455",
                 "websocket"
             ],
+            "support": {
+                "chat": "https://gitter.im/reactphp/reactphp",
+                "issues": "https://github.com/ratchetphp/RFC6455/issues",
+                "source": "https://github.com/ratchetphp/RFC6455/tree/v0.3"
+            },
             "time": "2020-05-15T18:31:24+00:00"
         },
         {
@@ -697,6 +729,10 @@
                 "promise",
                 "reactphp"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/cache/issues",
+                "source": "https://github.com/reactphp/cache/tree/v1.1.0"
+            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -773,6 +809,10 @@
                 "dns-resolver",
                 "reactphp"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/dns/issues",
+                "source": "https://github.com/reactphp/dns/tree/v1.4.0"
+            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -825,6 +865,10 @@
                 "asynchronous",
                 "event-loop"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/event-loop/issues",
+                "source": "https://github.com/reactphp/event-loop/tree/v1.1.1"
+            },
             "time": "2020-01-01T18:39:52+00:00"
         },
         {
@@ -871,6 +915,10 @@
                 "promise",
                 "promises"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/promise/issues",
+                "source": "https://github.com/reactphp/promise/tree/v2.8.0"
+            },
             "time": "2020-05-12T15:16:56+00:00"
         },
         {
@@ -924,6 +972,10 @@
                 "timeout",
                 "timer"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/promise-timer/issues",
+                "source": "https://github.com/reactphp/promise-timer/tree/v1.6.0"
+            },
             "time": "2020-07-10T12:18:06+00:00"
         },
         {
@@ -994,6 +1046,10 @@
                 "reactphp",
                 "stream"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/socket/issues",
+                "source": "https://github.com/reactphp/socket/tree/v1.6.0"
+            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -1050,6 +1106,10 @@
                 "stream",
                 "writable"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/stream/issues",
+                "source": "https://github.com/reactphp/stream/tree/v1.1.1"
+            },
             "time": "2020-05-04T10:17:57+00:00"
         },
         {
@@ -1113,6 +1173,9 @@
                 "portable",
                 "shim"
             ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.22.0"
+            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -1141,5 +1204,5 @@
         "ext-ds": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.0.0"
 }
