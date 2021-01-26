@@ -170,8 +170,8 @@ module.exports = class coineal extends Exchange {
         const ticker = this.safeValue (response, 'data');
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
-        const bid = this.safeFloat (ticker, 'sell');
-        const ask = this.safeFloat (ticker, 'buy');
+        const bid = this.safeFloat (ticker, 'buy');
+        const ask = this.safeFloat (ticker, 'sell');
         const last = this.safeFloat (ticker, 'last');
         const vol = this.safeFloat (ticker, 'vol');
         return {
@@ -222,7 +222,7 @@ module.exports = class coineal extends Exchange {
         //                 0.0       //Transaction Volume
         //             ]
         //         ]
-        return this.parseOHLCVs (response.data, market, timeframe, since, limit);
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -238,7 +238,7 @@ module.exports = class coineal extends Exchange {
         const method = 'publicGetMarketDept';
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data.tick, data.tick.time, 'bids', 'asks');
+        return this.parseOrderBook (data['tick'], data['tick']['time'], 'bids', 'asks');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
