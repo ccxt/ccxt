@@ -161,10 +161,10 @@ module.exports = class coineal extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const timestamp = this.seconds ();
+        const timestamp = this.milliseconds ();
         const market = this.safeMarket (symbol);
         const request = this.extend ({
-            'symbol': market['id'],
+            'symbol': market['symbol'],
         }, params);
         const response = await this.publicGetGetTicker (request);
         const ticker = this.safeValue (response, 'data');
@@ -187,7 +187,7 @@ module.exports = class coineal extends Exchange {
             'vwap': undefined,
             'previousClose': undefined,
             'open': undefined,
-            'close': undefined,
+            'close': last,
             'last': last,
             'percentage': undefined,
             'change': undefined,
@@ -202,7 +202,7 @@ module.exports = class coineal extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['symbol'],
             'period': this.timeframes[timeframe],
         };
         if (limit !== undefined) {
@@ -229,7 +229,7 @@ module.exports = class coineal extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['symbol'],
             'type': 'step0',
         };
         if (limit !== undefined) {
@@ -245,7 +245,7 @@ module.exports = class coineal extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['symbol'],
         };
         const method = 'publicGetGetTrades';
         if (limit !== undefined) {
