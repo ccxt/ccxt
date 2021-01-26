@@ -266,10 +266,10 @@ module.exports = class coineal extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 'trade_time');
-        const price = this.safeFloat2 (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount');
-        const id = this.safeString2 (trade, 'id');
+        const timestamp = this.safeInteger (trade, 'trade_time');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'id');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
