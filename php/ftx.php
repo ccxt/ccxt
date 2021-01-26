@@ -1195,12 +1195,12 @@ class ftx extends Exchange {
             }
         } else {
             if ($clientOrderId === null) {
+                $method = 'privatePostOrdersOrderIdModify';
+                $request['order_id'] = $id;
+            } else {
                 $method = 'privatePostOrdersByClientIdClientOrderIdModify';
                 $request['client_order_id'] = $clientOrderId;
                 // $request['clientId'] = $clientOrderId;
-            } else {
-                $method = 'privatePostOrdersOrderIdModify';
-                $request['order_id'] = $id;
             }
             if ($price !== null) {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
