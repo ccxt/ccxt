@@ -86,12 +86,17 @@ module.exports = class ftx extends ccxt.ftx {
             const time = this.milliseconds ();
             const payload = time.toString () + 'websocket_login';
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
+            const messageArgs = {
+                'key': this.apiKey,
+                'time': time,
+                'sign': signature,
+            };
+            const subaccount = this.safeString (this.headers, 'FTX-SUBACCOUNT');
+            if (subaccount !== undefined) {
+                messageArgs['subaccount'] = subaccount;
+            }
             const message = {
-                'args': {
-                    'key': this.apiKey,
-                    'time': time,
-                    'sign': signature,
-                },
+                'args': messageArgs,
                 'op': method,
             };
             // ftx does not reply to this message
