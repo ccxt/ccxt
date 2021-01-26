@@ -814,7 +814,7 @@ class binance extends Exchange {
             }
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
-                $entry['limits']['cost']['min'] = $this->safe_float($filter, 'minNotional');
+                $entry['limits']['cost']['min'] = $this->safe_float_2($filter, 'minNotional', 'notional');
             }
             $result[] = $entry;
         }
