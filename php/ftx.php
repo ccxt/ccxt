@@ -90,12 +90,17 @@ class ftx extends \ccxt\ftx {
             $time = $this->milliseconds();
             $payload = (string) $time . 'websocket_login';
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
+            $messageArgs = array(
+                'key' => $this->apiKey,
+                'time' => $time,
+                'sign' => $signature,
+            );
+            $subaccount = $this->safe_string($this->headers, 'FTX-SUBACCOUNT');
+            if ($subaccount !== null) {
+                $messageArgs['subaccount'] = $subaccount;
+            }
             $message = array(
-                'args' => array(
-                    'key' => $this->apiKey,
-                    'time' => $time,
-                    'sign' => $signature,
-                ),
+                'args' => $messageArgs,
                 'op' => $method,
             );
             // ftx does not reply to this $message

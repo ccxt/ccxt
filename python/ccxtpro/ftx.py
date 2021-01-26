@@ -86,12 +86,16 @@ class ftx(Exchange, ccxt.ftx):
             time = self.milliseconds()
             payload = str(time) + 'websocket_login'
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
+            messageArgs = {
+                'key': self.apiKey,
+                'time': time,
+                'sign': signature,
+            }
+            subaccount = self.safe_string(self.headers, 'FTX-SUBACCOUNT')
+            if subaccount is not None:
+                messageArgs['subaccount'] = subaccount
             message = {
-                'args': {
-                    'key': self.apiKey,
-                    'time': time,
-                    'sign': signature,
-                },
+                'args': messageArgs,
                 'op': method,
             }
             # ftx does not reply to self message
