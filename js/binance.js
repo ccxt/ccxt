@@ -807,7 +807,7 @@ module.exports = class binance extends Exchange {
             }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeFloat (filter, 'minNotional');
+                entry['limits']['cost']['min'] = this.safeFloat2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
         }
