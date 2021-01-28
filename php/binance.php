@@ -814,7 +814,7 @@ class binance extends Exchange {
             }
             if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
-                $entry['limits']['cost']['min'] = $this->safe_float($filter, 'minNotional');
+                $entry['limits']['cost']['min'] = $this->safe_float_2($filter, 'minNotional', 'notional');
             }
             $result[] = $entry;
         }
@@ -2305,6 +2305,9 @@ class binance extends Exchange {
             }
         }
         $txid = $this->safe_string($transaction, 'txId');
+        if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
+            $txid = mb_substr($txid, 18);
+        }
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;

@@ -815,7 +815,7 @@ class binance(Exchange):
                 }
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_float(filter, 'minNotional')
+                entry['limits']['cost']['min'] = self.safe_float_2(filter, 'minNotional', 'notional')
             result.append(entry)
         return result
 
@@ -2178,6 +2178,8 @@ class binance(Exchange):
             if len(tag) < 1:
                 tag = None
         txid = self.safe_string(transaction, 'txId')
+        if (txid is not None) and (txid.find('Internal transfer ') >= 0):
+            txid = txid[18:]
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None

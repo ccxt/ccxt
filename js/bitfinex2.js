@@ -172,6 +172,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',

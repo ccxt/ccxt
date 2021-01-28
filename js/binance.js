@@ -807,7 +807,7 @@ module.exports = class binance extends Exchange {
             }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeFloat (filter, 'minNotional');
+                entry['limits']['cost']['min'] = this.safeFloat2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
         }
@@ -2297,7 +2297,10 @@ module.exports = class binance extends Exchange {
                 tag = undefined;
             }
         }
-        const txid = this.safeString (transaction, 'txId');
+        let txid = this.safeString (transaction, 'txId');
+        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
+            txid = txid.slice (18);
+        }
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
