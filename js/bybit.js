@@ -289,7 +289,7 @@ module.exports = class bybit extends Exchange {
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
+                    // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -1543,7 +1543,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const options = this.safeValue (this.options, 'cancelAllOrders');
+        const options = this.safeValue (this.options, 'cancelAllOrders', {});
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
         const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'v2PrivatePostOrderCancelAll';
