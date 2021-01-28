@@ -85,6 +85,8 @@ class bitbank extends Exchange {
                 'BCH/JPY' => array( 'id' => 'bcc_jpy', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bcc', 'quoteId' => 'jpy' ),
                 'MONA/BTC' => array( 'id' => 'mona_btc', 'symbol' => 'MONA/BTC', 'base' => 'MONA', 'quote' => 'BTC', 'baseId' => 'mona', 'quoteId' => 'btc' ),
                 'MONA/JPY' => array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy' ),
+                'QTUM/BTC' => array( 'id' => 'qtum_btc', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC', 'baseId' => 'qtum', 'quoteId' => 'btc' ),
+                'QTUM/JPY' => array( 'id' => 'qtum_jpy', 'symbol' => 'QTUM/JPY', 'base' => 'QTUM', 'quote' => 'JPY', 'baseId' => 'qtum', 'quoteId' => 'jpy' ),
                 'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
                 'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
                 'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
