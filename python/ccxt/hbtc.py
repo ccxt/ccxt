@@ -1847,6 +1847,7 @@ class hbtc(Exchange):
             'NEW': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
+            'PARTIALLY_FILLED': 'open',
             'PENDING_CANCEL': 'canceled',
         }
         return self.safe_string(statuses, status, status)
