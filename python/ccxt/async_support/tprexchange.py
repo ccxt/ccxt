@@ -86,15 +86,15 @@ class tprexchange(Exchange):
             'api': {
                 'private': {
                     'get': [
-                        'detail/detail/{id}',
-                        'order/history',
-                        'order/add',
                     ],
                     'post': [
                         'uc/api-login',
+                        'exchange/order/add',
+                        'exchange/detail/detail/{id}',
+                        'exchange/order/history',
+                        'exchange/order/cancel/{id}',
                     ],
                     'delete': [
-                        'order/cancel/{id}',
                     ],
                 },
                 'feed': {
@@ -175,7 +175,7 @@ class tprexchange(Exchange):
         # POST params should not be added as body
         query = method + ' /' + path + ' ' + self.urlencode(params) + ' ' + authToken + '\n' + body
         signed = self.hmac(self.encode(query), self.encode(self.secret))
-        contentType = ''
+        contentType = None
         if method == 'POST':
             contentType = 'application/x-www-form-urlencoded'
             if keysLength > 0:
@@ -184,10 +184,13 @@ class tprexchange(Exchange):
             if keysLength > 0:
                 url += '?' + self.urlencode(params)
         headers = {
-            'x-auth-token': authToken,
             'x-auth-sign': signed,
-            'Content-Type': contentType,
+            'x-auth-token': authToken,
         }
+        if authToken != '':
+            headers['access-auth-token'] = authToken
+        if contentType is not None:
+            headers['Content-Type'] = contentType
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
@@ -204,16 +207,55 @@ class tprexchange(Exchange):
         request = {
             'id': id,
         }
-        response = await self.privateGetOrdersId(self.extend(request, params))
+        response = await self.privateGetUcOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    def parse_order(self, order, market=None):
-        return {}
+    async def parse_order(self, order, market=None):
+        #
+        #      {
+        #          "data": "ORDER ID"
+        #      }
+        #
+        id = self.safe_string(order, 'data')
+        result = {
+            'info': order,
+            'id': id,
+            'clientOrderId': None,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': None,
+            'type': None,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': None,
+            'price': None,
+            'stopPrice': None,
+            'cost': None,
+            'average': None,
+            'amount': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
+        }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {}
-        query = ''
-        response = await self.privatePostOrders(self.extend(request, query))
+        params['symbol'] = symbol
+        params['price'] = price
+        params['amount'] = amount
+        if side == 'buy':
+            params['direction'] = 'BUY'
+        else:
+            params['direction'] = 'SELL'
+        if type == 'market':
+            params['type'] = 'MARKET_PRICE'
+        else:
+            params['type'] = 'LIMIT_PRICE'
+        params['useDiscount'] = '0'
+        response = await self.privatePostExchangeOrderAdd(params)
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):

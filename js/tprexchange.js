@@ -82,15 +82,15 @@ module.exports = class tprexchange extends Exchange {
             'api': {
                 'private': {
                     'get': [
-                        'detail/detail/{id}',
-                        'order/history',
-                        'order/add',
                     ],
                     'post': [
                         'uc/api-login',
+                        'exchange/order/add',
+                        'exchange/detail/detail/{id}',
+                        'exchange/order/history',
+                        'exchange/order/cancel/{id}',
                     ],
                     'delete': [
-                        'order/cancel/{id}',
                     ],
                 },
                 'feed': {
@@ -176,7 +176,7 @@ module.exports = class tprexchange extends Exchange {
         // POST params should not be added as body
         const query = method + ' /' + path + ' ' + this.urlencode (params) + ' ' + authToken + '\n' + body;
         const signed = this.hmac (this.encode (query), this.encode (this.secret));
-        let contentType = '';
+        let contentType = undefined;
         if (method === 'POST') {
             contentType = 'application/x-www-form-urlencoded';
             if (keysLength > 0) {
@@ -188,10 +188,15 @@ module.exports = class tprexchange extends Exchange {
             }
         }
         headers = {
-            'x-auth-token': authToken,
             'x-auth-sign': signed,
-            'Content-Type': contentType,
+            'x-auth-token': authToken,
         };
+        if (authToken !== '') {
+            headers['access-auth-token'] = authToken;
+        }
+        if (contentType !== undefined) {
+            headers['Content-Type'] = contentType;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -210,18 +215,59 @@ module.exports = class tprexchange extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetUcOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
-    parseOrder (order, market = undefined) {
-        return { };
+    async parseOrder (order, market = undefined) {
+        //
+        //      {
+        //          "data": "ORDER ID"
+        //      }
+        //
+        const id = this.safeString (order, 'data');
+        const result = {
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+        };
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = { };
-        const query = '';
-        const response = await this.privatePostOrders (this.extend (request, query));
+        params['symbol'] = symbol;
+        params['price'] = price;
+        params['amount'] = amount;
+        if (side === 'buy') {
+            params['direction'] = 'BUY';
+        } else {
+            params['direction'] = 'SELL';
+        }
+        if (type === 'market') {
+            params['type'] = 'MARKET_PRICE';
+        } else {
+            params['type'] = 'LIMIT_PRICE';
+        }
+        params['useDiscount'] = '0';
+        const response = await this.privatePostExchangeOrderAdd (params);
         return this.parseOrder (response);
     }
 

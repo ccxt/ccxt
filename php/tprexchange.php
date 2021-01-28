@@ -83,15 +83,15 @@ class tprexchange extends Exchange {
             'api' => array(
                 'private' => array(
                     'get' => array(
-                        'detail/detail/{id}',
-                        'order/history',
-                        'order/add',
                     ),
                     'post' => array(
                         'uc/api-login',
+                        'exchange/order/add',
+                        'exchange/detail/detail/{id}',
+                        'exchange/order/history',
+                        'exchange/order/cancel/{id}',
                     ),
                     'delete' => array(
-                        'order/cancel/{id}',
                     ),
                 ),
                 'feed' => array(
@@ -177,7 +177,7 @@ class tprexchange extends Exchange {
         // POST $params should not be added as $body
         $query = $method . ' /' . $path . ' ' . $this->urlencode($params) . ' ' . $authToken . '\n' . $body;
         $signed = $this->hmac($this->encode($query), $this->encode($this->secret));
-        $contentType = '';
+        $contentType = null;
         if ($method === 'POST') {
             $contentType = 'application/x-www-form-urlencoded';
             if ($keysLength > 0) {
@@ -189,10 +189,15 @@ class tprexchange extends Exchange {
             }
         }
         $headers = array(
-            'x-auth-token' => $authToken,
             'x-auth-sign' => $signed,
-            'Content-Type' => $contentType,
+            'x-auth-token' => $authToken,
         );
+        if ($authToken !== '') {
+            $headers['access-auth-token'] = $authToken;
+        }
+        if ($contentType !== null) {
+            $headers['Content-Type'] = $contentType;
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -211,18 +216,59 @@ class tprexchange extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrdersId (array_merge($request, $params));
+        $response = $this->privateGetUcOrdersId (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
     public function parse_order($order, $market = null) {
-        return array( );
+        //
+        //      {
+        //          "data" => "ORDER ID"
+        //      }
+        //
+        $id = $this->safe_string($order, 'data');
+        $result = array(
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => null,
+            'symbol' => null,
+            'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => null,
+            'price' => null,
+            'stopPrice' => null,
+            'cost' => null,
+            'average' => null,
+            'amount' => null,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
+            'trades' => null,
+        );
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array( );
-        $query = '';
-        $response = $this->privatePostOrders (array_merge($request, $query));
+        $params['symbol'] = $symbol;
+        $params['price'] = $price;
+        $params['amount'] = $amount;
+        if ($side === 'buy') {
+            $params['direction'] = 'BUY';
+        } else {
+            $params['direction'] = 'SELL';
+        }
+        if ($type === 'market') {
+            $params['type'] = 'MARKET_PRICE';
+        } else {
+            $params['type'] = 'LIMIT_PRICE';
+        }
+        $params['useDiscount'] = '0';
+        $response = $this->privatePostExchangeOrderAdd ($params);
         return $this->parse_order($response);
     }
 
