@@ -21,12 +21,16 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro) **[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)**
+[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
+
+[![Pionex – The biggest Binance Broker that provides 12 free crypto trading bots](https://user-images.githubusercontent.com/1294454/106110516-e2cdfa00-615b-11eb-9c70-9a9639f28673.png)](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-1)
+
 
 ## See Also
 
 - <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/69334382-a0618100-0c6b-11ea-9ba9-40aa97440cfa.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading automation terminal for leading exchanges with streaming APIs + Python IDE.
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
+- <sub>[![Pionex](https://user-images.githubusercontent.com/1294454/106112806-c2ec0580-615e-11eb-870c-0b7aef021db2.png)](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-2)</sub>&nbsp; **[Pionex](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-2)**&nbsp;&mdash;&nbsp;6 grid bots, spot-futures arb bot, smart trade and DCA bots. Free for [Android](https://play.google.com/store/apps/details?id=com.pionex.client&referrer=utm_source%3Dccxt) and [iOS](https://apps.apple.com/us/app/pionex/id1485348891?pt=ccxt&ct=inline)!
 
 
 ## Certified Cryptocurrency Exchanges
@@ -224,13 +228,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.8/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.41.8/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.9/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.41.9/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.8/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.9/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
