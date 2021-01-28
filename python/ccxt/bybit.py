@@ -299,7 +299,7 @@ class bybit(Exchange):
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
+                    # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -1479,7 +1479,7 @@ class bybit(Exchange):
         request = {
             'symbol': market['id'],
         }
-        options = self.safe_value(self.options, 'cancelAllOrders')
+        options = self.safe_value(self.options, 'cancelAllOrders', {})
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
         defaultMethod = 'privateLinearPostOrderCancelAll' if (marketType == 'linear') else 'v2PrivatePostOrderCancelAll'
