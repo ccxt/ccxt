@@ -291,7 +291,7 @@ class bybit extends Exchange {
                 ),
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
-                    'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
+                    // 'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -1545,7 +1545,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $options = $this->safe_value($this->options, 'cancelAllOrders');
+        $options = $this->safe_value($this->options, 'cancelAllOrders', array());
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
         $defaultMethod = ($marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'v2PrivatePostOrderCancelAll';
