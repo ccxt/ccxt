@@ -78,6 +78,7 @@ module.exports = class bigone extends Exchange {
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -91,6 +92,7 @@ module.exports = class bigone extends Exchange {
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
@@ -645,7 +647,10 @@ module.exports = class bigone extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const type = this.safeString (params, 'type', '');
+        params = this.omit (params, 'type');
+        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
+        const response = await this[method] (params);
         //
         //     {
         //         "code":0,
