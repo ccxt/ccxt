@@ -1221,9 +1221,6 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.sum (since, limit * duration * 1000);
         }
-        // if (limit !== undefined) {
-        //     request['limit'] = limit; 
-        // }
         let method = 'publicGetKlines';
         if (market['future']) {
             method = 'fapiPublicGetKlines';
