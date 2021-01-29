@@ -444,7 +444,7 @@ class zb(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + 'fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
