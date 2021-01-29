@@ -115,7 +115,7 @@ module.exports = class bithumb extends Exchange {
                         },
                     },
                     'KRW': {},
-                }
+                },
             },
         });
     }
