@@ -1195,10 +1195,12 @@ class binance(Exchange):
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
+        # default limit 500, max 1500 for futures, max 1000 for spot markets
+        limit = 500 if (limit is None) else limit
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
-        if limit is not None:
-            request['limit'] = limit  # default == max == 500
+            request['endTime'] = self.sum(since, limit * duration * 1000)
         method = 'publicGetKlines'
         if market['future']:
             method = 'fapiPublicGetKlines'
