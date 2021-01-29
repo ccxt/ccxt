@@ -1219,7 +1219,9 @@ module.exports = class binance extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = this.sum (since, limit * duration * 1000);
+            const endTime = this.sum (since, limit * duration * 1000);
+            const now = this.milliseconds ();
+            request['endTime'] = Math.min (now, endTime);
         }
         let method = 'publicGetKlines';
         if (market['future']) {
