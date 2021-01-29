@@ -458,7 +458,7 @@ module.exports = class binance extends Exchange {
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'future', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -729,9 +729,8 @@ module.exports = class binance extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const parts = id.split ('_');
-            const lastPart = this.safeString (parts, 1);
-            const idSymbol = (delivery) && (lastPart !== 'PERP');
+            const contractType = this.safeString (market, 'contractType');
+            const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
             const symbol = idSymbol ? id : (base + '/' + quote);
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
