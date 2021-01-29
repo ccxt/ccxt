@@ -81,6 +81,7 @@ class bigone extends Exchange {
                 'private' => array(
                     'get' => array(
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -94,6 +95,7 @@ class bigone extends Exchange {
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ),
                 ),
             ),
@@ -648,7 +650,10 @@ class bigone extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccounts ($params);
+        $type = $this->safe_string($params, 'type', '');
+        $params = $this->omit($params, 'type');
+        $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
+        $response = $this->$method ($params);
         //
         //     {
         //         "$code":0,
