@@ -1221,11 +1221,12 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
+        // default $limit 500, max 1500 for futures, max 1000 for spot markets
+        $limit = ($limit === null) ? 500 : $limit;
+        $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default == max == 500
+            $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
         }
         $method = 'publicGetKlines';
         if ($market['future']) {
