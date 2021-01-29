@@ -49,6 +49,8 @@ class bithumb extends Exchange {
                     'get' => array(
                         'ticker/{currency}',
                         'ticker/all',
+                        'ticker/ALL_BTC',
+                        'ticker/ALL_KRW',
                         'orderbook/{currency}',
                         'orderbook/all',
                         'transaction_history/{currency}',
@@ -108,6 +110,16 @@ class bithumb extends Exchange {
                 '12h' => '12h',
                 '1d' => '24h',
             ),
+            'options' => array(
+                'quoteCurrencies' => array(
+                    'BTC' => array(
+                        'precision' => array(
+                            'price' => 8,
+                        ),
+                    ),
+                    'KRW' => array(),
+                ),
+            ),
         ));
     }
 
@@ -116,54 +128,61 @@ class bithumb extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetTickerAll ($params);
-        $data = $this->safe_value($response, 'data');
-        $currencyIds = is_array($data) ? array_keys($data) : array();
         $result = array();
-        $quote = $this->safe_currency_code('KRW');
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            if ($currencyId === 'date') {
-                continue;
-            }
-            $market = $data[$currencyId];
-            $base = $this->safe_currency_code($currencyId);
-            $symbol = $currencyId . '/' . $quote;
-            $active = true;
-            if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
-                $numElements = is_array($market) ? count($market) : 0;
-                if ($numElements === 0) {
-                    $active = false;
+        $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+        $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+        for ($i = 0; $i < count($quotes); $i++) {
+            $quote = $quotes[$i];
+            $extension = $this->safe_value($quoteCurrencies, $quote, array());
+            $method = 'publicGetTickerALL' . $quote;
+            $response = $this->$method ($params);
+            $data = $this->safe_value($response, 'data');
+            $currencyIds = is_array($data) ? array_keys($data) : array();
+            for ($j = 0; $j < count($currencyIds); $j++) {
+                $currencyId = $currencyIds[$j];
+                if ($currencyId === 'date') {
+                    continue;
                 }
+                $market = $data[$currencyId];
+                $base = $this->safe_currency_code($currencyId);
+                $symbol = $currencyId . '/' . $quote;
+                $active = true;
+                if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
+                    $numElements = is_array($market) ? count($market) : 0;
+                    if ($numElements === 0) {
+                        $active = false;
+                    }
+                }
+                $entry = $this->deep_extend(array(
+                    'id' => $currencyId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'info' => $market,
+                    'active' => $active,
+                    'precision' => array(
+                        'amount' => 4,
+                        'price' => 4,
+                    ),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => 500,
+                            'max' => 5000000000,
+                        ),
+                    ),
+                    'baseId' => null,
+                    'quoteId' => null,
+                ), $extension);
+                $result[] = $entry;
             }
-            $result[] = array(
-                'id' => $currencyId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'info' => $market,
-                'active' => $active,
-                'precision' => array(
-                    'amount' => 4,
-                    'price' => 4,
-                ),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => 500,
-                        'max' => 5000000000,
-                    ),
-                ),
-                'baseId' => null,
-                'quoteId' => null,
-            );
         }
         return $result;
     }
