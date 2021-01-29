@@ -88,6 +88,7 @@ class bigone(Exchange):
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -101,6 +102,7 @@ class bigone(Exchange):
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
@@ -621,7 +623,10 @@ class bigone(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccounts(params)
+        type = self.safe_string(params, 'type', '')
+        params = self.omit(params, 'type')
+        method = 'privateGet' + self.capitalize(type) + 'Accounts'
+        response = getattr(self, method)(params)
         #
         #     {
         #         "code":0,
