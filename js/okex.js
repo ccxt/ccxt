@@ -1888,7 +1888,7 @@ module.exports = class okex extends Exchange {
             });
             const orderType = this.safeString (params, 'order_type');
             // order_type === '4' means a market order
-            const isMarketOrder = (type === 'market') || (orderType === '4');
+            const isMarketOrder = (type === 'market') || (type === '4') || (orderType === '4');
             if (isMarketOrder) {
                 request['order_type'] = '4';
             } else {
