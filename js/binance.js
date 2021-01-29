@@ -520,10 +520,12 @@ module.exports = class binance extends Exchange {
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                 '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                 '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                 '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                 '-3022': AccountSuspended, // You account's trading is banned.
+                '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
             },
         });
     }
