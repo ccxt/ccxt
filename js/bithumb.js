@@ -46,6 +46,8 @@ module.exports = class bithumb extends Exchange {
                     'get': [
                         'ticker/{currency}',
                         'ticker/all',
+                        'ticker/ALL_BTC',
+                        'ticker/ALL_KRW',
                         'orderbook/{currency}',
                         'orderbook/all',
                         'transaction_history/{currency}',
@@ -105,6 +107,16 @@ module.exports = class bithumb extends Exchange {
                 '12h': '12h',
                 '1d': '24h',
             },
+            'options': {
+                'quoteCurrencies': {
+                    'BTC': {
+                        'precision': {
+                            'price': 8,
+                        },
+                    },
+                    'KRW': {},
+                }
+            },
         });
     }
 
@@ -113,54 +125,61 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickerAll (params);
-        const data = this.safeValue (response, 'data');
-        const currencyIds = Object.keys (data);
         const result = [];
-        const quote = this.safeCurrencyCode ('KRW');
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            if (currencyId === 'date') {
-                continue;
-            }
-            const market = data[currencyId];
-            const base = this.safeCurrencyCode (currencyId);
-            const symbol = currencyId + '/' + quote;
-            let active = true;
-            if (Array.isArray (market)) {
-                const numElements = market.length;
-                if (numElements === 0) {
-                    active = false;
+        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quotes = Object.keys (quoteCurrencies);
+        for (let i = 0; i < quotes.length; i++) {
+            const quote = quotes[i];
+            const extension = this.safeValue (quoteCurrencies, quote, {});
+            const method = 'publicGetTickerALL' + quote;
+            const response = await this[method] (params);
+            const data = this.safeValue (response, 'data');
+            const currencyIds = Object.keys (data);
+            for (let j = 0; j < currencyIds.length; j++) {
+                const currencyId = currencyIds[j];
+                if (currencyId === 'date') {
+                    continue;
                 }
+                const market = data[currencyId];
+                const base = this.safeCurrencyCode (currencyId);
+                const symbol = currencyId + '/' + quote;
+                let active = true;
+                if (Array.isArray (market)) {
+                    const numElements = market.length;
+                    if (numElements === 0) {
+                        active = false;
+                    }
+                }
+                const entry = this.deepExtend ({
+                    'id': currencyId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                    'active': active,
+                    'precision': {
+                        'amount': 4,
+                        'price': 4,
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': 500,
+                            'max': 5000000000,
+                        },
+                    },
+                    'baseId': undefined,
+                    'quoteId': undefined,
+                }, extension);
+                result.push (entry);
             }
-            result.push ({
-                'id': currencyId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-                'active': active,
-                'precision': {
-                    'amount': 4,
-                    'price': 4,
-                },
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 500,
-                        'max': 5000000000,
-                    },
-                },
-                'baseId': undefined,
-                'quoteId': undefined,
-            });
         }
         return result;
     }
