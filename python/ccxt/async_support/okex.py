@@ -26,6 +26,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
@@ -639,6 +640,7 @@ class okex(Exchange):
                     '35097': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '35098': ExchangeError,  # An order status or order ID must exist
                     '35099': ExchangeError,  # Algo order ID error
+                    '35102': RateLimitExceeded,  # {"error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1"}
                     # option
                     '36001': BadRequest,  # Invalid underlying index.
                     '36002': BadRequest,  # Instrument does not exist.

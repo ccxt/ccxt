@@ -618,6 +618,7 @@ class okex extends Exchange {
                     '35097' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
                     '35098' => '\\ccxt\\ExchangeError', // An order status or order ID must exist
                     '35099' => '\\ccxt\\ExchangeError', // Algo order ID error
+                    '35102' => '\\ccxt\\RateLimitExceeded', // array("error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1")
                     // option
                     '36001' => '\\ccxt\\BadRequest', // Invalid underlying index.
                     '36002' => '\\ccxt\\BadRequest', // Instrument does not exist.
