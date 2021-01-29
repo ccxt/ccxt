@@ -250,6 +250,10 @@ module.exports = class okex extends Exchange {
                         'cancel_batch_orders/{instrument_id}',
                         'order_algo',
                         'cancel_algos',
+                        'close_position',
+                        'cancel_all',
+                        'order_algo',
+                        'cancel_algos',
                     ],
                 },
                 'option': {

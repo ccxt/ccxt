@@ -1958,6 +1958,7 @@ class hbtc extends Exchange {
             'NEW' => 'open',
             'CANCELED' => 'canceled',
             'FILLED' => 'closed',
+            'PARTIALLY_FILLED' => 'open',
             'PENDING_CANCEL' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
