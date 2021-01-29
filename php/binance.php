@@ -465,7 +465,7 @@ class binance extends Exchange {
             'options' => array(
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultType' => 'future', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
@@ -664,7 +664,7 @@ class binance extends Exchange {
         //             array(
         //                 "$symbol" => "BTCUSD_200925",
         //                 "pair" => "BTCUSD",
-        //                 "contractType" => "CURRENT_QUARTER",
+        //                 "$contractType" => "CURRENT_QUARTER",
         //                 "deliveryDate" => 1601020800000,
         //                 "onboardDate" => 1590739200000,
         //                 "contractStatus" => "TRADING",
@@ -692,7 +692,7 @@ class binance extends Exchange {
         //             {
         //                 "$symbol" => "BTCUSD_PERP",
         //                 "pair" => "BTCUSD",
-        //                 "contractType" => "PERPETUAL",
+        //                 "$contractType" => "PERPETUAL",
         //                 "deliveryDate" => 4133404800000,
         //                 "onboardDate" => 1596006000000,
         //                 "contractStatus" => "TRADING",
@@ -736,9 +736,8 @@ class binance extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $parts = explode('_', $id);
-            $lastPart = $this->safe_string($parts, 1);
-            $idSymbol = ($delivery) && ($lastPart !== 'PERP');
+            $contractType = $this->safe_string($market, 'contractType');
+            $idSymbol = ($future || $delivery) && ($contractType !== 'PERPETUAL');
             $symbol = $idSymbol ? $id : ($base . '/' . $quote);
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
