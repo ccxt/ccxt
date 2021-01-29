@@ -478,7 +478,7 @@ class binance(Exchange):
             'options': {
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
+                'defaultType': 'future',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
@@ -741,9 +741,8 @@ class binance(Exchange):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            parts = id.split('_')
-            lastPart = self.safe_string(parts, 1)
-            idSymbol = (delivery) and (lastPart != 'PERP')
+            contractType = self.safe_string(market, 'contractType')
+            idSymbol = (future or delivery) and (contractType != 'PERPETUAL')
             symbol = id if idSymbol else (base + '/' + quote)
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
