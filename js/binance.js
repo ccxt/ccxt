@@ -1214,12 +1214,16 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
+        // default limit 500, max 1500 for futures, max 1000 for spot markets
+        limit = (limit === undefined) ? 500 : limit;
+        const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
             request['startTime'] = since;
+            request['endTime'] = this.sum (since, limit * duration * 1000);
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
-        }
+        // if (limit !== undefined) {
+        //     request['limit'] = limit; 
+        // }
         let method = 'publicGetKlines';
         if (market['future']) {
             method = 'fapiPublicGetKlines';
