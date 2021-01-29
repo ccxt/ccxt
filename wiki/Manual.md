@@ -2662,7 +2662,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-    'status':      'open',        // 'open', 'closed', 'canceled'
+    'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
     'symbol':      'ETH/BTC',     // symbol
     'type':        'limit',       // 'market', 'limit'
     'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'
@@ -2683,6 +2683,9 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 }
 ```
 
+- The `status` of an order is usually either `'open'` (not filled or partially filled), `'closed'` (fully filled), or `'canceled'` (unfilled and canceled, or partially filled then canceled).
+- Some exchanges allow the user to specify an expiration timestamp upon placing a new order. If the order is not filled by that time, its `status` becomes `'expired'`.
+- Use the `filled` value to determine if the order is filled, partially filled or fully filled, and by how much.
 - The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `lastTradeTimestamp` timestamp may have no value and may be `undefined/None/null` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
