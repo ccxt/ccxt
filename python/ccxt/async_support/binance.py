@@ -1200,7 +1200,9 @@ class binance(Exchange):
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
-            request['endTime'] = self.sum(since, limit * duration * 1000)
+            endTime = self.sum(since, limit * duration * 1000)
+            now = self.milliseconds()
+            request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
         if market['future']:
             method = 'fapiPublicGetKlines'
