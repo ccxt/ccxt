@@ -639,6 +639,9 @@ module.exports = class zb extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        if (tag !== undefined) {
+            address += '_' + tag;
+        }
         const request = {
             'amount': this.currencyToPrecision (code, amount),
             'currency': currency['id'],
