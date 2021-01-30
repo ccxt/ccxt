@@ -604,6 +604,8 @@ class zb(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
+        if tag is not None:
+            address += '_' + tag
         request = {
             'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
