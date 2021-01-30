@@ -18,6 +18,7 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
     && apt-get install -y nodejs \
 # Python 3
     && apt-get install -y --no-install-recommends python3 python3-pip \
+    && pip3 install 'idna==2.9' --force-reinstall \
     && pip3 install --upgrade setuptools \
     && pip3 install tox \
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
