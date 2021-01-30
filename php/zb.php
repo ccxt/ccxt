@@ -28,6 +28,7 @@ class zb extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -121,6 +122,7 @@ class zb extends Exchange {
                         'getUnfinishedOrdersIgnoreTradeType',
                         'getAccountInfo',
                         'getUserAddress',
+                        'getPayinAddress',
                         'getWithdrawAddress',
                         'getWithdrawRecord',
                         'getChargeRecord',
@@ -256,8 +258,96 @@ class zb extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function get_market_field_name() {
-        return 'market';
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        // fetchDepositAddress
+        //
+        //     {
+        //         "key" => "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        //     }
+        //
+        // fetchDepositAddresses
+        //
+        //     {
+        //         "blockChain" => "btc",
+        //         "isUseMemo" => false,
+        //         "$address" => "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        //         "canWithdraw" => true,
+        //         "canDeposit" => true
+        //     }
+        //     {
+        //         "blockChain" => "bts",
+        //         "isUseMemo" => true,
+        //         "account" => "btstest",
+        //         "$memo" => "123",
+        //         "canWithdraw" => true,
+        //         "canDeposit" => true
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'key');
+        $tag = null;
+        $memo = $this->safe_string($depositAddress, 'memo');
+        if ($memo !== null) {
+            $tag = $memo;
+        } else if (mb_strpos($address, '_') !== false) {
+            $parts = explode('_', $address);
+            $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
+            $tag = $parts[1];
+        }
+        $currencyId = $this->safe_string($depositAddress, 'blockChain');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $depositAddress,
+        );
+    }
+
+    public function parse_deposit_addresses($addresses, $codes = null) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $result[] = $address;
+        }
+        if ($codes) {
+            $result = $this->filter_by_array($result, 'currency', $codes);
+        }
+        return $this->index_by($result, 'currency');
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetGetPayinAddress ($params);
+        //
+        //     {
+        //         "code" => 1000,
+        //         "$message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "$datas" => array(
+        //                 array(
+        //                     "blockChain" => "btc",
+        //                     "isUseMemo" => false,
+        //                     "address" => "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        //                     "canWithdraw" => true,
+        //                     "canDeposit" => true
+        //                 ),
+        //                 array(
+        //                     "blockChain" => "bts",
+        //                     "isUseMemo" => true,
+        //                     "account" => "btstest",
+        //                     "memo" => "123",
+        //                     "canWithdraw" => true,
+        //                     "canDeposit" => true
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $message = $this->safe_value($response, 'message', array());
+        $datas = $this->safe_value($message, 'datas', array());
+        return $this->parse_deposit_addresses($datas, $codes);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -267,27 +357,29 @@ class zb extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateGetGetUserAddress (array_merge($request, $params));
-        $address = $response['message']['datas']['key'];
-        $tag = null;
-        if (mb_strpos($address, '_') !== false) {
-            $parts = explode('_', $address);
-            $address = $parts[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
-            $tag = $parts[1];
-        }
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'info' => $response,
-        );
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "$message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "$datas" => {
+        //                 "key" => "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        //             }
+        //         }
+        //     }
+        //
+        $message = $this->safe_value($response, 'message', array());
+        $datas = $this->safe_value($message, 'datas', array());
+        return $this->parse_deposit_address($datas, $currency);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketFieldName = $this->get_market_field_name();
-        $request = array();
-        $request[$marketFieldName] = $market['id'];
+        $request = array(
+            'market' => $market['id'],
+        );
         if ($limit !== null) {
             $request['size'] = $limit;
         }
@@ -316,9 +408,9 @@ class zb extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketFieldName = $this->get_market_field_name();
-        $request = array();
-        $request[$marketFieldName] = $market['id'];
+        $request = array(
+            'market' => $market['id'],
+        );
         $response = $this->publicGetTicker (array_merge($request, $params));
         $ticker = $response['ticker'];
         return $this->parse_ticker($ticker, $market);
@@ -411,9 +503,9 @@ class zb extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $marketFieldName = $this->get_market_field_name();
-        $request = array();
-        $request[$marketFieldName] = $market['id'];
+        $request = array(
+            'market' => $market['id'],
+        );
         $response = $this->publicGetTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }

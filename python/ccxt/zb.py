@@ -34,6 +34,7 @@ class zb(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -127,6 +128,7 @@ class zb(Exchange):
                         'getUnfinishedOrdersIgnoreTradeType',
                         'getAccountInfo',
                         'getUserAddress',
+                        'getPayinAddress',
                         'getWithdrawAddress',
                         'getWithdrawRecord',
                         'getChargeRecord',
@@ -257,8 +259,91 @@ class zb(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def get_market_field_name(self):
-        return 'market'
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        # fetchDepositAddress
+        #
+        #     {
+        #         "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        #     }
+        #
+        # fetchDepositAddresses
+        #
+        #     {
+        #         "blockChain": "btc",
+        #         "isUseMemo": False,
+        #         "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        #         "canWithdraw": True,
+        #         "canDeposit": True
+        #     }
+        #     {
+        #         "blockChain": "bts",
+        #         "isUseMemo": True,
+        #         "account": "btstest",
+        #         "memo": "123",
+        #         "canWithdraw": True,
+        #         "canDeposit": True
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'key')
+        tag = None
+        memo = self.safe_string(depositAddress, 'memo')
+        if memo is not None:
+            tag = memo
+        elif address.find('_') >= 0:
+            parts = address.split('_')
+            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = parts[1]
+        currencyId = self.safe_string(depositAddress, 'blockChain')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        }
+
+    def parse_deposit_addresses(self, addresses, codes=None):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            result.append(address)
+        if codes:
+            result = self.filter_by_array(result, 'currency', codes)
+        return self.index_by(result, 'currency')
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        response = self.privateGetGetPayinAddress(params)
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": [
+        #                 {
+        #                     "blockChain": "btc",
+        #                     "isUseMemo": False,
+        #                     "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        #                     "canWithdraw": True,
+        #                     "canDeposit": True
+        #                 },
+        #                 {
+        #                     "blockChain": "bts",
+        #                     "isUseMemo": True,
+        #                     "account": "btstest",
+        #                     "memo": "123",
+        #                     "canWithdraw": True,
+        #                     "canDeposit": True
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', [])
+        return self.parse_deposit_addresses(datas, codes)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -267,25 +352,28 @@ class zb(Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetGetUserAddress(self.extend(request, params))
-        address = response['message']['datas']['key']
-        tag = None
-        if address.find('_') >= 0:
-            parts = address.split('_')
-            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
-            tag = parts[1]
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        }
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        return self.parse_deposit_address(datas, currency)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         if limit is not None:
             request['size'] = limit
         response = self.publicGetDepth(self.extend(request, params))
@@ -309,9 +397,9 @@ class zb(Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         return self.parse_ticker(ticker, market)
@@ -394,9 +482,9 @@ class zb(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
