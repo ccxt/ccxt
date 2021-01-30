@@ -1221,12 +1221,14 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        // default $limit 500, max 1500 for futures, max 1000 for spot markets
-        $limit = ($limit === null) ? 500 : $limit;
+        // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
+        // the reality is that the time range wider than 500 candles won't work right
+        $defaultLimit = 500;
+        $limit = ($limit === null) ? $defaultLimit : min ($defaultLimit, $limit);
         $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
-            $endTime = $this->sum($since, $limit * $duration * 1000);
+            $endTime = $this->sum($since, $limit * $duration * 1000 - 1);
             $now = $this->milliseconds();
             $request['endTime'] = min ($now, $endTime);
         }
