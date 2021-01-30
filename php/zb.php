@@ -645,6 +645,9 @@ class zb extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
+        if ($tag !== null) {
+            $address .= '_' . $tag;
+        }
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
             'currency' => $currency['id'],
