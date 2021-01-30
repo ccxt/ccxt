@@ -228,13 +228,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.29/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.41.29/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.30/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.41.30/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.29/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.30/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -532,15 +532,6 @@ Support this project by becoming a supporter. Your avatar will show up here with
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
 
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/tiers/backer.svg?width=890"></a>
-
-### Crypto
-
-```
-ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only)
-BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-LTC LgM5hkvPzytEFfQGGDFGKYkE743jwUA7qv
-```
 
 Thank you!
 
