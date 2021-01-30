@@ -55,33 +55,38 @@ class zb extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array(
-                // '1000' => 'Successful operation',
-                '1001' => '\\ccxt\\ExchangeError', // 'General error message',
-                '1002' => '\\ccxt\\ExchangeError', // 'Internal error',
-                '1003' => '\\ccxt\\AuthenticationError', // 'Verification does not pass',
-                '1004' => '\\ccxt\\AuthenticationError', // 'Funding security password lock',
-                '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
-                '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
-                '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
-                '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
-                '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
-                '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
-                '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
-                '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
-                '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
-                '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
-                '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
-                '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
-                '3003' => '\\ccxt\\InvalidOrder', // 'Invalid amount',
-                '3004' => '\\ccxt\\AuthenticationError', // 'User does not exist',
-                '3005' => '\\ccxt\\BadRequest', // 'Invalid parameter',
-                '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
-                '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
-                '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
-                '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
-                '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
-                '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
-                '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
+                'exact' => array(
+                    // '1000' => 'Successful operation',
+                    '1001' => '\\ccxt\\ExchangeError', // 'General error message',
+                    '1002' => '\\ccxt\\ExchangeError', // 'Internal error',
+                    '1003' => '\\ccxt\\AuthenticationError', // 'Verification does not pass',
+                    '1004' => '\\ccxt\\AuthenticationError', // 'Funding security password lock',
+                    '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
+                    '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
+                    '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
+                    '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
+                    '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
+                    '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
+                    '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
+                    '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
+                    '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
+                    '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
+                    '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
+                    '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
+                    '3003' => '\\ccxt\\InvalidOrder', // 'Invalid amount',
+                    '3004' => '\\ccxt\\AuthenticationError', // 'User does not exist',
+                    '3005' => '\\ccxt\\BadRequest', // 'Invalid parameter',
+                    '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
+                    '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
+                    '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
+                    '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                    '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
+                    '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
+                    '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
+                ),
+                'broad' => array(
+                    '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
+                ),
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -699,9 +704,10 @@ class zb extends Exchange {
         }
         if ($body[0] === '{') {
             $feedback = $this->id . ' ' . $body;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             if (is_array($response) && array_key_exists('code', $response)) {
                 $code = $this->safe_string($response, 'code');
-                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 if ($code !== '1000') {
                     throw new ExchangeError($feedback);
                 }

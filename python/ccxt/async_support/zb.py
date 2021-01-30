@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -60,33 +61,38 @@ class zb(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
-                # '1000': 'Successful operation',
-                '1001': ExchangeError,  # 'General error message',
-                '1002': ExchangeError,  # 'Internal error',
-                '1003': AuthenticationError,  # 'Verification does not pass',
-                '1004': AuthenticationError,  # 'Funding security password lock',
-                '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
-                '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
-                '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
-                '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
-                '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
-                '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
-                '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
-                '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
-                '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
-                '2009': InsufficientFunds,  # 'Account balance is not enough',
-                '3001': OrderNotFound,  # 'Pending orders not found',
-                '3002': InvalidOrder,  # 'Invalid price',
-                '3003': InvalidOrder,  # 'Invalid amount',
-                '3004': AuthenticationError,  # 'User does not exist',
-                '3005': BadRequest,  # 'Invalid parameter',
-                '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
-                '3007': AuthenticationError,  # 'The request time has expired',
-                '3008': OrderNotFound,  # 'Transaction records not found',
-                '3009': InvalidOrder,  # 'The price exceeds the limit',
-                '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
-                '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
-                '4002': DDoSProtection,  # 'Request too often',
+                'exact': {
+                    # '1000': 'Successful operation',
+                    '1001': ExchangeError,  # 'General error message',
+                    '1002': ExchangeError,  # 'Internal error',
+                    '1003': AuthenticationError,  # 'Verification does not pass',
+                    '1004': AuthenticationError,  # 'Funding security password lock',
+                    '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
+                    '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
+                    '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
+                    '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
+                    '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
+                    '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
+                    '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
+                    '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
+                    '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
+                    '2009': InsufficientFunds,  # 'Account balance is not enough',
+                    '3001': OrderNotFound,  # 'Pending orders not found',
+                    '3002': InvalidOrder,  # 'Invalid price',
+                    '3003': InvalidOrder,  # 'Invalid amount',
+                    '3004': AuthenticationError,  # 'User does not exist',
+                    '3005': BadRequest,  # 'Invalid parameter',
+                    '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
+                    '3007': AuthenticationError,  # 'The request time has expired',
+                    '3008': OrderNotFound,  # 'Transaction records not found',
+                    '3009': InvalidOrder,  # 'The price exceeds the limit',
+                    '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
+                    '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
+                    '4002': DDoSProtection,  # 'Request too often',
+                },
+                'broad': {
+                    '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                },
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -651,9 +657,10 @@ class zb(Exchange):
             return  # fallback to default error handler
         if body[0] == '{':
             feedback = self.id + ' ' + body
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 if code != '1000':
                     raise ExchangeError(feedback)
             # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
