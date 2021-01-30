@@ -120,6 +120,7 @@ class binance extends Exchange {
                         'margin/priceIndex',
                         // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'asset/transfer',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -195,6 +196,7 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'asset/dust',
+                        'asset/transfer',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',

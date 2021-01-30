@@ -133,6 +133,7 @@ class binance(Exchange):
                         'margin/priceIndex',
                         # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'asset/transfer',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -208,6 +209,7 @@ class binance(Exchange):
                     ],
                     'post': [
                         'asset/dust',
+                        'asset/transfer',
                         'account/disableFastWithdrawSwitch',
                         'account/enableFastWithdrawSwitch',
                         'capital/withdraw/apply',
