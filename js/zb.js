@@ -23,6 +23,7 @@ module.exports = class zb extends Exchange {
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -697,6 +698,33 @@ module.exports = class zb extends Exchange {
         //         "id": "withdrawalId"
         //     }
         //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "amount": 0.01,
+        //         "fees": 0.001,
+        //         "id": 2016042556231,
+        //         "manageTime": 1461579340000,
+        //         "status": 3,
+        //         "submitTime": 1461579288000,
+        //         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        //         "amount": "1.00000000",
+        //         "confirmTimes": 1,
+        //         "currency": "BTC",
+        //         "description": "Successfully Confirm",
+        //         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        //         "id": 558,
+        //         "itransfer": 1,
+        //         "status": 2,
+        //         "submit_time": "2016-12-07 18:51:57",
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         const code = (currency === undefined) ? undefined : currency['code'];
         return {
@@ -804,8 +832,59 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const message = this.safeValue (response, 'message', {});
-        const withdrawals = this.safeValue (message, 'list', []);
+        const datas = this.safeValue (message, 'datas', {});
+        const withdrawals = this.safeValue (datas, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'currency': currency['id'],
+            // 'pageIndex': 1,
+            // 'pageSize': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetGetChargeRecord (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": {
+        //                 "list": [
+        //                     {
+        //                         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        //                         "amount": "1.00000000",
+        //                         "confirmTimes": 1,
+        //                         "currency": "BTC",
+        //                         "description": "Successfully Confirm",
+        //                         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        //                         "id": 558,
+        //                         "itransfer": 1,
+        //                         "status": 2,
+        //                         "submit_time": "2016-12-07 18:51:57",
+        //                     },
+        //                 ],
+        //                 "pageIndex": 1,
+        //                 "pageSize": 10,
+        //                 "total": 8
+        //             }
+        //         }
+        //     }
+        //
+        const message = this.safeValue (response, 'message', {});
+        const datas = this.safeValue (message, 'datas', {});
+        const deposits = this.safeValue (datas, 'list', []);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     nonce () {
