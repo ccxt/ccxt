@@ -533,15 +533,6 @@ Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt
 
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/tiers/backer.svg?width=890"></a>
 
-### Crypto
-
-```
-ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only)
-BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-LTC LgM5hkvPzytEFfQGGDFGKYkE743jwUA7qv
-```
-
 Thank you!
 
 ## Social
