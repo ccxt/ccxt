@@ -1195,12 +1195,14 @@ class binance(Exchange):
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        # default limit 500, max 1500 for futures, max 1000 for spot markets
-        limit = 500 if (limit is None) else limit
+        # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
+        # the reality is that the time range wider than 500 candles won't work right
+        defaultLimit = 500
+        limit = defaultLimit if (limit is None) else min(defaultLimit, limit)
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since
-            endTime = self.sum(since, limit * duration * 1000)
+            endTime = self.sum(since, limit * duration * 1000 - 1)
             now = self.milliseconds()
             request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
