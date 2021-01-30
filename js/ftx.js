@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
             'id': 'ftx',
             'name': 'FTX',
             'countries': [ 'HK' ],
-            'rateLimit': 100,
+            'rateLimit': 34,
             'certified': true,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
