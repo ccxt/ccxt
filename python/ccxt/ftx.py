@@ -31,7 +31,7 @@ class ftx(Exchange):
             'id': 'ftx',
             'name': 'FTX',
             'countries': ['HK'],
-            'rateLimit': 100,
+            'rateLimit': 34,
             'certified': True,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
