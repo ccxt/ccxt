@@ -289,7 +289,7 @@ class Transpiler {
 
     getSyncPHPRegexes () {
         return [
-            [ /(\s)yield(\s)/g, '$1' ]
+            [ /\byield /g, '' ]
         ]
     }
 
@@ -721,9 +721,7 @@ class Transpiler {
     transpileAsyncPHPToSyncPHP (php) {
 
         // remove yield from php body
-        let phpBody = this.regexAll (php, this.getSyncPHPRegexes ())
-
-        return phpBody
+        return this.regexAll (php, this.getSyncPHPRegexes ())
     }
 
     // ------------------------------------------------------------------------
@@ -850,18 +848,17 @@ class Transpiler {
         const sync = './php/test/test.php'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
-        let lines = fileContents.split ("\n")
+        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
 
-        lines = lines.filter (line => ![ 'import asyncio' ].includes (line))
-                    .map (line => line.replace ('$kernel->execute($main);', '$main();')
-                        .replace ('include_once \'vendor/autoload.php\';', '')
-                        .replace ('$kernel->run();', '')
-                        .replace ('$kernel = async\\Exchange::get_kernel();', '')
-                        .replace ('yield ', '')
-                        .replace ('ccxt\\\\async', 'ccxt')
-                    )
+        const phpSyncRegexes = [
+            [ /\$kernel->execute\(\$main\)/, '\$main()' ],
+            [ /include_once 'vendor\/autoload\.php';/  , '' ],
+            [ /\$kernel->run\(\);\n/, '' ],
+            [ /\$kernel = async\\Exchange::get_kernel\(\);\n/, '' ],
+            [ /ccxt\\\\async/, 'ccxt' ],
+        ]
 
-        let newContents = lines.join ('\n')
+        const newContents = this.regexAll (syncBody, phpSyncRegexes)
 
         fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)
