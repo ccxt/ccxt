@@ -30,7 +30,7 @@ include 'throttle.php';
 class Exchange extends \ccxt\Exchange {
     public static $loop;
     public static $kernel;
-    public $client;
+    public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
@@ -77,9 +77,8 @@ class Exchange extends \ccxt\Exchange {
         $connector = new React\Socket\Connector(static::$loop, array(
             'timeout' => $this->timeout,
         ));
-        if ($this->client === null) {
-            $this->client = new React\Http\Browser(static::$loop, $connector);
-            $this->client = $this->client->withRejectErrorResponse(false);
+        if ($this->browser === null) {
+            $this->browser = (new React\Http\Browser(static::$loop, $connector))->withRejectErrorResponse(false);
         }
         $this->throttle = throttle($this->tokenBucket, static::$loop);
     }
@@ -91,7 +90,7 @@ class Exchange extends \ccxt\Exchange {
             print_r(array('Request:', $method, $url, $headers, $body));
         }
         try {
-            $result = yield $this->client->request($method, $url, $headers, $body);
+            $result = yield $this->browser->request($method, $url, $headers, $body);
         } catch (Exception $e) {
             $message = $e->getMessage();
             if (strpos($message, 'DNS query') !== false) {
