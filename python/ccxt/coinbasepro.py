@@ -1034,6 +1034,8 @@ class coinbasepro(Exchange):
             address = self.safe_string(details, 'sent_to_address', address)
             feeCost = self.safe_float(details, 'fee')
             if feeCost is not None:
+                if amount is not None:
+                    amount -= feeCost
                 fee = {
                     'cost': feeCost,
                     'currency': code,
