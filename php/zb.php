@@ -29,6 +29,7 @@ class zb extends Exchange {
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -38,6 +39,7 @@ class zb extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -692,6 +694,17 @@ class zb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '0' => 'pending', // submitted, pending confirmation
+            '1' => 'failed',
+            '2' => 'ok',
+            '3' => 'canceled',
+            '5' => 'ok', // confirmed
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
         //
         // withdraw
@@ -702,26 +715,80 @@ class zb extends Exchange {
         //         "$id" => "withdrawalId"
         //     }
         //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "$amount" => 0.01,
+        //         "fees" => 0.001,
+        //         "$id" => 2016042556231,
+        //         "manageTime" => 1461579340000,
+        //         "$status" => 3,
+        //         "submitTime" => 1461579288000,
+        //         "toAddress" => "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "$address" => "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        //         "$amount" => "1.00000000",
+        //         "$confirmTimes" => 1,
+        //         "$currency" => "BTC",
+        //         "description" => "Successfully Confirm",
+        //         "hash" => "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        //         "$id" => 558,
+        //         "itransfer" => 1,
+        //         "$status" => 2,
+        //         "submit_time" => "2016-12-07 18:51:57",
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
-        $code = ($currency === null) ? null : $currency['code'];
+        $txid = $this->safe_string($transaction, 'hash');
+        $amount = $this->safe_float($transaction, 'amount');
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'submit_time'));
+        $timestamp = $this->safe_integer($transaction, 'submitTime', $timestamp);
+        $address = $this->safe_string_2($transaction, 'toAddress', 'address');
+        $tag = null;
+        if ($address !== null) {
+            $parts = explode('_', $address);
+            $address = $this->safe_string($parts, 0);
+            $tag = $this->safe_string($parts, 1);
+        }
+        $confirmTimes = $this->safe_integer($transaction, 'confirmTimes');
+        $updated = $this->safe_integer($transaction, 'manageTime');
+        $type = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        if ($address !== null) {
+            $type = ($confirmTimes === null) ? 'withdrawal' : 'deposit';
+        }
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'fees');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'addressFrom' => null,
-            'address' => null,
-            'addressTo' => null,
+            'address' => $address,
+            'addressTo' => $address,
             'tagFrom' => null,
-            'tag' => null,
-            'tagTo' => null,
-            'type' => null,
-            'amount' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'type' => $type,
+            'amount' => $amount,
             'currency' => $code,
-            'status' => null,
-            'updated' => null,
-            'fee' => null,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => $fee,
         );
     }
 
@@ -764,6 +831,104 @@ class zb extends Exchange {
             'addressTo' => $address,
             'amount' => $amount,
         ));
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'pageIndex' => 1,
+            // 'pageSize' => $limit,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateGetGetWithdrawRecord (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "$message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "$datas" => {
+        //                 "list" => array(
+        //                     array(
+        //                         "amount" => 0.01,
+        //                         "fees" => 0.001,
+        //                         "id" => 2016042556231,
+        //                         "manageTime" => 1461579340000,
+        //                         "status" => 3,
+        //                         "submitTime" => 1461579288000,
+        //                         "toAddress" => "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        //                     ),
+        //                 ),
+        //                 "pageIndex" => 1,
+        //                 "pageSize" => 10,
+        //                 "totalCount" => 4,
+        //                 "totalPage" => 1
+        //             }
+        //         }
+        //     }
+        //
+        $message = $this->safe_value($response, 'message', array());
+        $datas = $this->safe_value($message, 'datas', array());
+        $withdrawals = $this->safe_value($datas, 'list', array());
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'currency' => $currency['id'],
+            // 'pageIndex' => 1,
+            // 'pageSize' => $limit,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateGetGetChargeRecord (array_merge($request, $params));
+        //
+        //     {
+        //         "$code" => 1000,
+        //         "$message" => {
+        //             "des" => "success",
+        //             "isSuc" => true,
+        //             "$datas" => {
+        //                 "list" => array(
+        //                     array(
+        //                         "address" => "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        //                         "amount" => "1.00000000",
+        //                         "confirmTimes" => 1,
+        //                         "$currency" => "BTC",
+        //                         "description" => "Successfully Confirm",
+        //                         "hash" => "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        //                         "id" => 558,
+        //                         "itransfer" => 1,
+        //                         "status" => 2,
+        //                         "submit_time" => "2016-12-07 18:51:57",
+        //                     ),
+        //                 ),
+        //                 "pageIndex" => 1,
+        //                 "pageSize" => 10,
+        //                 "total" => 8
+        //             }
+        //         }
+        //     }
+        //
+        $message = $this->safe_value($response, 'message', array());
+        $datas = $this->safe_value($message, 'datas', array());
+        $deposits = $this->safe_value($datas, 'list', array());
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function nonce() {

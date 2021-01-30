@@ -35,6 +35,7 @@ class zb(Exchange):
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -44,6 +45,7 @@ class zb(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -650,6 +652,16 @@ class zb(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            '0': 'pending',  # submitted, pending confirmation
+            '1': 'failed',
+            '2': 'ok',
+            '3': 'canceled',
+            '5': 'ok',  # confirmed
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # withdraw
@@ -660,26 +672,77 @@ class zb(Exchange):
         #         "id": "withdrawalId"
         #     }
         #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "amount": 0.01,
+        #         "fees": 0.001,
+        #         "id": 2016042556231,
+        #         "manageTime": 1461579340000,
+        #         "status": 3,
+        #         "submitTime": 1461579288000,
+        #         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        #     }
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        #         "amount": "1.00000000",
+        #         "confirmTimes": 1,
+        #         "currency": "BTC",
+        #         "description": "Successfully Confirm",
+        #         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        #         "id": 558,
+        #         "itransfer": 1,
+        #         "status": 2,
+        #         "submit_time": "2016-12-07 18:51:57",
+        #     }
+        #
         id = self.safe_string(transaction, 'id')
-        code = None if (currency is None) else currency['code']
+        txid = self.safe_string(transaction, 'hash')
+        amount = self.safe_float(transaction, 'amount')
+        timestamp = self.parse8601(self.safe_string(transaction, 'submit_time'))
+        timestamp = self.safe_integer(transaction, 'submitTime', timestamp)
+        address = self.safe_string_2(transaction, 'toAddress', 'address')
+        tag = None
+        if address is not None:
+            parts = address.split('_')
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
+        confirmTimes = self.safe_integer(transaction, 'confirmTimes')
+        updated = self.safe_integer(transaction, 'manageTime')
+        type = None
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        if address is not None:
+            type = 'withdrawal' if (confirmTimes is None) else 'deposit'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        fee = None
+        feeCost = self.safe_float(transaction, 'fees')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
         return {
             'info': transaction,
             'id': id,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'addressFrom': None,
-            'address': None,
-            'addressTo': None,
+            'address': address,
+            'addressTo': address,
             'tagFrom': None,
-            'tag': None,
-            'tagTo': None,
-            'type': None,
-            'amount': None,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': None,
-            'updated': None,
-            'fee': None,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -718,6 +781,98 @@ class zb(Exchange):
             'addressTo': address,
             'amount': amount,
         })
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'pageIndex': 1,
+            # 'pageSize': limit,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetGetWithdrawRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "list": [
+        #                     {
+        #                         "amount": 0.01,
+        #                         "fees": 0.001,
+        #                         "id": 2016042556231,
+        #                         "manageTime": 1461579340000,
+        #                         "status": 3,
+        #                         "submitTime": 1461579288000,
+        #                         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        #                     },
+        #                 ],
+        #                 "pageIndex": 1,
+        #                 "pageSize": 10,
+        #                 "totalCount": 4,
+        #                 "totalPage": 1
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        withdrawals = self.safe_value(datas, 'list', [])
+        return self.parse_transactions(withdrawals, currency, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'pageIndex': 1,
+            # 'pageSize': limit,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetGetChargeRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "list": [
+        #                     {
+        #                         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        #                         "amount": "1.00000000",
+        #                         "confirmTimes": 1,
+        #                         "currency": "BTC",
+        #                         "description": "Successfully Confirm",
+        #                         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        #                         "id": 558,
+        #                         "itransfer": 1,
+        #                         "status": 2,
+        #                         "submit_time": "2016-12-07 18:51:57",
+        #                     },
+        #                 ],
+        #                 "pageIndex": 1,
+        #                 "pageSize": 10,
+        #                 "total": 8
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        deposits = self.safe_value(datas, 'list', [])
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()
