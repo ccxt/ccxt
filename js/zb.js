@@ -32,6 +32,7 @@ module.exports = class zb extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -758,6 +759,53 @@ module.exports = class zb extends Exchange {
             'addressTo': address,
             'amount': amount,
         });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'currency': currency['id'],
+            // 'pageIndex': 1,
+            // 'pageSize': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": {
+        //                 "list": [
+        //                     {
+        //                         "amount": 0.01,
+        //                         "fees": 0.001,
+        //                         "id": 2016042556231,
+        //                         "manageTime": 1461579340000,
+        //                         "status": 3,
+        //                         "submitTime": 1461579288000,
+        //                         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        //                     },
+        //                 ],
+        //                 "pageIndex": 1,
+        //                 "pageSize": 10,
+        //                 "totalCount": 4,
+        //                 "totalPage": 1
+        //             }
+        //         }
+        //     }
+        //
+        const message = this.safeValue (response, 'message', {});
+        const withdrawals = this.safeValue (message, 'list', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     nonce () {
