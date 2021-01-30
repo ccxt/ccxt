@@ -688,6 +688,17 @@ module.exports = class zb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // submitted, pending confirmation
+            '1': 'failed',
+            '2': 'ok',
+            '3': 'canceled',
+            '5': 'ok', // confirmed
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
@@ -726,25 +737,52 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const id = this.safeString (transaction, 'id');
-        const code = (currency === undefined) ? undefined : currency['code'];
+        const txid = this.safeString (transaction, 'hash');
+        const amount = this.safeFloat (transaction, 'amount');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'submit_time'));
+        timestamp = this.safeInteger (transaction, 'submitTime', timestamp);
+        let address = this.safeString2 (transaction, 'toAddress', 'address');
+        let tag = undefined;
+        if (address !== undefined) {
+            const parts = address.split ('_');
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
+        }
+        const confirmTimes = this.safeInteger (transaction, 'confirmTimes');
+        const updated = this.safeInteger (transaction, 'manageTime');
+        let type = undefined;
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        if (address !== undefined) {
+            type = (confirmTimes === undefined) ? 'withdrawal' : 'deposit';
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fees');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
+            'address': address,
+            'addressTo': address,
             'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'type': undefined,
-            'amount': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': undefined,
-            'updated': undefined,
-            'fee': undefined,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
         };
     }
 
