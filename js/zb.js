@@ -22,6 +22,7 @@ module.exports = class zb extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -115,6 +116,7 @@ module.exports = class zb extends Exchange {
                         'getUnfinishedOrdersIgnoreTradeType',
                         'getAccountInfo',
                         'getUserAddress',
+                        'getPayinAddress',
                         'getWithdrawAddress',
                         'getWithdrawRecord',
                         'getChargeRecord',
@@ -250,8 +252,96 @@ module.exports = class zb extends Exchange {
         return this.parseBalance (result);
     }
 
-    getMarketFieldName () {
-        return 'market';
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        // fetchDepositAddress
+        //
+        //     {
+        //         "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        //     }
+        //
+        // fetchDepositAddresses
+        //
+        //     {
+        //         "blockChain": "btc",
+        //         "isUseMemo": false,
+        //         "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        //         "canWithdraw": true,
+        //         "canDeposit": true
+        //     }
+        //     {
+        //         "blockChain": "bts",
+        //         "isUseMemo": true,
+        //         "account": "btstest",
+        //         "memo": "123",
+        //         "canWithdraw": true,
+        //         "canDeposit": true
+        //     }
+        //
+        let address = this.safeString (depositAddress, 'key');
+        let tag = undefined;
+        const memo = this.safeString (depositAddress, 'memo');
+        if (memo !== undefined) {
+            tag = memo;
+        } else if (address.indexOf ('_') >= 0) {
+            const parts = address.split ('_');
+            address = parts[0];  // WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
+            tag = parts[1];
+        }
+        const currencyId = this.safeString (depositAddress, 'blockChain');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        };
+    }
+
+    parseDepositAddresses (addresses, codes = undefined) {
+        let result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            result.push (address);
+        }
+        if (codes) {
+            result = this.filterByArray (result, 'currency', codes);
+        }
+        return this.indexBy (result, 'currency');
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetPayinAddress (params);
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": [
+        //                 {
+        //                     "blockChain": "btc",
+        //                     "isUseMemo": false,
+        //                     "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        //                     "canWithdraw": true,
+        //                     "canDeposit": true
+        //                 },
+        //                 {
+        //                     "blockChain": "bts",
+        //                     "isUseMemo": true,
+        //                     "account": "btstest",
+        //                     "memo": "123",
+        //                     "canWithdraw": true,
+        //                     "canDeposit": true
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const message = this.safeValue (response, 'message', {});
+        const datas = this.safeValue (message, 'datas', []);
+        return this.parseDepositAddresses (datas, codes);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -261,27 +351,29 @@ module.exports = class zb extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privateGetGetUserAddress (this.extend (request, params));
-        let address = response['message']['datas']['key'];
-        let tag = undefined;
-        if (address.indexOf ('_') >= 0) {
-            const parts = address.split ('_');
-            address = parts[0];  // WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
-            tag = parts[1];
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": {
+        //             "des": "success",
+        //             "isSuc": true,
+        //             "datas": {
+        //                 "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        //             }
+        //         }
+        //     }
+        //
+        const message = this.safeValue (response, 'message', {});
+        const datas = this.safeValue (message, 'datas', {});
+        return this.parseDepositAddress (datas, currency);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketFieldName = this.getMarketFieldName ();
-        const request = {};
-        request[marketFieldName] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         if (limit !== undefined) {
             request['size'] = limit;
         }
@@ -310,9 +402,9 @@ module.exports = class zb extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketFieldName = this.getMarketFieldName ();
-        const request = {};
-        request[marketFieldName] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = response['ticker'];
         return this.parseTicker (ticker, market);
@@ -405,9 +497,9 @@ module.exports = class zb extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketFieldName = this.getMarketFieldName ();
-        const request = {};
-        request[marketFieldName] = market['id'];
+        const request = {
+            'market': market['id'],
+        };
         const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
