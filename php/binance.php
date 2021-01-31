@@ -371,8 +371,8 @@ class binance extends \ccxt\binance {
         // public watchTrades
         //
         //     {
-        //         e => 'trade',       // $event $type
-        //         E => 1579481530911, // $event time
+        //         e => 'trade',       // event $type
+        //         E => 1579481530911, // event time
         //         s => 'ETHBTC',      // $symbol
         //         t => 158410082,     // $trade $id
         //         p => '0.01914100',  // $price
@@ -398,7 +398,7 @@ class binance extends \ccxt\binance {
         //        "M" => true         // Ignore
         //     }
         //
-        // private watchMyTrades
+        // private watchMyTrades spot
         //
         //     {
         //         e => 'executionReport',
@@ -435,15 +435,52 @@ class binance extends \ccxt\binance {
         //         Q => '0.00000000'
         //     }
         //
-        $event = $this->safe_string($trade, 'e');
-        if ($event === null) {
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         s => 'BTCUSDT',
+        //         c => 'pb2jD6ZQHpfzSdUac8VqMK',
+        //         S => 'SELL',
+        //         o => 'MARKET',
+        //         f => 'GTC',
+        //         q => '0.001',
+        //         p => '0',
+        //         ap => '33468.46000',
+        //         sp => '0',
+        //         x => 'TRADE',
+        //         X => 'FILLED',
+        //         i => 13351197194,
+        //         l => '0.001',
+        //         z => '0.001',
+        //         L => '33468.46',
+        //         n => '0.00027086',
+        //         N => 'BNB',
+        //         T => 1612095165362,
+        //         t => 458032604,
+        //         b => '0',
+        //         a => '0',
+        //         m => false,
+        //         R => false,
+        //         wt => 'CONTRACT_PRICE',
+        //         ot => 'MARKET',
+        //         ps => 'BOTH',
+        //         cp => false,
+        //         rp => '0.00335000',
+        //         pP => false,
+        //         si => 0,
+        //         ss => 0
+        //     }
+        //
+        $executionType = $this->safe_string($trade, 'x');
+        $isTradeExecution = ($executionType === 'TRADE');
+        if (!$isTradeExecution) {
             return parent::parse_trade($trade, $market);
         }
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
         $price = $this->safe_float_2($trade, 'L', 'p');
         $amount = $this->safe_float($trade, 'q');
-        if ($event === 'executionReport') {
+        if ($isTradeExecution) {
             $amount = $this->safe_float($trade, 'l', $amount);
         }
         $cost = $this->safe_float($trade, 'Y');
@@ -772,6 +809,8 @@ class binance extends \ccxt\binance {
 
     public function parse_ws_order($order, $market = null) {
         //
+        // spot
+        //
         //     {
         //         "e" => "executionReport",        // Event $type
         //         "E" => 1499405658658,            // Event time
@@ -795,7 +834,7 @@ class binance extends \ccxt\binance {
         //         "L" => "0.00000000",             // Last executed $price
         //         "n" => "0",                      // Commission $amount
         //         "N" => null,                     // Commission asset
-        //         "T" => 1499405658657,            // Transaction time
+        //         "$T" => 1499405658657,            // Transaction time
         //         "t" => -1,                       // Trade ID
         //         "I" => 8641984,                  // Ignore
         //         "w" => true,                     // Is the $order on the book?
@@ -807,11 +846,58 @@ class binance extends \ccxt\binance {
         //         "Q" => "0.00000000"              // Quote Order Qty
         //     }
         //
+        // future
+        //
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special client $order id:
+        //                                        // starts with "autoclose-" => liquidation $order
+        //                                        // "adl_autoclose" => ADL auto close $order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET $order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "$T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker $side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional $order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET $order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET $order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
+        $executionType = $this->safe_string($order, 'x');
         $orderId = $this->safe_string($order, 'i');
         $marketId = $this->safe_string($order, 's');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 'O');
-        $lastTradeTimestamp = $this->safe_string($order, 'T');
+        $T = $this->safe_string($order, 'T');
+        $lastTradeTimestamp = null;
+        if ($executionType === 'NEW') {
+            if ($timestamp === null) {
+                $timestamp = $T;
+            }
+        } else if ($executionType === 'TRADE') {
+            $lastTradeTimestamp = $T;
+        }
         $fee = null;
         $feeCost = $this->safe_float($order, 'n');
         if (($feeCost !== null) && ($feeCost > 0)) {
@@ -829,7 +915,7 @@ class binance extends \ccxt\binance {
         $filled = $this->safe_float($order, 'z');
         $cumulativeQuote = $this->safe_float($order, 'Z');
         $remaining = $amount;
-        $average = null;
+        $average = $this->safe_float($order, 'ap');
         $cost = $cumulativeQuote;
         if ($filled !== null) {
             if ($cost === null) {
@@ -840,7 +926,7 @@ class binance extends \ccxt\binance {
             if ($amount !== null) {
                 $remaining = max ($amount - $filled, 0);
             }
-            if (($cumulativeQuote !== null) && ($filled > 0)) {
+            if (($average === null) && ($cumulativeQuote !== null) && ($filled > 0)) {
                 $average = $cumulativeQuote / $filled;
             }
         }
@@ -848,7 +934,7 @@ class binance extends \ccxt\binance {
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
         $clientOrderId = $this->safe_string($order, 'c');
-        $stopPrice = $this->safe_float($order, 'P');
+        $stopPrice = $this->safe_float_2($order, 'P', 'sp');
         $timeInForce = $this->safe_string($order, 'f');
         return array(
             'info' => $order,
@@ -875,7 +961,9 @@ class binance extends \ccxt\binance {
         );
     }
 
-    public function handle_execution_report($client, $message) {
+    public function handle_order_update($client, $message) {
+        //
+        // spot
         //
         //     {
         //         "e" => "executionReport",        // Event type
@@ -912,6 +1000,50 @@ class binance extends \ccxt\binance {
         //         "Q" => "0.00000000"              // Quote Order Qty
         //     }
         //
+        // future
+        //
+        //     {
+        //         "e":"ORDER_TRADE_UPDATE",           // Event Type
+        //         "E":1568879465651,                  // Event Time
+        //         "T":1568879465650,                  // Trasaction Time
+        //         "o" => {
+        //             "s":"BTCUSDT",                  // Symbol
+        //             "c":"TEST",                     // Client Order Id
+        //                                             // special $client order id:
+        //                                             // starts with "autoclose-" => liquidation order
+        //                                             // "adl_autoclose" => ADL auto close order
+        //             "S":"SELL",                     // Side
+        //             "o":"TRAILING_STOP_MARKET",     // Order Type
+        //             "f":"GTC",                      // Time in Force
+        //             "q":"0.001",                    // Original Quantity
+        //             "p":"0",                        // Original Price
+        //             "ap":"0",                       // Average Price
+        //             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //             "x":"NEW",                      // Execution Type
+        //             "X":"NEW",                      // Order Status
+        //             "i":8886774,                    // Order Id
+        //             "l":"0",                        // Order Last Filled Quantity
+        //             "z":"0",                        // Order Filled Accumulated Quantity
+        //             "L":"0",                        // Last Filled Price
+        //             "N":"USDT",                     // Commission Asset, will not push if no commission
+        //             "n":"0",                        // Commission, will not push if no commission
+        //             "T":1568879465651,              // Order Trade Time
+        //             "t":0,                          // Trade Id
+        //             "b":"0",                        // Bids Notional
+        //             "a":"9.91",                     // Ask Notional
+        //             "m":false,                      // Is this trade the maker side?
+        //             "R":false,                      // Is this reduce only
+        //             "wt":"CONTRACT_PRICE",          // Stop Price Working Type
+        //             "ot":"TRAILING_STOP_MARKET",    // Original Order Type
+        //             "ps":"LONG",                    // Position Side
+        //             "cp":false,                     // If Close-All, pushed with conditional order
+        //             "AP":"7476.89",                 // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //             "cr":"5.0",                     // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //             "rp":"0"                        // Realized Profit of the trade
+        //         }
+        //     }
+        //
+        $message = $this->safe_value($message, 'o', $message);
         $this->handle_my_trade($client, $message);
         $this->handle_order($client, $message);
     }
@@ -984,16 +1116,16 @@ class binance extends \ccxt\binance {
                         $cachedOrders->append ($order);
                     }
                 }
-                if ($this->myTrades === null) {
-                    $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                    $this->myTrades = new ArrayCacheBySymbolById ($limit);
-                }
-                $myTrades = $this->myTrades;
-                $myTrades->append ($trade);
-                $client->resolve ($this->myTrades, $messageHash);
-                $messageHashSymbol = $messageHash . ':' . $symbol;
-                $client->resolve ($this->myTrades, $messageHashSymbol);
             }
+            if ($this->myTrades === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            }
+            $myTrades = $this->myTrades;
+            $myTrades->append ($trade);
+            $client->resolve ($this->myTrades, $messageHash);
+            $messageHashSymbol = $messageHash . ':' . $symbol;
+            $client->resolve ($this->myTrades, $messageHashSymbol);
         }
     }
 
@@ -1020,6 +1152,8 @@ class binance extends \ccxt\binance {
                     $parsed['fees'] = $fees;
                 }
                 $parsed['trades'] = $this->safe_value($order, 'trades');
+                $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
+                $parsed['datetime'] = $this->safe_string($order, 'datetime');
             }
             $cachedOrders->append ($parsed);
             $client->resolve ($this->orders, $messageHash);
@@ -1037,7 +1171,8 @@ class binance extends \ccxt\binance {
             '24hrTicker' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_ticker'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
-            'executionReport' => array($this, 'handle_execution_report'),
+            'executionReport' => array($this, 'handle_order_update'),
+            'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
         );
         $event = $this->safe_string($message, 'e');
         $method = $this->safe_value($methods, $event);

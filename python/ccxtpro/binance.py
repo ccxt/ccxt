@@ -363,7 +363,7 @@ class binance(Exchange, ccxt.binance):
         #        "M": True         # Ignore
         #     }
         #
-        # private watchMyTrades
+        # private watchMyTrades spot
         #
         #     {
         #         e: 'executionReport',
@@ -400,14 +400,51 @@ class binance(Exchange, ccxt.binance):
         #         Q: '0.00000000'
         #     }
         #
-        event = self.safe_string(trade, 'e')
-        if event is None:
+        # private watchMyTrades future/delivery
+        #
+        #     {
+        #         s: 'BTCUSDT',
+        #         c: 'pb2jD6ZQHpfzSdUac8VqMK',
+        #         S: 'SELL',
+        #         o: 'MARKET',
+        #         f: 'GTC',
+        #         q: '0.001',
+        #         p: '0',
+        #         ap: '33468.46000',
+        #         sp: '0',
+        #         x: 'TRADE',
+        #         X: 'FILLED',
+        #         i: 13351197194,
+        #         l: '0.001',
+        #         z: '0.001',
+        #         L: '33468.46',
+        #         n: '0.00027086',
+        #         N: 'BNB',
+        #         T: 1612095165362,
+        #         t: 458032604,
+        #         b: '0',
+        #         a: '0',
+        #         m: False,
+        #         R: False,
+        #         wt: 'CONTRACT_PRICE',
+        #         ot: 'MARKET',
+        #         ps: 'BOTH',
+        #         cp: False,
+        #         rp: '0.00335000',
+        #         pP: False,
+        #         si: 0,
+        #         ss: 0
+        #     }
+        #
+        executionType = self.safe_string(trade, 'x')
+        isTradeExecution = (executionType == 'TRADE')
+        if not isTradeExecution:
             return super(binance, self).parse_trade(trade, market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_float_2(trade, 'L', 'p')
         amount = self.safe_float(trade, 'q')
-        if event == 'executionReport':
+        if isTradeExecution:
             amount = self.safe_float(trade, 'l', amount)
         cost = self.safe_float(trade, 'Y')
         if cost is None:
@@ -712,6 +749,8 @@ class binance(Exchange, ccxt.binance):
 
     def parse_ws_order(self, order, market=None):
         #
+        # spot
+        #
         #     {
         #         "e": "executionReport",        # Event type
         #         "E": 1499405658658,            # Event time
@@ -747,11 +786,56 @@ class binance(Exchange, ccxt.binance):
         #         "Q": "0.00000000"              # Quote Order Qty
         #     }
         #
+        # future
+        #
+        #     {
+        #         "s":"BTCUSDT",                 # Symbol
+        #         "c":"TEST",                    # Client Order Id
+        #                                        # special client order id:
+        #                                        # starts with "autoclose-": liquidation order
+        #                                        # "adl_autoclose": ADL auto close order
+        #         "S":"SELL",                    # Side
+        #         "o":"TRAILING_STOP_MARKET",    # Order Type
+        #         "f":"GTC",                     # Time in Force
+        #         "q":"0.001",                   # Original Quantity
+        #         "p":"0",                       # Original Price
+        #         "ap":"0",                      # Average Price
+        #         "sp":"7103.04",                # Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #         "x":"NEW",                     # Execution Type
+        #         "X":"NEW",                     # Order Status
+        #         "i":8886774,                   # Order Id
+        #         "l":"0",                       # Order Last Filled Quantity
+        #         "z":"0",                       # Order Filled Accumulated Quantity
+        #         "L":"0",                       # Last Filled Price
+        #         "N":"USDT",                    # Commission Asset, will not push if no commission
+        #         "n":"0",                       # Commission, will not push if no commission
+        #         "T":1568879465651,             # Order Trade Time
+        #         "t":0,                         # Trade Id
+        #         "b":"0",                       # Bids Notional
+        #         "a":"9.91",                    # Ask Notional
+        #         "m":false,                     # Is self trade the maker side?
+        #         "R":false,                     # Is self reduce only
+        #         "wt":"CONTRACT_PRICE",         # Stop Price Working Type
+        #         "ot":"TRAILING_STOP_MARKET",   # Original Order Type
+        #         "ps":"LONG",                   # Position Side
+        #         "cp":false,                    # If Close-All, pushed with conditional order
+        #         "AP":"7476.89",                # Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #         "cr":"5.0",                    # Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #         "rp":"0"                       # Realized Profit of the trade
+        #     }
+        #
+        executionType = self.safe_string(order, 'x')
         orderId = self.safe_string(order, 'i')
         marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(order, 'O')
-        lastTradeTimestamp = self.safe_string(order, 'T')
+        T = self.safe_string(order, 'T')
+        lastTradeTimestamp = None
+        if executionType == 'NEW':
+            if timestamp is None:
+                timestamp = T
+        elif executionType == 'TRADE':
+            lastTradeTimestamp = T
         fee = None
         feeCost = self.safe_float(order, 'n')
         if (feeCost is not None) and (feeCost > 0):
@@ -768,7 +852,7 @@ class binance(Exchange, ccxt.binance):
         filled = self.safe_float(order, 'z')
         cumulativeQuote = self.safe_float(order, 'Z')
         remaining = amount
-        average = None
+        average = self.safe_float(order, 'ap')
         cost = cumulativeQuote
         if filled is not None:
             if cost is None:
@@ -776,13 +860,13 @@ class binance(Exchange, ccxt.binance):
                     cost = filled * price
             if amount is not None:
                 remaining = max(amount - filled, 0)
-            if (cumulativeQuote is not None) and (filled > 0):
+            if (average is None) and (cumulativeQuote is not None) and (filled > 0):
                 average = cumulativeQuote / filled
         rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'c')
-        stopPrice = self.safe_float(order, 'P')
+        stopPrice = self.safe_float_2(order, 'P', 'sp')
         timeInForce = self.safe_string(order, 'f')
         return {
             'info': order,
@@ -808,7 +892,9 @@ class binance(Exchange, ccxt.binance):
             'trades': trades,
         }
 
-    def handle_execution_report(self, client, message):
+    def handle_order_update(self, client, message):
+        #
+        # spot
         #
         #     {
         #         "e": "executionReport",        # Event type
@@ -845,6 +931,50 @@ class binance(Exchange, ccxt.binance):
         #         "Q": "0.00000000"              # Quote Order Qty
         #     }
         #
+        # future
+        #
+        #     {
+        #         "e":"ORDER_TRADE_UPDATE",           # Event Type
+        #         "E":1568879465651,                  # Event Time
+        #         "T":1568879465650,                  # Trasaction Time
+        #         "o": {
+        #             "s":"BTCUSDT",                  # Symbol
+        #             "c":"TEST",                     # Client Order Id
+        #                                             # special client order id:
+        #                                             # starts with "autoclose-": liquidation order
+        #                                             # "adl_autoclose": ADL auto close order
+        #             "S":"SELL",                     # Side
+        #             "o":"TRAILING_STOP_MARKET",     # Order Type
+        #             "f":"GTC",                      # Time in Force
+        #             "q":"0.001",                    # Original Quantity
+        #             "p":"0",                        # Original Price
+        #             "ap":"0",                       # Average Price
+        #             "sp":"7103.04",                 # Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #             "x":"NEW",                      # Execution Type
+        #             "X":"NEW",                      # Order Status
+        #             "i":8886774,                    # Order Id
+        #             "l":"0",                        # Order Last Filled Quantity
+        #             "z":"0",                        # Order Filled Accumulated Quantity
+        #             "L":"0",                        # Last Filled Price
+        #             "N":"USDT",                     # Commission Asset, will not push if no commission
+        #             "n":"0",                        # Commission, will not push if no commission
+        #             "T":1568879465651,              # Order Trade Time
+        #             "t":0,                          # Trade Id
+        #             "b":"0",                        # Bids Notional
+        #             "a":"9.91",                     # Ask Notional
+        #             "m":false,                      # Is self trade the maker side?
+        #             "R":false,                      # Is self reduce only
+        #             "wt":"CONTRACT_PRICE",          # Stop Price Working Type
+        #             "ot":"TRAILING_STOP_MARKET",    # Original Order Type
+        #             "ps":"LONG",                    # Position Side
+        #             "cp":false,                     # If Close-All, pushed with conditional order
+        #             "AP":"7476.89",                 # Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #             "cr":"5.0",                     # Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #             "rp":"0"                        # Realized Profit of the trade
+        #         }
+        #     }
+        #
+        message = self.safe_value(message, 'o', message)
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
 
@@ -907,14 +1037,14 @@ class binance(Exchange, ccxt.binance):
                         order['trades'] = orderTrades
                         # save the order
                         cachedOrders.append(order)
-                if self.myTrades is None:
-                    limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                    self.myTrades = ArrayCacheBySymbolById(limit)
-                myTrades = self.myTrades
-                myTrades.append(trade)
-                client.resolve(self.myTrades, messageHash)
-                messageHashSymbol = messageHash + ':' + symbol
-                client.resolve(self.myTrades, messageHashSymbol)
+            if self.myTrades is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                self.myTrades = ArrayCacheBySymbolById(limit)
+            myTrades = self.myTrades
+            myTrades.append(trade)
+            client.resolve(self.myTrades, messageHash)
+            messageHashSymbol = messageHash + ':' + symbol
+            client.resolve(self.myTrades, messageHashSymbol)
 
     def handle_order(self, client, message):
         messageHash = 'orders'
@@ -936,6 +1066,8 @@ class binance(Exchange, ccxt.binance):
                 if fees is not None:
                     parsed['fees'] = fees
                 parsed['trades'] = self.safe_value(order, 'trades')
+                parsed['timestamp'] = self.safe_integer(order, 'timestamp')
+                parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
             client.resolve(self.orders, messageHash)
             messageHashSymbol = messageHash + ':' + symbol
@@ -950,7 +1082,8 @@ class binance(Exchange, ccxt.binance):
             '24hrTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
-            'executionReport': self.handle_execution_report,
+            'executionReport': self.handle_order_update,
+            'ORDER_TRADE_UPDATE': self.handle_order_update,
         }
         event = self.safe_string(message, 'e')
         method = self.safe_value(methods, event)
