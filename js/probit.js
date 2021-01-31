@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -130,12 +130,20 @@ module.exports = class probit extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'timeInForce': {
                     'limit': 'gtc',
                     'market': 'ioc',
                 },
+            },
+            'commonCurrencies': {
+                'BTCBEAR': 'BEAR',
+                'BTCBULL': 'BULL',
+                'CBC': 'CryptoBharatCoin',
+                'HBC': 'Hybrid Bank Cash',
+                'UNI': 'UNICORN Token',
             },
         });
     }
@@ -178,11 +186,12 @@ module.exports = class probit extends Exchange {
             const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
             const active = !closed;
-            const priceIncrement = this.safeString (market, 'price_increment');
+            const amountPrecision = this.safeInteger (market, 'quantity_precision');
+            const costPrecision = this.safeInteger (market, 'cost_precision');
             const precision = {
-                'amount': this.safeInteger (market, 'quantity_precision'),
-                'price': this.precisionFromString (priceIncrement),
-                'cost': this.safeInteger (market, 'cost_precision'),
+                'amount': 1 / Math.pow (10, amountPrecision),
+                'price': this.safeFloat (market, 'price_increment'),
+                'cost': 1 / Math.pow (10, costPrecision),
             };
             const takerFeeRate = this.safeFloat (market, 'taker_fee_rate');
             const makerFeeRate = this.safeFloat (market, 'maker_fee_rate');
@@ -459,21 +468,8 @@ module.exports = class probit extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'market_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const close = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
         let percentage = undefined;
@@ -486,10 +482,7 @@ module.exports = class probit extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'base_volume');
         const quoteVolume = this.safeFloat (ticker, 'quote_volume');
-        let vwap = undefined;
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined)) {
-            vwap = baseVolume / quoteVolume;
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -628,28 +621,14 @@ module.exports = class probit extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        let symbol = undefined;
         const id = this.safeString (trade, 'id');
+        let marketId = undefined;
         if (id !== undefined) {
             const parts = id.split (':');
-            let marketId = this.safeString (parts, 0);
-            if (marketId === undefined) {
-                marketId = this.safeString (trade, 'market_id');
-            }
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    const [ baseId, quoteId ] = marketId.split ('-');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
+            marketId = this.safeString (parts, 0);
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        marketId = this.safeString (trade, 'market_id', marketId);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const side = this.safeString (trade, 'side');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
@@ -724,8 +703,7 @@ module.exports = class probit extends Exchange {
             return this.iso8601 (previousSunday * 1000);
         } else {
             timestamp = parseInt (timestamp / 1000);
-            const difference = this.integerModulo (timestamp, duration);
-            timestamp -= difference;
+            timestamp = duration * parseInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);
             }
@@ -785,11 +763,24 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "open":"0.02811",
+        //         "close":"0.02811",
+        //         "low":"0.02811",
+        //         "high":"0.02811",
+        //         "base_volume":"0.0005",
+        //         "quote_volume":"0.000014055",
+        //         "start_time":"2018-11-30T18:19:00.000Z",
+        //         "end_time":"2018-11-30T18:20:00.000Z"
+        //     }
+        //
         return [
             this.parse8601 (this.safeString (ohlcv, 'start_time')),
             this.safeFloat (ohlcv, 'open'),
@@ -892,21 +883,8 @@ module.exports = class probit extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
         let price = this.safeFloat (order, 'limit_price');
         const filled = this.safeFloat (order, 'filled_quantity');
@@ -937,6 +915,7 @@ module.exports = class probit extends Exchange {
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
+        const timeInForce = this.safeStringUpper (order, 'time_in_force');
         return {
             'id': id,
             'info': order,
@@ -946,9 +925,11 @@ module.exports = class probit extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'status': status,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1213,7 +1194,7 @@ module.exports = class probit extends Exchange {
             this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
             const auth = this.apiKey + ':' + this.secret;
-            const auth64 = this.stringToBase64 (this.encode (auth));
+            const auth64 = this.stringToBase64 (auth);
             headers = {
                 'Authorization': 'Basic ' + this.decode (auth64),
                 'Content-Type': 'application/json',
@@ -1233,7 +1214,7 @@ module.exports = class probit extends Exchange {
                 this.checkRequiredCredentials ();
                 const expires = this.safeInteger (this.options, 'expires');
                 if ((expires === undefined) || (expires < now)) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, call signIn() method');
+                    throw new AuthenticationError (this.id + ' access token expired, call signIn() method');
                 }
                 const accessToken = this.safeString (this.options, 'accessToken');
                 headers = {

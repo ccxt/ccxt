@@ -60,6 +60,7 @@ class eterbase extends Exchange {
                 'www' => 'https://www.eterbase.com',
                 'doc' => 'https://developers.eterbase.exchange',
                 'fees' => 'https://www.eterbase.com/exchange/fees',
+                'referral' => 'https://eterbase.exchange/invite/1wjjh4Pe',
             ),
             'api' => array(
                 'markets' => array(
@@ -114,6 +115,7 @@ class eterbase extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
@@ -121,6 +123,7 @@ class eterbase extends Exchange {
                 'exact' => array(
                     'Invalid cost' => '\\ccxt\\InvalidOrder', // array("message":"Invalid cost","_links":array("self":array("href":"/orders","templated":false)))
                     'Invalid order ID' => '\\ccxt\\InvalidOrder', // array("message":"Invalid order ID","_links":array("self":array("href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false)))
+                    'Invalid market !' => '\\ccxt\\BadSymbol', // array("message":"Invalid market !","_links":array("self":array("href":"/markets/300/order-book","templated":false)))
                 ),
                 'broad' => array(
                     'Failed to convert argument' => '\\ccxt\\BadRequest',
@@ -349,21 +352,12 @@ class eterbase extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
         $last = $this->safe_float($ticker, 'price');
         $baseVolume = $this->safe_float($ticker, 'volumeBase');
         $quoteVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && $baseVolume) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         $percentage = $this->safe_float($ticker, 'change');
         $result = array(
             'symbol' => $symbol,
@@ -500,14 +494,8 @@ class eterbase extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'id' => $id,
@@ -579,7 +567,7 @@ class eterbase extends Exchange {
         return $this->parse_order_book($response, $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     {
         //         "time":1588807500000,
@@ -730,9 +718,9 @@ class eterbase extends Exchange {
         //         "remainingQty" => "1.23456",
         //         "$remainingCost" => "1.23456",
         //         "limitPrice" => "1.23456",
-        //         "stopPrice" => "1.23456",
-        //         "postOnly" => false,
-        //         "timeInForce" => "GTC",
+        //         "$stopPrice" => "1.23456",
+        //         "$postOnly" => false,
+        //         "$timeInForce" => "GTC",
         //         "state" => 1,
         //         "closeReason" => "FILLED",
         //         "placedAt" => 1556355722341,
@@ -750,8 +738,8 @@ class eterbase extends Exchange {
         //         "$type":1,
         //         "$side":1,
         //         "$cost":"25",
-        //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$postOnly":false,
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589510846735
         //     }
@@ -766,8 +754,8 @@ class eterbase extends Exchange {
         //         "$side":1,
         //         "qty":"1000",
         //         "limitPrice":"100",
-        //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$postOnly":false,
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589403938682,
         //     }
@@ -775,13 +763,7 @@ class eterbase extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'placedAt');
         $marketId = $this->safe_integer($order, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         if ($status === 'closed') {
             $status = $this->parse_order_status($this->safe_string($order, 'closeReason'));
@@ -826,6 +808,9 @@ class eterbase extends Exchange {
                 $average = $cost / $filled;
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -835,8 +820,11 @@ class eterbase extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1126,9 +1114,8 @@ class eterbase extends Exchange {
                 $message .= "\ndigest" . ':' . ' ' . $digest;  // eslint-disable-line quotes
                 $headersCSV .= ' ' . 'digest';
             }
-            $signature64 = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
-            $signature = $this->decode($signature64);
-            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",$signature="' . $signature . '"';
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
+            $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",' . 'signature="' . $signature . '"';
             $httpHeaders = array(
                 'Date' => $date,
                 'Authorization' => $authorizationHeader,

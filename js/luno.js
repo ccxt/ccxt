@@ -16,20 +16,33 @@ module.exports = class luno extends Exchange {
             'rateLimit': 1000,
             'version': '1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.mybitx.com/api',
+                'api': {
+                    'public': 'https://api.luno.com/api',
+                    'private': 'https://api.luno.com/api',
+                    'exchange': 'https://api.luno.com/api/exchange',
+                },
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -38,6 +51,11 @@ module.exports = class luno extends Exchange {
                 ],
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'markets',
+                    ],
+                },
                 'public': {
                     'get': [
                         'orderbook',
@@ -64,6 +82,7 @@ module.exports = class luno extends Exchange {
                     ],
                     'post': [
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -87,16 +106,42 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickers (params);
+        const response = await this.exchangeGetMarkets (params);
+        //
+        //     {
+        //         "markets":[
+        //             {
+        //                 "market_id":"BCHXBT",
+        //                 "trading_status":"ACTIVE",
+        //                 "base_currency":"BCH",
+        //                 "counter_currency":"XBT",
+        //                 "min_volume":"0.01",
+        //                 "max_volume":"100.00",
+        //                 "volume_scale":2,
+        //                 "min_price":"0.0001",
+        //                 "max_price":"1.00",
+        //                 "price_scale":6,
+        //                 "fee_scale":8,
+        //             },
+        //         ]
+        //     }
+        //
         const result = [];
-        for (let i = 0; i < response['tickers'].length; i++) {
-            const market = response['tickers'][i];
-            const id = market['pair'];
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
+        const markets = this.safeValue (response, 'markets', []);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market_id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const status = this.safeString (market, 'trading_status');
+            const active = (status === 'ACTIVE');
+            const precision = {
+                'amount': this.safeInteger (market, 'volume_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -104,10 +149,42 @@ module.exports = class luno extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'min_volume'),
+                        'max': this.safeFloat (market, 'max_volume'),
+                    },
+                    'price': {
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': undefined,
-                'precision': this.precision,
-                'limits': this.limits,
+            });
+        }
+        return result;
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetBalance (params);
+        const wallets = this.safeValue (response, 'balance', []);
+        const result = [];
+        for (let i = 0; i < wallets.length; i++) {
+            const account = wallets[i];
+            const accountId = this.safeString (account, 'account_id');
+            const currencyId = this.safeString (account, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': code,
+                'info': account,
             });
         }
         return result;
@@ -116,6 +193,16 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         'balance': [
+        //             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        //             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        //         ]
+        //     }
+        //
         const wallets = this.safeValue (response, 'balance', []);
         const result = { 'info': response };
         for (let i = 0; i < wallets.length; i++) {
@@ -125,10 +212,15 @@ module.exports = class luno extends Exchange {
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
-            const account = this.account ();
-            account['used'] = this.sum (reserved, unconfirmed);
-            account['total'] = this.sum (balance, unconfirmed);
-            result[code] = account;
+            if (code in result) {
+                result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
+                result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
+            } else {
+                const account = this.account ();
+                account['used'] = this.sum (reserved, unconfirmed);
+                account['total'] = this.sum (balance, unconfirmed);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -147,6 +239,14 @@ module.exports = class luno extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'volume');
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            // todo add other statuses
+            'PENDING': 'open',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -168,16 +268,11 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
-        const status = (order['state'] === 'PENDING') ? 'open' : 'closed';
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        status = (status === 'open') ? status : status;
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const price = this.safeFloat (order, 'limit_price');
         const amount = this.safeFloat (order, 'limit_volume');
         const quoteFee = this.safeFloat (order, 'fee_counter');
@@ -212,8 +307,11 @@ module.exports = class luno extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -301,12 +399,12 @@ module.exports = class luno extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -454,17 +552,158 @@ module.exports = class luno extends Exchange {
         return await this.privatePostStoporder (this.extend (request, params));
     }
 
+    async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
+        // by default without entry number or limit number, return most recent entry
+        const since = undefined;
+        const request = {
+            'min_row': entry,
+            'max_row': this.sum (entry, limit),
+        };
+        return await this.fetchLedger (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        let currency = undefined;
+        let id = this.safeString (params, 'id'); // account id
+        let min_row = this.safeValue (params, 'min_row');
+        let max_row = this.safeValue (params, 'max_row');
+        if (id === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
+            }
+            currency = this.currency (code);
+            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+            const account = this.safeValue (accountsByCurrencyCode, code);
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
+            }
+            id = account['id'];
+        }
+        if (min_row === undefined && max_row === undefined) {
+            max_row = 0; // Default to most recent transactions
+            min_row = -1000; // Maximum number of records supported
+        } else if (min_row === undefined || max_row === undefined) {
+            throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
+        }
+        if (limit !== undefined && max_row - min_row > limit) {
+            if (max_row <= 0) {
+                min_row = max_row - limit;
+            } else if (min_row > 0) {
+                max_row = min_row + limit;
+            }
+        }
+        if (max_row - min_row > 1000) {
+            throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
+        }
+        const request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        };
+        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
+        const entries = this.safeValue (response, 'transactions', []);
+        return this.parseLedger (entries, currency, since, limit);
+    }
+
+    parseLedgerComment (comment) {
+        const words = comment.split (' ');
+        const types = {
+            'Withdrawal': 'fee',
+            'Trading': 'fee',
+            'Payment': 'transaction',
+            'Sent': 'transaction',
+            'Deposit': 'transaction',
+            'Received': 'transaction',
+            'Released': 'released',
+            'Reserved': 'reserved',
+            'Sold': 'trade',
+            'Bought': 'trade',
+            'Failure': 'failed',
+        };
+        let referenceId = undefined;
+        const firstWord = this.safeString (words, 0);
+        const thirdWord = this.safeString (words, 2);
+        const fourthWord = this.safeString (words, 3);
+        let type = this.safeString (types, firstWord, undefined);
+        if ((type === undefined) && (thirdWord === 'fee')) {
+            type = 'fee';
+        }
+        if ((type === 'reserved') && (fourthWord === 'order')) {
+            referenceId = this.safeString (words, 4);
+        }
+        return {
+            'type': type,
+            'referenceId': referenceId,
+        };
+    }
+
+    parseLedgerEntry (entry, currency = undefined) {
+        // const details = this.safeValue (entry, 'details', {});
+        const id = this.safeString (entry, 'row_index');
+        const account_id = this.safeString (entry, 'account_id');
+        const timestamp = this.safeValue (entry, 'timestamp');
+        const currencyId = this.safeString (entry, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const available_delta = this.safeFloat (entry, 'available_delta');
+        const balance_delta = this.safeFloat (entry, 'balance_delta');
+        const after = this.safeFloat (entry, 'balance');
+        const comment = this.safeString (entry, 'description');
+        let before = after;
+        let amount = 0.0;
+        const result = this.parseLedgerComment (comment);
+        const type = result['type'];
+        const referenceId = result['referenceId'];
+        let direction = undefined;
+        let status = undefined;
+        if (balance_delta !== 0.0) {
+            before = after - balance_delta; // TODO: float precision
+            status = 'ok';
+            amount = Math.abs (balance_delta);
+        } else if (available_delta < 0.0) {
+            status = 'pending';
+            amount = Math.abs (available_delta);
+        } else if (available_delta > 0.0) {
+            status = 'canceled';
+            amount = Math.abs (available_delta);
+        }
+        if (balance_delta > 0 || available_delta > 0) {
+            direction = 'in';
+        } else if (balance_delta < 0 || available_delta < 0) {
+            direction = 'out';
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account_id,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': undefined,
+            'info': entry,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let auth = this.encode (this.apiKey + ':' + this.secret);
-            auth = this.stringToBase64 (auth);
-            headers = { 'Authorization': 'Basic ' + this.decode (auth) };
+            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
+            headers = {
+                'Authorization': 'Basic ' + this.decode (auth),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

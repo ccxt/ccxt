@@ -15,11 +15,19 @@ module.exports = class bitbay extends Exchange {
             'countries': [ 'MT', 'EU' ], // Malta
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': true,
-                'withdraw': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOpenOrders': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -219,6 +227,9 @@ module.exports = class bitbay extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
             },
+            'commonCurrencies': {
+                'GGC': 'Global Game Coin',
+            },
         });
     }
 
@@ -330,22 +341,7 @@ module.exports = class bitbay extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'market');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
         const amount = this.safeFloat (order, 'startAmount');
         const remaining = this.safeFloat (order, 'currentAmount');
@@ -355,6 +351,7 @@ module.exports = class bitbay extends Exchange {
                 filled = Math.max (0, amount - remaining);
             }
         }
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -365,8 +362,11 @@ module.exports = class bitbay extends Exchange {
             'status': undefined,
             'symbol': symbol,
             'type': this.safeString (order, 'mode'),
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': filled,
@@ -829,25 +829,28 @@ module.exports = class bitbay extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // [
-        //     '1582399800000',
-        //     {
-        //         o: '0.0001428',
-        //         c: '0.0001428',
-        //         h: '0.0001428',
-        //         l: '0.0001428',
-        //         v: '4',
-        //         co: '1'
-        //     }
-        // ]
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         '1582399800000',
+        //         {
+        //             o: '0.0001428',
+        //             c: '0.0001428',
+        //             h: '0.0001428',
+        //             l: '0.0001428',
+        //             v: '4',
+        //             co: '1'
+        //         }
+        //     ]
+        //
+        const first = this.safeValue (ohlcv, 1, {});
         return [
-            parseInt (ohlcv[0]),
-            this.safeFloat (ohlcv[1], 'o'),
-            this.safeFloat (ohlcv[1], 'h'),
-            this.safeFloat (ohlcv[1], 'l'),
-            this.safeFloat (ohlcv[1], 'c'),
-            this.safeFloat (ohlcv[1], 'v'),
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (first, 'o'),
+            this.safeFloat (first, 'h'),
+            this.safeFloat (first, 'l'),
+            this.safeFloat (first, 'c'),
+            this.safeFloat (first, 'v'),
         ];
     }
 
@@ -874,8 +877,18 @@ module.exports = class bitbay extends Exchange {
             request['to'] = this.sum (request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        //
+        //     {
+        //         "status":"Ok",
+        //         "items":[
+        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        //         ]
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -930,33 +943,11 @@ module.exports = class bitbay extends Exchange {
         }
         const feeCost = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
-        let base = undefined;
-        let quote = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-                base = market['base'];
-                quote = market['quote'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-            if (base === undefined) {
-                base = market['base'];
-            }
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCcy = (side === 'buy') ? base : quote;
+            const feeCcy = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'currency': feeCcy,
                 'cost': feeCost,

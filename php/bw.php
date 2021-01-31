@@ -176,15 +176,15 @@ class bw extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'marketId');
-            $numericId = intval ($id);
+            $numericId = intval($id);
             $name = $this->safe_string_upper($market, 'name');
             list($base, $quote) = explode('_', $name);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($market, 'sellerCurrencyId');
             $quoteId = $this->safe_string($market, 'buyerCurrencyId');
-            $baseNumericId = intval ($baseId);
-            $quoteNumericId = intval ($quoteId);
+            $baseNumericId = intval($baseId);
+            $quoteNumericId = intval($quoteId);
             $symbol = $base . '/' . $quote;
             $state = $this->safe_integer($market, 'state');
             $active = ($state === 1);
@@ -336,40 +336,32 @@ class bw extends Exchange {
         //         "469849357.2364"  // quote volume
         //     ]
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 0);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $marketId;
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->milliseconds();
-        $close = floatval ($this->safe_value($ticker, 1));
+        $close = floatval($this->safe_value($ticker, 1));
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => floatval ($this->safe_value($ticker, 2)),
-            'low' => floatval ($this->safe_value($ticker, 3)),
-            'bid' => floatval ($this->safe_value($ticker, 7)),
+            'high' => floatval($this->safe_value($ticker, 2)),
+            'low' => floatval($this->safe_value($ticker, 3)),
+            'bid' => floatval($this->safe_value($ticker, 7)),
             'bidVolume' => $this->safe_float($bid, 'quantity'),
-            'ask' => floatval ($this->safe_value($ticker, 8)),
+            'ask' => floatval($this->safe_value($ticker, 8)),
             'askVolume' => $this->safe_float($ask, 'quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => floatval ($this->safe_value($ticker, 5)),
+            'change' => floatval($this->safe_value($ticker, 5)),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($this->safe_value($ticker, 4)),
-            'quoteVolume' => floatval ($this->safe_value($ticker, 9)),
+            'baseVolume' => floatval($this->safe_value($ticker, 4)),
+            'quoteVolume' => floatval($this->safe_value($ticker, 9)),
             'info' => $ticker,
         );
     }
@@ -433,7 +425,7 @@ class bw extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -525,7 +517,7 @@ class bw extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval ($cost),
+            'cost' => floatval($cost),
             'fee' => null,
             'info' => $trade,
         );
@@ -561,7 +553,25 @@ class bw extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         "K",
+        //         "305",
+        //         "eth_btc",
+        //         "1591511280",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.02504",
+        //         "0.0123",
+        //         "0",
+        //         "285740.17",
+        //         "1M",
+        //         "false",
+        //         "0.000308"
+        //     )
+        //
         return array(
             $this->safe_timestamp($ohlcv, 3),
             $this->safe_float($ohlcv, 4),
@@ -584,9 +594,18 @@ class bw extends Exchange {
             $request['dataSize'] = $limit;
         }
         $response = $this->publicGetApiDataV1Klines (array_merge($request, $params));
+        //
+        //     {
+        //         "datas":[
+        //             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        //             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        //             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        //         ],
+        //         "resMsg":array("code":"1","method":null,"message":"success !")
+        //     }
+        //
         $data = $this->safe_value($response, 'datas', array());
-        $ohlcvs = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $this->sort_by($ohlcvs, 0);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_balance($params = array ()) {
@@ -709,9 +728,7 @@ class bw extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'createTime');
         $side = $this->safe_string($order, 'type');
         if ($side === '0') {
@@ -744,10 +761,13 @@ class bw extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

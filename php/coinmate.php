@@ -18,18 +18,22 @@ class coinmate extends Exchange {
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
             'rateLimit' => 1000,
             'has' => array(
-                'CORS' => true,
-                'fetchBalance' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => true,
-                'fetchMyTrades' => true,
-                'fetchTransactions' => true,
-                'fetchOpenOrders' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'CORS' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'fees' => 'https://coinmate.io/fees',
@@ -396,7 +400,7 @@ class coinmate extends Exchange {
             'status' => $status,
             'fee' => array(
                 'cost' => $fee,
-                'currency' => $currency,
+                'currency' => $code,
             ),
             'info' => $item,
         );
@@ -450,25 +454,8 @@ class coinmate extends Exchange {
         //         "tradeType":"BUY"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'currencyPair');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {
-                $market = $this->markets_by_id[$marketId];
-                $quote = $market['quote'];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $market = $this->safe_market($marketId, $market, '_');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -487,7 +474,7 @@ class coinmate extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $quote,
+                'currency' => $market['quote'],
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'feeType');
@@ -497,7 +484,7 @@ class coinmate extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'order' => $orderId,
@@ -545,7 +532,7 @@ class coinmate extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -590,7 +577,7 @@ class coinmate extends Exchange {
         //         currencyPair => 'ETH_BTC',
         //         $price => 0.0345,
         //         $amount => 0.01,
-        //         stopPrice => null,
+        //         $stopPrice => null,
         //         originalStopPrice => null,
         //         marketPriceAtLastUpdate => null,
         //         marketPriceAtOrderCreation => null,
@@ -610,7 +597,7 @@ class coinmate extends Exchange {
         //         $price => 5897.24,
         //         remainingAmount => 0.002367,
         //         originalAmount => 0.1,
-        //         stopPrice => null,
+        //         $stopPrice => null,
         //         originalStopPrice => null,
         //         marketPriceAtLastUpdate => null,
         //         marketPriceAtOrderCreation => null,
@@ -625,8 +612,11 @@ class coinmate extends Exchange {
         $timestamp = $this->safe_integer($order, 'timestamp');
         $side = $this->safe_string_lower($order, 'type');
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float_2($order, 'originalAmount', 'amount');
-        $remaining = $this->safe_float($order, 'remainingAmount', $amount);
+        $amount = $this->safe_float($order, 'originalAmount');
+        $remaining = $this->safe_float($order, 'remainingAmount');
+        if ($remaining === null) {
+            $remaining = $this->safe_float($order, 'amount');
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
         $filled = null;
@@ -641,22 +631,10 @@ class coinmate extends Exchange {
             }
         }
         $average = $this->safe_float($order, 'avgPrice');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $stopPrice = $this->safe_float($order, 'stopPrice');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -665,8 +643,11 @@ class coinmate extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

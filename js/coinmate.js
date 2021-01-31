@@ -15,18 +15,22 @@ module.exports = class coinmate extends Exchange {
             'countries': [ 'GB', 'CZ', 'EU' ], // UK, Czech Republic
             'rateLimit': 1000,
             'has': {
-                'CORS': true,
-                'fetchBalance': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchMyTrades': true,
-                'fetchTransactions': true,
-                'fetchOpenOrders': true,
-                'createOrder': true,
                 'cancelOrder': true,
+                'CORS': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchTransactions': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
                 'api': 'https://coinmate.io/api',
                 'www': 'https://coinmate.io',
                 'fees': 'https://coinmate.io/fees',
@@ -393,7 +397,7 @@ module.exports = class coinmate extends Exchange {
             'status': status,
             'fee': {
                 'cost': fee,
-                'currency': currency,
+                'currency': code,
             },
             'info': item,
         };
@@ -447,25 +451,8 @@ module.exports = class coinmate extends Exchange {
         //         "tradeType":"BUY"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'currencyPair');
-        let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id[marketId]) {
-                market = this.markets_by_id[marketId];
-                quote = market['quote'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        market = this.safeMarket (marketId, market, '_');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -484,7 +471,7 @@ module.exports = class coinmate extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             };
         }
         let takerOrMaker = this.safeString (trade, 'feeType');
@@ -494,7 +481,7 @@ module.exports = class coinmate extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -542,7 +529,7 @@ module.exports = class coinmate extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -622,8 +609,11 @@ module.exports = class coinmate extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const side = this.safeStringLower (order, 'type');
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat2 (order, 'originalAmount', 'amount');
-        const remaining = this.safeFloat (order, 'remainingAmount', amount);
+        const amount = this.safeFloat (order, 'originalAmount');
+        let remaining = this.safeFloat (order, 'remainingAmount');
+        if (remaining === undefined) {
+            remaining = this.safeFloat (order, 'amount');
+        }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
         let filled = undefined;
@@ -638,22 +628,10 @@ module.exports = class coinmate extends Exchange {
             }
         }
         const average = this.safeFloat (order, 'avgPrice');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'currencyPair');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -662,8 +640,11 @@ module.exports = class coinmate extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
-const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } = require ('./base/errors');
+const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,22 +20,30 @@ module.exports = class bitfinex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
+                'CORS': false,
                 'createDepositAddress': true,
+                'createOrder': true,
                 'deposit': true,
+                'editOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchDeposits': false,
                 'fetchFundingFees': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'withdraw': true,
             },
@@ -289,6 +297,10 @@ module.exports = class bitfinex extends Exchange {
                 'DAT': 'DATA',
                 'DSH': 'DASH',
                 'DRK': 'DRK',
+                // https://github.com/ccxt/ccxt/issues/7399
+                // https://coinmarketcap.com/currencies/pnetwork/
+                // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                'EDO': 'PNT',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -301,10 +313,12 @@ module.exports = class bitfinex extends Exchange {
                 'POY': 'POLY',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'RBT': 'RBTC',
                 'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
+                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
@@ -329,8 +343,10 @@ module.exports = class bitfinex extends Exchange {
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
+                    'Unknown symbol': BadSymbol,
                 },
                 'broad': {
+                    'Invalid X-BFX-SIGNATURE': AuthenticationError,
                     'This API key does not have permission': PermissionDenied, // authenticated but not authorized
                     'not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'minimum size for ': InvalidOrder, // when amount below limits.amount.min
@@ -352,9 +368,11 @@ module.exports = class bitfinex extends Exchange {
                     // 'BCH': 'bcash', // undocumented
                     'BCI': 'bci',
                     'BFT': 'bft',
+                    'BSV': 'bsv',
                     'BTC': 'bitcoin',
                     'BTG': 'bgold',
                     'CFI': 'cfi',
+                    'COMP': 'comp',
                     'DAI': 'dai',
                     'DADI': 'dad',
                     'DASH': 'dash',
@@ -373,6 +391,7 @@ module.exports = class bitfinex extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/5833
                     'LEO': 'let', // ETH chain
                     // 'LEO': 'les', // EOS chain
+                    'LINK': 'link',
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -398,6 +417,7 @@ module.exports = class bitfinex extends Exchange {
                     'STORJ': 'stj',
                     'TNB': 'tnb',
                     'TRX': 'trx',
+                    'TUSD': 'tsd',
                     'USD': 'wire',
                     'USDC': 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
@@ -501,7 +521,10 @@ module.exports = class bitfinex extends Exchange {
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'price_precision'),
-                'amount': undefined,
+                // https://docs.bitfinex.com/docs/introduction#amount-precision
+                // The amount field allows up to 8 decimals.
+                // Anything exceeding this will be rounded to the 8th decimal.
+                'amount': 8,
             };
             const limits = {
                 'amount': {
@@ -534,7 +557,19 @@ module.exports = class bitfinex extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.numberToString (amount);
+        // https://docs.bitfinex.com/docs/introduction#amount-precision
+        // The amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    priceToPrecision (symbol, price) {
+        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -612,7 +647,7 @@ module.exports = class bitfinex extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -774,7 +809,7 @@ module.exports = class bitfinex extends Exchange {
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const order = {
-            'order_id': id,
+            'order_id': parseInt (id),
         };
         if (price !== undefined) {
             order['price'] = this.priceToPrecision (symbol, price);
@@ -851,8 +886,11 @@ module.exports = class bitfinex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': this.safeFloat (order, 'price'),
+            'stopPrice': undefined,
             'average': this.safeFloat (order, 'avg_execution_price'),
             'amount': this.safeFloat (order, 'original_amount'),
             'remaining': this.safeFloat (order, 'remaining_amount'),
@@ -903,7 +941,17 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1457539800000,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.1
+        //     ]
+        //
         return [
             this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
@@ -931,6 +979,13 @@ module.exports = class bitfinex extends Exchange {
             request['start'] = since;
         }
         const response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
+        //
+        //     [
+        //         [1457539800000,0.02594,0.02594,0.02594,0.02594,0.1],
+        //         [1457547300000,0.02577,0.02577,0.02577,0.02577,0.01],
+        //         [1457550240000,0.0255,0.0253,0.0255,0.0252,3.2640000000000002],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -1130,6 +1185,27 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostPositions (params);
+        //
+        //     [
+        //         {
+        //             "id":943715,
+        //             "symbol":"btcusd",
+        //             "status":"ACTIVE",
+        //             "base":"246.94",
+        //             "amount":"1.0",
+        //             "timestamp":"1444141857.0",
+        //             "swap":"0.0",
+        //             "pl":"-2.22042"
+        //         }
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1158,13 +1234,14 @@ module.exports = class bitfinex extends Exchange {
                 'request': request,
             }, query);
             body = this.json (query);
-            const payload = this.stringToBase64 (this.encode (body));
+            const payload = this.stringToBase64 (body);
             const secret = this.encode (this.secret);
             const signature = this.hmac (payload, secret, 'sha384');
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': this.decode (payload),
                 'X-BFX-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

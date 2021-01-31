@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -27,14 +28,24 @@ class zb(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchDepositAddresses': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -53,31 +64,38 @@ class zb(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
-                # '1000': 'Successful operation',
-                '1001': ExchangeError,  # 'General error message',
-                '1002': ExchangeError,  # 'Internal error',
-                '1003': AuthenticationError,  # 'Verification does not pass',
-                '1004': AuthenticationError,  # 'Funding security password lock',
-                '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
-                '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
-                '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
-                '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
-                '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
-                '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
-                '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
-                '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
-                '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
-                '2009': InsufficientFunds,  # 'Account balance is not enough',
-                '3001': OrderNotFound,  # 'Pending orders not found',
-                '3002': InvalidOrder,  # 'Invalid price',
-                '3003': InvalidOrder,  # 'Invalid amount',
-                '3004': AuthenticationError,  # 'User does not exist',
-                '3005': BadRequest,  # 'Invalid parameter',
-                '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
-                '3007': AuthenticationError,  # 'The request time has expired',
-                '3008': OrderNotFound,  # 'Transaction records not found',
-                '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
-                '4002': DDoSProtection,  # 'Request too often',
+                'exact': {
+                    # '1000': 'Successful operation',
+                    '1001': ExchangeError,  # 'General error message',
+                    '1002': ExchangeError,  # 'Internal error',
+                    '1003': AuthenticationError,  # 'Verification does not pass',
+                    '1004': AuthenticationError,  # 'Funding security password lock',
+                    '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
+                    '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
+                    '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
+                    '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
+                    '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
+                    '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
+                    '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
+                    '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
+                    '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
+                    '2009': InsufficientFunds,  # 'Account balance is not enough',
+                    '3001': OrderNotFound,  # 'Pending orders not found',
+                    '3002': InvalidOrder,  # 'Invalid price',
+                    '3003': InvalidOrder,  # 'Invalid amount',
+                    '3004': AuthenticationError,  # 'User does not exist',
+                    '3005': BadRequest,  # 'Invalid parameter',
+                    '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
+                    '3007': AuthenticationError,  # 'The request time has expired',
+                    '3008': OrderNotFound,  # 'Transaction records not found',
+                    '3009': InvalidOrder,  # 'The price exceeds the limit',
+                    '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
+                    '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
+                    '4002': DDoSProtection,  # 'Request too often',
+                },
+                'broad': {
+                    '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                },
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -112,6 +130,7 @@ class zb(Exchange):
                         'getUnfinishedOrdersIgnoreTradeType',
                         'getAccountInfo',
                         'getUserAddress',
+                        'getPayinAddress',
                         'getWithdrawAddress',
                         'getWithdrawRecord',
                         'getChargeRecord',
@@ -242,8 +261,91 @@ class zb(Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def get_market_field_name(self):
-        return 'market'
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        # fetchDepositAddress
+        #
+        #     {
+        #         "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        #     }
+        #
+        # fetchDepositAddresses
+        #
+        #     {
+        #         "blockChain": "btc",
+        #         "isUseMemo": False,
+        #         "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        #         "canWithdraw": True,
+        #         "canDeposit": True
+        #     }
+        #     {
+        #         "blockChain": "bts",
+        #         "isUseMemo": True,
+        #         "account": "btstest",
+        #         "memo": "123",
+        #         "canWithdraw": True,
+        #         "canDeposit": True
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'key')
+        tag = None
+        memo = self.safe_string(depositAddress, 'memo')
+        if memo is not None:
+            tag = memo
+        elif address.find('_') >= 0:
+            parts = address.split('_')
+            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = parts[1]
+        currencyId = self.safe_string(depositAddress, 'blockChain')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        }
+
+    def parse_deposit_addresses(self, addresses, codes=None):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            result.append(address)
+        if codes:
+            result = self.filter_by_array(result, 'currency', codes)
+        return self.index_by(result, 'currency')
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        response = self.privateGetGetPayinAddress(params)
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": [
+        #                 {
+        #                     "blockChain": "btc",
+        #                     "isUseMemo": False,
+        #                     "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
+        #                     "canWithdraw": True,
+        #                     "canDeposit": True
+        #                 },
+        #                 {
+        #                     "blockChain": "bts",
+        #                     "isUseMemo": True,
+        #                     "account": "btstest",
+        #                     "memo": "123",
+        #                     "canWithdraw": True,
+        #                     "canDeposit": True
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', [])
+        return self.parse_deposit_addresses(datas, codes)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -252,25 +354,28 @@ class zb(Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetGetUserAddress(self.extend(request, params))
-        address = response['message']['datas']['key']
-        tag = None
-        if address.find('_') >= 0:
-            parts = address.split('_')
-            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
-            tag = parts[1]
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        }
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "key": "0x0af7f36b8f09410f3df62c81e5846da673d4d9a9"
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        return self.parse_deposit_address(datas, currency)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         if limit is not None:
             request['size'] = limit
         response = self.publicGetDepth(self.extend(request, params))
@@ -289,14 +394,14 @@ class zb(Exchange):
         for i in range(0, len(ids)):
             market = anotherMarketsById[ids[i]]
             result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         return self.parse_ticker(ticker, market)
@@ -379,9 +484,9 @@ class zb(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketFieldName = self.get_market_field_name()
-        request = {}
-        request[marketFieldName] = market['id']
+        request = {
+            'market': market['id'],
+        }
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -435,7 +540,7 @@ class zb(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + 'fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -498,17 +603,9 @@ class zb(Exchange):
         side = self.safe_integer(order, 'type')
         side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
-        timestamp = None
-        createDateField = self.get_create_date_field()
-        if createDateField in order:
-            timestamp = order[createDateField]
-        symbol = None
+        timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
-            # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
@@ -531,8 +628,11 @@ class zb(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -552,8 +652,227 @@ class zb(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def get_create_date_field(self):
-        return 'trade_date'
+    def parse_transaction_status(self, status):
+        statuses = {
+            '0': 'pending',  # submitted, pending confirmation
+            '1': 'failed',
+            '2': 'ok',
+            '3': 'canceled',
+            '5': 'ok',  # confirmed
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "amount": 0.01,
+        #         "fees": 0.001,
+        #         "id": 2016042556231,
+        #         "manageTime": 1461579340000,
+        #         "status": 3,
+        #         "submitTime": 1461579288000,
+        #         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        #     }
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        #         "amount": "1.00000000",
+        #         "confirmTimes": 1,
+        #         "currency": "BTC",
+        #         "description": "Successfully Confirm",
+        #         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        #         "id": 558,
+        #         "itransfer": 1,
+        #         "status": 2,
+        #         "submit_time": "2016-12-07 18:51:57",
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(transaction, 'hash')
+        amount = self.safe_float(transaction, 'amount')
+        timestamp = self.parse8601(self.safe_string(transaction, 'submit_time'))
+        timestamp = self.safe_integer(transaction, 'submitTime', timestamp)
+        address = self.safe_string_2(transaction, 'toAddress', 'address')
+        tag = None
+        if address is not None:
+            parts = address.split('_')
+            address = self.safe_string(parts, 0)
+            tag = self.safe_string(parts, 1)
+        confirmTimes = self.safe_integer(transaction, 'confirmTimes')
+        updated = self.safe_integer(transaction, 'manageTime')
+        type = None
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        if address is not None:
+            type = 'withdrawal' if (confirmTimes is None) else 'deposit'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        fee = None
+        feeCost = self.safe_float(transaction, 'fees')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'addressFrom': None,
+            'address': address,
+            'addressTo': address,
+            'tagFrom': None,
+            'tag': tag,
+            'tagTo': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        password = self.safe_string(params, 'safePwd', self.password)
+        if password is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires exchange.password or a safePwd parameter')
+        fees = self.safe_float(params, 'fees')
+        if fees is None:
+            raise ArgumentsRequired(self.id + ' withdraw requires a fees parameter')
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        if tag is not None:
+            address += '_' + tag
+        request = {
+            'amount': self.currency_to_precision(code, amount),
+            'currency': currency['id'],
+            'fees': self.currency_to_precision(code, fees),
+            # 'itransfer': 0,  # agree for an internal transfer, 0 disagree, 1 agree, the default is to disagree
+            'method': 'withdraw',
+            'receiveAddr': address,
+            'safePwd': password,
+        }
+        response = self.privateGetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "id": "withdrawalId"
+        #     }
+        #
+        transaction = self.parse_transaction(response, currency)
+        return self.extend(transaction, {
+            'type': 'withdrawal',
+            'address': address,
+            'addressTo': address,
+            'amount': amount,
+        })
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'pageIndex': 1,
+            # 'pageSize': limit,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetGetWithdrawRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "list": [
+        #                     {
+        #                         "amount": 0.01,
+        #                         "fees": 0.001,
+        #                         "id": 2016042556231,
+        #                         "manageTime": 1461579340000,
+        #                         "status": 3,
+        #                         "submitTime": 1461579288000,
+        #                         "toAddress": "14fxEPirL9fyfw1i9EF439Pq6gQ5xijUmp",
+        #                     },
+        #                 ],
+        #                 "pageIndex": 1,
+        #                 "pageSize": 10,
+        #                 "totalCount": 4,
+        #                 "totalPage": 1
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        withdrawals = self.safe_value(datas, 'list', [])
+        return self.parse_transactions(withdrawals, currency, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'currency': currency['id'],
+            # 'pageIndex': 1,
+            # 'pageSize': limit,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetGetChargeRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": {
+        #             "des": "success",
+        #             "isSuc": True,
+        #             "datas": {
+        #                 "list": [
+        #                     {
+        #                         "address": "1FKN1DZqCm8HaTujDioRL2Aezdh7Qj7xxx",
+        #                         "amount": "1.00000000",
+        #                         "confirmTimes": 1,
+        #                         "currency": "BTC",
+        #                         "description": "Successfully Confirm",
+        #                         "hash": "7ce842de187c379abafadd64a5fe66c5c61c8a21fb04edff9532234a1dae6xxx",
+        #                         "id": 558,
+        #                         "itransfer": 1,
+        #                         "status": 2,
+        #                         "submit_time": "2016-12-07 18:51:57",
+        #                     },
+        #                 ],
+        #                 "pageIndex": 1,
+        #                 "pageSize": 10,
+        #                 "total": 8
+        #             }
+        #         }
+        #     }
+        #
+        message = self.safe_value(response, 'message', {})
+        datas = self.safe_value(message, 'datas', {})
+        deposits = self.safe_value(datas, 'list', [])
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -583,9 +902,10 @@ class zb(Exchange):
             return  # fallback to default error handler
         if body[0] == '{':
             feedback = self.id + ' ' + body
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
                 if code != '1000':
                     raise ExchangeError(feedback)
             # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)

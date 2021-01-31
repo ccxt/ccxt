@@ -20,10 +20,17 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'fetchDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchDepositAddress': True,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -40,7 +47,7 @@ class tidebit(Exchange):
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': [
@@ -228,13 +235,11 @@ class tidebit(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                ticker = tickers[id]
-                result[symbol] = self.parse_ticker(ticker, market)
-        return result
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -279,14 +284,24 @@ class tidebit(Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         1498530360,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         2700.0,
+        #         0.01
+        #     ]
+        #
         return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -304,6 +319,13 @@ class tidebit(Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
+        #
+        #     [
+        #         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
+        #         [1498530420,2700.0,2700.0,2700.0,2700.0,0],
+        #         [1498530480,2700.0,2700.0,2700.0,2700.0,0],
+        #     ]
+        #
         if response == 'None':
             return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -352,12 +374,8 @@ class tidebit(Exchange):
         #         ]
         #     }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            marketId = order['market']
-            symbol = self.markets_by_id[marketId]['symbol']
+        marketId = self.safe_string(order, 'market')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string(order, 'state'))
         id = self.safe_string(order, 'id')
@@ -371,6 +389,7 @@ class tidebit(Exchange):
         if price is not None:
             if filled is not None:
                 cost = price * filled
+        average = self.safe_float(order, 'avg_price')
         return {
             'id': id,
             'clientOrderId': None,
@@ -380,8 +399,11 @@ class tidebit(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -389,7 +411,7 @@ class tidebit(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
-            'average': None,
+            'average': average,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -403,8 +425,7 @@ class tidebit(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = self.privatePostOrders(self.extend(request, params))
-        market = self.markets_by_id[response['market']]
-        return self.parse_order(response, market)
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

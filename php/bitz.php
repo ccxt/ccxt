@@ -20,16 +20,26 @@ class bitz extends Exchange {
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
-                'fetchTickers' => true,
+                'cancelOrder' => true,
+                'cancelOrders' => true,
+                'createOrder' => true,
+                'createMarketOrder' => false,
+                'fetchBalance' => true,
+                'fetchDeposits' => true,
+                'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchOrders' => true,
                 'fetchOrder' => true,
-                'createMarketOrder' => false,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchTransactions' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -45,7 +55,7 @@ class bitz extends Exchange {
             ),
             'hostname' => 'apiv2.bitz.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87443304-fec5e000-c5fd-11ea-98f8-ba8e67f7eaff.jpg',
                 'api' => array(
                     'market' => 'https://{hostname}',
                     'trade' => 'https://{hostname}',
@@ -65,6 +75,7 @@ class bitz extends Exchange {
                         'tickerall',
                         'kline',
                         'symbolList',
+                        'getServerTime',
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
@@ -75,6 +86,7 @@ class bitz extends Exchange {
                         'addEntrustSheet',
                         'cancelEntrustSheet',
                         'cancelAllEntrustSheet',
+                        'coinOut', // withdraw
                         'getUserHistoryEntrustSheet', // closed orders
                         'getUserNowEntrustSheet', // open orders
                         'getEntrustSheetInfo', // order
@@ -355,14 +367,8 @@ class bitz extends Exchange {
         //                    krw => "318655.82"   }
         //
         $timestamp = null;
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float($ticker, 'now');
         $open = $this->safe_float($ticker, 'open');
         $change = null;
@@ -400,10 +406,10 @@ class bitz extends Exchange {
             return $microtime;
         }
         $parts = explode(' ', $microtime);
-        $milliseconds = floatval ($parts[0]);
-        $seconds = intval ($parts[1]);
+        $milliseconds = floatval($parts[0]);
+        $seconds = intval($parts[1]);
         $total = $this->sum($seconds, $milliseconds);
-        return intval ($total * 1000);
+        return intval($total * 1000);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -515,7 +521,22 @@ class bitz extends Exchange {
                 ));
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_time($params = array ()) {
+        $response = $this->marketGetGetServerTime ($params);
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":array(),
+        //         "time":1555490875,
+        //         "microtime":"0.35994200 1555490875",
+        //         "source":"api"
+        //     }
+        //
+        return $this->safe_timestamp($response, 'time');
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -620,15 +641,17 @@ class bitz extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
-        //      {     time => "1535973420000",
-        //            open => "0.03975084",
-        //            high => "0.03975084",
-        //             low => "0.03967700",
-        //           close => "0.03967700",
-        //          volume => "12.4733",
-        //        datetime => "2018-09-03 19:17:00" }
+        //     {
+        //         time => "1535973420000",
+        //         open => "0.03975084",
+        //         high => "0.03975084",
+        //         low => "0.03967700",
+        //         close => "0.03967700",
+        //         volume => "12.4733",
+        //         datetime => "2018-09-03 19:17:00"
+        //     }
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
@@ -660,35 +683,27 @@ class bitz extends Exchange {
         }
         $response = $this->marketGetKline (array_merge($request, $params));
         //
-        //     {    status =>    200,
-        //             msg =>   "",
-        //            data => {       $bars => array( array(     time => "1535973420000",
-        //                                        open => "0.03975084",
-        //                                        high => "0.03975084",
-        //                                         low => "0.03967700",
-        //                                       close => "0.03967700",
-        //                                      volume => "12.4733",
-        //                                    datetime => "2018-09-03 19:17:00" ),
-        //                                  array(     time => "1535955480000",
-        //                                        open => "0.04009900",
-        //                                        high => "0.04016745",
-        //                                         low => "0.04009900",
-        //                                       close => "0.04012074",
-        //                                      volume => "74.4803",
-        //                                    datetime => "2018-09-03 14:18:00" }  ),
-        //                    resolution =>   "1min",
-        //                        $symbol =>   "eth_btc",
-        //                          from =>   "1535973420000",
-        //                            to =>   "1535955480000",
-        //                          size =>    300                                    ),
-        //            time =>    1535973435,
-        //       microtime =>   "0.56462100 1535973435",
-        //          source =>   "api"                                                    }
+        //     {
+        //         status => 200,
+        //         msg => "",
+        //         $data => array(
+        //             $bars => array(
+        //                 array( time => "1535973420000", open => "0.03975084", high => "0.03975084", low => "0.03967700", close => "0.03967700", volume => "12.4733", datetime => "2018-09-03 19:17:00" ),
+        //                 array( time => "1535955480000", open => "0.04009900", high => "0.04016745", low => "0.04009900", close => "0.04012074", volume => "74.4803", datetime => "2018-09-03 14:18:00" ),
+        //             ),
+        //             resolution => "1min",
+        //             $symbol => "eth_btc",
+        //             from => "1535973420000",
+        //             to => "1535955480000",
+        //             size => 300
+        //         ),
+        //         time => 1535973435,
+        //         microtime => "0.56462100 1535973435",
+        //         source => "api"
+        //     }
         //
-        $bars = $this->safe_value($response['data'], 'bars', null);
-        if ($bars === null) {
-            return array();
-        }
+        $data = $this->safe_value($response, 'data', array());
+        $bars = $this->safe_value($data, 'bars', array());
         return $this->parse_ohlcvs($bars, $market, $timeframe, $since, $limit);
     }
 
@@ -766,8 +781,11 @@ class bitz extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -952,8 +970,8 @@ class bitz extends Exchange {
             $request['pageSize'] = $limit;
         }
         if ($since !== null) {
-            $request['startTime'] = intval ($since / 1000);
-            // $request['endTime'] = intval ($since / 1000);
+            $request['startTime'] = intval($since / 1000);
+            // $request['endTime'] = intval($since / 1000);
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1084,6 +1102,16 @@ class bitz extends Exchange {
         //         "memo":""
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id":397574,
+        //         "email":"***@email.com",
+        //         "coin":"usdt",
+        //         "network_fee":"",
+        //         "eid":23112
+        //     }
+        //
         $timestamp = $this->safe_integer($transaction, 'updated');
         if ($timestamp === 0) {
             $timestamp = null;
@@ -1092,6 +1120,14 @@ class bitz extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'network_fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'code' => $code,
+            );
+        }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'txid'),
@@ -1104,7 +1140,7 @@ class bitz extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $timestamp,
-            'fee' => null,
+            'fee' => $fee,
             'info' => $transaction,
         );
     }
@@ -1147,7 +1183,7 @@ class bitz extends Exchange {
             'type' => $this->parse_transaction_type($type),
         );
         if ($since !== null) {
-            $request['startTime'] = intval ($since / (string) 1000);
+            $request['startTime'] = intval($since / (string) 1000);
         }
         if ($limit !== null) {
             $request['page'] = 1;
@@ -1156,6 +1192,40 @@ class bitz extends Exchange {
         $response = $this->tradePostDepositOrWithdraw (array_merge($request, $params));
         $transactions = $this->safe_value($response['data'], 'data', array());
         return $this->parse_transactions_by_type($type, $transactions, $code, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'number' => $this->currency_to_precision($code, $amount),
+            'address' => $address,
+            // 'type' => 'erc20', // omni, trc20, optional
+        );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
+        $response = $this->tradePostCoinOut (array_merge($request, $params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "$data":array(
+        //             "id":397574,
+        //             "email":"***@email.com",
+        //             "coin":"usdt",
+        //             "network_fee":"",
+        //             "eid":23112
+        //         ),
+        //         "time":1552641646,
+        //         "microtime":"0.70304500 1552641646",
+        //         "source":"api"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_transaction($data, $currency);
     }
 
     public function nonce() {

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -19,20 +18,33 @@ class luno(Exchange):
             'rateLimit': 1000,
             'version': '1',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchAccounts': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': 'https://api.mybitx.com/api',
+                'api': {
+                    'public': 'https://api.luno.com/api',
+                    'private': 'https://api.luno.com/api',
+                    'exchange': 'https://api.luno.com/api/exchange',
+                },
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -41,6 +53,11 @@ class luno(Exchange):
                 ],
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'markets',
+                    ],
+                },
                 'public': {
                     'get': [
                         'orderbook',
@@ -67,6 +84,7 @@ class luno(Exchange):
                     ],
                     'post': [
                         'accounts',
+                        'accounts/{id}/name',
                         'postorder',
                         'marketorder',
                         'stoporder',
@@ -89,16 +107,42 @@ class luno(Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTickers(params)
+        response = self.exchangeGetMarkets(params)
+        #
+        #     {
+        #         "markets":[
+        #             {
+        #                 "market_id":"BCHXBT",
+        #                 "trading_status":"ACTIVE",
+        #                 "base_currency":"BCH",
+        #                 "counter_currency":"XBT",
+        #                 "min_volume":"0.01",
+        #                 "max_volume":"100.00",
+        #                 "volume_scale":2,
+        #                 "min_price":"0.0001",
+        #                 "max_price":"1.00",
+        #                 "price_scale":6,
+        #                 "fee_scale":8,
+        #             },
+        #         ]
+        #     }
+        #
         result = []
-        for i in range(0, len(response['tickers'])):
-            market = response['tickers'][i]
-            id = market['pair']
-            baseId = id[0:3]
-            quoteId = id[3:6]
+        markets = self.safe_value(response, 'markets', [])
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'market_id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            status = self.safe_string(market, 'trading_status')
+            active = (status == 'ACTIVE')
+            precision = {
+                'amount': self.safe_integer(market, 'volume_scale'),
+                'price': self.safe_integer(market, 'price_scale'),
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -106,16 +150,56 @@ class luno(Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'min_volume'),
+                        'max': self.safe_float(market, 'max_volume'),
+                    },
+                    'price': {
+                        'min': self.safe_float(market, 'min_price'),
+                        'max': self.safe_float(market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
-                'active': None,
-                'precision': self.precision,
-                'limits': self.limits,
+            })
+        return result
+
+    def fetch_accounts(self, params={}):
+        response = self.privateGetBalance(params)
+        wallets = self.safe_value(response, 'balance', [])
+        result = []
+        for i in range(0, len(wallets)):
+            account = wallets[i]
+            accountId = self.safe_string(account, 'account_id')
+            currencyId = self.safe_string(account, 'asset')
+            code = self.safe_currency_code(currencyId)
+            result.append({
+                'id': accountId,
+                'type': None,
+                'currency': code,
+                'info': account,
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalance(params)
+        #
+        #     {
+        #         'balance': [
+        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
+        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        #         ]
+        #     }
+        #
         wallets = self.safe_value(response, 'balance', [])
         result = {'info': response}
         for i in range(0, len(wallets)):
@@ -125,10 +209,14 @@ class luno(Exchange):
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')
-            account = self.account()
-            account['used'] = self.sum(reserved, unconfirmed)
-            account['total'] = self.sum(balance, unconfirmed)
-            result[code] = account
+            if code in result:
+                result[code]['used'] = self.sum(result[code]['used'], reserved, unconfirmed)
+                result[code]['total'] = self.sum(result[code]['total'], balance, unconfirmed)
+            else:
+                account = self.account()
+                account['used'] = self.sum(reserved, unconfirmed)
+                account['total'] = self.sum(balance, unconfirmed)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -143,6 +231,13 @@ class luno(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
+
+    def parse_order_status(self, status):
+        statuses = {
+            # todo add other statuses
+            'PENDING': 'open',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -163,14 +258,11 @@ class luno(Exchange):
         #     }
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
-        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'state'))
+        status = status if (status == 'open') else status
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float(order, 'limit_price')
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
@@ -200,8 +292,11 @@ class luno(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -279,11 +374,11 @@ class luno(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -412,16 +507,142 @@ class luno(Exchange):
         }
         return self.privatePostStoporder(self.extend(request, params))
 
+    def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+        # by default without entry number or limit number, return most recent entry
+        since = None
+        request = {
+            'min_row': entry,
+            'max_row': self.sum(entry, limit),
+        }
+        return self.fetch_ledger(code, since, limit, self.extend(request, params))
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        self.load_accounts()
+        currency = None
+        id = self.safe_string(params, 'id')  # account id
+        min_row = self.safe_value(params, 'min_row')
+        max_row = self.safe_value(params, 'max_row')
+        if id is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
+            currency = self.currency(code)
+            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+            account = self.safe_value(accountsByCurrencyCode, code)
+            if account is None:
+                raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
+            id = account['id']
+        if min_row is None and max_row is None:
+            max_row = 0  # Default to most recent transactions
+            min_row = -1000  # Maximum number of records supported
+        elif min_row is None or max_row is None:
+            raise ExchangeError(self.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")
+        if limit is not None and max_row - min_row > limit:
+            if max_row <= 0:
+                min_row = max_row - limit
+            elif min_row > 0:
+                max_row = min_row + limit
+        if max_row - min_row > 1000:
+            raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
+        request = {
+            'id': id,
+            'min_row': min_row,
+            'max_row': max_row,
+        }
+        response = self.privateGetAccountsIdTransactions(self.extend(params, request))
+        entries = self.safe_value(response, 'transactions', [])
+        return self.parse_ledger(entries, currency, since, limit)
+
+    def parse_ledger_comment(self, comment):
+        words = comment.split(' ')
+        types = {
+            'Withdrawal': 'fee',
+            'Trading': 'fee',
+            'Payment': 'transaction',
+            'Sent': 'transaction',
+            'Deposit': 'transaction',
+            'Received': 'transaction',
+            'Released': 'released',
+            'Reserved': 'reserved',
+            'Sold': 'trade',
+            'Bought': 'trade',
+            'Failure': 'failed',
+        }
+        referenceId = None
+        firstWord = self.safe_string(words, 0)
+        thirdWord = self.safe_string(words, 2)
+        fourthWord = self.safe_string(words, 3)
+        type = self.safe_string(types, firstWord, None)
+        if (type is None) and (thirdWord == 'fee'):
+            type = 'fee'
+        if (type == 'reserved') and (fourthWord == 'order'):
+            referenceId = self.safe_string(words, 4)
+        return {
+            'type': type,
+            'referenceId': referenceId,
+        }
+
+    def parse_ledger_entry(self, entry, currency=None):
+        # details = self.safe_value(entry, 'details', {})
+        id = self.safe_string(entry, 'row_index')
+        account_id = self.safe_string(entry, 'account_id')
+        timestamp = self.safe_value(entry, 'timestamp')
+        currencyId = self.safe_string(entry, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        available_delta = self.safe_float(entry, 'available_delta')
+        balance_delta = self.safe_float(entry, 'balance_delta')
+        after = self.safe_float(entry, 'balance')
+        comment = self.safe_string(entry, 'description')
+        before = after
+        amount = 0.0
+        result = self.parse_ledger_comment(comment)
+        type = result['type']
+        referenceId = result['referenceId']
+        direction = None
+        status = None
+        if balance_delta != 0.0:
+            before = after - balance_delta  # TODO: float precision
+            status = 'ok'
+            amount = abs(balance_delta)
+        elif available_delta < 0.0:
+            status = 'pending'
+            amount = abs(available_delta)
+        elif available_delta > 0.0:
+            status = 'canceled'
+            amount = abs(available_delta)
+        if balance_delta > 0 or available_delta > 0:
+            direction = 'in'
+        elif balance_delta < 0 or available_delta < 0:
+            direction = 'out'
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account_id,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': before,
+            'after': after,
+            'status': status,
+            'fee': None,
+            'info': entry,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            auth = self.encode(self.apiKey + ':' + self.secret)
-            auth = base64.b64encode(auth)
-            headers = {'Authorization': 'Basic ' + self.decode(auth)}
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
+            headers = {
+                'Authorization': 'Basic ' + self.decode(auth),
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

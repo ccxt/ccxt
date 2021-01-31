@@ -28,23 +28,30 @@ class gateio(Exchange):
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'createMarketOrder': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': True,
                 'createDepositAddress': True,
-                'fetchDepositAddress': True,
+                'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrderTrades': True,
-                'fetchOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchOrderTrades': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -157,7 +164,6 @@ class gateio(Exchange):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -169,8 +175,11 @@ class gateio(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'SBTC': 'Super Bitcoin',
+                'TNC': 'Trinity Network Credit',
             },
         })
 
@@ -295,7 +304,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': 8,
+                'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {
@@ -364,15 +373,15 @@ class gateio(Exchange):
         response = await self.publicGetOrderBookId(self.extend(request, params))
         return self.parse_order_book(response)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
         return [
-            int(ohlcv[0]),   # t
-            float(ohlcv[5]),  # o
-            float(ohlcv[3]),  # h
-            float(ohlcv[4]),  # l
-            float(ohlcv[2]),  # c
-            float(ohlcv[1]),  # v
+            self.safe_integer(ohlcv, 0),  # t
+            self.safe_float(ohlcv, 5),  # o
+            self.safe_float(ohlcv, 3),  # h
+            self.safe_float(ohlcv, 4),  # l
+            self.safe_float(ohlcv, 2),  # c
+            self.safe_float(ohlcv, 1),  # v
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -450,19 +459,10 @@ class gateio(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.safe_currency_code(base)
-            quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            market = None
-            if symbol in self.markets:
-                market = self.markets[symbol]
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+            market = self.safe_market(id, None, '_')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -539,7 +539,11 @@ class gateio(Exchange):
         request = {
             'id': market['id'],
         }
-        method = self.safe_string(self.options, 'fetchTradesMethod', 'public_get_tradehistory_id')
+        method = None
+        if 'tid' in params:
+            method = 'publicGetTradeHistoryIdTid'
+        else:
+            method = 'publicGetTradeHistoryId'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -626,12 +630,8 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string_2(order, 'orderNumber', 'id')
-        symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'ctime')
         lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -664,8 +664,11 @@ class gateio(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,
@@ -785,26 +788,6 @@ class gateio(Exchange):
             'id': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        prefix = (api + '/') if (api == 'private') else ''
-        url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
-            self.check_required_credentials()
-            nonce = self.nonce()
-            request = {'nonce': nonce}
-            body = self.urlencode(self.extend(request, query))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
-            headers = {
-                'Key': self.apiKey,
-                'Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     async def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
@@ -850,15 +833,15 @@ class gateio(Exchange):
         # withdrawal
         #
         #     {
-        #         'id': 'w5864259',
-        #         'currency': 'ETH',
-        #         'address': '0x72632f462....',
-        #         'amount': '0.4947',
-        #         'txid': '0x111167d120f736....',
-        #         'timestamp': '1553123688',
-        #         'status': 'DONE',
-        #         'type': 'withdrawal'
-        #     }
+        #         "id": "w6754336",
+        #         "fee": "0.1",
+        #         "txid": "zzyy",
+        #         "amount": "1",
+        #         "status": "DONE",
+        #         "address": "tz11234",
+        #         "currency": "XTZ",
+        #         "timestamp": "1561030206"
+        #    }
         #
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -871,6 +854,15 @@ class gateio(Exchange):
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
+        feeCost = self.safe_float(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
+            if amount is not None:
+                amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
@@ -883,7 +875,7 @@ class gateio(Exchange):
             'type': type,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_transaction_status(self, status):
@@ -914,3 +906,26 @@ class gateio(Exchange):
         if errorCode is not None:
             feedback = self.safe_string(self.exceptions['errorCodeNames'], errorCode, message)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        prefix = (api + '/') if (api == 'private') else ''
+        url = self.urls['api'][api] + self.version + '/1/' + prefix + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            self.check_required_credentials()
+            nonce = self.nonce()
+            request = {'nonce': nonce}
+            body = self.rawencode(self.extend(request, query))
+            # gateio does not like the plus sign in the URL query
+            # https://github.com/ccxt/ccxt/issues/4529
+            body = body.replace('+', ' ')
+            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            headers = {
+                'Key': self.apiKey,
+                'Sign': signature,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

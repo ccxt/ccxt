@@ -17,12 +17,18 @@ class coincheck(Exchange):
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchMyTrades': True,
+                'fetchOrderBook': True,
+                'fetchOpenOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
                 'api': 'https://coincheck.com/api',
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
@@ -170,16 +176,7 @@ class coincheck(Exchange):
                     cost = filled * price
         status = None
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        symbol = self.safe_symbol(marketId, market, '_')
         return {
             'id': id,
             'clientOrderId': None,
@@ -191,9 +188,12 @@ class coincheck(Exchange):
             'filled': filled,
             'side': side,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'fee': None,
             'info': order,

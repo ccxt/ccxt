@@ -53,7 +53,35 @@ spl_autoload_register(function ($class) {
         require_once $file;
 });
 
-require_once PATH_TO_CCXT_ORIG_BASE . 'errors.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'BaseError.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'ExchangeError.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'AuthenticationError.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'PermissionDenied.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'AccountSuspended.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'ArgumentsRequired.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'BadRequest.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'BadSymbol.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'BadResponse.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'NullResponse.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'InsufficientFunds.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'InvalidAddress.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'AddressPending.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'InvalidOrder.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'OrderNotFound.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'OrderNotCached.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'CancelPending.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'OrderImmediatelyFillable.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'OrderNotFillable.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'DuplicateOrderId.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'NotSupported.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'NetworkError.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'DDoSProtection.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'RateLimitExceeded.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'ExchangeNotAvailable.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'OnMaintenance.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'InvalidNonce.php';
+require_once PATH_TO_CCXT_ORIG_BASE . 'RequestTimeout.php';
+
 require_once PATH_TO_CCXT_ORIG_BASE . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC_BASE . 'Exchange.php';
 

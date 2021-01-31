@@ -154,6 +154,7 @@ class RequestTimeout(NetworkError):
 
 __all__ = [
     'error_hierarchy',
+    'BaseError',
     'ExchangeError',
     'AuthenticationError',
     'PermissionDenied',

@@ -19,19 +19,27 @@ class bitflyer extends Exchange {
             'countries' => array( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
+            'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'withdraw' => true,
-                'fetchMyTrades' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => 'emulated',
-                'fetchOpenOrders' => 'emulated',
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => 'emulated',
+                'fetchOrder' => 'emulated',
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api' => 'https://api.bitflyer.jp',
-                'www' => 'https://bitflyer.jp',
+                'api' => 'https://api.{hostname}',
+                'www' => 'https://bitflyer.com',
                 'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
             'api' => array(
@@ -338,16 +346,8 @@ class bitflyer extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'product_code');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'product_code');
+        $symbol = $this->safe_symbol($marketId, $market);
         $fee = null;
         $feeCost = $this->safe_float($order, 'total_commission');
         if ($feeCost !== null) {
@@ -368,8 +368,11 @@ class bitflyer extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -440,6 +443,36 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchPositions requires a `$symbols` argument, exactly one symbol in an array');
+        }
+        $this->load_markets();
+        $request = array(
+            'product_code' => $this->market_ids($symbols),
+        );
+        $response = $this->privateGetpositions (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "product_code" => "FX_BTC_JPY",
+        //             "side" => "BUY",
+        //             "price" => 36000,
+        //             "size" => 10,
+        //             "commission" => 0,
+        //             "swap_point_accumulate" => -35,
+        //             "require_collateral" => 120000,
+        //             "open_date" => "2015-11-03T10:04:45.011",
+        //             "leverage" => 3,
+        //             "pnl" => 965,
+        //             "sfd" => -0.5
+        //         }
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
@@ -471,7 +504,8 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $url = $this->urls['api'] . $request;
+        $baseUrl = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
+        $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

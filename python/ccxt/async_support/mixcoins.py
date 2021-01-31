@@ -19,10 +19,16 @@ class mixcoins(Exchange):
             'version': 'v1',
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg',
                 'api': 'https://mixcoins.com/api',
                 'www': 'https://mixcoins.com',
                 'doc': 'https://mixcoins.com/help/api/',

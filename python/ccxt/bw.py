@@ -335,14 +335,8 @@ class bw(Exchange):
         #         "469849357.2364"  # quote volume
         #     ]
         #
-        symbol = None
         marketId = self.safe_string(ticker, 0)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            symbol = marketId
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.milliseconds()
         close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})
@@ -426,7 +420,7 @@ class bw(Exchange):
             symbol = ticker['symbol']
             if (symbols is None) or self.in_array(symbol, symbols):
                 result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -543,7 +537,25 @@ class bw(Exchange):
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         "K",
+        #         "305",
+        #         "eth_btc",
+        #         "1591511280",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.02504",
+        #         "0.0123",
+        #         "0",
+        #         "285740.17",
+        #         "1M",
+        #         "false",
+        #         "0.000308"
+        #     ]
+        #
         return [
             self.safe_timestamp(ohlcv, 3),
             self.safe_float(ohlcv, 4),
@@ -564,9 +576,18 @@ class bw(Exchange):
         if limit is not None:
             request['dataSize'] = limit
         response = self.publicGetApiDataV1Klines(self.extend(request, params))
+        #
+        #     {
+        #         "datas":[
+        #             ["K","305","eth_btc","1591511280","0.02504","0.02504","0.02504","0.02504","0.0123","0","285740.17","1M","false","0.000308"],
+        #             ["K","305","eth_btc","1591511220","0.02504","0.02504","0.02504","0.02504","0.0006","0","285740.17","1M","false","0.00001502"],
+        #             ["K","305","eth_btc","1591511100","0.02505","0.02505","0.02504","0.02504","0.0012","-0.0399","285740.17","1M","false","0.00003005"],
+        #         ],
+        #         "resMsg":{"code":"1","method":null,"message":"success !"}
+        #     }
+        #
         data = self.safe_value(response, 'datas', [])
-        ohlcvs = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return self.sort_by(ohlcvs, 0)
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -683,8 +704,7 @@ class bw(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'createTime')
         side = self.safe_string(order, 'type')
         if side == '0':
@@ -711,10 +731,13 @@ class bw(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
