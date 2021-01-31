@@ -769,6 +769,8 @@ module.exports = class binance extends ccxt.binance {
 
     parseWsOrder (order, market = undefined) {
         //
+        // spot
+        //
         //     {
         //         "e": "executionReport",        // Event type
         //         "E": 1499405658658,            // Event time
@@ -804,11 +806,58 @@ module.exports = class binance extends ccxt.binance {
         //         "Q": "0.00000000"              // Quote Order Qty
         //     }
         //
+        // future
+        //
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special client order id:
+        //                                        // starts with "autoclose-": liquidation order
+        //                                        // "adl_autoclose": ADL auto close order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
+        const executionType = this.safeString (order, 'x');
         const orderId = this.safeString (order, 'i');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId);
-        const timestamp = this.safeInteger (order, 'O');
-        const lastTradeTimestamp = this.safeString (order, 'T');
+        let timestamp = this.safeInteger (order, 'O');
+        const T = this.safeString (order, 'T');
+        let lastTradeTimestamp = undefined;
+        if (executionType === 'NEW') {
+            if (timestamp === undefined) {
+                timestamp = T;
+            }
+        } else if (executionType === 'TRADE') {
+            lastTradeTimestamp = T;
+        }
         let fee = undefined;
         const feeCost = this.safeFloat (order, 'n');
         if ((feeCost !== undefined) && (feeCost > 0)) {
@@ -826,7 +875,7 @@ module.exports = class binance extends ccxt.binance {
         const filled = this.safeFloat (order, 'z');
         const cumulativeQuote = this.safeFloat (order, 'Z');
         let remaining = amount;
-        let average = undefined;
+        let average = this.safeFloat (order, 'ap');
         let cost = cumulativeQuote;
         if (filled !== undefined) {
             if (cost === undefined) {
@@ -837,7 +886,7 @@ module.exports = class binance extends ccxt.binance {
             if (amount !== undefined) {
                 remaining = Math.max (amount - filled, 0);
             }
-            if ((cumulativeQuote !== undefined) && (filled > 0)) {
+            if ((average === undefined) && (cumulativeQuote !== undefined) && (filled > 0)) {
                 average = cumulativeQuote / filled;
             }
         }
@@ -845,7 +894,7 @@ module.exports = class binance extends ccxt.binance {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'c');
-        const stopPrice = this.safeFloat (order, 'P');
+        const stopPrice = this.safeFloat2 (order, 'P', 'sp');
         const timeInForce = this.safeString (order, 'f');
         return {
             'info': order,
@@ -872,7 +921,9 @@ module.exports = class binance extends ccxt.binance {
         };
     }
 
-    handleExecutionReport (client, message) {
+    handleOrderUpdate (client, message) {
+        //
+        // spot
         //
         //     {
         //         "e": "executionReport",        // Event type
@@ -909,6 +960,50 @@ module.exports = class binance extends ccxt.binance {
         //         "Q": "0.00000000"              // Quote Order Qty
         //     }
         //
+        // future
+        //
+        //     {
+        //         "e":"ORDER_TRADE_UPDATE",           // Event Type
+        //         "E":1568879465651,                  // Event Time
+        //         "T":1568879465650,                  // Trasaction Time
+        //         "o": {
+        //             "s":"BTCUSDT",                  // Symbol
+        //             "c":"TEST",                     // Client Order Id
+        //                                             // special client order id:
+        //                                             // starts with "autoclose-": liquidation order
+        //                                             // "adl_autoclose": ADL auto close order
+        //             "S":"SELL",                     // Side
+        //             "o":"TRAILING_STOP_MARKET",     // Order Type
+        //             "f":"GTC",                      // Time in Force
+        //             "q":"0.001",                    // Original Quantity
+        //             "p":"0",                        // Original Price
+        //             "ap":"0",                       // Average Price
+        //             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //             "x":"NEW",                      // Execution Type
+        //             "X":"NEW",                      // Order Status
+        //             "i":8886774,                    // Order Id
+        //             "l":"0",                        // Order Last Filled Quantity
+        //             "z":"0",                        // Order Filled Accumulated Quantity
+        //             "L":"0",                        // Last Filled Price
+        //             "N":"USDT",                     // Commission Asset, will not push if no commission
+        //             "n":"0",                        // Commission, will not push if no commission
+        //             "T":1568879465651,              // Order Trade Time
+        //             "t":0,                          // Trade Id
+        //             "b":"0",                        // Bids Notional
+        //             "a":"9.91",                     // Ask Notional
+        //             "m":false,                      // Is this trade the maker side?
+        //             "R":false,                      // Is this reduce only
+        //             "wt":"CONTRACT_PRICE",          // Stop Price Working Type
+        //             "ot":"TRAILING_STOP_MARKET",    // Original Order Type
+        //             "ps":"LONG",                    // Position Side
+        //             "cp":false,                     // If Close-All, pushed with conditional order
+        //             "AP":"7476.89",                 // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //             "cr":"5.0",                     // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //             "rp":"0"                        // Realized Profit of the trade
+        //         }
+        //     }
+        //
+        message = this.safeValue (message, 'o', message);
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);
     }
@@ -1017,6 +1112,8 @@ module.exports = class binance extends ccxt.binance {
                     parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                parsed['datetime'] = this.safeString (order, 'datetime');
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, messageHash);
@@ -1034,7 +1131,8 @@ module.exports = class binance extends ccxt.binance {
             '24hrTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
-            'executionReport': this.handleExecutionReport,
+            'executionReport': this.handleOrderUpdate,
+            'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };
         const event = this.safeString (message, 'e');
         const method = this.safeValue (methods, event);
