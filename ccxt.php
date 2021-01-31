@@ -53,8 +53,9 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
-    if (file_exists($file))
+    if (file_exists($file)) {
         require_once $file;
+    }
 });
 
 require_once PATH_TO_CCXT_BASE . 'BaseError.php';
