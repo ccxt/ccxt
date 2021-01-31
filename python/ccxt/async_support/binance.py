@@ -1193,14 +1193,15 @@ class binance(Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
-        }
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         # the reality is that the time range wider than 500 candles won't work right
         defaultLimit = 500
         limit = defaultLimit if (limit is None) else min(defaultLimit, limit)
+        request = {
+            'symbol': market['id'],
+            'interval': self.timeframes[timeframe],
+            'limit': limit,
+        }
         duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['startTime'] = since

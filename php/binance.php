@@ -1219,14 +1219,15 @@ class binance extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
-        );
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $limit = ($limit === null) ? $defaultLimit : min ($defaultLimit, $limit);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
         $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['startTime'] = $since;
