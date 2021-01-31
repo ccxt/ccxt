@@ -27,7 +27,12 @@ use Exception;
 
 include 'throttle.php';
 
+$version = '1.41.31';
+
 class Exchange extends \ccxt\Exchange {
+
+    const VERSION = '1.41.31';
+
     public static $loop;
     public static $kernel;
     public $browser;
@@ -84,13 +89,42 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
-        // returns a react promise
-        $headers = $headers ? $headers : array();
+
+        $headers = array_merge($this->headers, $headers ? $headers : array());
+        if (!$headers) {
+            $headers = array();
+        }
+
+        if (strlen($this->proxy)) {
+            $headers['Origin'] = $this->origin;
+        }
+
+        if ($this->userAgent) {
+            if (gettype($this->userAgent) == 'string') {
+                $headers['User-Agent'] = $this->userAgent;
+            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
+                $headers['User-Agent'] = $this->userAgent['User-Agent'];
+            }
+        }
+
+        // this name for the proxy string is deprecated
+        // we should rename it to $this->cors everywhere
+        $url = $this->proxy . $url;
+
         if ($this->verbose) {
             print_r(array('Request:', $method, $url, $headers, $body));
         }
+
+        $this->lastRestRequestTimestamp = $this->milliseconds();
+
         try {
             $result = yield $this->browser->request($method, $url, $headers, $body);
+        } catch (\RuntimeException $e) {
+            if (strpos($e->getMessage(), 'timed out') !== false) { //operation timed out. Currently not way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
+                throw new RequestTimeout(implode(' ', array($url, $method, 28, $e->getMessage()))); //28 for compatibility with the CURL error code for timeout
+            }
+            // all sorts of SSL problems, accessibility
+            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $e->getCode(), $e->getMessage())));
         } catch (Exception $e) {
             $message = $e->getMessage();
             if (strpos($message, 'DNS query') !== false) {
@@ -100,7 +134,7 @@ class Exchange extends \ccxt\Exchange {
             }
         }
 
-        $response_body = strval($result->getBody());
+        $response_body = trim(strval($result->getBody()));
         $raw_response_headers = $result->getHeaders();
         $raw_header_keys = array_keys($raw_response_headers);
         $response_headers = array();
@@ -110,12 +144,31 @@ class Exchange extends \ccxt\Exchange {
         $http_status_code = $result->getStatusCode();
         $http_status_text = $result->getReasonPhrase();
 
+        if ($this->enableLastHttpResponse) {
+            $this->last_http_response = $response_body;
+        }
+
+        if ($this->enableLastResponseHeaders) {
+            $this->last_response_headers = $response_headers;
+        }
+
         if ($this->verbose) {
             print_r(array('Response:', $method, $url, $http_status_code, $response_headers, $response_body));
         }
-        $json_response = $this->parse_json($response_body);
+
+        $json_response = null;
+        $is_json_encoded_response = $this->is_json_encoded_object($response_body);
+
+        if ($is_json_encoded_response) {
+            $json_response = $this->parse_json($response_body);
+            if ($this->enableLastJsonResponse) {
+                $this->last_json_response = $json_response;
+            }
+        }
+
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
+
         return $json_response ? $json_response : $response_body;
     }
 
