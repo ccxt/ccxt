@@ -10,17 +10,17 @@ const fs = require ('fs')
     , errors = require ('../js/base/errors.js')
     , functions = require ('../js/base/functions.js')
     , {
-    unCamelCase,
-    precisionConstants,
-    safeString,
-    unique,
-} = functions
+        unCamelCase,
+        precisionConstants,
+        safeString,
+        unique,
+    } = functions
     , { basename } = require ('path')
     , {
-    createFolderRecursively,
-    replaceInFile,
-    overwriteFile,
-} = require ('./fs.js')
+        createFolderRecursively,
+        replaceInFile,
+        overwriteFile,
+    } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
 
 class Transpiler {
@@ -196,7 +196,7 @@ class Transpiler {
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
 
-            // insert common regexes in the middle (critical)
+        // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
@@ -322,7 +322,6 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
-            [ /\sawait\s/g, ' yield '], // support async php
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -338,7 +337,7 @@ class Transpiler {
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
 
-            // insert common regexes in the middle (critical)
+        // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
             [ /this\./g, '$this->' ],
@@ -347,7 +346,7 @@ class Transpiler {
             [ /\{\}/g, 'array()' ],
             [ /\[\]/g, 'array()' ],
 
-            // add {}-array syntax conversions up to 20 levels deep in the same line
+        // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
 
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
@@ -367,7 +366,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
             [ /([^\s]+)\.length\;/g, 'is_array($1) ? count($1) : 0;' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
-            [ /(\s)await(\s)/g, '$1yield$2' ],
+            [ /(\b)await(\b)/g, 'yield' ],
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
@@ -375,7 +374,7 @@ class Transpiler {
 
             [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
-            // add []-array syntax conversions up to 20 levels deep
+        // add []-array syntax conversions up to 20 levels deep
         ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
 
             [ /JSON\.stringify/g, 'json_encode' ],
@@ -416,12 +415,6 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
-    }
-
-    getPHPSyncRegexes () {
-        return [
-            [ /(\s)yield(\s)/g, '$1' ]
-        ]
     }
 
     getBaseClass () {
@@ -608,7 +601,7 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    createPHPClassDeclaration (className, baseClass, async = false) {
+    createPHPClassDeclaration (className, baseClass) {
         return 'class ' + className + ' extends ' + baseClass + ' {'
     }
 
@@ -623,11 +616,6 @@ class Transpiler {
             "",
             "use Exception; // a common import",
         ]
-        if (async) {
-            header.push ("use \\ccxt_async\\Exchange as Exchange;")
-            header.push ("use \\Generator;")
-        }
-        return header
     }
 
     createPHPClass (className, baseClass, body, methods, async = false) {
@@ -659,7 +647,7 @@ class Transpiler {
                 })
         }
 
-        header.push ("\n" + this.createPHPClassDeclaration (className, baseClass, async))
+        header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
 
         const footer =[
             "}\n",
@@ -770,16 +758,6 @@ class Transpiler {
         // transpile JS → PHP
         const phpRegexes = this.getPHPRegexes ()
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
-
-        return phpBody
-    }
-
-    // ------------------------------------------------------------------------
-
-    transpilePHPAsyncToPHP (php) {
-
-        // remove yield from PHPAsync body
-        let phpBody = this.regexAll (php, this.getPHPSyncRegexes ())
 
         return phpBody
     }
