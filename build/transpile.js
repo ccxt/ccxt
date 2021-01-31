@@ -322,7 +322,6 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
-            [ /\sawait\s/g, ' yield '], // support async php
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -367,7 +366,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
             [ /([^\s]+)\.length\;/g, 'is_array($1) ? count($1) : 0;' ],
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
-            [ /(\s)await(\s)/g, '$1yield$2' ],
+            [ /(\b)await(\b)/g, 'yield' ],
             [ /([\S])\: /g, '$1 => ' ],
 
         // add {}-array syntax conversions up to 20 levels deep
@@ -416,12 +415,6 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
-    }
-
-    getPHPSyncRegexes () {
-        return [
-            [ /(\s)yield(\s)/g, '$1' ]
-        ]
     }
 
     getBaseClass () {
