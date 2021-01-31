@@ -1212,14 +1212,15 @@ module.exports = class binance extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
-        };
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         const defaultLimit = 500;
         limit = (limit === undefined) ? defaultLimit : Math.min (defaultLimit, limit);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.timeframes[timeframe],
+            'limit': limit,
+        };
         const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
             request['startTime'] = since;
