@@ -835,7 +835,6 @@ class Transpiler {
 
         const phpSyncRegexes = [
             [ /\$kernel->execute\(\$main\)/, '\$main()' ],
-            [ /include_once 'vendor\/autoload\.php';/  , '' ],
             [ /\$kernel->run\(\);\n/, '' ],
             [ /\$kernel = async\\Exchange::get_kernel\(\);\n/, '' ],
             [ /ccxt\\\\async/, 'ccxt' ],
