@@ -58,6 +58,7 @@ class binance extends \ccxt\binance {
                 'watchTicker' => array(
                     'name' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 ),
+                'wallet' => 'wb', // wb = wallet balance, cb = cross balance
             ),
         ));
     }
@@ -761,6 +762,7 @@ class binance extends \ccxt\binance {
     }
 
     public function handle_balance($client, $message) {
+        //
         // sent upon creating or filling an order
         //
         //     {
@@ -776,6 +778,39 @@ class binance extends \ccxt\binance {
         //         )
         //     }
         //
+        // future/delivery
+        //
+        //     {
+        //         "e" => "ACCOUNT_UPDATE",            // Event Type
+        //         "E" => 1564745798939,               // Event Time
+        //         "T" => 1564745798938 ,              // Transaction
+        //         "$i" => "SfsR",                      // Account Alias
+        //         "a" => {                            // Update Data
+        //             "m":"ORDER",                  // Event reason type
+        //             "B":array(                         // Balances
+        //                 array(
+        //                     "a":"BTC",                // Asset
+        //                     "wb":"122624.12345678",   // Wallet Balance
+        //                     "cw":"100.12345678"       // Cross Wallet Balance
+        //                 ),
+        //             ),
+        //             "P":array(
+        //                 array(
+        //                     "s":"BTCUSD_200925",      // Symbol
+        //                     "pa":"0",                 // Position Amount
+        //                     "ep":"0.0",               // Entry Price
+        //                     "cr":"200",               // (Pre-fee) Accumulated Realized
+        //                     "up":"0",                 // Unrealized PnL
+        //                     "mt":"isolated",          // Margin Type
+        //                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
+        //                     "ps":"BOTH"               // Position Side
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $wallet = $this->safe_value($this->options, 'wallet', 'wb');
+        $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -784,6 +819,7 @@ class binance extends \ccxt\binance {
             $account = $this->account();
             $account['free'] = $this->safe_float($balance, 'f');
             $account['used'] = $this->safe_float($balance, 'l');
+            $account['total'] = $this->safe_float($balance, $wallet);
             $this->balance[$code] = $account;
         }
         $this->balance = $this->parse_balance($this->balance);
@@ -1171,6 +1207,7 @@ class binance extends \ccxt\binance {
             '24hrTicker' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_ticker'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
+            'ACCOUNT_UPDATE' => array($this, 'handle_balance'),
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
         );

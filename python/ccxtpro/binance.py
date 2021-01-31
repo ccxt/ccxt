@@ -57,6 +57,7 @@ class binance(Exchange, ccxt.binance):
                 'watchTicker': {
                     'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
+                'wallet': 'wb',  # wb = wallet balance, cb = cross balance
             },
         })
 
@@ -705,6 +706,7 @@ class binance(Exchange, ccxt.binance):
         return await self.watch(url, messageHash)
 
     def handle_balance(self, client, message):
+        #
         # sent upon creating or filling an order
         #
         #     {
@@ -720,6 +722,39 @@ class binance(Exchange, ccxt.binance):
         #         ]
         #     }
         #
+        # future/delivery
+        #
+        #     {
+        #         "e": "ACCOUNT_UPDATE",            # Event Type
+        #         "E": 1564745798939,               # Event Time
+        #         "T": 1564745798938 ,              # Transaction
+        #         "i": "SfsR",                      # Account Alias
+        #         "a": {                           # Update Data
+        #             "m":"ORDER",                  # Event reason type
+        #             "B":[                        # Balances
+        #                 {
+        #                     "a":"BTC",                # Asset
+        #                     "wb":"122624.12345678",   # Wallet Balance
+        #                     "cw":"100.12345678"       # Cross Wallet Balance
+        #                 },
+        #             ],
+        #             "P":[
+        #                 {
+        #                     "s":"BTCUSD_200925",      # Symbol
+        #                     "pa":"0",                 # Position Amount
+        #                     "ep":"0.0",               # Entry Price
+        #                     "cr":"200",               #(Pre-fee) Accumulated Realized
+        #                     "up":"0",                 # Unrealized PnL
+        #                     "mt":"isolated",          # Margin Type
+        #                     "iw":"0.00000000",        # Isolated Wallet(if isolated position)
+        #                     "ps":"BOTH"               # Position Side
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        wallet = self.safe_value(self.options, 'wallet', 'wb')
+        message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -728,6 +763,7 @@ class binance(Exchange, ccxt.binance):
             account = self.account()
             account['free'] = self.safe_float(balance, 'f')
             account['used'] = self.safe_float(balance, 'l')
+            account['total'] = self.safe_float(balance, wallet)
             self.balance[code] = account
         self.balance = self.parse_balance(self.balance)
         messageHash = self.safe_string(message, 'e')
@@ -1082,6 +1118,7 @@ class binance(Exchange, ccxt.binance):
             '24hrTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
+            'ACCOUNT_UPDATE': self.handle_balance,
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
         }
