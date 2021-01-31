@@ -55,6 +55,7 @@ module.exports = class binance extends ccxt.binance {
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
+                'wallet': 'wb', // wb = wallet balance, cb = cross balance
             },
         });
     }
@@ -758,6 +759,7 @@ module.exports = class binance extends ccxt.binance {
     }
 
     handleBalance (client, message) {
+        //
         // sent upon creating or filling an order
         //
         //     {
@@ -773,6 +775,39 @@ module.exports = class binance extends ccxt.binance {
         //         ]
         //     }
         //
+        // future/delivery
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",            // Event Type
+        //         "E": 1564745798939,               // Event Time
+        //         "T": 1564745798938 ,              // Transaction
+        //         "i": "SfsR",                      // Account Alias
+        //         "a": {                            // Update Data
+        //             "m":"ORDER",                  // Event reason type
+        //             "B":[                         // Balances
+        //                 {
+        //                     "a":"BTC",                // Asset
+        //                     "wb":"122624.12345678",   // Wallet Balance
+        //                     "cw":"100.12345678"       // Cross Wallet Balance
+        //                 },
+        //             ],
+        //             "P":[
+        //                 {
+        //                     "s":"BTCUSD_200925",      // Symbol
+        //                     "pa":"0",                 // Position Amount
+        //                     "ep":"0.0",               // Entry Price
+        //                     "cr":"200",               // (Pre-fee) Accumulated Realized
+        //                     "up":"0",                 // Unrealized PnL
+        //                     "mt":"isolated",          // Margin Type
+        //                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
+        //                     "ps":"BOTH"               // Position Side
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const wallet = this.safeValue (this.options, 'wallet', 'wb');
+        message = this.safeValue (message, 'a', message);
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -781,6 +816,7 @@ module.exports = class binance extends ccxt.binance {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'f');
             account['used'] = this.safeFloat (balance, 'l');
+            account['total'] = this.safeFloat (balance, wallet);
             this.balance[code] = account;
         }
         this.balance = this.parseBalance (this.balance);
@@ -1168,6 +1204,7 @@ module.exports = class binance extends ccxt.binance {
             '24hrTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
+            'ACCOUNT_UPDATE': this.handleBalance,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };
