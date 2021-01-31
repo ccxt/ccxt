@@ -30,8 +30,14 @@ SOFTWARE.
 
 namespace ccxt;
 
+if (defined('PATH_TO_CCXT')) {
+    return;
+}
+
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 define('PATH_TO_CCXT_BASE', PATH_TO_CCXT . 'base' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_ASYNC_BASE', PATH_TO_CCXT_ASYNC . 'base' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
     // used to include static dependencies
@@ -47,8 +53,9 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
-    if (file_exists ($file))
+    if (file_exists($file)) {
         require_once $file;
+    }
 });
 
 require_once PATH_TO_CCXT_BASE . 'BaseError.php';
@@ -81,10 +88,18 @@ require_once PATH_TO_CCXT_BASE . 'InvalidNonce.php';
 require_once PATH_TO_CCXT_BASE . 'RequestTimeout.php';
 
 require_once PATH_TO_CCXT_BASE . 'Exchange.php';
+require_once PATH_TO_CCXT_ASYNC_BASE . 'Exchange.php';
 
-spl_autoload_register (function ($class_name) {
-    $class_name = str_replace ("ccxt\\", "", $class_name);
-    $file = PATH_TO_CCXT . $class_name . '.php';
-    if (file_exists ($file))
+$autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($autoloadFile)) {
+    require_once $autoloadFile;
+}
+
+spl_autoload_register(function ($class_name) {
+    $class_name = str_replace("ccxt\\", "", $class_name);
+    $sections = explode("\\", $class_name);
+    $file = PATH_TO_CCXT . implode(DIRECTORY_SEPARATOR, $sections) . '.php';
+    if (file_exists($file)) {
         require_once $file;
+    }
 });
