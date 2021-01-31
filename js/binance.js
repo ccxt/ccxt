@@ -395,7 +395,7 @@ module.exports = class binance extends ccxt.binance {
         //        "M": true         // Ignore
         //     }
         //
-        // private watchMyTrades
+        // private watchMyTrades spot
         //
         //     {
         //         e: 'executionReport',
@@ -432,15 +432,52 @@ module.exports = class binance extends ccxt.binance {
         //         Q: '0.00000000'
         //     }
         //
-        const event = this.safeString (trade, 'e');
-        if (event === undefined) {
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         s: 'BTCUSDT',
+        //         c: 'pb2jD6ZQHpfzSdUac8VqMK',
+        //         S: 'SELL',
+        //         o: 'MARKET',
+        //         f: 'GTC',
+        //         q: '0.001',
+        //         p: '0',
+        //         ap: '33468.46000',
+        //         sp: '0',
+        //         x: 'TRADE',
+        //         X: 'FILLED',
+        //         i: 13351197194,
+        //         l: '0.001',
+        //         z: '0.001',
+        //         L: '33468.46',
+        //         n: '0.00027086',
+        //         N: 'BNB',
+        //         T: 1612095165362,
+        //         t: 458032604,
+        //         b: '0',
+        //         a: '0',
+        //         m: false,
+        //         R: false,
+        //         wt: 'CONTRACT_PRICE',
+        //         ot: 'MARKET',
+        //         ps: 'BOTH',
+        //         cp: false,
+        //         rp: '0.00335000',
+        //         pP: false,
+        //         si: 0,
+        //         ss: 0
+        //     }
+        //
+        const executionType = this.safeString (trade, 'x');
+        const isTradeExecution = (executionType === 'TRADE');
+        if (!isTradeExecution) {
             return super.parseTrade (trade, market);
         }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
         const price = this.safeFloat2 (trade, 'L', 'p');
         let amount = this.safeFloat (trade, 'q');
-        if (event === 'executionReport') {
+        if (isTradeExecution) {
             amount = this.safeFloat (trade, 'l', amount);
         }
         let cost = this.safeFloat (trade, 'Y');
@@ -1076,16 +1113,16 @@ module.exports = class binance extends ccxt.binance {
                         cachedOrders.append (order);
                     }
                 }
-                if (this.myTrades === undefined) {
-                    const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    this.myTrades = new ArrayCacheBySymbolById (limit);
-                }
-                const myTrades = this.myTrades;
-                myTrades.append (trade);
-                client.resolve (this.myTrades, messageHash);
-                const messageHashSymbol = messageHash + ':' + symbol;
-                client.resolve (this.myTrades, messageHashSymbol);
             }
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCacheBySymbolById (limit);
+            }
+            const myTrades = this.myTrades;
+            myTrades.append (trade);
+            client.resolve (this.myTrades, messageHash);
+            const messageHashSymbol = messageHash + ':' + symbol;
+            client.resolve (this.myTrades, messageHashSymbol);
         }
     }
 
