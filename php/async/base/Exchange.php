@@ -119,15 +119,11 @@ class Exchange extends \ccxt\Exchange {
 
         try {
             $result = yield $this->browser->request($method, $url, $headers, $body);
-        } catch (\RuntimeException $e) {
-            if (strpos($e->getMessage(), 'timed out') !== false) { //operation timed out. Currently not way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
-                throw new RequestTimeout(implode(' ', array($url, $method, 28, $e->getMessage()))); //28 for compatibility with the CURL error code for timeout
-            }
-            // all sorts of SSL problems, accessibility
-            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $e->getCode(), $e->getMessage())));
         } catch (Exception $e) {
             $message = $e->getMessage();
-            if (strpos($message, 'DNS query') !== false) {
+            if (strpos($message, 'timed out') !== false) { // no way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
+                throw new RequestTimeout(implode(' ', array($url, $method, 28, $message))); // 28 for compatibility with CURL
+            } else if (strpos($message, 'DNS query') !== false) {
                 throw new ccxt\NetworkError($message);
             } else {
                 throw new ccxt\ExchangeError($message);
