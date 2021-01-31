@@ -5,7 +5,6 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
-include_once 'ccxt.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
