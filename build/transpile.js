@@ -287,6 +287,12 @@ class Transpiler {
         ]
     }
 
+    getSyncPHPRegexes () {
+        return [
+            [ /\byield /g, '' ]
+        ]
+    }
+
     getPHPRegexes () {
         return [
             [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
@@ -316,6 +322,7 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
+            [ /\sawait\s/g, ' yield '], // support async php
 
             [ /undefined/g, 'null' ],
             [ /this\.extend\s/g, 'array_merge' ],
@@ -605,9 +612,8 @@ class Transpiler {
         return 'class ' + className + ' extends ' + baseClass + ' {'
     }
 
-    createPHPClassHeader (className, baseClass, bodyAsString, async = false) {
-        let namespace = (async ? 'ccxt_async' : 'ccxt')
-        const header = [
+    createPHPClassHeader (className, baseClass, bodyAsString, namespace) {
+        return [
             "<?php",
             "",
             "namespace " + namespace + ";",
@@ -628,7 +634,7 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
-        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async)
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
 
         const errorImports = []
 
@@ -706,7 +712,16 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileJavaScriptToPHPAsync ({ js, variables }) {
+    transpileAsyncPHPToSyncPHP (php) {
+
+        // remove yield from php body
+        return this.regexAll (php, this.getSyncPHPRegexes ())
+    }
+
+    // ------------------------------------------------------------------------
+
+
+    transpileJavaScriptToPHP ({ js, variables }) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -779,11 +794,11 @@ class Transpiler {
         // remove await from Python 2 body (transpile Python 3 → Python 2)
         let python2Body = this.transpilePython3ToPython2 (python3Body)
 
-        // transpile JS → PHPAsync
-        let phpAsyncBody = this.transpileJavaScriptToPHPAsync (args)
+        // transpile JS → Async PHP
+        let phpAsyncBody = this.transpileJavaScriptToPHP (args)
 
-        // transpile PHPAsync → PHPSync (normal)
-        let phpBody = this.transpilePHPAsyncToPHP(phpAsyncBody)
+        // transpile async PHP -> sync PHP
+        let phpBody = this.transpileAsyncPHPToSyncPHP (phpAsyncBody)
 
         return { python3Body, python2Body, phpBody, phpAsyncBody }
     }
@@ -824,6 +839,29 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
+
+        fs.truncateSync (sync)
+        fs.writeFileSync (sync, newContents)
+    }
+
+    //-----------------------------------------------------------------------------
+
+    transpilePhpAsyncToSync () {
+
+        const async = './php/test/test_async.php'
+        const sync = './php/test/test.php'
+        log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
+        const fileContents = fs.readFileSync (async, 'utf8')
+        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
+
+        const phpSyncRegexes = [
+            [ /\$kernel->execute\(\$main\)/, '\$main()' ],
+            [ /\$kernel->run\(\);\n/, '' ],
+            [ /\$kernel = async\\Exchange::get_kernel\(\);\n/, '' ],
+            [ /ccxt\\\\async/, 'ccxt' ],
+        ]
+
+        const newContents = this.regexAll (syncBody, phpSyncRegexes)
 
         fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)
@@ -920,26 +958,19 @@ class Transpiler {
             php.push (phpBody);
             php.push ('    }')
 
-            // compile signature + body for PHP Async using generators
-            phpAsync.push('');
-            if (keyword) {
-                phpAsync.push('    public function ' + method + '(' + phpArgs + ') : Generator {');
-                phpAsync.push('        yield;');
-            } else {
-                phpAsync.push('    public function ' + method + '(' + phpArgs + ') {');
-            }
-            phpAsync.push(phpAsyncBody);
-            phpAsync.push('    }')
-
+            phpAsync.push ('');
+            phpAsync.push ('    public function ' + method + '(' + phpArgs + ') {');
+            phpAsync.push (phpAsyncBody);
+            phpAsync.push ('    }')
         }
 
         return {
 
-            // altogether in PHP, Python 2 and 3 (async)
-            python2: this.createPythonClass (className, baseClass, python2, methodNames),
-            python3: this.createPythonClass (className, baseClass, python3, methodNames, true),
-            php:     this.createPHPClass    (className, baseClass, php,     methodNames),
-            phpAsync:this.createPHPClass    (className, baseClass, phpAsync,methodNames, true),
+            // altogether in PHP, async PHP, Python 2 and 3 (async)
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
 
             className,
             baseClass,
@@ -957,18 +988,21 @@ class Transpiler {
             const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
+
             const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
 
             const python2Path = python2Folder ? (python2Folder + pythonFilename) : undefined
             const python3Path = python3Folder + pythonFilename
             const phpPath = phpFolder + phpFilename
+            const phpAsyncPath = phpAsyncFolder + phpFilename
 
             const python2mtime = python2Folder ? (fs.existsSync (python2Path) ? fs.statSync (python2Path).mtime.getTime () : 0) : undefined
             const python3mtime = fs.existsSync (python3Path) ? fs.statSync (python3Path).mtime.getTime () : 0
-            const phpmtime = fs.existsSync (python3Path) ? fs.statSync (phpPath).mtime.getTime () : 0
+            const phpAsyncmtime = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
+            const phpmtime = fs.existsSync (phpPath) ? fs.statSync (phpPath).mtime.getTime () : 0
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (python2Folder && (jsmtime > python2mtime))) {
+            if (force || (jsmtime > python3mtime) || (jsmtime > phpmtime) || (phpAsyncFolder && (jsmtime > phpAsyncmtime)) || (python2Folder && (jsmtime > python2mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
@@ -1464,9 +1498,9 @@ class Transpiler {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
-            , python2Folder = './python/ccxt/'
-            , python3Folder = './python/ccxt/async_support/'
-            , phpFolder     = './php/'
+            , python2Folder  = './python/ccxt/'
+            , python3Folder  = './python/ccxt/async_support/'
+            , phpFolder      = './php/'
             , phpAsyncFolder = './php/async/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
 
@@ -1495,6 +1529,8 @@ class Transpiler {
         this.transpileTests ()
 
         this.transpilePythonAsyncToSync ()
+
+        this.transpilePhpAsyncToSync ()
 
         log.bright.green ('Transpiled successfully.')
     }
