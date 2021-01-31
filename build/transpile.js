@@ -954,7 +954,7 @@ class Transpiler {
 
         try {
 
-            const { python2Folder, python3Folder, phpFolder } = options
+            const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
             const jsmtime = fs.statSync (jsFolder + filename).mtime.getTime ()
