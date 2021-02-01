@@ -4,8 +4,7 @@ namespace ccxt;
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
-
-include_once 'ccxt.php';
+include_once 'vendor/autoload.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
@@ -199,7 +198,7 @@ function test_ohlcvs($exchange, $symbol) {
         'okex',
         'okexusd',
     );
-    if (array_key_exists($exchange->id, $ignored_exchanges)) {
+    if (in_array($exchange->id, $ignored_exchanges)) {
         return;
     }
     if ($exchange->has['fetchOHLCV']) {
@@ -366,11 +365,18 @@ $proxies = array(
     // 'https://crossorigin.me/',
 );
 
-$main = function() use ($argv, $exchanges, $proxies) {
+$main = function() use ($argv, $exchanges, $proxies, $config) {
     if (count($argv) > 1) {
         if ($exchanges[$argv[1]]) {
             $id = $argv[1];
             $exchange = $exchanges[$id];
+
+            $exchange_config = $exchange->safe_value($config, $id, array());
+            $skip = $exchange->safe_value($exchange_config, 'skip', false);
+            if ($skip) {
+                dump(red('[Skipped] ' . $id));
+                exit();
+            }
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
@@ -389,6 +395,5 @@ $main = function() use ($argv, $exchanges, $proxies) {
         }
     }
 };
-
 
 $main();
