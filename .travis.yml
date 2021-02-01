@@ -1,4 +1,5 @@
 language: python
+dist: focal
 python:
 - '3.7'
 before_install:
