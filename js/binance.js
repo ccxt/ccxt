@@ -1725,7 +1725,7 @@ module.exports = class binance extends Exchange {
             quantityIsRequired = true;
             const callbackRate = this.safeFloat (params, 'callbackRate');
             if (callbackRate === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order');
             }
         }
         if (quantityIsRequired) {
@@ -1733,7 +1733,7 @@ module.exports = class binance extends Exchange {
         }
         if (priceIsRequired) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1743,7 +1743,7 @@ module.exports = class binance extends Exchange {
         if (stopPriceIsRequired) {
             const stopPrice = this.safeFloat (params, 'stopPrice');
             if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 params = this.omit (params, 'stopPrice');
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -1755,7 +1755,7 @@ module.exports = class binance extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1898,7 +1898,7 @@ module.exports = class binance extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1931,7 +1931,7 @@ module.exports = class binance extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2008,7 +2008,7 @@ module.exports = class binance extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
