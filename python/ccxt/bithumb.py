@@ -546,7 +546,7 @@ class bithumb(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         if id is None:
-            raise InvalidOrder(self.id + ' createOrder did not return an order id')
+            raise InvalidOrder(self.id + ' createOrder() did not return an order id')
         return {
             'info': response,
             'symbol': symbol,
@@ -557,7 +557,7 @@ class bithumb(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -773,7 +773,7 @@ class bithumb(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -809,9 +809,9 @@ class bithumb(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         side_in_params = ('side' in params)
         if not side_in_params:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
         market = self.market(symbol)
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])

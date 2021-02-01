@@ -971,7 +971,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits requires a "$to" iso8601 string param with the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a "$to" iso8601 string param with the $since argument is specified');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -1026,7 +1026,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a "$to" iso8601 string param with the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a "$to" iso8601 string param with the $since argument is specified');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -1417,7 +1417,7 @@ class bitpanda extends Exchange {
         if ($uppercaseType === 'STOP') {
             $triggerPrice = $this->safe_float($params, 'trigger_price');
             if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a trigger_price param for ' . $type . ' orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a trigger_price param for ' . $type . ' orders');
             }
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $params = $this->omit($params, 'trigger_price');
@@ -1568,7 +1568,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
             }
             $request['from'] = $this->iso8601($since);
         }
@@ -1732,7 +1732,7 @@ class bitpanda extends Exchange {
         if ($since !== null) {
             $to = $this->safe_string($params, 'to');
             if ($to === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a "$to" iso8601 string param with the $since argument is specified, max range is 100 days');
             }
             $request['from'] = $this->iso8601($since);
         }

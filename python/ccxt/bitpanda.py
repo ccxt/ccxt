@@ -940,7 +940,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = self.privateGetAccountDeposits(self.extend(request, params))
         #
@@ -990,7 +990,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = self.privateGetAccountWithdrawals(self.extend(request, params))
         #
@@ -1354,7 +1354,7 @@ class bitpanda(Exchange):
         if uppercaseType == 'STOP':
             triggerPrice = self.safe_float(params, 'trigger_price')
             if triggerPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a trigger_price param for ' + type + ' orders')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trigger_price param for ' + type + ' orders')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, 'trigger_price')
         if priceIsRequired:
@@ -1493,7 +1493,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1648,7 +1648,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
