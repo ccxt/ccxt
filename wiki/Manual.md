@@ -1210,6 +1210,8 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 
 ## Synchronous vs Asynchronous Calls
 
+### JavaScript
+
 In the JavaScript version of CCXT all methods are asynchronous and return [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolve with a decoded JSON object. In CCXT we use the modern *async/await* syntax to work with Promises. If you're not familiar with that syntax, you can read more about it [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 
 ```JavaScript
@@ -1223,6 +1225,8 @@ In the JavaScript version of CCXT all methods are asynchronous and return [Promi
     console.log (kraken.id, marketId, ticker)
 }) ()
 ```
+
+### Python
 
 The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async_support` subpackage, like in the following example:
 
@@ -1239,7 +1243,28 @@ async def print_poloniex_ethbtc_ticker():
 asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
 ```
 
-In PHP all API methods are synchronous.
+### PHP
+
+In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
+
+To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
+
+```PHP
+# PHP
+<?php
+include 'ccxt.php';
+
+$loop = \React\EventLoop\Factory::create();
+$kernel = \Recoil\React\ReactKernel::create($loop);
+$kernel->execute(function() use ($loop, $kernel) {
+    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
+    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+    var_dump($result);
+}, $loop);
+$kernel->run();
+```
+
+See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 ### Returned JSON Objects
 
