@@ -710,7 +710,7 @@ class bitstamp extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($limit === null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 $limit = 1000;
                 $start = intval($since / 1000);
