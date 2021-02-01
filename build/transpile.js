@@ -981,7 +981,11 @@ class Transpiler {
 
             const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
-            if (force || (jsMtime > python3Mtime) || (jsMtime > phpMtime) || (phpAsyncFolder && (jsMtime > phpAsyncMtime)) || (python2Folder && (jsMtime > python2Mtime))) {
+            if (force ||
+                (python3Folder  && (jsMtime > python3Mtime))  ||
+                (phpFolder      && (jsMtime > phpMtime))      ||
+                (phpAsyncFolder && (jsMtime > phpAsyncMtime)) ||
+                (python2Folder  && (jsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileDerivedExchangeClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
