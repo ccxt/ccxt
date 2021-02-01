@@ -18,6 +18,7 @@ module.exports = class aax extends Exchange {
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aax.com',
+            'certified': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
