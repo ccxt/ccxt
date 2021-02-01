@@ -326,6 +326,25 @@ class bitrue(Exchange):
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
 
+    async def fetch_closed_orders(self, symbol=None, start_id=None, limit=None, params={}):
+        await self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        if symbol is not None:
+            request['symbol'] = market['id']
+        if start_id is not None:
+            request['fromId'] = start_id
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetMyTrades(self.extend(request, params))
+        trades = response if isinstance(response, (list)) else []
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.parse_trade(trades[i], None)
+            result.append(trade)
+        return result
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
