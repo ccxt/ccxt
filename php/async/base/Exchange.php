@@ -55,6 +55,12 @@ class Exchange extends \ccxt\Exchange {
         return static::$kernel;
     }
 
+    public static function execute_and_run($arg) {
+        $kernel = static::get_kernel();
+        $kernel->execute($arg);
+        $kernel->run();
+    }
+
     public function __construct($options = array()) {
         $config = $this->omit($options, array('loop', 'kernel'));
         parent::__construct($config);
