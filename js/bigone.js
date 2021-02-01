@@ -764,7 +764,7 @@ module.exports = class bigone extends Exchange {
             if (isStopLimit || isStopMarket) {
                 const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
                 if (stopPrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price parameter');
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                 params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
