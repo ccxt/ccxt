@@ -348,6 +348,52 @@ module.exports = class bitrue extends Exchange {
         return this.parseBalance (result);
     }
 
+    async createOrder (symbol, side, amount, orderType = 'LIMIT', price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'type': orderType,
+            'quantity': this.amountToPrecision (symbol, amount),
+        };
+        if (orderType === 'LIMIT') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = this.privatePostOrder (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'orderId': id,
+            'symbol': market['id'],
+        };
+        const response = this.privateGetOrder (this.extend (request, params));
+        // todo check not in
+        // if "orderId" not in response:
+        // raise OrderNotFound(this.id + ' could not found matching order')
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = this.privateGetOpenOrders (this.extend (request, params));
+        const orders = Array.isArray (response) ? response : [];
+        const result = this.parseOrders (orders, market, undefined, undefined, params = {});
+        return result;
+    }
+
     async fetchClosedOrders (symbol = undefined, start_id = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -369,6 +415,104 @@ module.exports = class bitrue extends Exchange {
             result.push (trade);
         }
         return result;
+    }
+
+    async fetchOrders (self, symbol = undefined, orderId = undefined, limit = undefined, params = {}) {
+        // if symbol is undefined:
+        //   raise ArgumentsRequired(this.id + ' fetchOrders requires a `symbol` argument')
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const states = this.safeValue (params, 'states', []); // 'NEW', 'PARTIALLY_FILLED', 'CANCELED', 'FILLED'
+        const query = this.omit (params, 'states');
+        let request = {
+            'symbol': market['id'],
+        };
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = this.privateGetAllOrders (this.extend (request, query));
+        const orders = Array.isArray (response) ? response : [];
+        return this.parseOrders (orders, market, orderId, limit, {});
+    }
+
+    async parseOrder (order, market = undefined) {
+        // {
+        //   "symbol": "BATBTC",
+        //   "orderId": "194601105",
+        //   "clientOrderId": "",
+        //   "price": "0.0000216600000000",
+        //   "origQty": "155.0000000000000000",
+        //   "executedQty": "0.0000000000000000",
+        //   "cummulativeQuoteQty": "0.0000000000000000",
+        //   "status": "NEW",
+        //   "timeInForce": "",
+        //   "type": "LIMIT",
+        //   "side": "BUY",
+        //   "stopPrice": "",
+        //   "icebergQty": "",
+        //   "time": 1590637046000,
+        //   "updateTime": 1590637046000,
+        //   "isWorking": "False"
+        // }
+        const status = this.parseOrderStatus (this.safeValue (order, 'status'));
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        else {
+            market = this.marketsById[this.safeString (order, 'symbol').lower ()];
+        }
+        let timestamp = this.safeInteger (order, 'time');
+        if (timestamp !== undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'updateTime'));
+        }
+        const execute_qty = this.safeFloat (order, 'executedQty'); // todo check down: execute_qty if execute_qty > 0 else .
+        return {
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': this.safeValue (order, 'type'),
+            'side': this.safeValue (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
+            'average': this.safeFloat (order, 'cummulativeQuoteQty') / execute_qty,
+            'amount': this.safeFloat (order, 'origQty'),
+            'remaining': this.safeFloat (order, 'origQty') - execute_qty,
+            'filled': execute_qty,
+            'status': status,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
+        };
+    }
+
+    async parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceled',
+            'REJECTED': 'failed',
+            'EXPIRED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+        };
+        return this.privateDeleteOrder (this.extend (request, params));
     }
 
     async loadTimeDifference (params = {}) {
