@@ -511,7 +511,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' cancel_order() not supported or not supported yet');
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price, $params = array()) : Generator {
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) : Generator {
         if (!$this->enableRateLimit) {
             throw new ExchangeError($this->id . ' edit_order() requires enableRateLimit = true');
         }
