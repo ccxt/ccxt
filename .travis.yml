@@ -16,7 +16,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip install ccxt
-- pip2 install requests[security]
+- pip install requests[security]
 - git pull --tags
 - pecl install ds
 - php -i | grep php.ini
