@@ -678,7 +678,7 @@ class bitstamp(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 limit = 1000
                 start = int(since / 1000)
