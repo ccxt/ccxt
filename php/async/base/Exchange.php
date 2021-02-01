@@ -128,7 +128,7 @@ class Exchange extends \ccxt\Exchange {
         } catch (Exception $e) {
             $message = $e->getMessage();
             if (strpos($message, 'timed out') !== false) { // no way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
-                throw new RequestTimeout(implode(' ', array($url, $method, 28, $message))); // 28 for compatibility with CURL
+                throw new ccxt\RequestTimeout(implode(' ', array($url, $method, 28, $message))); // 28 for compatibility with CURL
             } else if (strpos($message, 'DNS query') !== false) {
                 throw new ccxt\NetworkError($message);
             } else {
