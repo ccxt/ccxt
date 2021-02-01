@@ -968,7 +968,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified');
             }
             request['from'] = this.iso8601 (since);
         }
@@ -1023,7 +1023,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified');
+                throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified');
             }
             request['from'] = this.iso8601 (since);
         }
@@ -1414,7 +1414,7 @@ module.exports = class bitpanda extends Exchange {
         if (uppercaseType === 'STOP') {
             const triggerPrice = this.safeFloat (params, 'trigger_price');
             if (triggerPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a trigger_price param for ' + type + ' orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a trigger_price param for ' + type + ' orders');
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             params = this.omit (params, 'trigger_price');
@@ -1565,7 +1565,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
             }
             request['from'] = this.iso8601 (since);
         }
@@ -1729,7 +1729,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
             }
             request['from'] = this.iso8601 (since);
         }
