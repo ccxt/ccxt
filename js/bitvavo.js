@@ -877,13 +877,13 @@ module.exports = class bitvavo extends Exchange {
             const response = await this.privatePutOrder (this.extend (request, params));
             return this.parseOrder (response, market);
         } else {
-            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument, or a price argument, or non-empty params');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
         }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -921,7 +921,7 @@ module.exports = class bitvavo extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadMarkets ();
@@ -1221,7 +1221,7 @@ module.exports = class bitvavo extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
