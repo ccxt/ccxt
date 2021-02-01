@@ -39,17 +39,17 @@ module.exports = class aax extends Exchange {
                 'fetchTrades': true,
             },
             'timeframes': {
-                '1m': '1',
-                '5m': '5',
-                '15m': '15',
-                '30m': '30',
-                '1h': '60',
-                '2h': '120',
-                '4h': '240',
-                '12h': '720',
-                '1d': '1440',
-                '3d': '4320',
-                '1w': '10080',
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg',
@@ -90,6 +90,7 @@ module.exports = class aax extends Exchange {
                         'futures/position/openInterest', // Open Interest
                         'market/tickers', // Get the Last 24h Market Summary
                         'market/candles', // Get Current Candlestick
+                        'market/history/candles', // Get Current Candlestick
                         'market/trades', // Get the Most Recent Trades
                         'market/markPrice', // Get Current Mark Price
                         'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
@@ -641,56 +642,57 @@ module.exports = class aax extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     [
-        //         "1567123200",
-        //         "0.01780", // open
-        //         "0.01785", // high
-        //         "0.01750", // low
-        //         "0.01758", // close
-        //         "0", // volume
-        //         "-0.0002200", // change
-        //         "-1.2360", // percent change?
+        //         0.042398, // 0 open
+        //         0.042684, // 1 high
+        //         0.042366, // 2 low
+        //         0.042386, // 3 close
+        //         0.93734243, // 4 volume
+        //         1611514800, // 5 timestamp
         //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 0),
+            this.safeTimestamp (ohlcv, 5),
+            this.safeFloat (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
             this.safeFloat (ohlcv, 2),
             this.safeFloat (ohlcv, 3),
             this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             // 'limit': limit, // if set counts from now into the past
-            'base': market['baseId'],
-            'quote': market['quoteId'],
-            'format': 'array',
-            'date_scale': this.timeframes[timeframe],
+            'symbol': market['id'],
+            'timeFrame': this.timeframes[timeframe],
         };
         limit = (limit === undefined) ? 500 : limit;
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
             const end = this.seconds ();
-            request['from'] = end - duration * limit;
-            request['to'] = end;
+            request['start'] = end - duration * limit;
+            request['end'] = end;
         } else {
             const start = parseInt (since / 1000);
-            request['from'] = start;
-            request['to'] = this.sum (start, duration * limit);
+            request['start'] = start;
+            request['end'] = this.sum (start, duration * limit);
         }
-        const response = await this.v1GetGetHistMarketData (this.extend (request, params));
+        const response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
         //
-        //     [
-        //         ["1567036800","0.01779","0.01796","0.01748","0.01780","0","0","0"],
-        //         ["1567123200","0.01780","0.01785","0.01750","0.01758","0","-0.0002200","-1.2360"],
-        //         ["1567209600","0.01758","0.01809","0.01739","0.01789","0","0.0003100","1.7634"],
-        //     ]
+        //     {
+        //         "data":[
+        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
+        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
+        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //         ],
+        //         "success":true,
+        //         "t":1611875157
+        //     }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -707,6 +709,7 @@ module.exports = class aax extends Exchange {
         const request = {
             'purseType': purseType,
         };
+        params = this.omit (params, 'type');
         const response = await this.privateGetAccountBalances (this.extend (request, params));
         //
         //     {
@@ -898,7 +901,7 @@ module.exports = class aax extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
         }
         let method = undefined;
         if (market['spot']) {
