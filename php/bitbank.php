@@ -391,7 +391,7 @@ class bitbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($price === null) {
-            throw new InvalidOrder($this->id . ' createOrder requires a $price argument for both $market and limit orders');
+            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for both $market and limit orders');
         }
         $request = array(
             'pair' => $market['id'],

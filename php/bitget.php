@@ -1708,7 +1708,7 @@ class bitget extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " requires an 'accountId' parameter");
+            throw new ArgumentsRequired($this->id . " getAccountId() requires an 'accountId' parameter");
         }
         $account = $this->find_account_by_type($type);
         return $account['id'];
@@ -1720,7 +1720,7 @@ class bitget extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'");
+            throw new ArgumentsRequired($this->id . " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'");
         }
         $method = null;
         $query = $this->omit($params, 'type');
@@ -2047,7 +2047,7 @@ class bitget extends Exchange {
             $request['client_oid'] = $clientOrderId;
             $orderType = $this->safe_string($params, 'type');
             if ($orderType === null) {
-                throw new ArgumentsRequired($this->id . " createOrder requires a $type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " . $market['type'] . ' orders');
+                throw new ArgumentsRequired($this->id . " createOrder() requires a $type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " . $market['type'] . ' orders');
             }
             $request['size'] = $this->amount_to_precision($symbol, $amount);
             $request['type'] = $orderType;
@@ -2089,7 +2089,7 @@ class bitget extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             if ($type === 'spot') {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument for spot orders');
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for spot orders');
                 }
             }
         } else {
@@ -2130,14 +2130,15 @@ class bitget extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrders requires a $type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
         }
+        $params = $this->omit($params, 'type');
         $request = array();
         $method = null;
         if ($type === 'spot') {
@@ -2194,13 +2195,13 @@ class bitget extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchOrder() requires a $type parameter (one of 'spot', 'swap').");
         }
         $method = null;
         $request = array();
@@ -2271,7 +2272,7 @@ class bitget extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2356,7 +2357,7 @@ class bitget extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2448,7 +2449,7 @@ class bitget extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2485,7 +2486,7 @@ class bitget extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2608,14 +2609,14 @@ class bitget extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         $query = $this->omit($params, 'type');
         if ($type === 'swap') {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades is not supported for ' . $type . ' type');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() is not supported for ' . $type . ' type');
         }
         //
         // spot
@@ -2672,12 +2673,12 @@ class bitget extends Exchange {
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
-        $query = $this->omit($params, 'type');
+        $params = $this->omit($params, 'type');
         $method = null;
         $request = array();
         if ($type === 'spot') {
@@ -2689,7 +2690,7 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
             $method = 'swapGetOrderFills';
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //

@@ -767,7 +767,7 @@ class bigone extends Exchange {
             if ($isStopLimit || $isStopMarket) {
                 $stopPrice = $this->safe_float_2($params, 'stop_price', 'stopPrice');
                 if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price parameter');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price parameter');
                 }
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
                 $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));

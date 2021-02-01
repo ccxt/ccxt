@@ -1659,19 +1659,19 @@ class binance(Exchange):
             quantityIsRequired = True
             callbackRate = self.safe_float(params, 'callbackRate')
             if callbackRate is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a callbackRate extra param for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
         if quantityIsRequired:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if priceIsRequired:
             if price is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if timeInForceIsRequired:
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
             stopPrice = self.safe_float(params, 'stopPrice')
             if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 params = self.omit(params, 'stopPrice')
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -1680,7 +1680,7 @@ class binance(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
@@ -1810,7 +1810,7 @@ class binance(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
@@ -1839,7 +1839,7 @@ class binance(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1911,7 +1911,7 @@ class binance(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', market['type'])

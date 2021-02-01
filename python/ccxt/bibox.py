@@ -879,7 +879,7 @@ class bibox(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -897,7 +897,7 @@ class bibox(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         size = limit if limit else 200

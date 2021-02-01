@@ -395,7 +395,7 @@ class bitflyer(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -408,7 +408,7 @@ class bitflyer(Exchange):
 
     def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchPositions requires a `symbols` argument, exactly one symbol in an array')
+            raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
         self.load_markets()
         request = {
             'product_code': self.market_ids(symbols),

@@ -374,7 +374,7 @@ class bitbank(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if price is None:
-            raise InvalidOrder(self.id + ' createOrder requires a price argument for both market and limit orders')
+            raise InvalidOrder(self.id + ' createOrder() requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
