@@ -543,7 +543,7 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->edit_limit_order($id, $symbol, $side, $amount, $price, $params);
     }
 
-    public function editOrder($id, $symbol, $type, $side, $amount, $price, $params = array()) : Generator {
+    public function editOrder($id, $symbol, $type, $side, $amount, $price = null, $params = array()) : Generator {
         return yield $this->edit_order($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
