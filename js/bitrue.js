@@ -362,7 +362,7 @@ module.exports = class bitrue extends Exchange {
             request['limit'] = limit;
         }
         const response = this.privateGetMyTrades (this.extend (request, params));
-        const trades = response ? response : [];
+        const trades = Array.isArray (response) ? response : [];
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = this.parseTrade (trades[i], undefined);
