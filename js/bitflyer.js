@@ -425,7 +425,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -441,7 +441,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions requires a `symbols` argument, exactly one symbol in an array');
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
         await this.loadMarkets ();
         const request = {
