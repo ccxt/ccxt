@@ -1093,7 +1093,7 @@ class bitmax extends Exchange {
         if (($type === 'stop_limit') || ($type === 'stop_market')) {
             $stopPrice = $this->safe_float($params, 'stopPrice');
             if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder requires a $stopPrice parameter for ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $type . ' orders');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 $params = $this->omit($params, 'stopPrice');
@@ -1348,7 +1348,7 @@ class bitmax extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $this->load_accounts();
