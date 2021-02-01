@@ -156,8 +156,11 @@ module.exports = class coinbene extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        console.log ('market ', market);
         const request = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'period': this.timeframes[timeframe],
         };
         const response = await this.publicGetMarketInstrumentsCandles (request);
@@ -276,8 +279,9 @@ module.exports = class coinbene extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const result = {};
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'direction': side,
             'price': price,
             'quantity': amount,
@@ -336,9 +340,11 @@ module.exports = class coinbene extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const result = [];
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
         };
         const response = await this.privateGetOrderOpenOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'data');
