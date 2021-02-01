@@ -67,6 +67,7 @@ module.exports = class aax extends Exchange {
                 'www': 'https://www.aax.com', // string website URL
                 'doc': 'https://www.aax.com/apidoc/index.html',
                 'fees': 'https://www.aax.com/en-US/fees/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
