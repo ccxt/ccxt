@@ -388,7 +388,7 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (price === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
+            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for both market and limit orders');
         }
         const request = {
             'pair': market['id'],
