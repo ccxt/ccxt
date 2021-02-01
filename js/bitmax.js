@@ -1090,7 +1090,7 @@ module.exports = class bitmax extends Exchange {
         if ((type === 'stop_limit') || (type === 'stop_market')) {
             const stopPrice = this.safeFloat (params, 'stopPrice');
             if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a stopPrice parameter for ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
                 params = this.omit (params, 'stopPrice');
@@ -1345,7 +1345,7 @@ module.exports = class bitmax extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
