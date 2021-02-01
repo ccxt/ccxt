@@ -251,6 +251,7 @@ class binance(Exchange):
                         'userDataStream/isolated',
                     ],
                     'delete': [
+                        'margin/openOrders',
                         'margin/order',
                         'userDataStream',
                         'userDataStream/isolated',
@@ -1849,7 +1850,9 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         method = 'privateDeleteOpenOrders'
-        if type == 'future':
+        if type == 'margin':
+            method = 'sapiDeleteMarginOpenOrders'
+        elif type == 'future':
             method = 'fapiPrivateDeleteAllOpenOrders'
         elif type == 'delivery':
             method = 'dapiPrivateDeleteAllOpenOrders'

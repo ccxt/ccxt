@@ -238,6 +238,7 @@ class binance extends Exchange {
                         'userDataStream/isolated',
                     ),
                     'delete' => array(
+                        'margin/openOrders',
                         'margin/order',
                         'userDataStream',
                         'userDataStream/isolated',
@@ -1949,7 +1950,9 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
         $method = 'privateDeleteOpenOrders';
-        if ($type === 'future') {
+        if ($type === 'margin') {
+            $method = 'sapiDeleteMarginOpenOrders';
+        } else if ($type === 'future') {
             $method = 'fapiPrivateDeleteAllOpenOrders';
         } else if ($type === 'delivery') {
             $method = 'dapiPrivateDeleteAllOpenOrders';
