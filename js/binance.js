@@ -231,6 +231,7 @@ module.exports = class binance extends Exchange {
                         'userDataStream/isolated',
                     ],
                     'delete': [
+                        'margin/openOrders',
                         'margin/order',
                         'userDataStream',
                         'userDataStream/isolated',
@@ -1942,7 +1943,9 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let method = 'privateDeleteOpenOrders';
-        if (type === 'future') {
+        if (type === 'margin') {
+            method = 'sapiDeleteMarginOpenOrders';
+        } else if (type === 'future') {
             method = 'fapiPrivateDeleteAllOpenOrders';
         } else if (type === 'delivery') {
             method = 'dapiPrivateDeleteAllOpenOrders';
