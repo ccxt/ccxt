@@ -589,7 +589,7 @@ module.exports = class zb extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + 'fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -789,11 +789,11 @@ module.exports = class zb extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         const password = this.safeString (params, 'safePwd', this.password);
         if (password === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw requires exchange.password or a safePwd parameter');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires exchange.password or a safePwd parameter');
         }
         const fees = this.safeFloat (params, 'fees');
         if (fees === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw requires a fees parameter');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a fees parameter');
         }
         this.checkAddress (address);
         await this.loadMarkets ();
