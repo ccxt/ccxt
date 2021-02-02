@@ -1215,7 +1215,7 @@ module.exports = class bittrex extends Exchange {
         const request = {
             'currencySymbol': currency['id'],
         };
-        const response = await this.privatePostAddressesCurrencySymbol (this.extend (request, params));
+        const response = await this.privatePostAddresses (this.extend (request, params));
         //
         //     {
         //         "status":"PROVISIONED",
