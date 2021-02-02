@@ -724,7 +724,7 @@ module.exports = class liquid extends Exchange {
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires the price argument');
         }
         const request = {
             'order': {
