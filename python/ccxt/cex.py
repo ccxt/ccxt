@@ -882,7 +882,7 @@ class cex(Exchange):
         self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = getattr(self, method)(self.extend(request, params))
@@ -1208,9 +1208,9 @@ class cex(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a amount argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         self.load_markets()
         market = self.market(symbol)
         # see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest

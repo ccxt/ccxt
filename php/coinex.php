@@ -566,7 +566,7 @@ class coinex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -795,7 +795,7 @@ class coinex extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -853,7 +853,7 @@ class coinex extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);

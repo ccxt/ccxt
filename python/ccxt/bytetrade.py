@@ -283,7 +283,7 @@ class bytetrade(Exchange):
 
     def fetch_balance(self, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires self.apiKey or userid argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -566,7 +566,7 @@ class bytetrade(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
-            raise ArgumentsRequired('createOrder requires self.apiKey or userid in params')
+            raise ArgumentsRequired('createOrder() requires self.apiKey or userid in params')
         self.load_markets()
         market = self.market(symbol)
         sideNum = None
@@ -746,7 +746,7 @@ class bytetrade(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOrder requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOrder() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -761,7 +761,7 @@ class bytetrade(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOpenOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOpenOrders() requires self.apiKey or userid argument')
         self.load_markets()
         request = {
             'userid': self.apiKey,
@@ -777,7 +777,7 @@ class bytetrade(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchClosedOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchClosedOrders() requires self.apiKey or userid argument')
         self.load_markets()
         market = None
         request = {
@@ -793,7 +793,7 @@ class bytetrade(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchOrders requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchOrders() requires self.apiKey or userid argument')
         self.load_markets()
         market = None
         request = {
@@ -809,9 +809,9 @@ class bytetrade(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if self.apiKey is None:
-            raise ArgumentsRequired('cancelOrder requires hasAlreadyAuthenticatedSuccessfully')
+            raise ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         baseId = market['baseId']
@@ -907,7 +907,7 @@ class bytetrade(Exchange):
     def transfer(self, code, amount, address, message='', params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
-            raise ArgumentsRequired('transfer requires self.apiKey')
+            raise ArgumentsRequired('transfer() requires self.apiKey')
         self.load_markets()
         currency = self.currency(code)
         amountTruncate = self.decimal_to_precision(amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING)
@@ -1010,7 +1010,7 @@ class bytetrade(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchMyTrades requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchMyTrades() requires self.apiKey or userid argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1026,7 +1026,7 @@ class bytetrade(Exchange):
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchDeposits requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchDeposits() requires self.apiKey or userid argument')
         currency = None
         request = {
             'userid': self.apiKey,
@@ -1044,7 +1044,7 @@ class bytetrade(Exchange):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchWithdrawals requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchWithdrawals() requires self.apiKey or userid argument')
         currency = None
         request = {
             'userid': self.apiKey,
@@ -1119,7 +1119,7 @@ class bytetrade(Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         if not ('userid' in params) and (self.apiKey is None):
-            raise ArgumentsRequired('fetchDepositAddress requires self.apiKey or userid argument')
+            raise ArgumentsRequired('fetchDepositAddress() requires self.apiKey or userid argument')
         currency = self.currency(code)
         request = {
             'userid': self.apiKey,
@@ -1143,7 +1143,7 @@ class bytetrade(Exchange):
         self.check_address(address)
         self.load_markets()
         if self.apiKey is None:
-            raise ArgumentsRequired('withdraw requires self.apiKey')
+            raise ArgumentsRequired(self.id + ' withdraw() requires self.apiKey')
         addressResponse = self.fetch_deposit_address(code)
         chainTypeString = self.safe_string(addressResponse, 'chainType')
         chainId = self.safe_string(addressResponse['info'][0], 'chainId')
