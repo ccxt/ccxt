@@ -417,7 +417,7 @@ module.exports = class bitrue extends Exchange {
         return result;
     }
 
-    async fetchOrders (self, symbol = undefined, orderId = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, orderId = undefined, limit = undefined, params = {}) {
         // if symbol is undefined:
         //   raise ArgumentsRequired(this.id + ' fetchOrders requires a `symbol` argument')
         await this.loadMarkets ();
