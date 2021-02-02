@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "28cedba4c19562e18bc6f2b06fe5f888",
+    "content-hash": "8213807888dbeed5d434c0188932a3ee",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.41.39",
+            "version": "1.41.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "29e3ae9a59d38aea68e756051f649733c3204780"
+                "reference": "f26499208e9e3da3edd920e05dedd6e4f970a9b3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/29e3ae9a59d38aea68e756051f649733c3204780",
-                "reference": "29e3ae9a59d38aea68e756051f649733c3204780",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/f26499208e9e3da3edd920e05dedd6e4f970a9b3",
+                "reference": "f26499208e9e3da3edd920e05dedd6e4f970a9b3",
                 "shasum": ""
             },
             "require": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.41.39"
+                "source": "https://github.com/ccxt/ccxt/tree/1.41.45"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-02-01T15:22:05+00:00"
+            "time": "2021-02-02T11:32:50+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -735,16 +735,16 @@
         },
         {
             "name": "react/cache",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/cache.git",
-                "reference": "44a568925556b0bd8cacc7b49fb0f1cf0d706a0c"
+                "reference": "4bf736a2cccec7298bdf745db77585966fc2ca7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/cache/zipball/44a568925556b0bd8cacc7b49fb0f1cf0d706a0c",
-                "reference": "44a568925556b0bd8cacc7b49fb0f1cf0d706a0c",
+                "url": "https://api.github.com/repos/reactphp/cache/zipball/4bf736a2cccec7298bdf745db77585966fc2ca7e",
+                "reference": "4bf736a2cccec7298bdf745db77585966fc2ca7e",
                 "shasum": ""
             },
             "require": {
@@ -795,7 +795,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/cache/issues",
-                "source": "https://github.com/reactphp/cache/tree/v1.1.0"
+                "source": "https://github.com/reactphp/cache/tree/v1.1.1"
             },
             "funding": [
                 {
@@ -807,7 +807,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-09-18T12:12:35+00:00"
+            "time": "2021-02-02T06:47:52+00:00"
         },
         {
             "name": "react/dns",
