@@ -1076,7 +1076,10 @@ module.exports = class binance extends ccxt.binance {
         //         }
         //     }
         //
-        message = this.safeValue (message, 'o', message);
+        const e = this.safeString (message, 'e');
+        if (e === 'ORDER_TRADE_UPDATE') {
+            message = this.safeValue (message, 'o', message);
+        }
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);
     }
