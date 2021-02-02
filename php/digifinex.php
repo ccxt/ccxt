@@ -507,7 +507,7 @@ class digifinex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         $apiKey = $this->safe_value($params, 'apiKey', $this->apiKey);
         if (!$apiKey) {
-            throw new ArgumentsRequired($this->id . ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
+            throw new ArgumentsRequired($this->id . ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
         }
         $this->load_markets();
         $request = array(
@@ -553,7 +553,7 @@ class digifinex extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $apiKey = $this->safe_value($params, 'apiKey', $this->apiKey);
         if (!$apiKey) {
-            throw new ArgumentsRequired($this->id . ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
+            throw new ArgumentsRequired($this->id . ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
         }
         $this->load_markets();
         $market = $this->market($symbol);

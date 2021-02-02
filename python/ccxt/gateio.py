@@ -703,7 +703,7 @@ class gateio(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires symbol argument')
         self.load_markets()
         request = {
             'orderNumber': id,
@@ -750,7 +750,7 @@ class gateio(Exchange):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -762,7 +762,7 @@ class gateio(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

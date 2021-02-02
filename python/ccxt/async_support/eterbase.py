@@ -590,7 +590,7 @@ class eterbase(Exchange):
             request['start'] = now - duration * limit * 1000
             request['end'] = now
         else:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument, or a limit argument, or both')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both')
         await self.load_markets()
         market = self.market(symbol)
         request['id'] = market['id']

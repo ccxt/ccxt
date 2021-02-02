@@ -702,7 +702,7 @@ class exmo(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 if limit > maxLimit:
                     raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
