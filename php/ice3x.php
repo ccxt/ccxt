@@ -229,7 +229,7 @@ class ice3x extends Exchange {
             $type = $this->safe_string($params, 'type');
             if (($type !== 'ask') && ($type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ArgumentsRequired($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
+                throw new ArgumentsRequired($this->id . " fetchOrderBook() requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
             } else {
                 $request['items_per_page'] = $limit;
             }

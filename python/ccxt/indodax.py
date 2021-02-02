@@ -400,7 +400,7 @@ class indodax(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -478,10 +478,10 @@ class indodax(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         side = self.safe_value(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires an extra "side" param')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
         self.load_markets()
         market = self.market(symbol)
         request = {

@@ -845,7 +845,7 @@ class hbtc extends Exchange {
                 $method = 'optionGetMyTrades';
             } else {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument for ' . $type . ' markets');
+                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument for ' . $type . ' markets');
                 }
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
