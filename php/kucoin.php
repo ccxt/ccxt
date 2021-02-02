@@ -934,7 +934,7 @@ class kucoin extends Exchange {
         // otherwise a wrong endpoint for all orders will be triggered
         // https://github.com/ccxt/ccxt/issues/7234
         if ($id === null) {
-            throw new InvalidOrder($this->id . ' fetchOrder requires an order id');
+            throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
         }
         $request = array(
             'orderId' => $id,
@@ -1612,7 +1612,7 @@ class kucoin extends Exchange {
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger requires a $code param');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
         }
         $this->load_markets();
         $this->load_accounts();

@@ -903,7 +903,7 @@ class kucoin(Exchange):
         # otherwise a wrong endpoint for all orders will be triggered
         # https://github.com/ccxt/ccxt/issues/7234
         if id is None:
-            raise InvalidOrder(self.id + ' fetchOrder requires an order id')
+            raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
         request = {
             'orderId': id,
         }
@@ -1525,7 +1525,7 @@ class kucoin(Exchange):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchLedger requires a code param')
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code param')
         await self.load_markets()
         await self.load_accounts()
         currency = self.currency(code)
