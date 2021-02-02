@@ -461,15 +461,17 @@ module.exports = class bitrue extends Exchange {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        }
-        else {
+        } else {
             market = this.marketsById[this.safeString (order, 'symbol').lower ()];
         }
-        let timestamp = this.safeInteger (order, 'time');
-        if (timestamp !== undefined) {
-            timestamp = this.parse8601 (this.safeString (order, 'updateTime'));
+        let timestamp = undefined;
+        if ('time' in order) {
+            timestamp = this.safeInteger (order, 'time');
+        } else if ('updateTime' in order) {
+            timestamp = this.safeInteger (order, 'updateTime');
         }
-        const execute_qty = this.safeFloat (order, 'executedQty'); // todo check down: execute_qty if execute_qty > 0 else .
+        const executeQty = this.safeFloat (order, 'executedQty');
+        const average = (executeQty > 0) ? this.safeFloat (order, 'cummulativeQuoteQty') / executeQty : 0.0;
         return {
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -481,10 +483,10 @@ module.exports = class bitrue extends Exchange {
             'type': this.safeValue (order, 'type'),
             'side': this.safeValue (order, 'side'),
             'price': this.safeFloat (order, 'price'),
-            'average': this.safeFloat (order, 'cummulativeQuoteQty') / execute_qty,
+            'average': average,
             'amount': this.safeFloat (order, 'origQty'),
-            'remaining': this.safeFloat (order, 'origQty') - execute_qty,
-            'filled': execute_qty,
+            'remaining': this.safeFloat (order, 'origQty') - executeQty,
+            'filled': executeQty,
             'status': status,
             'cost': undefined,
             'trades': undefined,
