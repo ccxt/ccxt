@@ -920,7 +920,7 @@ class currencycom extends Exchange {
         if ($market['margin']) {
             $accountId = $this->safe_integer($params, 'accountId');
             if ($accountId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires an $accountId parameter for ' . $market['type'] . ' $market ' . $symbol);
+                throw new ArgumentsRequired($this->id . ' createOrder() requires an $accountId parameter for ' . $market['type'] . ' $market ' . $symbol);
             }
         }
         $uppercaseType = strtoupper($type);
@@ -981,7 +981,7 @@ class currencycom extends Exchange {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
-            throw new ExchangeError($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetOpenOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -989,7 +989,7 @@ class currencycom extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1024,7 +1024,7 @@ class currencycom extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

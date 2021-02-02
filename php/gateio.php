@@ -736,7 +736,7 @@ class gateio extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires $symbol argument');
         }
         $this->load_markets();
         $request = array(
@@ -792,7 +792,7 @@ class gateio extends Exchange {
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -806,7 +806,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

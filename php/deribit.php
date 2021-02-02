@@ -780,7 +780,7 @@ class deribit extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
                 $request['end_timestamp'] = $now;
@@ -1195,13 +1195,13 @@ class deribit extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
         }
         if ($stopPriceIsRequired) {
             $stopPrice = $this->safe_float_2($params, 'stop_price', 'stopPrice');
             if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price or $stopPrice param for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price or $stopPrice param for a ' . $type . ' order');
             } else {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
             }
@@ -1270,10 +1270,10 @@ class deribit extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->load_markets();
         $request = array(
