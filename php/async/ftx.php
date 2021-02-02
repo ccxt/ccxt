@@ -16,7 +16,7 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'HK' ),
-            'rateLimit' => 34,
+            'rateLimit' => 50,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
@@ -221,6 +221,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
