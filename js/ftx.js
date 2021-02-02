@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
             'id': 'ftx',
             'name': 'FTX',
             'countries': [ 'HK' ],
-            'rateLimit': 34,
+            'rateLimit': 50,
             'certified': true,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
@@ -219,6 +219,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
