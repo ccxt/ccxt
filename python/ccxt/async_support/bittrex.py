@@ -1158,7 +1158,7 @@ class bittrex(Exchange):
         request = {
             'currencySymbol': currency['id'],
         }
-        response = await self.privatePostAddressesCurrencySymbol(self.extend(request, params))
+        response = await self.privatePostAddresses(self.extend(request, params))
         #
         #     {
         #         "status":"PROVISIONED",
