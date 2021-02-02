@@ -1027,14 +1027,14 @@ class xena extends Exchange {
         );
         if (($type === 'limit') || ($type === 'stop-limit')) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder requires a $price argument for order $type ' . $type);
+                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for order $type ' . $type);
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if (($type === 'stop') || ($type === 'stop-limit')) {
             $stopPx = $this->safe_float($params, 'stopPx');
             if ($stopPx === null) {
-                throw new InvalidOrder($this->id . ' createOrder requires a $stopPx param for order $type ' . $type);
+                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPx param for order $type ' . $type);
             }
             $request['stopPx'] = $this->price_to_precision($symbol, $stopPx);
             $params = $this->omit($params, 'stopPx');
@@ -1072,7 +1072,7 @@ class xena extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $this->load_accounts();
@@ -1127,7 +1127,7 @@ class xena extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $this->load_accounts();

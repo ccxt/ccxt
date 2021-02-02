@@ -595,7 +595,7 @@ class zb extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . 'fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . 'fetchOpenOrders() requires a $symbol argument');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -795,11 +795,11 @@ class zb extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $password = $this->safe_string($params, 'safePwd', $this->password);
         if ($password === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires exchange.password or a safePwd parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires exchange.password or a safePwd parameter');
         }
         $fees = $this->safe_float($params, 'fees');
         if ($fees === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw requires a $fees parameter');
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $fees parameter');
         }
         $this->check_address($address);
         yield $this->load_markets();
