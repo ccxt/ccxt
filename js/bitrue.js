@@ -376,9 +376,10 @@ module.exports = class bitrue extends Exchange {
             'symbol': market['id'],
         };
         const response = this.privateGetOrder (this.extend (request, params));
-        // todo check not in
-        // if "orderId" not in response:
-        // raise OrderNotFound(this.id + ' could not found matching order')
+        const orderId = this.safeString (response, 'orderId');
+        if (orderId === undefined) {
+            throw new OrderNotFound (this.id + ' could not find matching order');
+        }
         return this.parseOrder (response, market);
     }
 
