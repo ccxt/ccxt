@@ -1685,7 +1685,7 @@ class okex(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
+            raise ArgumentsRequired(self.id + " fetchBalance() requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
         await self.load_markets()
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
@@ -1915,7 +1915,7 @@ class okex(Exchange):
             defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " cancelOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -2120,13 +2120,13 @@ class okex(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         instrumentId = 'InstrumentId' if (market['futures'] or market['swap']) else ''
         method = type + 'GetOrders' + instrumentId
         request = {
@@ -2191,7 +2191,7 @@ class okex(Exchange):
 
     async def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByState() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = None
@@ -2201,7 +2201,7 @@ class okex(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrdersByState() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         request = {
             'instrument_id': market['id'],
             # '-2': failed,
@@ -2718,7 +2718,7 @@ class okex(Exchange):
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
         # until either OKEX fixes the API or we workaround self on our side somehow
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         if (limit is not None) and (limit > 100):
@@ -3098,13 +3098,13 @@ class okex(Exchange):
         currency = None
         if (type == 'spot') or (type == 'futures'):
             if code is None:
-                raise ArgumentsRequired(self.id + " fetchLedger requires a currency code argument for '" + type + "' markets")
+                raise ArgumentsRequired(self.id + " fetchLedger() requires a currency code argument for '" + type + "' markets")
             argument = 'Currency'
             currency = self.currency(code)
             request['currency'] = currency['id']
         elif (type == 'margin') or (type == 'swap'):
             if code is None:
-                raise ArgumentsRequired(self.id + " fetchLedger requires a code argument(a market symbol) for '" + type + "' markets")
+                raise ArgumentsRequired(self.id + " fetchLedger() requires a code argument(a market symbol) for '" + type + "' markets")
             argument = 'InstrumentId'
             market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
             currency = self.currency(market['base'])

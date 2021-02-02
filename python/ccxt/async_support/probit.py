@@ -708,7 +708,7 @@ class probit(Exchange):
         endTime = now
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires either a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires either a since argument or a limit argument')
             else:
                 startTime = now - limit * duration * 1000
         else:
@@ -797,7 +797,7 @@ class probit(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -968,7 +968,7 @@ class probit(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

@@ -339,9 +339,9 @@ class lbank(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `since` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `since` argument')
         if limit is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a `limit` argument')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `limit` argument')
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
