@@ -469,9 +469,17 @@ module.exports = class bitrue extends Exchange {
             timestamp = this.safeInteger (order, 'time');
         } else if ('updateTime' in order) {
             timestamp = this.safeInteger (order, 'updateTime');
+        } else if ('transactTime' in order) {
+            timestamp = this.safeInteger (order, 'transactTime');
         }
         const executeQty = this.safeFloat (order, 'executedQty');
-        const average = (executeQty > 0) ? this.safeFloat (order, 'cummulativeQuoteQty') / executeQty : 0.0;
+        const cummulativeQuoteQty = this.safeFloat (order, 'cummulativeQuoteQty');
+        let average = undefined;
+        if (executeQty !== undefined && cummulativeQuoteQty !== undefined) {
+            average = (executeQty > 0) ? cummulativeQuoteQty / executeQty : 0.0;
+        }
+        const amount = this.safeFloat (order, 'origQty');
+        const remaining = (amount !== undefined && executeQty !== undefined) ? amount - executeQty : undefined;
         return {
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -484,8 +492,8 @@ module.exports = class bitrue extends Exchange {
             'side': this.safeValue (order, 'side'),
             'price': this.safeFloat (order, 'price'),
             'average': average,
-            'amount': this.safeFloat (order, 'origQty'),
-            'remaining': this.safeFloat (order, 'origQty') - executeQty,
+            'amount': amount,
+            'remaining': remaining,
             'filled': executeQty,
             'status': status,
             'cost': undefined,
