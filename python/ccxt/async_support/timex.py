@@ -476,7 +476,7 @@ class timex(Exchange):
             elif expireIn is not None:
                 request['expireIn'] = expireIn
             else:
-                raise InvalidOrder(self.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')
+                raise InvalidOrder(self.id + ' createOrder() method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')
             query = self.omit(params, ['expireTime', 'expireIn'])
         else:
             request['price'] = 0

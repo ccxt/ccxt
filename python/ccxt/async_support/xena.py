@@ -976,12 +976,12 @@ class xena(Exchange):
         }
         if (type == 'limit') or (type == 'stop-limit'):
             if price is None:
-                raise InvalidOrder(self.id + ' createOrder requires a price argument for order type ' + type)
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for order type ' + type)
             request['price'] = self.price_to_precision(symbol, price)
         if (type == 'stop') or (type == 'stop-limit'):
             stopPx = self.safe_float(params, 'stopPx')
             if stopPx is None:
-                raise InvalidOrder(self.id + ' createOrder requires a stopPx param for order type ' + type)
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPx param for order type ' + type)
             request['stopPx'] = self.price_to_precision(symbol, stopPx)
             params = self.omit(params, 'stopPx')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid())
@@ -1015,7 +1015,7 @@ class xena(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)
@@ -1063,7 +1063,7 @@ class xena(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)

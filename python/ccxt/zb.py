@@ -563,7 +563,7 @@ class zb(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + 'fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + 'fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -748,10 +748,10 @@ class zb(Exchange):
     def withdraw(self, code, amount, address, tag=None, params={}):
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
-            raise ArgumentsRequired(self.id + ' withdraw requires exchange.password or a safePwd parameter')
+            raise ArgumentsRequired(self.id + ' withdraw() requires exchange.password or a safePwd parameter')
         fees = self.safe_float(params, 'fees')
         if fees is None:
-            raise ArgumentsRequired(self.id + ' withdraw requires a fees parameter')
+            raise ArgumentsRequired(self.id + ' withdraw() requires a fees parameter')
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
