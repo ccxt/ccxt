@@ -376,7 +376,7 @@ class coinone extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -571,7 +571,7 @@ class coinone extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -606,14 +606,14 @@ class coinone extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
             // eslint-disable-next-line quotes
-            throw new ArgumentsRequired($this->id . " cancelOrder requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires a $symbol argument. To cancel the order, pass a $symbol argument and array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
         }
         $price = $this->safe_float($params, 'price');
         $qty = $this->safe_float($params, 'qty');
         $isAsk = $this->safe_integer($params, 'is_ask');
         if (($price === null) || ($qty === null) || ($isAsk === null)) {
             // eslint-disable-next-line quotes
-            throw new ArgumentsRequired($this->id . " cancelOrder requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires array('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument.");
         }
         $this->load_markets();
         $request = array(
